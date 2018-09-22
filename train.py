@@ -143,7 +143,7 @@ def get_args():
     parser.add_option('-c', '--load', dest='load',
                       default=False, help='load file model')
     parser.add_option('-s', '--scale', dest='scale', type='float',
-                      default=0.5, help='downscaling factor of the images')
+                      default=1.0, help='downscaling factor of the images')
 
     (options, args) = parser.parse_args()
     return options
