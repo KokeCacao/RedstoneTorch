@@ -1,17 +1,39 @@
 import sys
 import os
 from optparse import OptionParser
-import numpy as np
 
 import torch
+import numpy as np
 import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import optim
+from torchvision import transforms
 
 from eval import eval_net
 from unet import UNet
-from utils import get_ids, split_ids, split_train_val, get_imgs_and_masks, batch
+from utils import get_ids, split_ids_for_augmentation, split_train_val, get_imgs_depths_and_masks, batch
+
+data_transforms = {
+    'train': transforms.Compose([
+        transforms.RandomResizedCrop(224),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]),
+    'val': transforms.Compose([
+        transforms.Resize(224),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]),
+}
+
+dir_img = 'data/train/images'
+dir_mask = 'data/train/masks'
+dir_checkpoint = 'checkpoints/'
+validation = True
+
 
 def train_net(net,
               epochs=5,
@@ -22,13 +44,13 @@ def train_net(net,
               gpu=False,
               img_scale=0.5):
 
-    dir_img = 'data/train/'
-    dir_mask = 'data/train_masks/'
-    dir_checkpoint = 'checkpoints/'
 
+    # get (id, sub-id)
     ids = get_ids(dir_img)
-    ids = split_ids(ids)
+    ids = split_ids_for_augmentation(ids, 2)
 
+    # iddataset['train'] are ids of tranning data
+    # iddataset['val'] are ids of validation data
     iddataset = split_train_val(ids, val_percent)
 
     print('''
@@ -55,15 +77,19 @@ def train_net(net,
     for epoch in range(epochs):
         print('Starting epoch {}/{}.'.format(epoch + 1, epochs))
 
-        # reset the generators
-        train = get_imgs_and_masks(iddataset['train'], dir_img, dir_mask, img_scale)
-        val = get_imgs_and_masks(iddataset['val'], dir_img, dir_mask, img_scale)
+        # reset the generators(augmentation)
+        train = get_imgs_depths_and_masks(iddataset['train'], dir_img, dir_mask, img_scale)
+        val = get_imgs_depths_and_masks(iddataset['val'], dir_img, dir_mask, img_scale)
 
         epoch_loss = 0
 
-        for i, b in enumerate(batch(train, batch_size)):
-            imgs = np.array([i[0] for i in b]).astype(np.float32)
-            true_masks = np.array([i[1] for i in b])
+        # create batch
+        # batch size should < 4000 due to the amount of data avaliable
+        for i, b in enumerate(batch(train, depth, batch_size)):
+            img = [x[0] for x in b]
+            depth = [x[1] for x in b]
+            imgs = np.array(img, depth).astype(np.float32)
+            true_masks = np.array([x[2] for x in b])
 
             imgs = torch.from_numpy(imgs)
             true_masks = torch.from_numpy(true_masks)
@@ -72,15 +98,17 @@ def train_net(net,
                 imgs = imgs.cuda()
                 true_masks = true_masks.cuda()
 
+            # train
             masks_pred = net(imgs)
             masks_probs = F.sigmoid(masks_pred)
-            masks_probs_flat = masks_probs.view(-1)
 
+            # stretch result to one dimension
+            masks_probs_flat = masks_probs.view(-1)
+            # stretch result to one dimension
             true_masks_flat = true_masks.view(-1)
 
             loss = criterion(masks_probs_flat, true_masks_flat)
             epoch_loss += loss.item()
-
             print('{0:.4f} --- loss: {1:.6f}'.format(i * batch_size / N_train, loss.item()))
 
             optimizer.zero_grad()
@@ -89,10 +117,12 @@ def train_net(net,
 
         print('Epoch finished ! Loss: {}'.format(epoch_loss / i))
 
-        if 1:
+        # validation
+        if validation:
             val_dice = eval_net(net, val, gpu)
             print('Validation Dice Coeff: {}'.format(val_dice))
 
+        # save parameter
         if save_cp:
             torch.save(net.state_dict(),
                        dir_checkpoint + 'CP{}.pth'.format(epoch + 1))
@@ -119,27 +149,30 @@ def get_args():
     return options
 
 if __name__ == '__main__':
+    # init artgs
     args = get_args()
 
-    net = UNet(n_channels=3, n_classes=1)
+    # 3 channels: 3 form image, 1 mask
+    # 1 classes: separate salt and others
+    unet = UNet(n_channels=3, n_classes=1)
 
     if args.load:
-        net.load_state_dict(torch.load(args.load))
+        unet.load_state_dict(torch.load(args.load))
         print('Model loaded from {}'.format(args.load))
 
     if args.gpu:
-        net.cuda()
+        unet.cuda()
         # cudnn.benchmark = True # faster convolutions, but more memory
 
     try:
-        train_net(net=net,
+        train_net(net=unet,
                   epochs=args.epochs,
                   batch_size=args.batchsize,
                   lr=args.lr,
                   gpu=args.gpu,
                   img_scale=args.scale)
     except KeyboardInterrupt:
-        torch.save(net.state_dict(), 'INTERRUPTED.pth')
+        torch.save(unet.state_dict(), 'INTERRUPTED.pth')
         print('Saved interrupt')
         try:
             sys.exit(0)
