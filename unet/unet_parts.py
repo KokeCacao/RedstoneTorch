@@ -29,7 +29,8 @@ class inconv(nn.Module):
         self.conv = double_conv(in_ch, out_ch)
 
     def forward(self, x):
-        x = self.conv(x)
+        # x = self.conv(x)
+        x = [self.conv(x[0]), x[1]]
         return x
 
 
@@ -42,7 +43,18 @@ class down(nn.Module):
         )
 
     def forward(self, x):
-        x = self.mpconv(x)
+        # x = self.mpconv(x)
+        x = [self.mpconv(x[0]), x[1]]
+        return x
+
+class join(nn.Module):
+    def __init__(self):
+        super(join, self).__init__()
+
+    def forward(self, x):
+        # x = torch.stack((x, self.data), dim=-1)
+        new = torch.ones(x[0].size(), dtype=torch.float64) * x[1]
+        x = torch.cat((x[0], new), 0)
         return x
 
 
