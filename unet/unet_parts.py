@@ -29,8 +29,8 @@ class inconv(nn.Module):
         self.conv = double_conv(in_ch, out_ch)
 
     def forward(self, x):
-        # x = self.conv(x)
-        x = [self.conv(x[0]), x[1]]
+        x = self.conv(x)
+        # x = [self.conv(x[0]), x[1]]
         return x
 
 
@@ -43,18 +43,33 @@ class down(nn.Module):
         )
 
     def forward(self, x):
-        # x = self.mpconv(x)
-        x = [self.mpconv(x[0]), x[1]]
+        x = self.mpconv(x)
+        # x = [self.mpconv(x[0]), x[1]]
         return x
 
 class join(nn.Module):
     def __init__(self):
         super(join, self).__init__()
 
-    def forward(self, x):
+    def forward(self, x, data):
         # x = torch.stack((x, self.data), dim=-1)
-        new = torch.ones(x[0].size(), dtype=torch.float64) * x[1]
-        x = torch.cat((x[0], new), 0)
+        # I am not sure whether this step is differentiable by autograd
+        # print (data.size())
+        # print (torch.ones(x.size(), dtype=torch.double).size())
+        # copy = torch.ones(x.size(), dtype=torch.double)
+        # copy[0] = copy[0]*data[0]
+        # copy[1] = copy[1]*data[1]
+        # copy[2] = copy[2]*data[2]
+        # copy[3] = copy[3]*data[3]
+        # copy[4] = copy[4]*data[4]
+        # copy[5] = copy[5]*data[5]
+        # copy[6] = copy[6]*data[6]
+        # copy[7] = copy[7]*data[7]
+        # copy[8] = copy[8]*data[8]
+        # copy[9] = copy[9]*data[9]
+        #
+        # # x = torch.cat((x, new), 0)
+        # x = torch.mul(x, copy.float())
         return x
 
 

@@ -3,12 +3,11 @@ import os
 
 import numpy as np
 import torch
-import torch.nn.functional as F
 
 from PIL import Image
 
 from unet import UNet
-from utils import resize_and_crop, normalize, split_img_into_squares, hwc_to_chw, merge_masks, dense_crf
+from utils import resize_and_crop, normalize, hwc_to_chw, dense_crf
 from utils import plot_img_and_mask
 
 from torchvision import transforms
@@ -42,8 +41,8 @@ def predict_img(net,
         output_left = net(X_left)
         output_right = net(X_right)
 
-        left_probs = F.sigmoid(output_left).squeeze(0)
-        right_probs = F.sigmoid(output_right).squeeze(0)
+        left_probs = torch.sigmoid(output_left).squeeze(0)
+        right_probs = torch.sigmoid(output_right).squeeze(0)
 
         tf = transforms.Compose(
             [
