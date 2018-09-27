@@ -18,14 +18,14 @@ class UNet(nn.Module):
         self.up4 = up(128, 64)
         self.outc = outconv(64, n_classes)
 
-    def forward(self, x):
+    def forward(self, x, depth):
         x1 = self.inc(x)
         x2 = self.down1(x1)
         x3 = self.down2(x2)
         x4 = self.down3(x3)
 
         # add depth data here
-        join = self.join(x4)
+        join = self.join(x4, depth)
 
         x5 = self.down4(join)
         x = self.up1(x5, x4)

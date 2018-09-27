@@ -1,5 +1,4 @@
 import torch
-import torch.nn.functional as F
 
 from dice_loss import dice_coeff
 
@@ -9,20 +8,21 @@ def eval_net(net, dataset, gpu=False):
     total_loss = 0
     num = 0
     for i, b in enumerate(dataset):
-        img = b[0]
+        imgs = b[0]
+        depths = b[1]
         true_mask = b[2]
 
-        img = torch.from_numpy(img).unsqueeze(0)
+        imgs = torch.from_numpy(imgs).unsqueeze(0)
         true_mask = torch.from_numpy(true_mask).unsqueeze(0)
 
         if gpu:
-            img = img.cuda()
+            imgs = imgs.cuda()
             true_mask = true_mask.cuda()
 
-        mask_pred = net(img)[0]
+        mask_pred = net(imgs, depths)[0]
         # threshole transform from probability to solid mask
-        mask_pred = (F.sigmoid(mask_pred) > 0.5).float()
+        mask_pred = (torch.sigmoid(mask_pred) > 0.5).float()
 
         total_loss += dice_coeff(mask_pred, true_mask).item()
-        num = i+1
+        num=num+1
     return total_loss / num

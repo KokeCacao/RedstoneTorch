@@ -19,11 +19,11 @@ def hwc_to_chw(img):
 # pilimg = image input
 # scale = resize to what percent
 # final_height =
-def resize_and_crop(pilimg, scale=1.0, final_height=None):
+def resize_and_crop(pilimg, scale=96, final_height=None):
     w = pilimg.size[0]
     h = pilimg.size[1]
-    newW = int(w * scale)
-    newH = int(h * scale)
+    newW = int(scale)
+    newH = int(scale)
 
     if not final_height:
         diff = 0
