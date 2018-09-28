@@ -11,11 +11,6 @@ from PIL import Image
 
 from .utils import resize_and_crop, normalize, hwc_to_chw, rle_encode
 
-def get_ids(dir):
-    """Returns a list of the ids in the directory"""
-    return (f[:].replace(".png", "", 1) for f in os.listdir(dir))
-
-
 # for each id, get (id, sub-id)
 def split_ids_for_augmentation(ids, n=1):
     """Split each id in n, creating n tuples (id, k) for each id"""

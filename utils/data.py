@@ -1,44 +1,178 @@
 import os
+import pandas as pd
+import numpy as np
 
 import torch
 from PIL import Image
+from skimage import io
 from torch.utils import data
+from torch.utils.data import SubsetRandomSampler
 
 
-class MNIST(data.Dataset):
-    def __init__(self, root, train=True, transform=None, mask_transform=None):
-        self.root = root
+class TGSData(data.Dataset):
+    # def __init__(self, root, train=True, transform=None, mask_transform=None):
+    #     self.root = root
+    #     self.transform = transform
+    #     self.mask_transform = mask_transform
+    #     self.train = train  # training set or test set
+    #
+    #     if not self._check_exists():
+    #         raise RuntimeError('Dataset not found.' +
+    #                            ' You can use download=True to download it')
+    #
+    #     if self.train:
+    #         self.train_data, self.train_labels = torch.load(
+    #             os.path.join(root, self.processed_folder, self.training_file))
+    #     else:
+    #         self.test_data, self.test_labels = torch.load(os.path.join(root, self.processed_folder, self.test_file))
+    #
+    # def __getitem__(self, index):
+    #     if self.train:
+    #         img, mask = self.train_data[index], self.train_labels[index]
+    #     else:
+    #         img, mask = self.test_data[index], self.test_labels[index]
+    #
+    #     # doing this so that it is consistent with all other datasets
+    #     # to return a PIL Image
+    #     img = Image.fromarray(img.numpy(), mode='L')
+    #
+    #     if self.transform is not None:
+    #         img = self.transform(img)
+    #
+    #     if self.mask_transform is not None:
+    #         mask = self.mask_transform(mask)
+    #
+    #     return img, mask
+    #
+    # def __len__(self):
+    #     return 0;
+
+    def __init__(self, csv_dir, img_dir, mask_dir, img_suffix=".png", mask_suffix=".png", transform=None):
+        self.masks_frame = pd.read_csv(csv_dir)
+        self.img_dir = img_dir
+        self.mask_dir = mask_dir
+        self.img_suffix = img_suffix
+        self.mask_suffix = mask_suffix
         self.transform = transform
-        self.mask_transform = mask_transform
-        self.train = train  # training set or test set
 
-        if not self._check_exists():
-            raise RuntimeError('Dataset not found.' +
-                               ' You can use download=True to download it')
+        self.train_len = 0
+        self.val_len = 0
 
-        if self.train:
-            self.train_data, self.train_labels = torch.load(
-                os.path.join(root, self.processed_folder, self.training_file))
-        else:
-            self.test_data, self.test_labels = torch.load(os.path.join(root, self.processed_folder, self.test_file))
+        self.sample = None
 
-    def __getitem__(self, index):
-        if self.train:
-            img, mask = self.train_data[index], self.train_labels[index]
-        else:
-            img, mask = self.test_data[index], self.test_labels[index]
-
-        # doing this so that it is consistent with all other datasets
-        # to return a PIL Image
-        img = Image.fromarray(img.numpy(), mode='L')
-
-        if self.transform is not None:
-            img = self.transform(img)
-
-        if self.mask_transform is not None:
-            mask = self.mask_transform(mask)
-
-        return img, mask
+        self.means = None
+        self.stds = None
 
     def __len__(self):
-        return 0;
+        return len(self.masks_frame)
+
+    def get_img_names(self):
+        return (f[:].replace(self.img_suffix, "", 1) for f in os.listdir(self.img_dir))
+
+    def get_data(self):
+        return self.sample
+
+    def get_sampler(self, all_id, data_percent=0.01, val_percent=0.05, shuffle_dataset=False, seed=19, batch_size=10):
+        self.sample = self.__getitem__(all_id)
+        print ("Loading sample:")
+        print ("Sample size:", len(self.sample), "samples")
+
+        print ("Sample mean of depth:", self.means.get("z"))
+        print ("Sample mean of image:", self.means.get("image"))
+        print ("Sample mean of masks:", self.means.get("mask"))
+        print ("Sample std of depth:", self.stds.get("z"))
+        print ("Sample std of image:", self.stds.get("image"))
+        print ("Sample std of masks:", self.stds.get("mask"))
+        print ("Data Structure of Sample: {'id': id(size), 'z': z(size), 'image': image(size, 225, 225), 'mask': mask(size, 225, 225)}")
+
+        # ABANDONED: get indice
+        # train_size = int(val_percent * len(self.sample))
+        # test_size = len(self.sample) - train_size
+        # train_dataset, test_dataset = torch.utils.data.random_split(self.sample, [train_size, test_size])
+
+        # get indice
+        dataset_size = len(self.sample)
+        indices = list(range(dataset_size))
+        val_split = int(np.floor(data_percent * val_percent * dataset_size))
+        data_split = int(np.floor(data_percent * dataset_size))
+
+        if shuffle_dataset:
+            np.random.seed(seed)
+            np.random.shuffle(indices)
+        val_indices = indices[:val_split]
+        train_indices = indices[val_split:data_split]
+
+        self.tran_len = len(train_indices)
+        self.val_len = len(val_indices)
+
+        train_sampler = SubsetRandomSampler(train_indices)
+        validation_sampler = SubsetRandomSampler(val_indices)
+
+
+        return train_sampler, validation_sampler
+
+
+    def __getitem__(self, ids):
+        # item_name = self.masks_frame.iloc[idx, 0]
+        images = []
+        masks = []
+        id_depth = self.masks_frame.to_dict('list') # {'id': dis, 'z': depths}
+        id_depth['z'] = torch.Tensor(id_depth['z'])
+
+        z_mean = id_depth['z'].mean()
+        z_std = id_depth['z'].std()
+        image_mean = 0.0
+        image_std = 0.0
+        mask_mean = 0.0
+        mask_std = 0.0
+
+        i = 0
+
+        for id in ids:
+            image_name = os.path.join(self.img_dir, id + self.img_suffix)
+            image = Image.open(image_name).convert('RGB')
+
+            if self.transform:
+                image = self.transform['image'](image)
+
+            mask_name = os.path.join(self.mask_dir, id + self.mask_suffix)
+            mask = Image.open(mask_name)
+            if self.transform:
+                mask = self.transform['mask'](mask)
+
+            # depth = self.masks_frame.iloc[id, 1].astype('float')
+            # switch from io to PIL
+            # image = io.imread(img_name)
+            # masks = self.masks_frame.iloc[idx, 1:].as_matrix()
+            # WARNING: I don't know if I keep reshape
+            # masks = masks.astype('float').reshape(-1, 2)
+            images.append(image)
+            image_mean = image_mean + image.mean()
+            image_std = np.math.sqrt(image_std ** 2 + image.mean() ** 2)
+            # depths.append(depth)
+            masks.append(mask)
+            mask_mean = mask_mean + mask.mean()
+            mask_std = np.math.sqrt(mask_std ** 2 + mask.mean() ** 2)
+
+            i=i+1
+
+        # print (images)
+        image_mask = {'image': images, 'mask': masks}
+        self.sample = {**id_depth, **image_mask}
+        self.means = {'id': None, 'z': z_mean/i, 'image': image_mean/i, 'mask': mask_mean/i}
+        self.stds = {'id': None, 'z': z_std, 'image': image_std, 'mask': mask_std}
+
+        return self.sample
+
+    # implemented in the __getitem__()
+    # def all_transform(self, sample):
+    #     id, z, image, mask = sample.items()
+    #     # # z cannot be transformed using pytorch.vision
+    #     # z = np.asarray(z[1], dtype='float32')
+    #     # z = self.transform['depth'](z)
+    #     z = z[1]
+    #     image = self.transform['image'](image[1])
+    #     mask = self.transform['mask'](mask[1])
+    #
+    #     return {'id': id, 'z': z, 'image': image, 'mask': mask}
+
