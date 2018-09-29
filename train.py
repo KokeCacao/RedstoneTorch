@@ -124,7 +124,7 @@ def train_net(net,
 
             loss = criterion(masks_probs_flat, true_masks_flat)
             epoch_loss += loss.item()
-            print('{0}# Epoch - {1:.4f}% ({2:}/{3:}) data - Training Loss: {4:.6f}'.format(epoch_num,100* batch_index * batch_size / (N_train+1e10), batch_index*batch_size, N_train, loss.item()))
+            print('{0}# Epoch - {1:.4f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}'.format(epoch_num,100* batch_index * batch_size / (N_train+1e10), batch_index*batch_size, batch_index, batch_size, N_train, loss.item()))
 
             optimizer.zero_grad()
             loss.backward()
