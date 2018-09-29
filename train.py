@@ -69,7 +69,7 @@ def train_net(net,
               save_cp=True,
               gpu=False,
               weight_init=0.01,
-              data_percent=1.0,
+              data_percent=0.181818182,
               momentum=0.9,
               weight_decay=0.0005):
 
@@ -89,9 +89,14 @@ def train_net(net,
     print("debug-z:",random, "is", tgs_data.get_data()['z'][random])
     print("debug-mask:",random, "is", tgs_data.get_data()['mask'][random])
 
+    print("Id Size:", len(tgs_data.get_data()['id']))
+    print("Z Size:", len(tgs_data.get_data()['z']))
+    print("Image Size:", len(tgs_data.get_data()['image']))
+    print("Mask Size:", len(tgs_data.get_data()['mask']))
     zip_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['z'], tgs_data.get_data()['image'], tgs_data.get_data()['mask']))
     # x_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['z'], tgs_data.get_data()['image']))
     # y_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['mask']))
+    print("Zip-Data Size:", len(zip_data))
 
     train_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=train_sampler, shuffle=False, num_workers=0)
     validation_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=validation_sampler, shuffle=False, num_workers=0)
