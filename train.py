@@ -57,7 +57,7 @@ transform = {
         lambda x: x.float(),
         transforms.Normalize(mean=[0.5, 0.5, 0.5],
                             std=[0.225, 0.225, 0.225]),
-        lambda x: x/2.2222
+        lambda x: (x/4.4444)+0.5
     ])
 }
 
@@ -160,7 +160,7 @@ def train_net(net,
 
             loss = criterion(masks_probs_flat, true_masks_flat)
             epoch_loss += loss.item()
-            print('Process {0:.4f}$ --- Training Loss: {1:.6f}'.format(100* batch_index * batch_size / (N_train+1e10), loss.item()))
+            print('Process {0:.4f}% --- Training Loss: {1:.6f}'.format(100* batch_index * batch_size / (N_train+1e10), loss.item()))
 
             optimizer.zero_grad()
             loss.backward()
