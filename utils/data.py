@@ -48,7 +48,7 @@ class TGSData(data.Dataset):
     #     return 0;
 
     def __init__(self, csv_dir, img_dir, mask_dir, img_suffix=".png", mask_suffix=".png", transform=None):
-        print("Read Data...")
+        print("Reading Data...")
         self.masks_frame = pd.read_csv(csv_dir)
         self.img_dir = img_dir
         self.mask_dir = mask_dir

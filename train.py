@@ -3,31 +3,14 @@ import os
 from optparse import OptionParser
 
 import torch
-import numpy as np
-import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.utils.data as data
-import torchvision
 from torch import optim
 from torchvision import transforms
 
 from eval import eval_net
 from unet import UNet
-from utils import split_ids_for_augmentation, split_train_val, get_imgs_depths_and_masks, batch
 from utils.data import TGSData
-
-# data_transform = transforms.Compose([
-#         transforms.RandomSizedCrop(224),
-#         transforms.RandomHorizontalFlip(),
-#         transforms.ToTensor(),
-#         transforms.Normalize(mean=[0.485, 0.456, 0.406],
-#                              std=[0.229, 0.224, 0.225])
-#     ])
-# hymenoptera_dataset = datasets.ImageFolder(root='hymenoptera_data/train',
-#                                            transform=data_transform)
-# dataset_loader = torch.utils.data.DataLoader(hymenoptera_dataset,
-#                                              batch_size=4, shuffle=True,
-#                                              num_workers=4)
 
 # dir_prefix = 'drive/My Drive/ML/Pytorch-UNet/'
 img_suffix = ".png"
@@ -73,13 +56,6 @@ def train_net(net,
               momentum=0.9,
               weight_decay=0.0005):
 
-    # get (id, sub-id)
-    # ids = get_ids(dir_img)
-    # ids = split_ids_for_augmentation(ids, 2)
-
-    # iddataset['train'] are ids of tranning data
-    # iddataset['val'] are ids of validation data
-    # iddataset = split_train_val(ids, val_percent)
     tgs_data = TGSData(dir_depth, dir_img, dir_mask, img_suffix, mask_suffix, transform)
 
     train_sampler, validation_sampler = tgs_data.get_sampler(tgs_data.get_img_names(), data_percent=data_percent, val_percent=val_percent)
@@ -98,7 +74,7 @@ def train_net(net,
     # y_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['mask']))
     print("Zip-Data Size:", len(zip_data))
 
-    train_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=train_sampler, shuffle=False, num_workers=0)
+    train_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=train_sampler, shuffle=True, num_workers=0)
     validation_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=validation_sampler, shuffle=False, num_workers=0)
 
     print('''
@@ -111,7 +87,9 @@ def train_net(net,
         Checkpoints: {}
         CUDA: {}
         Weight_init: {}
-    '''.format(epochs, batch_size, lr, tgs_data.train_len, tgs_data.val_len, str(save_cp), str(gpu), weight_init))
+        Momentum: {}
+        Weight_decay: {}
+    '''.format(epochs, batch_size, lr, tgs_data.train_len, tgs_data.val_len, str(save_cp), str(gpu), weight_init, momentum, weight_decay))
 
     N_train = tgs_data.train_len
     criterion = torch.nn.BCELoss()
@@ -122,30 +100,16 @@ def train_net(net,
     for epoch in range(epochs):
         print('Starting epoch {}/{}.'.format(epoch + 1, epochs))
 
-        # reset the generators(augmentation)
-        # train = get_imgs_depths_and_masks(iddataset['train'], dir_img, dir_depth, dir_mask, img_scale)
-        # val = get_imgs_depths_and_masks(iddataset['val'], dir_img, dir_depth, dir_mask, img_scale)
-
         epoch_loss = 0
 
-        # create batch
         # batch size should < 4000 due to the amount of data avaliable
-        num = 0
+        epoch_num = 0
         for batch_index, (id, z, image, true_mask) in enumerate(train_loader, 0):
-            print("Starting a new batch #", batch_index)
-            # id = sample_batched[0]
-            # z = sample_batched[1]
-            # image = sample_batched['2]
-            # true_mask = sample_batched[3]
-
-            # imgs = torch.from_numpy(imgs)
-            # depths = torch.from_numpy(depths)
-            # true_masks = torchvision.transforms.ToTensor()(true_masks)
 
             if gpu:
-                imgs = image.cuda()
-                depths = z.cuda()
-                true_masks = true_mask.cuda()
+                image = image.cuda()
+                z = z.cuda()
+                true_mask = true_mask.cuda()
 
             # train
             masks_pred = net(image, z)
@@ -154,19 +118,19 @@ def train_net(net,
 
             # stretch result to one dimension
             masks_probs_flat = masks_probs.view(-1)
-            print ("Predicted Mask:", masks_probs_flat)
+            print ("Predicted Mask:", masks_probs_flat[0])
             true_masks_flat = true_mask.view(-1)
             print ("True Mask:", true_masks_flat)
 
             loss = criterion(masks_probs_flat, true_masks_flat)
             epoch_loss += loss.item()
-            print('Process {0:.4f}% --- Training Loss: {1:.6f}'.format(100* batch_index * batch_size / (N_train+1e10), loss.item()))
+            print('{0}# Epoch - {1:.4f}% ({2:}/{3:}) data - Training Loss: {4:.6f}'.format(epoch_num,100* batch_index * batch_size / (N_train+1e10), batch_index*batch_size, N_train, loss.item()))
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            num = num+1
-        print('Epoch finished ! Loss: {}'.format(epoch_loss / (num+1e10)))
+            epoch_num = epoch_num+1
+        print('{}# Epoch finished ! Loss: {}'.format(epoch_num, epoch_loss / (epoch_num+1e10)))
 
         # validation
         if validation:
