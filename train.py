@@ -153,8 +153,9 @@ def train_net(net,
 
         # save parameter
         if save_cp:
-            torch.save(net.state_dict(),
-                       dir_checkpoint + 'CP{}.pth'.format(epoch + 1))
+            if not os.path.exists(dir_checkpoint):
+                os.makedirs(dir_checkpoint)
+            torch.save(net.state_dict(), dir_checkpoint + 'CP{}.pth'.format(epoch + 1))
             print('Checkpoint {} saved !'.format(epoch + 1))
 
 def get_args():
