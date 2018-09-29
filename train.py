@@ -92,7 +92,6 @@ def train_net(net,
         Weight_decay: {}
     '''.format(epochs, batch_size, lr, tgs_data.train_len, tgs_data.val_len, str(save_cp), str(gpu), weight_init, momentum, weight_decay))
 
-    N_train = tgs_data.train_len
     criterion = torch.nn.BCELoss()
     optimizer = optim.SGD(net.parameters(),
                           lr=lr,
@@ -119,13 +118,19 @@ def train_net(net,
 
             # stretch result to one dimension
             masks_probs_flat = masks_probs.view(-1)
-            print ("Predicted Mask:", masks_probs_flat[0])
+            print ("Predicted Mask:", masks_probs_flat)
             true_masks_flat = true_mask.view(-1)
             print ("True Mask:", true_masks_flat)
 
             loss = criterion(masks_probs_flat, true_masks_flat)
             epoch_loss += loss.item()
-            print('{0}# Epoch - {1:.4f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}'.format(epoch_num+1, 100*(epoch_num+1)*(batch_index+1)*batch_size/(N_train+1e10), batch_index+1, batch_size, (epoch_num+1)*(batch_index+1)*batch_size, N_train, loss.item()))
+            print('{0}# Epoch - {1:.4f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}'.format(epoch_num+1,
+                                                                                                     100*(epoch_num+1)*(batch_index+1)*batch_size/tgs_data.train_len,
+                                                                                                     batch_index+1,
+                                                                                                     tgs_data.train_len/epochs/batch_size,
+                                                                                                     (epoch_num+1)*(batch_index+1)*batch_size,
+                                                                                                     tgs_data.train_len,
+                                                                                                     loss.item()))
 
             optimizer.zero_grad()
             loss.backward()
