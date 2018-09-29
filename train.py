@@ -30,11 +30,6 @@ from utils.data import TGSData
 #                                              num_workers=4)
 
 # dir_prefix = 'drive/My Drive/ML/Pytorch-UNet/'
-dir_prefix = ''
-dir_img = dir_prefix + 'data/train/images/'
-dir_mask = dir_prefix + 'data/train/masks/'
-dir_depth = dir_prefix + 'data/depths.csv'
-dir_checkpoint = dir_prefix + 'checkpoints/'
 img_suffix = ".png"
 mask_suffix = ".png"
 validation = True
@@ -198,6 +193,10 @@ if __name__ == '__main__':
     # init artgs
     args = get_args()
     dir_prefix = args.dir_prefix
+    dir_img = dir_prefix + 'data/train/images/'
+    dir_mask = dir_prefix + 'data/train/masks/'
+    dir_depth = dir_prefix + 'data/depths.csv'
+    dir_checkpoint = dir_prefix + 'checkpoints/'
 
     # 3 channels: 3 form image, 1 mask
     # 1 classes: separate salt and others
