@@ -75,7 +75,7 @@ class TGSData(data.Dataset):
         if (self.sample == None): print("WARNING: Tyring to load empty data!")
         return self.sample
 
-    def get_sampler(self, all_id, data_percent=1.0, val_percent=0.05):
+    def get_sampler(self, all_id, data_percent=1.0, val_percent=0.05, data_shuffle = False, train_shuffle=True, val_shuffle=False, seed=19):
         self.sample = self.get_all_sample(all_id)
         print ("Loading sample:")
         print ("Sample size:", self.data_len, "samples")
@@ -97,13 +97,24 @@ class TGSData(data.Dataset):
         dataset_size = self.data_len
         print("Total Size:", dataset_size)
         indices = list(range(dataset_size))
+
+        if data_shuffle:
+            np.random.seed(seed)
+            np.random.shuffle(indices)
+
         val_split = int(np.floor(data_percent * val_percent * dataset_size))
         print("Validation Size:", val_split)
         data_split = int(np.floor(data_percent * dataset_size))
         print("Traning Size:", data_split-val_split)
 
         val_indices = indices[:val_split]
+        if val_shuffle:
+            np.random.seed(seed+1)
+            np.random.shuffle(val_indices)
         train_indices = indices[val_split:data_split]
+        if train_shuffle:
+            np.random.seed(seed+2)
+            np.random.shuffle(train_indices)
 
         self.tran_len = len(train_indices)
         self.val_len = len(val_indices)
