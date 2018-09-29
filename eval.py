@@ -9,8 +9,8 @@ def eval_net(net, validation_loader, gpu=False):
     num = 0
     for batch_index, (id, z, image, true_mask) in enumerate(validation_loader, 0):
 
-        image = image.unsqueeze(0)
-        true_mask = true_mask.unsqueeze(0)
+        # image = image.unsqueeze(0)
+        # true_mask = true_mask.unsqueeze(0)
 
         if gpu:
             image = image.cuda()
