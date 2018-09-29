@@ -51,7 +51,13 @@ transform = {
         # transforms.CenterCrop(224),
         transforms.Grayscale(),
         transforms.ToTensor(),
-        transforms.Normalize(mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225])
+        transforms.Normalize(mean=[0.5, 0.5, 0.5],
+                            std=[0.225, 0.225, 0.225]),
+        lambda x: x>0,
+        lambda x: x.float(),
+        transforms.Normalize(mean=[0.5, 0.5, 0.5],
+                            std=[0.225, 0.225, 0.225]),
+        lambda x: x/2.2222
     ])
 }
 
@@ -62,7 +68,10 @@ def train_net(net,
               val_percent=0.05,
               save_cp=True,
               gpu=False,
-              weight_init=0.01):
+              weight_init=0.01,
+              data_percent=1.0,
+              momentum=0.9,
+              weight_decay=0.0005):
 
     # get (id, sub-id)
     # ids = get_ids(dir_img)
@@ -73,16 +82,17 @@ def train_net(net,
     # iddataset = split_train_val(ids, val_percent)
     tgs_data = TGSData(dir_depth, dir_img, dir_mask, img_suffix, mask_suffix, transform)
 
-    train_sampler, validation_sampler = tgs_data.get_sampler(tgs_data.get_img_names(), data_percent=0.1, val_percent=val_percent)
+    train_sampler, validation_sampler = tgs_data.get_sampler(tgs_data.get_img_names(), data_percent=data_percent, val_percent=val_percent)
 
-    print("debug-image-19:", tgs_data.get_data()['image'][19])
+    random = 23
+    print("debug-image:",random, "is", tgs_data.get_data()['image'][random])
+    print("debug-z:",random, "is", tgs_data.get_data()['z'][random])
+    print("debug-mask:",random, "is", tgs_data.get_data()['mask'][random])
 
     zip_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['z'], tgs_data.get_data()['image'], tgs_data.get_data()['mask']))
     # x_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['z'], tgs_data.get_data()['image']))
     # y_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['mask']))
 
-    print("debug-zipdata-19:", zip_data[19])
-    print("debug-indice-19:", train_sampler.indices[19])
     train_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=train_sampler, shuffle=False, num_workers=0)
     validation_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=validation_sampler, shuffle=False, num_workers=0)
 
@@ -102,9 +112,9 @@ def train_net(net,
     criterion = torch.nn.BCELoss()
     optimizer = optim.SGD(net.parameters(),
                           lr=lr,
-                          momentum=0.9,
-                          weight_decay=0.0005)
-
+                          momentum=momentum,
+                          weight_decay=weight_decay)
+    exception()
     for epoch in range(epochs):
         print('Starting epoch {}/{}.'.format(epoch + 1, epochs))
 
@@ -118,7 +128,7 @@ def train_net(net,
         # batch size should < 4000 due to the amount of data avaliable
         num = 0
         for batch_index, (id, z, image, true_mask) in enumerate(train_loader, 0):
-            print("start batch")
+            print("Starting a new batch #", batch_index)
             # id = sample_batched[0]
             # z = sample_batched[1]
             # image = sample_batched['2]
@@ -146,7 +156,7 @@ def train_net(net,
 
             loss = criterion(masks_probs_flat, true_masks_flat)
             epoch_loss += loss.item()
-            print('{0:.4f} --- Training Loss: {1:.6f}'.format(batch_index * batch_size / (N_train+1e10), loss.item()))
+            print('Process {0:.4f}$ --- Training Loss: {1:.6f}'.format(100* batch_index * batch_size / (N_train+1e10), loss.item()))
 
             optimizer.zero_grad()
             loss.backward()
@@ -205,7 +215,7 @@ if __name__ == '__main__':
     def init_weights(m):
         if type(m) == nn.Linear:
             torch.nn.init.xavier_uniform(m.weight)
-            m.bias.data.fill_(0.001)
+            m.bias.data.fill_(args.weight_init)
 
 
     print("Initializing Weights...")
