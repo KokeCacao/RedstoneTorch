@@ -132,10 +132,10 @@ def train_net(net,
             train_duration = now - train_begin
             epoch_duration = now - epoch_begin
             print("SinceTrain:{}, Since Epoch:{}".format(train_duration, epoch_duration))
-            print('{0}# Epoch - {1:.4f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}'.format(epoch_num+1,
+            print('{0}# Epoch - {1:.2f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}'.format(epoch_num+1,
                                                                                                      (100*(epoch_num+1)*(batch_index+1)*batch_size)/tgs_data.train_len,
                                                                                                      batch_index+1,
-                                                                                                     tgs_data.train_len/epochs/batch_size,
+                                                                                                     tgs_data.train_len/batch_size,
                                                                                                      (epoch_num+1)*(batch_index+1)*batch_size,
                                                                                                      tgs_data.train_len,
                                                                                                      loss.item()))
@@ -144,7 +144,7 @@ def train_net(net,
             loss.backward()
             optimizer.step()
         epoch_num = epoch_num+1
-        print('{}# Epoch finished ! Loss: {}'.format(epoch_num, epoch_loss / (epoch_num+1e10)))
+        print('{}# Epoch finished ! Loss: {}'.format(epoch_num, epoch_loss / (epoch_num+0.1e-10)))
 
         # validation
         if validation:
@@ -159,22 +159,15 @@ def train_net(net,
 
 def get_args():
     parser = OptionParser()
-    parser.add_option('-e', '--epochs', dest='epochs', default=5, type='int',
-                      help='number of epochs')
-    parser.add_option('-b', '--batch-size', dest='batchsize', default=10,
-                      type='int', help='batch size')
-    parser.add_option('-l', '--learning-rate', dest='lr', default=0.1,
-                      type='float', help='learning rate')
-    parser.add_option('-g', '--gpu', action='store_true', dest='gpu',
-                      default=False, help='use cuda')
-    parser.add_option('-c', '--load', dest='load',
-                      default=False, help='load file model')
-    parser.add_option('-w', '--weight_init', dest='weight_init', default=0.01,
-                      type='float', help='weight initialization number')
-    parser.add_option('-v', '--val_percent', dest='val_percent', default=0.05,
-                      type='float', help='percent for validation')
-    parser.add_option('-p', '--dir_prefix', dest='dir_prefix', default=''
-                      , help='the root directory')
+    parser.add_option('-e', '--epochs', dest='epochs', default=5, type='int', help='number of epochs')
+    parser.add_option('-b', '--batch-size', dest='batchsize', default=10, type='int', help='batch size')
+    parser.add_option('-l', '--learning-rate', dest='lr', default=0.1, type='float', help='learning rate')
+    parser.add_option('-g', '--gpu', action='store_true', dest='gpu', default=False, help='use cuda')
+    parser.add_option('-c', '--load', dest='load', default=False, help='load file model')
+    parser.add_option('-w', '--weight_init', dest='weight_init', default=0.01, type='float', help='weight initialization number')
+    parser.add_option('-v', '--val_percent', dest='val_percent', default=0.05, type='float', help='percent for validation')
+    parser.add_option('-p', '--dir_prefix', dest='dir_prefix', default='', help='the root directory')
+    parser.add_option('-d', '--data_percent', dest='data_percent', default=1.0, type='float', help='the root directory')
 
     (options, args) = parser.parse_args()
     return options
@@ -217,6 +210,7 @@ if __name__ == '__main__':
                   val_percent=args.val_percent,
                   gpu=args.gpu,
                   weight_init=args.weight_init,
+                  data_percent=0.181818182*args.data_percent,
                   seed=19)
     except KeyboardInterrupt as e:
         print(e)
@@ -226,4 +220,4 @@ if __name__ == '__main__':
             sys.exit(0)
         except SystemExit:
             os._exit(0)
-#python train.py -e 5 -b 10 --learning-rate 0.01 --weight_init 0.001 --dir_prefix ''
+#python train.py --epochs 5 --batch-size 32 --learning-rate 0.001 --weight_init 0.001 --dir_prefix '' --data_percent 0.01
