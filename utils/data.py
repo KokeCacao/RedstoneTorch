@@ -104,8 +104,10 @@ class TGSData(data.Dataset):
 
         val_split = int(np.floor(data_percent * val_percent * dataset_size))
         print("Validation Size:", val_split)
+        self.val_len = val_split
         data_split = int(np.floor(data_percent * dataset_size))
         print("Traning Size:", data_split-val_split)
+        self.train_len = data_split-val_split
 
         val_indices = indices[:val_split]
         if val_shuffle:
