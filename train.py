@@ -54,11 +54,12 @@ def train_net(net,
               weight_init=0.01,
               data_percent=0.181818182,
               momentum=0.9,
-              weight_decay=0.0005):
+              weight_decay=0.0005,
+              seed=19):
 
     tgs_data = TGSData(dir_depth, dir_img, dir_mask, img_suffix, mask_suffix, transform)
 
-    train_sampler, validation_sampler = tgs_data.get_sampler(tgs_data.get_img_names(), data_percent=data_percent, val_percent=val_percent)
+    train_sampler, validation_sampler = tgs_data.get_sampler(tgs_data.get_img_names(), data_percent=data_percent, val_percent=val_percent, data_shuffle = False, train_shuffle=True, val_shuffle=False, seed=seed)
 
     random = 23
     print("debug-image:",random, "is", tgs_data.get_data()['image'][random])
@@ -74,7 +75,7 @@ def train_net(net,
     # y_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['mask']))
     print("Zip-Data Size:", len(zip_data))
 
-    train_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=train_sampler, shuffle=True, num_workers=0)
+    train_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=train_sampler, shuffle=False, num_workers=0)
     validation_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=validation_sampler, shuffle=False, num_workers=0)
 
     print('''
@@ -202,7 +203,8 @@ if __name__ == '__main__':
                   lr=args.lr,
                   val_percent=args.val_percent,
                   gpu=args.gpu,
-                  weight_init=args.weight_init)
+                  weight_init=args.weight_init,
+                  seed=19)
     except KeyboardInterrupt as e:
         print(e)
         torch.save(unet.state_dict(), 'INTERRUPTED.pth')
