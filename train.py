@@ -11,6 +11,7 @@ from torchvision import transforms
 from eval import eval_net
 from unet import UNet
 from utils.data import TGSData
+from datetime import datetime, date
 
 # dir_prefix = 'drive/My Drive/ML/Pytorch-UNet/'
 img_suffix = ".png"
@@ -97,7 +98,9 @@ def train_net(net,
                           lr=lr,
                           momentum=momentum,
                           weight_decay=weight_decay)
+    train_begin = datetime.now()
     for epoch in range(epochs):
+        epoch_begin = datetime.now()
         print('Starting epoch {}/{}.'.format(epoch + 1, epochs))
 
         epoch_loss = 0
@@ -124,8 +127,13 @@ def train_net(net,
 
             loss = criterion(masks_probs_flat, true_masks_flat)
             epoch_loss += loss.item()
+
+            now = datetime.now()
+            train_duration = now - train_begin
+            epoch_duration = now - epoch_begin
+            print("SinceTrain:{}, Since Epoch:{}".format(train_duration, epoch_duration))
             print('{0}# Epoch - {1:.4f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}'.format(epoch_num+1,
-                                                                                                     100*(epoch_num+1)*(batch_index+1)*batch_size/tgs_data.train_len,
+                                                                                                     (100*(epoch_num+1)*(batch_index+1)*batch_size)/tgs_data.train_len,
                                                                                                      batch_index+1,
                                                                                                      tgs_data.train_len/epochs/batch_size,
                                                                                                      (epoch_num+1)*(batch_index+1)*batch_size,
