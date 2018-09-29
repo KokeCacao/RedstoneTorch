@@ -78,10 +78,18 @@ def train_net(net,
     # iddataset = split_train_val(ids, val_percent)
     tgs_data = TGSData(dir_depth, dir_img, dir_mask, img_suffix, mask_suffix, transform)
 
-    train_sampler, validation_sampler = tgs_data.get_sampler(tgs_data.get_img_names(), val_percent=val_percent, shuffle_dataset=False, seed=19, batch_size=batch_size)
-    train_loader = data.DataLoader(tgs_data.sample, batch_size=batch_size, sampler=train_sampler)
+    train_sampler, validation_sampler = tgs_data.get_sampler(tgs_data.get_img_names(), data_percent=0.1, val_percent=val_percent)
 
-    validation_loader = data.DataLoader(tgs_data.sample, batch_size=batch_size, sampler=validation_sampler)
+    print("debug-image-19:", tgs_data.get_data()['image'][19])
+
+    zip_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['z'], tgs_data.get_data()['image'], tgs_data.get_data()['mask']))
+    # x_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['z'], tgs_data.get_data()['image']))
+    # y_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['mask']))
+
+    print("debug-zipdata-19:", zip_data[19])
+    print("debug-indice-19:", train_sampler.indices[19])
+    train_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=train_sampler, shuffle=False, num_workers=0)
+    validation_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=validation_sampler, shuffle=False, num_workers=0)
 
     print('''
     Starting training:
@@ -114,42 +122,46 @@ def train_net(net,
         # create batch
         # batch size should < 4000 due to the amount of data avaliable
         num = 0
-        print (train_loader)
-        for batch_index, (imgs, depths, true_mask) in enumerate(train_loader):
-            imgs = torch.from_numpy(imgs)
-            depths = torch.from_numpy(depths)
-            true_masks = torchvision.transforms.ToTensor()(true_masks)
+        for batch_index, (id, z, image, true_mask) in enumerate(train_loader, 0):
+            print("start batch")
+            # id = sample_batched[0]
+            # z = sample_batched[1]
+            # image = sample_batched['2]
+            # true_mask = sample_batched[3]
+
+            # imgs = torch.from_numpy(imgs)
+            # depths = torch.from_numpy(depths)
+            # true_masks = torchvision.transforms.ToTensor()(true_masks)
 
             if gpu:
-                imgs = imgs.cuda()
-                depths = depths.cuda()
-                true_masks = true_masks.cuda()
+                imgs = image.cuda()
+                depths = z.cuda()
+                true_masks = true_mask.cuda()
 
             # train
-            masks_pred = net(imgs, depths)
+            masks_pred = net(image, z)
             masks_probs = torch.sigmoid(masks_pred)
             # true_masks = torch.sigmoid(true_masks) # add this, IDK why loss negative
 
             # stretch result to one dimension
             masks_probs_flat = masks_probs.view(-1)
-            print ("predicted:", masks_probs_flat)
-            true_masks_flat = true_masks.view(-1)
-            print ("true:", true_masks_flat)
+            print ("Predicted Mask:", masks_probs_flat)
+            true_masks_flat = true_mask.view(-1)
+            print ("True Mask:", true_masks_flat)
 
             loss = criterion(masks_probs_flat, true_masks_flat)
-            print("loss=", loss.item())
             epoch_loss += loss.item()
-            print('{0:.4f} --- loss: {1:.6f}'.format(i * batch_size / N_train, loss.item()))
+            print('{0:.4f} --- Training Loss: {1:.6f}'.format(batch_index * batch_size / N_train, loss.item()))
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             num = num+1
-        print('Epoch finished ! Loss: {}'.format(epoch_loss / (num+0.000001)))
+        print('Epoch finished ! Loss: {}'.format(epoch_loss / (num+1e10)))
 
         # validation
         if validation:
-            val_dice = eval_net(net, val, gpu)
+            val_dice = eval_net(net, validation_loader, gpu)
             print('Validation Dice Coeff: {}'.format(val_dice))
 
         # save parameter
@@ -157,9 +169,6 @@ def train_net(net,
             torch.save(net.state_dict(),
                        dir_checkpoint + 'CP{}.pth'.format(epoch + 1))
             print('Checkpoint {} saved !'.format(epoch + 1))
-        stop
-    stop
-
 
 def get_args():
     parser = OptionParser()
@@ -179,6 +188,8 @@ def get_args():
                       type='float', help='weight initialization number')
     parser.add_option('-v', '--val_percent', dest='val_percent', default=0.05,
                       type='float', help='percent for validation')
+    parser.add_option('-p', '--dir_prefix', dest='dir_prefix', default=''
+                      , help='the root directory')
 
     (options, args) = parser.parse_args()
     return options
@@ -186,6 +197,7 @@ def get_args():
 if __name__ == '__main__':
     # init artgs
     args = get_args()
+    dir_prefix = args.dir_prefix
 
     # 3 channels: 3 form image, 1 mask
     # 1 classes: separate salt and others
@@ -217,6 +229,7 @@ if __name__ == '__main__':
                   gpu=args.gpu,
                   weight_init=args.weight_init)
     except KeyboardInterrupt as e:
+        print(e)
         torch.save(unet.state_dict(), 'INTERRUPTED.pth')
         print('Saved interrupt')
         try:
