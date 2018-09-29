@@ -3,27 +3,33 @@ import torch
 from dice_loss import dice_coeff
 
 
-def eval_net(net, dataset, gpu=False):
+def eval_net(net, validation_loader, gpu=False):
     """Evaluation without the densecrf with the dice coefficient"""
     total_loss = 0
     num = 0
-    for i, b in enumerate(dataset):
-        imgs = b[0]
-        depths = b[1]
-        true_mask = b[2]
+    for batch_index, sample_batched in enumerate(validation_loader):
 
-        imgs = torch.from_numpy(imgs).unsqueeze(0)
-        true_mask = torch.from_numpy(true_mask).unsqueeze(0)
+        id = sample_batched['id']
+        z = sample_batched['z']
+        image = sample_batched['image']
+        true_mask = sample_batched['true_mask']
+
+        image = image.unsqueeze(0)
+        true_mask = true_mask.unsqueeze(0)
 
         if gpu:
-            imgs = imgs.cuda()
+            image = image.cuda()
             true_mask = true_mask.cuda()
 
         # why do you do [0]
-        mask_pred = net(imgs, depths)[0]
+        masks_pred = net(image, z)
+        masks_probs = torch.sigmoid(masks_pred)
+        masks_probs_flat = masks_probs.view(-1)
         # threshole transform from probability to solid mask
-        mask_pred = (torch.sigmoid(mask_pred) > 0.5).float()
+        masks_probs_flat = (masks_probs_flat > 0.5).float()
 
-        total_loss += dice_coeff(mask_pred, true_mask).item()
+        true_mask_flat = true_mask.view(-1)
+
+        total_loss += dice_coeff(masks_probs_flat, true_mask_flat).item()
         num=num+1
-    return total_loss / num
+    return total_loss / (num+1e10)

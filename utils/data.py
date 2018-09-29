@@ -55,6 +55,7 @@ class TGSData(data.Dataset):
         self.mask_suffix = mask_suffix
         self.transform = transform
 
+        self.data_len = len(self.masks_frame)
         self.train_len = 0
         self.val_len = 0
 
@@ -64,16 +65,17 @@ class TGSData(data.Dataset):
         self.stds = None
 
     def __len__(self):
-        return len(self.masks_frame)
+        return self.data_len
 
     def get_img_names(self):
         return (f[:].replace(self.img_suffix, "", 1) for f in os.listdir(self.img_dir))
 
     def get_data(self):
+        if (self.sample == None): print("WARNING: Tyring to load empty data!")
         return self.sample
 
-    def get_sampler(self, all_id, data_percent=0.01, val_percent=0.05, shuffle_dataset=False, seed=19, batch_size=10):
-        self.sample = self.__getitem__(all_id)
+    def get_sampler(self, all_id, data_percent=1.0, val_percent=0.05):
+        self.sample = self.get_all_sample(all_id)
         print ("Loading sample:")
         print ("Sample size:", len(self.sample), "samples")
 
@@ -91,14 +93,14 @@ class TGSData(data.Dataset):
         # train_dataset, test_dataset = torch.utils.data.random_split(self.sample, [train_size, test_size])
 
         # get indice
-        dataset_size = len(self.sample)
+        dataset_size = self.data_len
+        print("Validation Size:", dataset_size)
         indices = list(range(dataset_size))
         val_split = int(np.floor(data_percent * val_percent * dataset_size))
+        print("Validation Size:", val_split)
         data_split = int(np.floor(data_percent * dataset_size))
+        print("Traning Size:", data_split-val_split)
 
-        if shuffle_dataset:
-            np.random.seed(seed)
-            np.random.shuffle(indices)
         val_indices = indices[:val_split]
         train_indices = indices[val_split:data_split]
 
@@ -111,8 +113,14 @@ class TGSData(data.Dataset):
 
         return train_sampler, validation_sampler
 
+    def __getitem__(self, index):
+        print ("loading new data for the batch...")
+        z = self.sample['z'][index]
+        image = self.sample['image'][index]
+        mask = self.sample['mask'][index]
+        return ((z, image), mask)
 
-    def __getitem__(self, ids):
+    def get_all_sample(self, ids):
         # item_name = self.masks_frame.iloc[idx, 0]
         images = []
         masks = []
@@ -157,8 +165,15 @@ class TGSData(data.Dataset):
             i=i+1
 
         # print (images)
-        image_mask = {'image': images, 'mask': masks}
-        self.sample = {**id_depth, **image_mask}
+        # image_mask = {'image': images, 'mask': masks}
+
+        id_depth['image'] = images
+        id_depth['mask'] = masks
+
+        self.sample = id_depth
+        print("start printing")
+        print("debug", images[1])
+
         self.means = {'id': None, 'z': z_mean/i, 'image': image_mean/i, 'mask': mask_mean/i}
         self.stds = {'id': None, 'z': z_std, 'image': image_std, 'mask': mask_std}
 
