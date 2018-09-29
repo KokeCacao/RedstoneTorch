@@ -146,7 +146,7 @@ def train_net(net,
 
             loss = criterion(masks_probs_flat, true_masks_flat)
             epoch_loss += loss.item()
-            print('{0:.4f} --- Training Loss: {1:.6f}'.format(batch_index * batch_size / N_train, loss.item()))
+            print('{0:.4f} --- Training Loss: {1:.6f}'.format(batch_index * batch_size / (N_train+1e10), loss.item()))
 
             optimizer.zero_grad()
             loss.backward()
@@ -173,12 +173,10 @@ def get_args():
                       type='int', help='batch size')
     parser.add_option('-l', '--learning-rate', dest='lr', default=0.1,
                       type='float', help='learning rate')
-    parser.add_option('-g', '--gpu', action='store_true', dest='gpu',
+    parser.add_option('-g', '--gpu', action='store_true', dest='gpu', type='boolean',
                       default=False, help='use cuda')
     parser.add_option('-c', '--load', dest='load',
                       default=False, help='load file model')
-    parser.add_option('-s', '--scale', dest='scale', type='float',
-                      default=96, help='downscaling factor of the images')
     parser.add_option('-w', '--weight_init', dest='weight_init', default=0.01,
                       type='float', help='weight initialization number')
     parser.add_option('-v', '--val_percent', dest='val_percent', default=0.05,
@@ -188,6 +186,8 @@ def get_args():
 
     (options, args) = parser.parse_args()
     return options
+
+#python train.py -e 5 -b 10 --learning-rate 0.01 --weight_init 0.001 --dir_prefix ''
 
 if __name__ == '__main__':
     # init artgs
