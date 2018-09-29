@@ -7,12 +7,7 @@ def eval_net(net, validation_loader, gpu=False):
     """Evaluation without the densecrf with the dice coefficient"""
     total_loss = 0
     num = 0
-    for batch_index, sample_batched in enumerate(validation_loader):
-
-        id = sample_batched['id']
-        z = sample_batched['z']
-        image = sample_batched['image']
-        true_mask = sample_batched['true_mask']
+    for batch_index, (id, z, image, true_mask) in enumerate(validation_loader, 0):
 
         image = image.unsqueeze(0)
         true_mask = true_mask.unsqueeze(0)
@@ -32,4 +27,4 @@ def eval_net(net, validation_loader, gpu=False):
 
         total_loss += dice_coeff(masks_probs_flat, true_mask_flat).item()
         num=num+1
-    return total_loss / (num+1e10)
+    return total_loss / (num+0.1e-10)
