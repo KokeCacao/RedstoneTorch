@@ -114,7 +114,6 @@ def train_net(net,
                           lr=lr,
                           momentum=momentum,
                           weight_decay=weight_decay)
-    exception()
     for epoch in range(epochs):
         print('Starting epoch {}/{}.'.format(epoch + 1, epochs))
 
@@ -197,8 +196,6 @@ def get_args():
     (options, args) = parser.parse_args()
     return options
 
-#python train.py -e 5 -b 10 --learning-rate 0.01 --weight_init 0.001 --dir_prefix ''
-
 if __name__ == '__main__':
     # init artgs
     args = get_args()
@@ -245,3 +242,4 @@ if __name__ == '__main__':
             sys.exit(0)
         except SystemExit:
             os._exit(0)
+#python train.py -e 5 -b 10 --learning-rate 0.01 --weight_init 0.001 --dir_prefix ''
