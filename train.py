@@ -10,6 +10,7 @@ from torchvision import transforms
 
 from eval import eval_net
 from unet import UNet
+from resunet.resunet_model import ResUNet
 from utils.data import TGSData
 from datetime import datetime, date
 
@@ -184,7 +185,8 @@ if __name__ == '__main__':
 
     # 3 channels: 3 form image, 1 mask
     # 1 classes: separate salt and others
-    unet = UNet(n_channels=3, n_classes=1)
+    net = ResUNet(n_channels=3, n_classes=1)
+    # net = UNet(n_channels=3, n_classes=1)
 
     def init_weights(m):
         if type(m) == nn.Linear:
@@ -193,7 +195,7 @@ if __name__ == '__main__':
 
 
     print("Initializing Weights...")
-    unet.apply(init_weights)
+    net.apply(init_weights)
 
     # if args.load:
     #     unet.load_state_dict(torch.load(args.load))
@@ -204,7 +206,7 @@ if __name__ == '__main__':
         # cudnn.benchmark = True # faster convolutions, but more memory
 
     try:
-        train_net(net=unet,
+        train_net(net=net,
                   epochs=args.epochs,
                   batch_size=args.batchsize,
                   lr=args.lr,
@@ -215,7 +217,7 @@ if __name__ == '__main__':
                   seed=19)
     except KeyboardInterrupt as e:
         print(e)
-        torch.save(unet.state_dict(), 'INTERRUPTED.pth')
+        torch.save(net.state_dict(), 'INTERRUPTED.pth')
         print('Saved interrupt')
         try:
             sys.exit(0)
