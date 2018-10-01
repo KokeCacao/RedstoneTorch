@@ -62,7 +62,7 @@ class ResUNet(nn.Module):
         out = self.layer2(out) # 16 to 32 channels
         out = self.layer3(out) # 32 to 64 channels
         # print(out.size()) (32, 64, 56, 56)
-        x1 = F.avg_pool2d(out, out.size()[3], padding=0, stride=1)
+        x1 = F.avg_pool2d(out, out.size()[3]+1, padding=0, stride=1)
         # out = out.view(out.size(0), -1) # stretch
 
         # unet down sampling
