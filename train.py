@@ -185,8 +185,8 @@ if __name__ == '__main__':
 
     # 3 channels: 3 form image, 1 mask
     # 1 classes: separate salt and others
-    net = ResUNet(n_channels=3, n_classes=1)
-    # net = UNet(n_channels=3, n_classes=1)
+    # net = ResUNet(n_channels=3, n_classes=1)
+    net = UNet(n_channels=3, n_classes=1)
 
     def init_weights(m):
         if type(m) == nn.Linear:
