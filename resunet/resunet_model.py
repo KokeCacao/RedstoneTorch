@@ -60,13 +60,20 @@ class ResUNet(nn.Module):
         out = F.relu(self.bn1(self.conv1(x))) # 3 to 16 channels
         out = self.layer1(out) # 16 to 16 channels
         out = self.layer2(out) # 16 to 32 channels
-        out = self.layer3(out) # 32 to 64 channels
-        # print(out.size()) (32, 64, 56, 56)
-        x1 = F.avg_pool2d(out, kernel_size=out.size()[3], padding=1, stride=2)
+        out = self.layer3(out) # 32 to 64 channels (32, 64, 56, 56)
+        x1 = F.avg_pool2d(out, kernel_size=out.size()[3], padding=0, stride=1) #(32, 64, 1, 1)
         # out = out.view(out.size(0), -1) # stretch
 
         # unet down sampling
         x2 = self.down1(x1)
+        # nn.MaxPool2d(kernel_size=2) ((h-2)/1)+1 -> 64, 0, 0
+        # nn.Conv2d(in_ch, out_ch, 3, padding=1),
+        # nn.BatchNorm2d(out_ch),
+        # nn.ReLU(inplace=True),
+        # nn.Conv2d(out_ch, out_ch, 3, padding=1),
+        # nn.BatchNorm2d(out_ch),
+        # nn.ReLU(inplace=True)
+
         x3 = self.down2(x2)
         x4 = self.down3(x3)
 
