@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0dd777d8-05cc-4cce-86da-522041d1016c" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/unet/unet_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/unet/unet_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/eval.py" beforeDir="false" afterPath="$PROJECT_DIR$/eval.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -39,13 +40,13 @@
         <counts>
           <entry key="Python Console" value="8" />
           <entry key="dummy" value="18" />
-          <entry key="py" value="8908" />
+          <entry key="py" value="8930" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="18" />
-          <entry key="Python" value="8916" />
+          <entry key="Python" value="8938" />
         </counts>
       </usages-collector>
     </session>
@@ -55,13 +56,13 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/train.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="392">
-              <caret line="206" column="19" lean-forward="true" selection-start-line="206" selection-start-column="19" selection-end-line="206" selection-end-column="19" />
+            <state relative-caret-position="451">
+              <caret line="122" selection-start-line="122" selection-end-line="122" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
-                <marker date="1538449314218" expanded="true" signature="1734:1735" ph="..." />
-                <marker date="1538449314218" expanded="true" signature="3122:3127" ph="..." />
-                <marker date="1538449314218" expanded="true" signature="7641:7646" ph="..." />
+                <marker date="1538449745660" expanded="true" signature="1734:1735" ph="..." />
+                <marker date="1538449745660" expanded="true" signature="3122:3127" ph="..." />
+                <marker date="1538449745660" expanded="true" signature="7681:7686" ph="..." />
               </folding>
             </state>
           </provider>
@@ -79,11 +80,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/eval.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="420">
-              <caret line="30" selection-start-line="30" selection-end-line="30" />
+            <state relative-caret-position="285">
+              <caret line="19" column="8" selection-start-line="19" selection-start-column="8" selection-end-line="19" selection-end-column="8" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -103,7 +104,7 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/unet/unet_model.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="856">
@@ -217,15 +218,15 @@
         <option value="$PROJECT_DIR$/utils/load.py" />
         <option value="$PROJECT_DIR$/utils/data.py" />
         <option value="$PROJECT_DIR$/dice_loss.py" />
-        <option value="$PROJECT_DIR$/eval.py" />
         <option value="$PROJECT_DIR$/res-unet/unet_model.py" />
         <option value="$PROJECT_DIR$/res-unet/resunet_model.py" />
         <option value="$PROJECT_DIR$/res-unet/resunet_parts.py" />
         <option value="$PROJECT_DIR$/res-unet/__init__.py" />
         <option value="$PROJECT_DIR$/unet/unet_parts.py" />
         <option value="$PROJECT_DIR$/resunet/resunet_model.py" />
-        <option value="$PROJECT_DIR$/train.py" />
         <option value="$PROJECT_DIR$/unet/unet_model.py" />
+        <option value="$PROJECT_DIR$/train.py" />
+        <option value="$PROJECT_DIR$/eval.py" />
       </list>
     </option>
   </component>
@@ -585,16 +586,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/eval.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="420">
-          <caret line="30" selection-start-line="30" selection-end-line="30" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/resunet/resunet_parts.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="555">
@@ -641,25 +632,35 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/train.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="392">
-          <caret line="206" column="19" lean-forward="true" selection-start-line="206" selection-start-column="19" selection-end-line="206" selection-end-column="19" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-            <marker date="1538449314218" expanded="true" signature="1734:1735" ph="..." />
-            <marker date="1538449314218" expanded="true" signature="3122:3127" ph="..." />
-            <marker date="1538449314218" expanded="true" signature="7641:7646" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/unet/unet_model.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="856">
           <caret line="179" column="44" selection-start-line="179" selection-start-column="44" selection-end-line="179" selection-end-column="44" />
           <folding>
             <element signature="e#58#76#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/train.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="451">
+          <caret line="122" selection-start-line="122" selection-end-line="122" />
+          <folding>
+            <element signature="e#0#10#0" expanded="true" />
+            <marker date="1538449745660" expanded="true" signature="1734:1735" ph="..." />
+            <marker date="1538449745660" expanded="true" signature="3122:3127" ph="..." />
+            <marker date="1538449745660" expanded="true" signature="7681:7686" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/eval.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="19" column="8" selection-start-line="19" selection-start-column="8" selection-end-line="19" selection-end-column="8" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
           </folding>
         </state>
       </provider>
