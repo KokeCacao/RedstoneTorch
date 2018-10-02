@@ -117,7 +117,10 @@ def train_net(net,
                 true_mask = true_mask.cuda()
 
             # train
-            masks_pred = net(image, z)
+
+            # masks_pred = net(image, z)
+            masks_pred = net(image)
+
             masks_probs = torch.sigmoid(masks_pred)
             # true_masks = torch.sigmoid(true_masks) # add this, IDK why loss negative
 
@@ -191,7 +194,7 @@ if __name__ == '__main__':
     # net = ResUNet(n_channels=3, n_classes=1)
     net = UNet(n_channels=3, n_classes=1)
     net = UNetResNet(encoder_depth=101, num_classes=1, num_filters=32, dropout_2d=0.2,
-                 pretrained=True, is_deconv=True) # remember to change not to resize to 101, don't init weights
+                 pretrained=True, is_deconv=True) # remember to change not to resize to 101, don't init weights, don't give depth
 
     
 

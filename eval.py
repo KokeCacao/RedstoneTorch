@@ -17,7 +17,10 @@ def eval_net(net, validation_loader, gpu=False):
             true_mask = true_mask.cuda()
 
         # why do you do [0]
-        masks_pred = net(image, z)
+        
+        # masks_pred = net(image, z)
+        masks_pred = net(image)
+
         masks_probs = torch.sigmoid(masks_pred)
         masks_probs_flat = masks_probs.view(-1)
         # threshole transform from probability to solid mask
