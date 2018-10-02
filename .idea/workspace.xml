@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0dd777d8-05cc-4cce-86da-522041d1016c" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/unet/unet_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/unet/unet_model.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -40,13 +39,13 @@
         <counts>
           <entry key="Python Console" value="8" />
           <entry key="dummy" value="18" />
-          <entry key="py" value="9116" />
+          <entry key="py" value="9119" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="18" />
-          <entry key="Python" value="9124" />
+          <entry key="Python" value="9127" />
         </counts>
       </usages-collector>
     </session>
@@ -56,8 +55,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/train.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3285">
-              <caret line="234" column="23" selection-start-line="234" selection-start-column="23" selection-end-line="234" selection-end-column="23" />
+            <state relative-caret-position="2777">
+              <caret line="236" column="8" lean-forward="true" selection-start-line="236" selection-start-column="8" selection-end-line="236" selection-end-column="121" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
                 <marker date="1538481678886" expanded="true" signature="1734:1735" ph="..." />
@@ -95,7 +94,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/unet/unet_parts.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="135">
+            <state relative-caret-position="165">
               <caret line="11" column="34" selection-start-line="11" selection-start-column="34" selection-end-line="17" selection-end-column="33" />
               <folding>
                 <element signature="e#32#44#0" expanded="true" />
@@ -107,8 +106,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/unet/unet_model.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-254">
-              <caret line="94" column="67" selection-start-line="94" selection-start-column="67" selection-end-line="94" selection-end-column="67" />
+            <state relative-caret-position="466">
+              <caret line="100" column="33" lean-forward="true" selection-start-line="100" selection-start-column="33" selection-end-line="100" selection-end-column="33" />
               <folding>
                 <element signature="e#58#76#0" expanded="true" />
               </folding>
@@ -576,19 +575,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/train.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3285">
-          <caret line="234" column="23" selection-start-line="234" selection-start-column="23" selection-end-line="234" selection-end-column="23" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-            <marker date="1538481678886" expanded="true" signature="1734:1735" ph="..." />
-            <marker date="1538481678886" expanded="true" signature="3122:3127" ph="..." />
-            <marker date="1538481678886" expanded="true" signature="7681:7686" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/utils/data.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1545">
@@ -605,16 +591,6 @@
           <caret line="19" selection-start-line="19" selection-end-line="19" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/unet/unet_parts.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="11" column="34" selection-start-line="11" selection-start-column="34" selection-end-line="17" selection-end-column="33" />
-          <folding>
-            <element signature="e#32#44#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -655,10 +631,33 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/train.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2777">
+          <caret line="236" column="8" lean-forward="true" selection-start-line="236" selection-start-column="8" selection-end-line="236" selection-end-column="121" />
+          <folding>
+            <element signature="e#0#10#0" expanded="true" />
+            <marker date="1538481678886" expanded="true" signature="1734:1735" ph="..." />
+            <marker date="1538481678886" expanded="true" signature="3122:3127" ph="..." />
+            <marker date="1538481678886" expanded="true" signature="7681:7686" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/unet/unet_parts.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="11" column="34" selection-start-line="11" selection-start-column="34" selection-end-line="17" selection-end-column="33" />
+          <folding>
+            <element signature="e#32#44#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/unet/unet_model.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-254">
-          <caret line="94" column="67" selection-start-line="94" selection-start-column="67" selection-end-line="94" selection-end-column="67" />
+        <state relative-caret-position="466">
+          <caret line="100" column="33" lean-forward="true" selection-start-line="100" selection-start-column="33" selection-end-line="100" selection-end-column="33" />
           <folding>
             <element signature="e#58#76#0" expanded="true" />
           </folding>
