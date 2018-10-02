@@ -17,7 +17,7 @@ def eval_net(net, validation_loader, gpu=False):
             true_mask = true_mask.cuda()
 
         # why do you do [0]
-        
+
         # masks_pred = net(image, z)
         masks_pred = net(image)
 

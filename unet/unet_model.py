@@ -119,22 +119,36 @@ class UNetResNet(nn.Module):
         self.final = nn.Conv2d(num_filters, num_classes, kernel_size=1)
 
     def forward(self, x):
+        print (x.size())
         conv1 = self.conv1(x)
+        print (conv1.size())
         conv2 = self.conv2(conv1)
+        print (conv2.size())
         conv3 = self.conv3(conv2)
+        print (conv3.size())
         conv4 = self.conv4(conv3)
+        print (conv4.size())
         conv5 = self.conv5(conv4)
+        print (conv5.size())
 
         pool = self.pool(conv5)
+        print (pool.size())
         center = self.center(pool)
+        print (center.size())
 
         dec5 = self.dec5(torch.cat([center, conv5], 1))
+        print (dec5.size())
 
         dec4 = self.dec4(torch.cat([dec5, conv4], 1))
+        print (dec4.size())
         dec3 = self.dec3(torch.cat([dec4, conv3], 1))
+        print (dec3.size())
         dec2 = self.dec2(torch.cat([dec3, conv2], 1))
+        print (dec2.size())
         dec1 = self.dec1(dec2)
+        print (dec1.size())
         dec0 = self.dec0(dec1)
+        print (dec0.size())
 
         return self.final(F.dropout2d(dec0, p=self.dropout_2d))
 
