@@ -86,8 +86,10 @@ class UNetResNet(nn.Module):
         elif encoder_depth == 152:
             self.encoder = torchvision.models.resnet152(pretrained=pretrained)
             bottom_channel_nr = 2048
+        elif encoder_depth == 50: # 224*224 input
+            self.encoder = torchvision.models.resnet50(pretrained=pretrained)
         else:
-            raise NotImplementedError('only 34, 101, 152 version of Resnet are implemented')
+            raise NotImplementedError('only 34, 101, 152, 50 version of Resnet are implemented')
 
         self.pool = nn.MaxPool2d(2, 2)
 
@@ -119,27 +121,27 @@ class UNetResNet(nn.Module):
         self.final = nn.Conv2d(num_filters, num_classes, kernel_size=1)
 
     def forward(self, x):
-        print (x.size())
+        print (x.size()) # (32, 3, 101, 101)
         conv1 = self.conv1(x)
-        print (conv1.size())
+        print (conv1.size()) # (32, 64, 25, 25)
         conv2 = self.conv2(conv1)
-        print (conv2.size())
+        print (conv2.size()) # (32, 256, 25, 25)
         conv3 = self.conv3(conv2)
-        print (conv3.size())
+        print (conv3.size()) # (32, 512, 13, 13)
         conv4 = self.conv4(conv3)
-        print (conv4.size())
+        print (conv4.size()) # (32, 1024, 7, 7)=
         conv5 = self.conv5(conv4)
-        print (conv5.size())
+        print (conv5.size()) # (32, 2048, 4, 4)
 
         pool = self.pool(conv5)
-        print (pool.size())
+        print (pool.size()) # (32, 2048, 2, 2)
         center = self.center(pool)
-        print (center.size())
+        print (center.size()) # (32, 256, 4, 4)
 
         dec5 = self.dec5(torch.cat([center, conv5], 1))
-        print (dec5.size())
+        print (dec5.size()) # (32, 256, 8, 8)=
 
-        dec4 = self.dec4(torch.cat([dec5, conv4], 1))
+        dec4 = self.dec4(torch.cat([dec5, conv4], 1)) #=
         print (dec4.size())
         dec3 = self.dec3(torch.cat([dec4, conv3], 1))
         print (dec3.size())
@@ -149,6 +151,31 @@ class UNetResNet(nn.Module):
         print (dec1.size())
         dec0 = self.dec0(dec1)
         print (dec0.size())
+
+        # (32, 3, 101, 101)
+        # (32, 64, 25, 25)
+        # (32, 256, 25, 25)
+        # (32, 512, 13, 13)
+        # (32, 1024, 7, 7)=
+        # (32, 2048, 4, 4)
+        # ======
+        # (32, 2048, 2, 2)
+        # (32, 256, 4, 4)
+
+        # (32, 256, 8, 8)=
+
+
+
+
+        # (32, 3, 152, 152)
+        # (32, 64, 38, 38)
+        # (32, 256, 38, 38)
+        # (32, 512, 19, 19)
+        # (32, 1024, 10, 10)
+        # (32, 2048, 5, 5)=
+        # ======
+        # (32, 2048, 2, 2)
+        # (32, 256, 4, 4)=
 
         return self.final(F.dropout2d(dec0, p=self.dropout_2d))
 
