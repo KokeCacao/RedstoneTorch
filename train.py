@@ -26,14 +26,14 @@ transform = {
     #     transforms.Normalize([0.5], [0.5])
     # ]),
     'image': transforms.Compose([
-        transforms.Resize((152,152)),
+        transforms.Resize((224,224)),
         # transforms.RandomResizedCrop(224),
         # transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize(mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225])
     ]),
     'mask': transforms.Compose([
-        transforms.Resize((152,152)),
+        transforms.Resize((224,224)),
         # transforms.CenterCrop(224),
         transforms.Grayscale(),
         transforms.ToTensor(),
@@ -193,8 +193,8 @@ if __name__ == '__main__':
 
     # net = ResUNet(n_channels=3, n_classes=1)
     net = UNet(n_channels=3, n_classes=1)
-    net = UNetResNet(encoder_depth=152, num_classes=1, num_filters=32, dropout_2d=0.2,
-                 pretrained=True, is_deconv=True) # remember to change not to resize to 101, don't init weights, don't give depth
+    net = UNetResNet(encoder_depth=50, num_classes=1, num_filters=32, dropout_2d=0.2,
+                 pretrained=True, is_deconv=True) #don't init weights, don't give depth
 
     
 
