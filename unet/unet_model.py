@@ -88,7 +88,7 @@ class UNetResNet(nn.Module):
             bottom_channel_nr = 2048
         elif encoder_depth == 50: # 224*224 input
             self.encoder = torchvision.models.resnet50(pretrained=pretrained)
-            bottom_channel_nr = 256
+            bottom_channel_nr = 2048
         else:
             raise NotImplementedError('only 34, 101, 152, 50 version of Resnet are implemented')
 
