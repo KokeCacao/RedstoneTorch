@@ -11,6 +11,7 @@ from torchvision import transforms
 from eval import eval_net
 from unet import UNet
 from resunet.resunet_model import ResUNet
+from unet.unet_model import UNetResNet
 from utils.data import TGSData
 from datetime import datetime, date
 
@@ -25,14 +26,14 @@ transform = {
     #     transforms.Normalize([0.5], [0.5])
     # ]),
     'image': transforms.Compose([
-        transforms.Resize((224,224)),
+        transforms.Resize((101,101)),
         # transforms.RandomResizedCrop(224),
         # transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize(mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225])
     ]),
     'mask': transforms.Compose([
-        transforms.Resize((224,224)),
+        transforms.Resize((101,101)),
         # transforms.CenterCrop(224),
         transforms.Grayscale(),
         transforms.ToTensor(),
@@ -122,9 +123,9 @@ def train_net(net,
 
             # stretch result to one dimension
             masks_probs_flat = masks_probs.view(-1)
-            print ("Predicted Mask:", masks_probs_flat)
+            # print ("Predicted Mask:", masks_probs_flat)
             true_masks_flat = true_mask.view(-1)
-            print ("True Mask:", true_masks_flat)
+            # print ("True Mask:", true_masks_flat)
 
             loss = criterion(masks_probs_flat, true_masks_flat)
             epoch_loss += loss.item()
@@ -185,8 +186,14 @@ if __name__ == '__main__':
 
     # 3 channels: 3 form image, 1 mask
     # 1 classes: separate salt and others
+
+
     # net = ResUNet(n_channels=3, n_classes=1)
     net = UNet(n_channels=3, n_classes=1)
+    net = UNetResNet(encoder_depth=101, num_classes=1, num_filters=32, dropout_2d=0.2,
+                 pretrained=True, is_deconv=True) # remember to change not to resize to 101, don't init weights
+
+    
 
     def init_weights(m):
         if type(m) == nn.Linear:
@@ -194,8 +201,8 @@ if __name__ == '__main__':
             m.bias.data.fill_(args.weight_init)
 
 
-    print("Initializing Weights...")
-    net.apply(init_weights)
+    # print("Initializing Weights...")
+    # net.apply(init_weights)
 
     # if args.load:
     #     unet.load_state_dict(torch.load(args.load))
@@ -224,3 +231,4 @@ if __name__ == '__main__':
         except SystemExit:
             os._exit(0)
 #python train.py --epochs 5 --batch-size 32 --learning-rate 0.001 --weight_init 0.001 --dir_prefix '' --data_percent 0.01
+#python train.py --epochs 50 --batch-size 32 --learning-rate 0.01 --weight_init 0.001 --dir_prefix '' --data_percent 1.00
