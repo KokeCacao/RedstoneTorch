@@ -92,7 +92,9 @@ class UNetResNet(nn.Module):
         else:
             raise NotImplementedError('only 34, 101, 152, 50 version of Resnet are implemented')
 
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2, padding=1) #kernel_size, stride=None, padding=0, dilation=1, return_indices=False, ceil_mode=False
+
+        self.pool = nn.MaxPool2d(2, 2)
+        # self.pool = nn.MaxPool2d(kernel_size=2, stride=2, padding=1) #kernel_size, stride=None, padding=0, dilation=1, return_indices=False, ceil_mode=False
 
         self.relu = nn.ReLU(inplace=True)
 
