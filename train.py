@@ -8,7 +8,7 @@ import torch.utils.data as data
 from torch import optim
 from torchvision import transforms
 
-from eval import eval_net
+from eval import eval_net, iou_score
 from unet import UNet
 from resunet.resunet_model import ResUNet
 from unet.unet_model import UNetResNet
@@ -124,7 +124,7 @@ def train_net(net,
             # true_masks = torch.sigmoid(true_masks) # add this, IDK why loss negative
 
             # calculating iou
-            iou = eval.iou(masks_pred, true_mask)
+            iou = iou_score(masks_pred, true_mask)
             print("iou:", iou)
 
             # calculating loss
