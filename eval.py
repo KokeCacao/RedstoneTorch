@@ -34,7 +34,7 @@ def eval_net(net, validation_loader, gpu=False):
     return total_loss / (num+1e-10)
 
 
-def iou(outputs: torch.Tensor, labels: torch.Tensor):
+def iou(outputs, labels):
     outputs = outputs > 0.5 # threshold
 
     # You can comment out this line if you are passing tensors of equal shape
