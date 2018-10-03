@@ -108,6 +108,7 @@ def train_net(net,
         print('Starting epoch {}/{}.'.format(epoch + 1, epochs))
 
         epoch_loss = 0
+        epoch_iou = 0
 
         # batch size should < 4000 due to the amount of data avaliable
         for batch_index, (id, z, image, true_mask) in enumerate(train_loader, 0):
@@ -125,6 +126,7 @@ def train_net(net,
 
             # calculating iou
             iou = iou_score(masks_pred, true_mask)
+            epoch_iou = epoch_iou + iou.mean().float()
             # print("iou:", iou.mean())
 
             # calculating loss
@@ -158,7 +160,7 @@ def train_net(net,
             loss.backward()
             optimizer.step()
         epoch_num = epoch_num+1
-        print('{}# Epoch finished ! BCELoss: {}'.format(epoch_num, epoch_loss / (batch_size+1e-10)))
+        print('{}# Epoch finished ! BCELoss: {}, IOU: {}'.format(epoch_num, epoch_loss/(batch_size+1e-10), epoch_iou/(batch_size+1e-10)))
         log_data("epoch_finished", '{}# Epoch finished ! BCELoss: {}'.format(epoch_num, epoch_loss / (batch_size+1e-10)))
         # validation
         if validation:
