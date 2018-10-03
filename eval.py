@@ -23,7 +23,7 @@ def eval_net(net, validation_loader, gpu=False):
 
         # masks_pred = net(image, z)
         masks_pred = net(image)
-        total_iou = total_iou + iou_score(masks_pred, true_mask)
+        total_iou = total_iou + iou_score(masks_pred, true_mask).mean().float()
         # print("iou:", iou.mean())
 
         # masks_probs = torch.sigmoid(masks_pred)
