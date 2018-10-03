@@ -69,14 +69,14 @@ def train_net(net,
     # print("debug-z:",random, "is", tgs_data.get_data()['z'][random])
     # print("debug-mask:",random, "is", tgs_data.get_data()['mask'][random])
 
-    print("Id Size:", len(tgs_data.get_data()['id']))
-    print("Z Size:", len(tgs_data.get_data()['z']))
-    print("Image Size:", len(tgs_data.get_data()['image']))
-    print("Mask Size:", len(tgs_data.get_data()['mask']))
+    print("Id Size: {}".format(len(tgs_data.get_data()['id'])))
+    print("Z Size: {}".format(len(tgs_data.get_data()['z'])))
+    print("Image Size: {}".format(len(tgs_data.get_data()['image'])))
+    print("Mask Size: {}".format(len(tgs_data.get_data()['mask'])))
     zip_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['z'], tgs_data.get_data()['image'], tgs_data.get_data()['mask']))
     # x_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['z'], tgs_data.get_data()['image']))
     # y_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['mask']))
-    print("Zip-Data Size:", len(zip_data))
+    print("Zip-Data Size: {}".format(len(zip_data)))
 
     train_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=train_sampler, shuffle=False, num_workers=0)
     validation_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=validation_sampler, shuffle=False, num_workers=0)
@@ -142,14 +142,14 @@ def train_net(net,
             train_duration = now - train_begin
             epoch_duration = now - epoch_begin
             print("SinceTrain:{}, Since Epoch:{}".format(train_duration, epoch_duration))
-            print('{0}# Epoch - {1:.2f}% ({2}/{3})batch ({4:}/{5:})data - TrainBCELoss: {6:.6f}, IOU: {7}'.format(epoch_num+1,
+            print('{0}# Epoch - {1:.2f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}, IOU: {7}'.format(epoch_num+1,
                                                                                                      (100*(batch_index+1)*batch_size)/tgs_data.train_len,
                                                                                                      batch_index+1,
                                                                                                      tgs_data.train_len/batch_size,
                                                                                                      (epoch_num+1)*(batch_index+1)*batch_size,
                                                                                                      tgs_data.train_len,
                                                                                                      loss.item(), iou.mean().float()))
-            log_data("train", '{0}# Epoch - {1:.2f}% ({2}/{3})batch ({4:}/{5:})data - TrainBCELoss: {6:.6f}, IOU: {7}'.format(epoch_num+1,
+            log_data("train", '{0}# Epoch - {1:.2f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}, IOU: {7}'.format(epoch_num+1,
                                                                                                      (100*(epoch_num+1)*(batch_index+1)*batch_size)/tgs_data.train_len,
                                                                                                      batch_index+1,
                                                                                                      tgs_data.train_len/batch_size,
@@ -160,8 +160,8 @@ def train_net(net,
             loss.backward()
             optimizer.step()
         epoch_num = epoch_num+1
-        print('{}# Epoch finished ! BCELoss: {}, IOU: {}'.format(epoch_num, epoch_loss/(batch_size+1e-10), epoch_iou/(batch_size+1e-10)))
-        log_data("epoch_finished", '{}# Epoch finished ! BCELoss: {}'.format(epoch_num, epoch_loss / (batch_size+1e-10)))
+        print('{}# Epoch finished ! Loss: {}, IOU: {}'.format(epoch_num, epoch_loss/(batch_size+1e-10), epoch_iou/(batch_size+1e-10)))
+        log_data("epoch_finished", '{}# Epoch finished ! Loss: {}'.format(epoch_num, epoch_loss / (batch_size+1e-10)))
         # validation
         if validation:
             val_dice = eval_net(net, validation_loader, gpu)
@@ -173,7 +173,7 @@ def train_net(net,
             if not os.path.exists(dir_checkpoint):
                 os.makedirs(dir_checkpoint)
             torch.save(net.state_dict(), dir_checkpoint + 'CP{}.pth'.format(epoch + 1))
-            print('Checkpoint {} saved !'.format(epoch + 1))
+            print('Checkpoint #{} saved !'.format(epoch + 1))
 
 def get_args():
     parser = OptionParser()
@@ -208,7 +208,7 @@ if __name__ == '__main__':
 
 
     # net = ResUNet(n_channels=3, n_classes=1)
-    net = UNet(n_channels=3, n_classes=1)
+    # net = UNet(n_channels=3, n_classes=1)
     net = UNetResNet(encoder_depth=50, num_classes=1, num_filters=32, dropout_2d=0.2,
                  pretrained=True, is_deconv=True) #don't init weights, don't give depth
 

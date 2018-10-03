@@ -78,14 +78,14 @@ class TGSData(data.Dataset):
     def get_sampler(self, all_id, data_percent=1.0, val_percent=0.05, data_shuffle = False, train_shuffle=True, val_shuffle=False, seed=19):
         self.sample = self.get_all_sample(all_id)
         print ("Loading sample:")
-        print ("Sample size:", self.data_len, "samples")
+        print ("Sample size: {} samples".format(self.data_len))
 
-        print ("Sample mean of depth:", self.means.get("z"))
-        print ("Sample mean of image:", self.means.get("image"))
-        print ("Sample mean of masks:", self.means.get("mask"))
-        print ("Sample std of depth:", self.stds.get("z"))
-        print ("Sample std of image:", self.stds.get("image"))
-        print ("Sample std of masks:", self.stds.get("mask"))
+        print ("Sample mean of depth: {}".format(self.means.get("z").float()))
+        print ("Sample mean of image: {}".format(self.means.get("image").float()))
+        print ("Sample mean of masks: {}".format(self.means.get("mask").float()))
+        print ("Sample std of depth: {}".format(self.stds.get("z").float()))
+        print ("Sample std of image: {}".format(self.stds.get("image")))
+        print ("Sample std of masks: {}".format(self.stds.get("mask")))
         # print ("Data Structure of Sample: {'id': id(size), 'z': z(size), 'image': image(size, 225, 225), 'mask': mask(size, 225, 225)}")
 
         # ABANDONED: get indice
@@ -103,10 +103,10 @@ class TGSData(data.Dataset):
             np.random.shuffle(indices)
 
         val_split = int(np.floor(data_percent * val_percent * dataset_size))
-        print("Validation Size:", val_split)
+        print("Validation Size: {}".format(val_split))
         self.val_len = val_split
         data_split = int(np.floor(data_percent * dataset_size))
-        print("Traning Size:", data_split-val_split)
+        print("Traning Size: {}".format(data_split-val_split))
         self.train_len = data_split-val_split
 
         val_indices = indices[:val_split]
@@ -159,6 +159,9 @@ class TGSData(data.Dataset):
 
             mask_name = os.path.join(self.mask_dir, id + self.mask_suffix)
             mask = Image.open(mask_name)
+
+            if mask == None: break # important! make sure the order is correct because some don't have mask
+
             if self.transform:
                 mask = self.transform['mask'](mask)
 
