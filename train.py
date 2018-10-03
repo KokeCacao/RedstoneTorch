@@ -100,7 +100,7 @@ def train_net(net,
     #                       lr=lr,
     #                       momentum=momentum,
     #                       weight_decay=weight_decay)
-    optimizer = torch.optim.Adam(net.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
+    optimizer = torch.optim.Adam(net.parameters(), lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay)
     train_begin = datetime.now()
     epoch_num = 0
     for epoch in range(epochs):
@@ -130,9 +130,9 @@ def train_net(net,
             # calculating loss
             masks_probs = torch.sigmoid(masks_pred)
             masks_probs_flat = masks_probs.view(-1)
-            print ("Predicted Mask:", masks_probs_flat, "size=", masks_pred.size())
+            # print ("Predicted Mask:", masks_probs_flat, "size=", masks_pred.size())
             true_masks_flat = true_mask.view(-1)
-            print ("True Mask:", true_masks_flat, "size=", true_mask.size())
+            # print ("True Mask:", true_masks_flat, "size=", true_mask.size())
             loss = criterion(masks_probs_flat, true_masks_flat)
             epoch_loss += loss.item()
 
@@ -221,12 +221,12 @@ if __name__ == '__main__':
     # print("Initializing Weights...")
     # net.apply(init_weights)
 
-    # if args.load:
-    #     unet.load_state_dict(torch.load(args.load))
-    #     print('Model loaded from {}'.format(args.load))
-    #
-    # if args.gpu:
-    #     unet.cuda()
+    if args.load:
+        net.load_state_dict(torch.load(args.load))
+        print('Model loaded from {}'.format(args.load))
+
+    if args.gpu:
+        net.cuda()
         # cudnn.benchmark = True # faster convolutions, but more memory
 
     try:
