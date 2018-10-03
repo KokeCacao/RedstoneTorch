@@ -114,7 +114,7 @@ class UNetResNet(nn.Module):
         self.center = DecoderBlockV2(bottom_channel_nr,
                                      num_filters * 8 * 2,
                                      num_filters * 8,
-                                     is_deconv, padding=2)
+                                     is_deconv, kernel_size=4, stride=2, padding=1)
         self.dec5 = DecoderBlockV2(bottom_channel_nr + num_filters * 8,
                                    num_filters * 8 * 2,
                                    num_filters * 8,
@@ -203,7 +203,7 @@ class UNetResNet(nn.Module):
         return self.final(F.dropout2d(dec0, p=self.dropout_2d))
 
 class DecoderBlockV2(nn.Module):
-    def __init__(self, in_channels, middle_channels, out_channels, is_deconv=True, padding=1):
+    def __init__(self, in_channels, middle_channels, out_channels, is_deconv=True, kernel_size=4, stride=2, padding=1):
         super(DecoderBlockV2, self).__init__()
         self.in_channels = in_channels
 
@@ -215,7 +215,7 @@ class DecoderBlockV2(nn.Module):
 
             self.block = nn.Sequential(
                 ConvRelu(in_channels, middle_channels),
-                nn.ConvTranspose2d(middle_channels, out_channels, kernel_size=4, stride=2,
+                nn.ConvTranspose2d(middle_channels, out_channels, kernel_size=kernel_size, stride=stride,
                                    padding=padding),
                 nn.ReLU(inplace=True)
             )
