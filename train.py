@@ -125,7 +125,7 @@ def train_net(net,
 
             # calculating iou
             iou = iou_score(masks_pred, true_mask)
-            print("iou:", iou)
+            print("iou:", iou.mean())
 
             # calculating loss
             masks_probs = torch.sigmoid(masks_pred)
