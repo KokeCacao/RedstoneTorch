@@ -248,4 +248,4 @@ if __name__ == '__main__':
         except SystemExit:
             os._exit(0)
 #python train.py --epochs 5 --batch-size 32 --learning-rate 0.001 --weight_init 0.001 --dir_prefix '' --data_percent 0.01
-#python train.py --epochs 50 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00
+#python train.py --epochs 50 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu 'True'
