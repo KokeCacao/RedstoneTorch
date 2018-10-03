@@ -146,14 +146,14 @@ def train_net(net,
                                                                                                      tgs_data.train_len/batch_size,
                                                                                                      (epoch_num+1)*(batch_index+1)*batch_size,
                                                                                                      tgs_data.train_len,
-                                                                                                     loss.item(), iou.mean().view(-1)))
+                                                                                                     loss.item(), iou.mean().float()))
             log_data("train", '{0}# Epoch - {1:.2f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}, IOU: {7}'.format(epoch_num+1,
                                                                                                      (100*(epoch_num+1)*(batch_index+1)*batch_size)/tgs_data.train_len,
                                                                                                      batch_index+1,
                                                                                                      tgs_data.train_len/batch_size,
                                                                                                      (epoch_num+1)*(batch_index+1)*batch_size,
                                                                                                      tgs_data.train_len,
-                                                                                                     loss.item(), iou.mean().view(-1)))
+                                                                                                     loss.item(), iou.mean().float()))
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
