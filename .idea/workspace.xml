@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0dd777d8-05cc-4cce-86da-522041d1016c" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/dice_loss.py" beforeDir="false" afterPath="$PROJECT_DIR$/dice_loss.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/eval.py" beforeDir="false" afterPath="$PROJECT_DIR$/eval.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -58,12 +60,12 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="200" />
+          <entry key="py" value="402" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="200" />
+          <entry key="Python" value="402" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -83,12 +85,12 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/train.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="78">
-              <caret line="102" column="32" lean-forward="true" selection-start-line="102" selection-start-column="32" selection-end-line="102" selection-end-column="32" />
+            <state relative-caret-position="363">
+              <caret line="131" column="51" lean-forward="true" selection-start-line="131" selection-start-column="51" selection-end-line="131" selection-end-column="51" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
-                <marker date="1538569306876" expanded="true" signature="8975:8977" ph="..." />
-                <marker date="1538569306876" expanded="true" signature="9646:9655" ph="..." />
+                <marker date="1538596230357" expanded="true" signature="9238:9240" ph="..." />
+                <marker date="1538596230357" expanded="true" signature="9911:9922" ph="..." />
               </folding>
             </state>
           </provider>
@@ -109,8 +111,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/eval.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="255">
-              <caret line="19" selection-start-line="19" selection-end-line="19" />
+            <state relative-caret-position="510">
+              <caret line="34" lean-forward="true" selection-start-line="34" selection-end-line="34" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -204,9 +206,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>landmarks</find>
-      <find>image</find>
-      <find>csv</find>
       <find>get_ids</find>
       <find>batch</find>
       <find>mask</find>
@@ -234,6 +233,9 @@
       <find>=1</find>
       <find>pool</find>
       <find>print</find>
+      <find>0.1e</find>
+      <find>optimi</find>
+      <find>cocomask</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -257,8 +259,8 @@
         <option value="$PROJECT_DIR$/res-unet/__init__.py" />
         <option value="$PROJECT_DIR$/unet/unet_parts.py" />
         <option value="$PROJECT_DIR$/resunet/resunet_model.py" />
-        <option value="$PROJECT_DIR$/eval.py" />
         <option value="$PROJECT_DIR$/unet/unet_model.py" />
+        <option value="$PROJECT_DIR$/eval.py" />
         <option value="$PROJECT_DIR$/train.py" />
       </list>
     </option>
@@ -576,27 +578,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/eval.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="19" selection-start-line="19" selection-end-line="19" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/resunet/resunet_model.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1020">
           <caret line="68" column="61" selection-start-line="68" selection-start-column="61" selection-end-line="68" selection-end-column="61" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/dice_loss.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="8" column="30" selection-start-line="8" selection-start-column="30" selection-end-line="8" selection-end-column="30" />
         </state>
       </provider>
     </entry>
@@ -616,16 +601,6 @@
           <caret line="239" column="15" selection-start-line="239" selection-start-column="10" selection-end-line="239" selection-end-column="15" />
           <folding>
             <element signature="e#58#76#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/utils/data.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="871">
-          <caret line="111" column="18" selection-start-line="111" selection-start-column="18" selection-end-line="111" selection-end-column="18" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -657,14 +632,41 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/dice_loss.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="8" column="30" selection-start-line="8" selection-start-column="30" selection-end-line="8" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils/data.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="871">
+          <caret line="111" column="18" selection-start-line="111" selection-start-column="18" selection-end-line="111" selection-end-column="18" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/eval.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="510">
+          <caret line="34" lean-forward="true" selection-start-line="34" selection-end-line="34" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/train.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="78">
-          <caret line="102" column="32" lean-forward="true" selection-start-line="102" selection-start-column="32" selection-end-line="102" selection-end-column="32" />
+        <state relative-caret-position="363">
+          <caret line="131" column="51" lean-forward="true" selection-start-line="131" selection-start-column="51" selection-end-line="131" selection-end-column="51" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
-            <marker date="1538569306876" expanded="true" signature="8975:8977" ph="..." />
-            <marker date="1538569306876" expanded="true" signature="9646:9655" ph="..." />
+            <marker date="1538596230357" expanded="true" signature="9238:9240" ph="..." />
+            <marker date="1538596230357" expanded="true" signature="9911:9922" ph="..." />
           </folding>
         </state>
       </provider>

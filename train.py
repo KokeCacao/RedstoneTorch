@@ -96,10 +96,11 @@ def train_net(net,
     '''.format(epochs, batch_size, lr, tgs_data.train_len, tgs_data.val_len, str(save_cp), str(gpu), weight_init, momentum, weight_decay))
 
     criterion = torch.nn.BCELoss()
-    optimizer = optim.SGD(net.parameters(),
-                          lr=lr,
-                          momentum=momentum,
-                          weight_decay=weight_decay)
+    # optimizer = optim.SGD(net.parameters(),
+    #                       lr=lr,
+    #                       momentum=momentum,
+    #                       weight_decay=weight_decay)
+    optimizer = torch.optim.Adam(net.parameters(), lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
     train_begin = datetime.now()
     epoch_num = 0
     for epoch in range(epochs):
@@ -120,16 +121,18 @@ def train_net(net,
 
             # masks_pred = net(image, z)
             masks_pred = net(image)
-
-            masks_probs = torch.sigmoid(masks_pred)
             # true_masks = torch.sigmoid(true_masks) # add this, IDK why loss negative
 
-            # stretch result to one dimension
-            masks_probs_flat = masks_probs.view(-1)
-            print ("Predicted Mask:", masks_probs_flat)
-            true_masks_flat = true_mask.view(-1)
-            print ("True Mask:", true_masks_flat)
+            # calculating iou
+            iou = eval.iou(masks_pred, true_mask)
+            print("iou:", iou)
 
+            # calculating loss
+            masks_probs = torch.sigmoid(masks_pred)
+            masks_probs_flat = masks_probs.view(-1)
+            print ("Predicted Mask:", masks_probs_flat, "size=", masks_pred.size())
+            true_masks_flat = true_mask.view(-1)
+            print ("True Mask:", true_masks_flat, "size=", true_mask.size())
             loss = criterion(masks_probs_flat, true_masks_flat)
             epoch_loss += loss.item()
 
@@ -155,8 +158,8 @@ def train_net(net,
             loss.backward()
             optimizer.step()
         epoch_num = epoch_num+1
-        print('{}# Epoch finished ! Loss: {}'.format(epoch_num, epoch_loss / (epoch_num+0.1e-10)))
-        log_data("epoch_finished", '{}# Epoch finished ! Loss: {}'.format(epoch_num, epoch_loss / (batch_size+0.1e-10)))
+        print('{}# Epoch finished ! Loss: {}'.format(epoch_num, epoch_loss / (batch_size+1e-10)))
+        log_data("epoch_finished", '{}# Epoch finished ! Loss: {}'.format(epoch_num, epoch_loss / (batch_size+1e-10)))
         # validation
         if validation:
             val_dice = eval_net(net, validation_loader, gpu)
@@ -209,10 +212,10 @@ if __name__ == '__main__':
 
     
 
-    def init_weights(m):
-        if type(m) == nn.Linear:
-            torch.nn.init.xavier_uniform(m.weight)
-            m.bias.data.fill_(args.weight_init)
+    # def init_weights(m):
+    #     if type(m) == nn.Linear:
+    #         torch.nn.init.xavier_uniform(m.weight)
+    #         m.bias.data.fill_(args.weight_init)
 
 
     # print("Initializing Weights...")
@@ -245,4 +248,4 @@ if __name__ == '__main__':
         except SystemExit:
             os._exit(0)
 #python train.py --epochs 5 --batch-size 32 --learning-rate 0.001 --weight_init 0.001 --dir_prefix '' --data_percent 0.01
-#python train.py --epochs 50 --batch-size 32 --learning-rate 0.01 --weight_init 0.001 --dir_prefix '' --data_percent 1.00
+#python train.py --epochs 50 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00
