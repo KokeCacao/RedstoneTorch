@@ -101,6 +101,7 @@ def train_net(net,
                           momentum=momentum,
                           weight_decay=weight_decay)
     train_begin = datetime.now()
+    epoch_num = 0
     for epoch in range(epochs):
         epoch_begin = datetime.now()
         print('Starting epoch {}/{}.'.format(epoch + 1, epochs))
@@ -108,7 +109,6 @@ def train_net(net,
         epoch_loss = 0
 
         # batch size should < 4000 due to the amount of data avaliable
-        epoch_num = 0
         for batch_index, (id, z, image, true_mask) in enumerate(train_loader, 0):
 
             if gpu:
@@ -187,7 +187,7 @@ def get_args():
 
 def log_data(file_name, data):
     with open(file_name+".txt", "a+") as file:
-        file.write(data)
+        file.write(data+"\n")
 
 if __name__ == '__main__':
     # init artgs
