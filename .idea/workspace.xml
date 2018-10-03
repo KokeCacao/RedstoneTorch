@@ -59,12 +59,12 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="607" />
+          <entry key="py" value="619" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="607" />
+          <entry key="Python" value="619" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -81,15 +81,15 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/train.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="270">
-              <caret line="129" column="30" lean-forward="true" selection-start-line="129" selection-start-column="30" selection-end-line="129" selection-end-column="30" />
+            <state relative-caret-position="480">
+              <caret line="161" column="60" selection-start-line="161" selection-start-column="60" selection-end-line="161" selection-end-column="60" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
-                <marker date="1538601735799" expanded="true" signature="9331:9333" ph="..." />
-                <marker date="1538601735799" expanded="true" signature="10004:10015" ph="..." />
+                <marker date="1538602152948" expanded="true" signature="9329:9331" ph="..." />
+                <marker date="1538602152948" expanded="true" signature="10002:10013" ph="..." />
               </folding>
             </state>
           </provider>
@@ -107,11 +107,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/eval.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="375">
-              <caret line="25" column="79" selection-start-line="25" selection-start-column="79" selection-end-line="25" selection-end-column="79" />
+            <state relative-caret-position="90">
+              <caret line="6" column="48" lean-forward="true" selection-start-line="6" selection-start-column="48" selection-end-line="6" selection-end-column="48" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -233,8 +233,8 @@
       <find>optimi</find>
       <find>cuda()</find>
       <find>pyden</find>
-      <find>cocomask</find>
       <find>cuda</find>
+      <find>cocomask</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -259,8 +259,8 @@
         <option value="$PROJECT_DIR$/unet/unet_parts.py" />
         <option value="$PROJECT_DIR$/resunet/resunet_model.py" />
         <option value="$PROJECT_DIR$/unet/unet_model.py" />
-        <option value="$PROJECT_DIR$/train.py" />
         <option value="$PROJECT_DIR$/eval.py" />
+        <option value="$PROJECT_DIR$/train.py" />
       </list>
     </option>
   </component>
@@ -648,24 +648,24 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/train.py">
+    <entry file="file://$PROJECT_DIR$/eval.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="129" column="30" lean-forward="true" selection-start-line="129" selection-start-column="30" selection-end-line="129" selection-end-column="30" />
+        <state relative-caret-position="90">
+          <caret line="6" column="48" lean-forward="true" selection-start-line="6" selection-start-column="48" selection-end-line="6" selection-end-column="48" />
           <folding>
-            <element signature="e#0#10#0" expanded="true" />
-            <marker date="1538601735799" expanded="true" signature="9331:9333" ph="..." />
-            <marker date="1538601735799" expanded="true" signature="10004:10015" ph="..." />
+            <element signature="e#0#12#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/eval.py">
+    <entry file="file://$PROJECT_DIR$/train.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="375">
-          <caret line="25" column="79" selection-start-line="25" selection-start-column="79" selection-end-line="25" selection-end-column="79" />
+        <state relative-caret-position="480">
+          <caret line="161" column="60" selection-start-line="161" selection-start-column="60" selection-end-line="161" selection-end-column="60" />
           <folding>
-            <element signature="e#0#12#0" expanded="true" />
+            <element signature="e#0#10#0" expanded="true" />
+            <marker date="1538602152948" expanded="true" signature="9329:9331" ph="..." />
+            <marker date="1538602152948" expanded="true" signature="10002:10013" ph="..." />
           </folding>
         </state>
       </provider>

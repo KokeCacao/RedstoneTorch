@@ -140,14 +140,14 @@ def train_net(net,
             train_duration = now - train_begin
             epoch_duration = now - epoch_begin
             print("SinceTrain:{}, Since Epoch:{}".format(train_duration, epoch_duration))
-            print('{0}# Epoch - {1:.2f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}, IOU: {7}'.format(epoch_num+1,
-                                                                                                     (100*(epoch_num+1)*(batch_index+1)*batch_size)/tgs_data.train_len,
+            print('{0}# Epoch - {1:.2f}% ({2}/{3})batch ({4:}/{5:})data - TrainBCELoss: {6:.6f}, IOU: {7}'.format(epoch_num+1,
+                                                                                                     (100*(batch_index+1)*batch_size)/tgs_data.train_len,
                                                                                                      batch_index+1,
                                                                                                      tgs_data.train_len/batch_size,
                                                                                                      (epoch_num+1)*(batch_index+1)*batch_size,
                                                                                                      tgs_data.train_len,
                                                                                                      loss.item(), iou.mean().float()))
-            log_data("train", '{0}# Epoch - {1:.2f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}, IOU: {7}'.format(epoch_num+1,
+            log_data("train", '{0}# Epoch - {1:.2f}% ({2}/{3})batch ({4:}/{5:})data - TrainBCELoss: {6:.6f}, IOU: {7}'.format(epoch_num+1,
                                                                                                      (100*(epoch_num+1)*(batch_index+1)*batch_size)/tgs_data.train_len,
                                                                                                      batch_index+1,
                                                                                                      tgs_data.train_len/batch_size,
@@ -158,8 +158,8 @@ def train_net(net,
             loss.backward()
             optimizer.step()
         epoch_num = epoch_num+1
-        print('{}# Epoch finished ! Loss: {}'.format(epoch_num, epoch_loss / (batch_size+1e-10)))
-        log_data("epoch_finished", '{}# Epoch finished ! Loss: {}'.format(epoch_num, epoch_loss / (batch_size+1e-10)))
+        print('{}# Epoch finished ! BCELoss: {}'.format(epoch_num, epoch_loss / (batch_size+1e-10)))
+        log_data("epoch_finished", '{}# Epoch finished ! BCELoss: {}'.format(epoch_num, epoch_loss / (batch_size+1e-10)))
         # validation
         if validation:
             val_dice = eval_net(net, validation_loader, gpu)
