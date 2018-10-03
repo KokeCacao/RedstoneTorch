@@ -114,7 +114,7 @@ class UNetResNet(nn.Module):
         self.center = DecoderBlockV2(bottom_channel_nr,
                                      num_filters * 8 * 2,
                                      num_filters * 8,
-                                     is_deconv, kernel_size=4, stride=2, padding=1)
+                                     is_deconv, kernel_size=5, stride=2, padding=1)
         self.dec5 = DecoderBlockV2(bottom_channel_nr + num_filters * 8,
                                    num_filters * 8 * 2,
                                    num_filters * 8,
