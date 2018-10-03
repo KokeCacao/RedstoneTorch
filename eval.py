@@ -14,6 +14,7 @@ def eval_net(net, validation_loader, gpu=False):
         # true_mask = true_mask.unsqueeze(0)
 
         if gpu:
+            z = z.cuda()
             image = image.cuda()
             true_mask = true_mask.cuda()
 
