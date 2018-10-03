@@ -125,7 +125,7 @@ def train_net(net,
 
             # calculating iou
             iou = iou_score(masks_pred, true_mask)
-            print("iou:", iou.mean())
+            # print("iou:", iou.mean())
 
             # calculating loss
             masks_probs = torch.sigmoid(masks_pred)
@@ -140,20 +140,20 @@ def train_net(net,
             train_duration = now - train_begin
             epoch_duration = now - epoch_begin
             print("SinceTrain:{}, Since Epoch:{}".format(train_duration, epoch_duration))
-            print('{0}# Epoch - {1:.2f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}'.format(epoch_num+1,
+            print('{0}# Epoch - {1:.2f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}, IOU: {7}'.format(epoch_num+1,
                                                                                                      (100*(epoch_num+1)*(batch_index+1)*batch_size)/tgs_data.train_len,
                                                                                                      batch_index+1,
                                                                                                      tgs_data.train_len/batch_size,
                                                                                                      (epoch_num+1)*(batch_index+1)*batch_size,
                                                                                                      tgs_data.train_len,
-                                                                                                     loss.item()))
-            log_data("train", '{0}# Epoch - {1:.2f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}'.format(epoch_num+1,
+                                                                                                     loss.item(), iou.mean().view(-1)))
+            log_data("train", '{0}# Epoch - {1:.2f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}, IOU: {7}'.format(epoch_num+1,
                                                                                                      (100*(epoch_num+1)*(batch_index+1)*batch_size)/tgs_data.train_len,
                                                                                                      batch_index+1,
                                                                                                      tgs_data.train_len/batch_size,
                                                                                                      (epoch_num+1)*(batch_index+1)*batch_size,
                                                                                                      tgs_data.train_len,
-                                                                                                     loss.item()))
+                                                                                                     loss.item(), iou.mean().view(-1)))
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
