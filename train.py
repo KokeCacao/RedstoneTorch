@@ -126,9 +126,9 @@ def train_net(net,
 
             # stretch result to one dimension
             masks_probs_flat = masks_probs.view(-1)
-            # print ("Predicted Mask:", masks_probs_flat)
+            print ("Predicted Mask:", masks_probs_flat)
             true_masks_flat = true_mask.view(-1)
-            # print ("True Mask:", true_masks_flat)
+            print ("True Mask:", true_masks_flat)
 
             loss = criterion(masks_probs_flat, true_masks_flat)
             epoch_loss += loss.item()
@@ -156,7 +156,7 @@ def train_net(net,
             optimizer.step()
         epoch_num = epoch_num+1
         print('{}# Epoch finished ! Loss: {}'.format(epoch_num, epoch_loss / (epoch_num+0.1e-10)))
-        log_data("epoch_finished", '{}# Epoch finished ! Loss: {}'.format(epoch_num, epoch_loss / (epoch_num+0.1e-10)))
+        log_data("epoch_finished", '{}# Epoch finished ! Loss: {}'.format(epoch_num, epoch_loss / (batch_size+0.1e-10)))
         # validation
         if validation:
             val_dice = eval_net(net, validation_loader, gpu)
