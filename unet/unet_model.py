@@ -237,6 +237,7 @@ class ConvRelu(nn.Module):
 
     def forward(self, x):
         x = self.conv(x)
+        print("conv3x3:", x.size())
         x = self.activation(x)
         return x
 
