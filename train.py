@@ -65,9 +65,9 @@ def train_net(net,
     train_sampler, validation_sampler = tgs_data.get_sampler(tgs_data.get_img_names(), data_percent=data_percent, val_percent=val_percent, data_shuffle = False, train_shuffle=True, val_shuffle=False, seed=seed)
 
     random = 23
-    print("debug-image:",random, "is", tgs_data.get_data()['image'][random])
-    print("debug-z:",random, "is", tgs_data.get_data()['z'][random])
-    print("debug-mask:",random, "is", tgs_data.get_data()['mask'][random])
+    # print("debug-image:",random, "is", tgs_data.get_data()['image'][random])
+    # print("debug-z:",random, "is", tgs_data.get_data()['z'][random])
+    # print("debug-mask:",random, "is", tgs_data.get_data()['mask'][random])
 
     print("Id Size:", len(tgs_data.get_data()['id']))
     print("Z Size:", len(tgs_data.get_data()['z']))
@@ -144,17 +144,24 @@ def train_net(net,
                                                                                                      (epoch_num+1)*(batch_index+1)*batch_size,
                                                                                                      tgs_data.train_len,
                                                                                                      loss.item()))
-
+            log_data("train", '{0}# Epoch - {1:.2f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}'.format(epoch_num+1,
+                                                                                                     (100*(epoch_num+1)*(batch_index+1)*batch_size)/tgs_data.train_len,
+                                                                                                     batch_index+1,
+                                                                                                     tgs_data.train_len/batch_size,
+                                                                                                     (epoch_num+1)*(batch_index+1)*batch_size,
+                                                                                                     tgs_data.train_len,
+                                                                                                     loss.item()))
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
         epoch_num = epoch_num+1
         print('{}# Epoch finished ! Loss: {}'.format(epoch_num, epoch_loss / (epoch_num+0.1e-10)))
-
+        log_data("epoch_finished", '{}# Epoch finished ! Loss: {}'.format(epoch_num, epoch_loss / (epoch_num+0.1e-10)))
         # validation
         if validation:
             val_dice = eval_net(net, validation_loader, gpu)
             print('Validation Dice Coeff: {}'.format(val_dice))
+            log_data("validation_dice", 'Validation Dice Coeff: {}'.format(val_dice))
 
         # save parameter
         if save_cp:
@@ -177,6 +184,10 @@ def get_args():
 
     (options, args) = parser.parse_args()
     return options
+
+def log_data(file_name, data):
+    with open(file_name+".txt", "a+") as file:
+        file.write(data)
 
 if __name__ == '__main__':
     # init artgs
