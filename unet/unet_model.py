@@ -139,36 +139,36 @@ class UNetResNet(nn.Module):
         self.final = nn.Conv2d(num_filters, num_classes, kernel_size=1)
 
     def forward(self, x):
-        print (x.size()) # (32, 3, 101, 101)(32, 3, 224, 224)
+        # print (x.size()) # (32, 3, 101, 101)(32, 3, 224, 224)
         conv1 = self.conv1(x)
-        print (conv1.size()) # (32, 64, 25, 25)(32, 64, 56, 56)(32, 64, 57, 57)
+        # print (conv1.size()) # (32, 64, 25, 25)(32, 64, 56, 56)(32, 64, 57, 57)
         conv2 = self.conv2(conv1)
-        print (conv2.size()) # (32, 256, 25, 25)(32, 256, 56, 56)(32, 256, 57, 57)
+        # print (conv2.size()) # (32, 256, 25, 25)(32, 256, 56, 56)(32, 256, 57, 57)
         conv3 = self.conv3(conv2)
-        print (conv3.size()) # (32, 512, 13, 13)(32, 512, 28, 28)(32, 512, 29, 29)
+        # print (conv3.size()) # (32, 512, 13, 13)(32, 512, 28, 28)(32, 512, 29, 29)
         conv4 = self.conv4(conv3)
-        print (conv4.size()) # (32, 1024, 7, 7)=(32, 1024, 14, 14)(32, 1024, 15, 15)
+        # print (conv4.size()) # (32, 1024, 7, 7)=(32, 1024, 14, 14)(32, 1024, 15, 15)
         conv5 = self.conv5(conv4)
-        print (conv5.size()) # (32, 2048, 4, 4)(32, 2048, 7, 7)(32, 2048, 8, 8)
+        # print (conv5.size()) # (32, 2048, 4, 4)(32, 2048, 7, 7)(32, 2048, 8, 8)
 
         pool = self.pool(conv5)
-        print (pool.size()) # (32, 2048, 2, 2)(32, 2048, 3, 3)(32, 2048, 5, 5)
+        # print (pool.size()) # (32, 2048, 2, 2)(32, 2048, 3, 3)(32, 2048, 5, 5)
         center = self.center(pool)
-        print (center.size()) # (32, 256, 4, 4)(32, 256, 6, 6)(32, 256, 10, 10)
+        # print (center.size()) # (32, 256, 4, 4)(32, 256, 6, 6)(32, 256, 10, 10)
 
         dec5 = self.dec5(torch.cat([center, conv5], 1))
-        print (dec5.size()) # (32, 256, 8, 8)=
+        # print (dec5.size()) # (32, 256, 8, 8)=
 
         dec4 = self.dec4(torch.cat([dec5, conv4], 1)) #=
-        print (dec4.size())
+        # print (dec4.size())
         dec3 = self.dec3(torch.cat([dec4, conv3], 1))
-        print (dec3.size())
+        # print (dec3.size())
         dec2 = self.dec2(torch.cat([dec3, conv2], 1))
-        print (dec2.size())
+        # print (dec2.size())
         dec1 = self.dec1(dec2)
-        print (dec1.size())
+        # print (dec1.size())
         dec0 = self.dec0(dec1)
-        print (dec0.size())
+        # print (dec0.size())
 
 
 
@@ -237,7 +237,7 @@ class ConvRelu(nn.Module):
 
     def forward(self, x):
         x = self.conv(x)
-        print("conv3x3:", x.size())
+        # print("conv3x3:", x.size())
         x = self.activation(x)
         return x
 
