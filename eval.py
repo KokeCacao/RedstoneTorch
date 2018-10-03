@@ -34,7 +34,7 @@ def eval_net(net, validation_loader, gpu=False):
         # true_mask_flat = true_mask.view(-1)
         #
         # total_loss += dice_coeff(masks_probs_flat, true_mask_flat).item()
-        # num=num+1
+        num=num+1
     # return total_loss / (num+1e-10)
     return total_iou/(num+1e-10)
 
