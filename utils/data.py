@@ -160,7 +160,6 @@ class TGSData(data.Dataset):
             mask_name = os.path.join(self.mask_dir, id + self.mask_suffix)
             mask = Image.open(mask_name)
 
-            if mask == None: break # important! make sure the order is correct because some don't have mask
 
             if self.transform:
                 mask = self.transform['mask'](mask)
