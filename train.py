@@ -202,7 +202,7 @@ if __name__ == '__main__':
     # net = UNet(n_channels=3, n_classes=1)
     net = UNetResNet(encoder_depth=50, num_classes=1, num_filters=32, dropout_2d=0.2,
                  pretrained=True, is_deconv=True) #don't init weights, don't give depth
-    if args.gpu: net = torch.nn.DataParallel(net, device_ids=[0, 1, 2])
+    if args.gpu: net = torch.nn.DataParallel(net, device_ids=[0, 1])
     
 
     # def init_weights(m):
@@ -245,4 +245,4 @@ if __name__ == '__main__':
         except SystemExit:
             os._exit(0)
 #python train.py --epochs 5 --batch-size 32 --learning-rate 0.001 --weight_init 0.001 --dir_prefix '' --data_percent 0.01
-#python train.py --epochs 50 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1,2"
+#python train.py --epochs 50 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1"
