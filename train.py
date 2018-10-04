@@ -219,7 +219,7 @@ if __name__ == '__main__':
         print('Model loaded from {}'.format(args.load))
 
     if args.gpu is not "":
-        os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu #default
+        os.environ["CUDA_VISIBLE_DEVICES"] = "0,1" #default
         print('Using GPU:' + args.gpu)
         net.cuda()
     else:
