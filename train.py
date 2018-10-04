@@ -113,7 +113,7 @@ def train_net(net,
         # batch size should < 4000 due to the amount of data avaliable
         for batch_index, (id, z, image, true_mask) in enumerate(train_loader, 0):
 
-            if gpu: #trying to use cuda 1 to prevent out of memory
+            if gpu is not "": #trying to use cuda 1 to prevent out of memory
                 # z = z.cuda()
                 image = image.cuda(0)
                 true_mask = true_mask.cuda(0)
@@ -171,7 +171,7 @@ def get_args():
     parser.add_option('-e', '--epochs', dest='epochs', default=5, type='int', help='number of epochs')
     parser.add_option('-b', '--batch-size', dest='batchsize', default=10, type='int', help='batch size')
     parser.add_option('-l', '--learning-rate', dest='lr', default=0.1, type='float', help='learning rate')
-    parser.add_option('-g', '--gpu', action='store_true', dest='gpu', default=False, help='use cuda, please put all gpu id here')
+    parser.add_option('-g', '--gpu', action='store_true', dest='gpu', default="", help='use cuda, please put all gpu id here')
     parser.add_option('-c', '--load', dest='load', default=False, help='load file model')
     parser.add_option('-w', '--weight_init', dest='weight_init', default=0.01, type='float', help='weight initialization number')
     parser.add_option('-v', '--val_percent', dest='val_percent', default=0.05, type='float', help='percent for validation')
@@ -202,12 +202,12 @@ if __name__ == '__main__':
     # net = UNet(n_channels=3, n_classes=1)
     net = UNetResNet(encoder_depth=50, num_classes=1, num_filters=32, dropout_2d=0.2,
                  pretrained=True, is_deconv=True) #don't init weights, don't give depth
-    if args.gpu: net = torch.nn.DataParallel(net, device_ids=[0, 1])
+    if args.gpu is not "": net = torch.nn.DataParallel(net, device_ids=[0, 1])
     
 
     # def init_weights(m):
     #     if type(m) == nn.Linear:
-    #         torch.nn.init.xavier_uniform(m.weight)
+    #         torchp.nn.init.xavier_uniform(m.weight)
     #         m.bias.data.fill_(args.weight_init)
 
 
@@ -218,7 +218,7 @@ if __name__ == '__main__':
         net.load_state_dict(torch.load(args.load))
         print('Model loaded from {}'.format(args.load))
 
-    if args.gpu:
+    if args.gpu is not "":
         os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu #default
         print('Using GPU:' + args.gpu)
         net.cuda()
