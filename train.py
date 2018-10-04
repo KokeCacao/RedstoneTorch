@@ -102,8 +102,7 @@ def train_net(net,
     #                       weight_decay=weight_decay)
     optimizer = torch.optim.Adam(net.parameters(), lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay)
     train_begin = datetime.now()
-    epoch_num = 0
-    for epoch in range(epochs):
+    for epoch_index, epoch in enumerate(range(epochs)):
         epoch_begin = datetime.now()
         print('Starting epoch {}/{}.'.format(epoch + 1, epochs))
 
@@ -142,7 +141,7 @@ def train_net(net,
             train_duration = now - train_begin
             epoch_duration = now - epoch_begin
             print("SinceTrain:{}, Since Epoch:{}".format(train_duration, epoch_duration))
-            print('{0}# Epoch - {1:.6f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}, IOU: {7}'.format(epoch_num+1,
+            print('{0}# Epoch - {1}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}, IOU: {7}'.format(epoch_index+1,
                                                                                                      (100*(batch_index+1)*batch_size)/tgs_data.train_len,
                                                                                                      batch_index+1,
                                                                                                      tgs_data.train_len/batch_size,
@@ -152,9 +151,9 @@ def train_net(net,
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        epoch_num = epoch_num+1
-        print('{}# Epoch finished ! Loss: {}, IOU: {}'.format(epoch_num, epoch_loss/(batch_size+1e-10), epoch_iou/(epoch_num+1e-10)))
+        print('{}# Epoch finished ! Loss: {}, IOU: {}'.format(epoch_index+1, epoch_loss/(batch_index+1), epoch_iou/(batch_index+1)))
         # validation
+        if gpu is not "": torch.cuda.empty_cache() # release gpu memory
         if validation:
             val_dice = eval_net(net, validation_loader, gpu)
             print('Validation Dice Coeff: {}'.format(val_dice))
@@ -165,6 +164,7 @@ def train_net(net,
                 os.makedirs(dir_checkpoint)
             torch.save(net.state_dict(), dir_checkpoint + 'CP{}.pth'.format(epoch + 1))
             print('Checkpoint #{} saved !'.format(epoch + 1))
+        if gpu is not "": torch.cuda.empty_cache()  # release gpu memory
 
 def get_args():
     parser = OptionParser()
