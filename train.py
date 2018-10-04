@@ -171,7 +171,8 @@ def get_args():
     parser.add_option('-e', '--epochs', dest='epochs', default=5, type='int', help='number of epochs')
     parser.add_option('-b', '--batch-size', dest='batchsize', default=10, type='int', help='batch size')
     parser.add_option('-l', '--learning-rate', dest='lr', default=0.1, type='float', help='learning rate')
-    parser.add_option('-g', '--gpu', action='store_true', dest='gpu', default="", help='use cuda, please put all gpu id here')
+    # parser.add_option('-g', '--gpu', action='store_true', dest='gpu', default="", help='use cuda, please put all gpu id here')
+    parser.add_option('-g', '--gpu', dest='gpu', default="", help='use cuda, please put all gpu id here')
     parser.add_option('-c', '--load', dest='load', default=False, help='load file model')
     parser.add_option('-w', '--weight_init', dest='weight_init', default=0.01, type='float', help='weight initialization number')
     parser.add_option('-v', '--val_percent', dest='val_percent', default=0.05, type='float', help='percent for validation')
@@ -219,7 +220,7 @@ if __name__ == '__main__':
         print('Model loaded from {}'.format(args.load))
 
     if args.gpu is not "":
-        os.environ["CUDA_VISIBLE_DEVICES"] = "0,1" #default
+        os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu #default
         print('Using GPU:' + args.gpu)
         net.cuda()
     else:
