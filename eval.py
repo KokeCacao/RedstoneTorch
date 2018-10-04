@@ -15,8 +15,8 @@ def eval_net(net, validation_loader, gpu=False):
 
         if gpu: #trying to use cuda 1 to prevent out of memory
             # z = z.cuda()
-            image = image.cuda(1)
-            true_mask = true_mask.cuda(1)
+            image = image.cuda()
+            true_mask = true_mask.cuda()
 
         # why do you do [0]
 
