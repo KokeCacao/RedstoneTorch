@@ -113,10 +113,10 @@ def train_net(net,
         # batch size should < 4000 due to the amount of data avaliable
         for batch_index, (id, z, image, true_mask) in enumerate(train_loader, 0):
 
-            if gpu:
-                image = image.cuda()
-                z = z.cuda()
-                true_mask = true_mask.cuda()
+            if gpu: #trying to use cuda 1 to prevent out of memory
+                # z = z.cuda()
+                image = image.cuda(0)
+                true_mask = true_mask.cuda(0)
 
             # train
 
@@ -125,8 +125,8 @@ def train_net(net,
             # true_masks = torch.sigmoid(true_masks) # add this, IDK why loss negative
 
             # calculating iou
-            iou = iou_score(masks_pred, true_mask)
-            epoch_iou = epoch_iou + iou.mean().float()
+            iou = iou_score(masks_pred, true_mask).mean().float()
+            epoch_iou = epoch_iou + iou
             # print("iou:", iou.mean())
 
             # calculating loss
@@ -142,31 +142,22 @@ def train_net(net,
             train_duration = now - train_begin
             epoch_duration = now - epoch_begin
             print("SinceTrain:{}, Since Epoch:{}".format(train_duration, epoch_duration))
-            print('{0}# Epoch - {1:.2f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}, IOU: {7}'.format(epoch_num+1,
+            print('{0}# Epoch - {1:.6f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}, IOU: {7}'.format(epoch_num+1,
                                                                                                      (100*(batch_index+1)*batch_size)/tgs_data.train_len,
                                                                                                      batch_index+1,
                                                                                                      tgs_data.train_len/batch_size,
-                                                                                                     (epoch_num+1)*(batch_index+1)*batch_size,
+                                                                                                     (batch_index+1)*batch_size,
                                                                                                      tgs_data.train_len,
-                                                                                                     loss.item(), iou.mean().float()))
-            log_data("train", '{0}# Epoch - {1:.2f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}, IOU: {7}'.format(epoch_num+1,
-                                                                                                     (100*(epoch_num+1)*(batch_index+1)*batch_size)/tgs_data.train_len,
-                                                                                                     batch_index+1,
-                                                                                                     tgs_data.train_len/batch_size,
-                                                                                                     (epoch_num+1)*(batch_index+1)*batch_size,
-                                                                                                     tgs_data.train_len,
-                                                                                                     loss.item(), iou.mean().float()))
+                                                                                                     loss.item(), iou))
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
         epoch_num = epoch_num+1
-        print('{}# Epoch finished ! Loss: {}, IOU: {}'.format(epoch_num, epoch_loss/(batch_size+1e-10), epoch_iou/(batch_size+1e-10)))
-        log_data("epoch_finished", '{}# Epoch finished ! Loss: {}'.format(epoch_num, epoch_loss / (batch_size+1e-10)))
+        print('{}# Epoch finished ! Loss: {}, IOU: {}'.format(epoch_num, epoch_loss/(batch_size+1e-10), epoch_iou/(epoch_num+1e-10)))
         # validation
         if validation:
             val_dice = eval_net(net, validation_loader, gpu)
             print('Validation Dice Coeff: {}'.format(val_dice))
-            log_data("validation_dice", 'Validation Dice Coeff: {}'.format(val_dice))
 
         # save parameter
         if save_cp:
