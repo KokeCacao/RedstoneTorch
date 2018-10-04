@@ -171,7 +171,7 @@ def get_args():
     parser.add_option('-e', '--epochs', dest='epochs', default=5, type='int', help='number of epochs')
     parser.add_option('-b', '--batch-size', dest='batchsize', default=10, type='int', help='batch size')
     parser.add_option('-l', '--learning-rate', dest='lr', default=0.1, type='float', help='learning rate')
-    parser.add_option('-g', '--gpu', action='store_true', dest='gpu', default=False, help='use cuda')
+    parser.add_option('-g', '--gpu', action='store_true', dest='gpu', default=False, help='use cuda, please put all gpu id here')
     parser.add_option('-c', '--load', dest='load', default=False, help='load file model')
     parser.add_option('-w', '--weight_init', dest='weight_init', default=0.01, type='float', help='weight initialization number')
     parser.add_option('-v', '--val_percent', dest='val_percent', default=0.05, type='float', help='percent for validation')
@@ -219,7 +219,10 @@ if __name__ == '__main__':
         print('Model loaded from {}'.format(args.load))
 
     if args.gpu:
+        os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu #default
         net.cuda()
+    else:
+        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
         # cudnn.benchmark = True # faster convolutions, but more memory
 
     try:
@@ -241,4 +244,4 @@ if __name__ == '__main__':
         except SystemExit:
             os._exit(0)
 #python train.py --epochs 5 --batch-size 32 --learning-rate 0.001 --weight_init 0.001 --dir_prefix '' --data_percent 0.01
-#python train.py --epochs 50 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu 'True'
+#python train.py --epochs 50 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1"
