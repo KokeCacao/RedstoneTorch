@@ -17,7 +17,6 @@ from datetime import datetime, date
 from tensorboardX import SummaryWriter
 
 
-writer = SummaryWriter('log')
 # dir_prefix = 'drive/My Drive/ML/Pytorch-UNet/'
 img_suffix = ".png"
 mask_suffix = ".png"
@@ -194,6 +193,7 @@ def get_args():
     parser.add_option('-p', '--dir_prefix', dest='dir_prefix', default='', help='the root directory')
     parser.add_option('-d', '--data_percent', dest='data_percent', default=1.0, type='float', help='the root directory')
     parser.add_option('-i', '--visualization', dest='visualization', action='store_true', default="False", help='visualization the data')
+    parser.add_option('-t', '--tag', dest='tag', default="", help='tag for tensorboard-log')
 
     (options, args) = parser.parse_args()
     return options
@@ -210,6 +210,7 @@ if __name__ == '__main__':
     dir_mask = dir_prefix + 'data/train/masks/'
     dir_depth = dir_prefix + 'data/depths.csv'
     dir_checkpoint = dir_prefix + 'checkpoints/'
+    writer = SummaryWriter(str(datetime.now()) + args.tag)
 
     # 3 channels: 3 form image, 1 mask
     # 1 classes: separate salt and others
