@@ -210,7 +210,8 @@ if __name__ == '__main__':
     dir_mask = dir_prefix + 'data/train/masks/'
     dir_depth = dir_prefix + 'data/depths.csv'
     dir_checkpoint = dir_prefix + 'checkpoints/'
-    writer = SummaryWriter(str(datetime.now()) + args.tag)
+    writer = SummaryWriter(str(datetime.now()) + "-" + args.tag)
+    print("Copy this line to command: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + str(datetime.now()) + "-" + args.tag + " --port=6006")
 
     # 3 channels: 3 form image, 1 mask
     # 1 classes: separate salt and others
@@ -256,14 +257,15 @@ if __name__ == '__main__':
                   seed=19)
     except KeyboardInterrupt as e:
         print(e)
-        torch.save(net.state_dict(), 'INTERRUPTED.pth')
+        torch.save(net.state_dict(), 'INTERRUPTED' + "-" + args.tag + '.pth')
         print('Saved interrupt')
         try:
             sys.exit(0)
         except SystemExit:
             os._exit(0)
 
-    writer.export_scalars_to_json("./all_scalars.json")
+    writer.export_scalars_to_json("./all_scalars" + "-" + args.tag + ".json")
     writer.close()
 #python train.py --epochs 5 --batch-size 32 --learning-rate 0.001 --weight_init 0.001 --dir_prefix '' --data_percent 0.01
-#python train.py --epochs 50 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True"
+#python train.py --epochs 50 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "first-train"
+#python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-04 --port=6006
