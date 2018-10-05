@@ -14,7 +14,10 @@ from resunet.resunet_model import ResUNet
 from unet.unet_model import UNetResNet
 from utils.data import TGSData
 from datetime import datetime, date
+from tensorboardX import SummaryWriter
 
+
+writer = SummaryWriter()
 # dir_prefix = 'drive/My Drive/ML/Pytorch-UNet/'
 img_suffix = ".png"
 mask_suffix = ".png"
@@ -77,6 +80,14 @@ def train_net(net,
     # x_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['z'], tgs_data.get_data()['image']))
     # y_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['mask']))
     print("Zip-Data Size: {}".format(len(zip_data)))
+
+    if args.visualization:
+        visual_id = tgs_data.get_data()['id'][:10]
+        # visual_z = tgs_data.get_data()['z'][:10].float()
+        visual_image = tgs_data.get_data()['image']
+        visual_mask = tgs_data.get_data()['mask']
+        writer.add_embedding(visual_image.view(10), metadata="image_"+visual_id, label_img=visual_image.unsqueeze(1))
+        writer.add_embedding(visual_mask.view(10), metadata="mask_"+visual_id, label_img=visual_mask.unsqueeze(1))
 
     train_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=train_sampler, shuffle=False, num_workers=0)
     validation_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=validation_sampler, shuffle=False, num_workers=0)
@@ -141,13 +152,14 @@ def train_net(net,
             train_duration = now - train_begin
             epoch_duration = now - epoch_begin
             print("SinceTrain:{}, Since Epoch:{}".format(train_duration, epoch_duration))
-            print('{0}# Epoch - {1}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}, IOU: {7}'.format(epoch_index+1,
-                                                                                                     (100*(batch_index+1)*batch_size)/tgs_data.train_len,
+            print('{0}# Epoch - {1:.6f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}, IOU: {7:.6f}'.format(epoch_index+1,
+                                                                                                     (100*(batch_index+1.0)*batch_size)/tgs_data.train_len,
                                                                                                      batch_index+1,
                                                                                                      tgs_data.train_len/batch_size,
                                                                                                      (batch_index+1)*batch_size,
                                                                                                      tgs_data.train_len,
                                                                                                      loss.item(), iou))
+            writer.add_scalars('loss/batch_training', {'Epoch': epoch_index+1, 'TrainLoss': loss.item(), 'IOU': iou}, (epoch_index+1)*(batch_index+1))
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -155,9 +167,12 @@ def train_net(net,
         # validation
         if gpu is not "": torch.cuda.empty_cache() # release gpu memory
         if validation:
-            val_dice = eval_net(net, validation_loader, gpu)
+            val_dice = eval_net(net, validation_loader, gpu, visualization=args.visualization, writer=writer)
             print('Validation Dice Coeff: {}'.format(val_dice))
-
+            writer.add_scalars('loss/epoch_validation', {'Validation': val_dice}, epoch_index+1)
+        if args.visualization:
+            for name, param in net.named_parameters():
+                writer.add_histogram(name, param.clone().cpu().data.numpy(), epoch_index+1)
         # save parameter
         if save_cp:
             if not os.path.exists(dir_checkpoint):
@@ -178,6 +193,7 @@ def get_args():
     parser.add_option('-v', '--val_percent', dest='val_percent', default=0.05, type='float', help='percent for validation')
     parser.add_option('-p', '--dir_prefix', dest='dir_prefix', default='', help='the root directory')
     parser.add_option('-d', '--data_percent', dest='data_percent', default=1.0, type='float', help='the root directory')
+    parser.add_option('-i', '--visualization', dest='visualization', action='store_true', default="False", help='visualization the data')
 
     (options, args) = parser.parse_args()
     return options
@@ -245,5 +261,8 @@ if __name__ == '__main__':
             sys.exit(0)
         except SystemExit:
             os._exit(0)
+
+    writer.export_scalars_to_json("./all_scalars.json")
+    writer.close()
 #python train.py --epochs 5 --batch-size 32 --learning-rate 0.001 --weight_init 0.001 --dir_prefix '' --data_percent 0.01
 #python train.py --epochs 50 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1"
