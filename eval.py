@@ -4,7 +4,7 @@ import numpy as np
 from dice_loss import dice_coeff
 
 
-def eval_net(net, validation_loader, gpu=False):
+def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None):
     """Evaluation without the densecrf with the dice coefficient"""
     # total_loss = 0
     total_iou = 0
@@ -21,8 +21,11 @@ def eval_net(net, validation_loader, gpu=False):
         # why do you do [0]
 
         # masks_pred = net(image, z)
+
         masks_pred = net(image)
         total_iou = total_iou + iou_score(masks_pred, true_mask).mean().float()
+        if visualization:
+            writer.add_pr_curve("loss/epoch_validation_image", true_mask, masks_pred)
         # print("iou:", iou.mean())
 
         # masks_probs = torch.sigmoid(masks_pred)
