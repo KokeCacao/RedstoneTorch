@@ -84,8 +84,8 @@ def train_net(net,
     if args.visualization:
         visual_id = tgs_data.get_data()['id'][:10]
         # visual_z = tgs_data.get_data()['z'][:10].float()
-        visual_image = tgs_data.get_data()['image']
-        visual_mask = tgs_data.get_data()['mask']
+        visual_image = torch.tensor(tgs_data.get_data()['image'])
+        visual_mask = torch.tensor(tgs_data.get_data()['mask'])
         writer.add_embedding(visual_image.view(10), metadata="image_"+visual_id, label_img=visual_image.unsqueeze(1))
         writer.add_embedding(visual_mask.view(10), metadata="mask_"+visual_id, label_img=visual_mask.unsqueeze(1))
 
@@ -265,4 +265,4 @@ if __name__ == '__main__':
     writer.export_scalars_to_json("./all_scalars.json")
     writer.close()
 #python train.py --epochs 5 --batch-size 32 --learning-rate 0.001 --weight_init 0.001 --dir_prefix '' --data_percent 0.01
-#python train.py --epochs 50 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1"
+#python train.py --epochs 50 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True"
