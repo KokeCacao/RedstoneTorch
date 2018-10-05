@@ -205,7 +205,7 @@ def log_data(file_name, data):
 if __name__ == '__main__':
     # init artgs
     args = get_args()
-    args.tag = str(datetime.now()).replace(" ","-") + "-" + args.tag
+    args.tag = str(datetime.now()).replace(" ","-").replace(".","-").replace(":","-") + "-" + args.tag
     dir_prefix = args.dir_prefix
     dir_img = dir_prefix + 'data/train/images/'
     dir_mask = dir_prefix + 'data/train/masks/'
