@@ -211,8 +211,8 @@ if __name__ == '__main__':
     dir_depth = dir_prefix + 'data/depths.csv'
     dir_checkpoint = dir_prefix + 'checkpoints/'
     time_name = str(datetime.now()).replace(" ","-")
-    writer = SummaryWriter(time_name + "-" + args.tag)
     args.tag = time_name+ "-" + args.tag
+    writer = SummaryWriter("tensorboard/" + args.tag)
     print("Copy this line to command: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + args.tag + " --port=6006")
 
     # 3 channels: 3 form image, 1 mask
