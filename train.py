@@ -17,7 +17,7 @@ from datetime import datetime, date
 from tensorboardX import SummaryWriter
 
 
-writer = SummaryWriter()
+writer = SummaryWriter('log')
 # dir_prefix = 'drive/My Drive/ML/Pytorch-UNet/'
 img_suffix = ".png"
 mask_suffix = ".png"
