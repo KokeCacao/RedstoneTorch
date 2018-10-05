@@ -3,7 +3,6 @@ import os
 from optparse import OptionParser
 
 import torch
-import numpy as np
 import torch.nn as nn
 import torch.utils.data as data
 from torch import optim
@@ -82,13 +81,13 @@ def train_net(net,
     # y_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['mask']))
     print("Zip-Data Size: {}".format(len(zip_data)))
 
-    if args.visualization:
-        visual_id = tgs_data.get_data()['id'][:10]
-        # visual_z = tgs_data.get_data()['z'][:10].float()
-        visual_image = torch.from_numpy(np.array(tgs_data.get_data()['image'][:10]))
-        visual_mask = torch.from_numpy(np.array(tgs_data.get_data()['mask'][:10]))
-        writer.add_embedding(visual_image.view(10), metadata="image_"+visual_id, label_img=visual_image.unsqueeze(1))
-        writer.add_embedding(visual_mask.view(10), metadata="mask_"+visual_id, label_img=visual_mask.unsqueeze(1))
+    # if args.visualization:
+    #     visual_id = tgs_data.get_data()['id'][:10]
+    #     # visual_z = tgs_data.get_data()['z'][:10].float()
+    #     visual_image = torch.tensor(tgs_data.get_data()['image'][:10])
+    #     visual_mask = torch.tensor(tgs_data.get_data()['mask'][:10])
+    #     writer.add_embedding(visual_image.view(10), metadata="image_"+visual_id, label_img=visual_image.unsqueeze(1))
+    #     writer.add_embedding(visual_mask.view(10), metadata="mask_"+visual_id, label_img=visual_mask.unsqueeze(1))
 
     train_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=train_sampler, shuffle=False, num_workers=0)
     validation_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=validation_sampler, shuffle=False, num_workers=0)
