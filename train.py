@@ -84,8 +84,8 @@ def train_net(net,
     if args.visualization:
         visual_id = tgs_data.get_data()['id'][:10]
         # visual_z = tgs_data.get_data()['z'][:10].float()
-        visual_image = torch.tensor(tgs_data.get_data()['image'])
-        visual_mask = torch.tensor(tgs_data.get_data()['mask'])
+        visual_image = torch.tensor(tgs_data.get_data()['image'][:10])
+        visual_mask = torch.tensor(tgs_data.get_data()['mask'][:10])
         writer.add_embedding(visual_image.view(10), metadata="image_"+visual_id, label_img=visual_image.unsqueeze(1))
         writer.add_embedding(visual_mask.view(10), metadata="mask_"+visual_id, label_img=visual_mask.unsqueeze(1))
 
