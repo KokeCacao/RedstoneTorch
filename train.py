@@ -159,7 +159,7 @@ def train_net(net,
                                                                                                      (batch_index+1)*batch_size,
                                                                                                      tgs_data.train_len,
                                                                                                      loss.item(), iou))
-            writer.add_scalars('loss/batch_training', {'Epoch': epoch_index+1, 'TrainLoss': loss.item(), 'IOU': iou}, (epoch_index+1)*(batch_index+1))
+            writer.add_scalars('loss/batch_training', {'Epoch': epoch_index+1, 'TrainLoss': loss.item(), 'IOU': iou}, epoch_index*batch_size+(batch_index+1))
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
