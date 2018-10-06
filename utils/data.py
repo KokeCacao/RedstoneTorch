@@ -70,7 +70,7 @@ class TGSData(data.Dataset):
         return self.data_len
 
     def get_img_names(self):
-        return (f[:-len(self.img_suffix)] for f in os.listdir(self.img_dir))
+        return (f[:-len(self.img_suffix)].replace("images_original_","") for f in os.listdir(self.img_dir))
         # return (f[:].replace(self.img_suffix, "", 1) for f in os.listdir(self.img_dir))
 
     def get_data(self):
@@ -156,13 +156,14 @@ class TGSData(data.Dataset):
         i = 0
 
         for id in ids:
-            image_name = os.path.join(self.img_dir, id + self.img_suffix)
+            image_name = os.path.join(self.img_dir, "images_original_" + id + self.img_suffix)
             image = Image.open(image_name).convert('RGB')
 
             if self.transform:
                 image = self.transform['image'](image)
 
-            mask_name = os.path.join(self.mask_dir, id + self.mask_suffix)
+            # mask_name = os.path.join(self.mask_dir, id + self.mask_suffix)
+            mask_name = os.path.join(self.img_dir, "groundtruth_(1)_images_" + id + self.mask_suffix) #augmentation
             mask = Image.open(mask_name)
 
 
