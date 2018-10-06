@@ -48,8 +48,8 @@ def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None
 
 def tensor_to_PIL(tensor):
     image = tensor.cpu().clone()
-    image = image.squeeze(0)
     image = image.repeat(3, 1, 1) # from gray sacale to RGB
+    image = image.squeeze(0)
     image = transforms.ToPILImage()(image)
     return image
 
