@@ -210,8 +210,8 @@ if __name__ == '__main__':
     args = get_args()
     args.tag = str(datetime.now()).replace(" ","-").replace(".","-").replace(":","-") + "-" + args.tag
     dir_prefix = args.dir_prefix
-    dir_img = dir_prefix + 'data/train/images/'
-    dir_mask = dir_prefix + 'data/train/masks/'
+    dir_img = dir_prefix + 'data/train/images/output/'
+    dir_mask = dir_prefix + 'data/train/masks/output/'
     dir_depth = dir_prefix + 'data/depths.csv'
     dir_checkpoint = dir_prefix + "tensorboard/" + args.tag + '/checkpoints/'
     writer = SummaryWriter("tensorboard/" + args.tag)

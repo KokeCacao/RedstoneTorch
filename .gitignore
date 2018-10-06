@@ -4,5 +4,7 @@ checkpoints/
 *.pth
 *.jpg
 SUBMISSION*
-.idea/
+.idea/*
 .idea/workspace.xml
+data/train/images/output/*
+data/train/masks/output/*

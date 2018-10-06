@@ -66,4 +66,4 @@ if __name__ == '__main__':
             sys.exit(0)
         except SystemExit:
             os._exit(0)
-# python data/augmentation.py --image '/train/images' --mask '/train/masks' --sample '400000'
+# python data/augmentation.py --image 'data/train/images' --mask 'data/train/masks' --sample '40000'
