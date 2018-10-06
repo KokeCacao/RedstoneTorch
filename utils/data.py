@@ -70,7 +70,8 @@ class TGSData(data.Dataset):
         return self.data_len
 
     def get_img_names(self):
-        return (f[:].replace(self.img_suffix, "") for f in os.listdir(self.img_dir))
+        return (f[:-len(self.img_suffix)] for f in os.listdir(self.img_dir))
+        # return (f[:].replace(self.img_suffix, "", 1) for f in os.listdir(self.img_dir))
 
     def get_data(self):
         if (self.sample == None): print("WARNING: Tyring to load empty data!")
