@@ -30,7 +30,9 @@ transform = {
     'image': transforms.Compose([
         transforms.Resize((224,224)),
         # transforms.RandomResizedCrop(224),
-        # transforms.RandomHorizontalFlip(),
+        transforms.Grayscale(),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomVerticalFlip(),
         transforms.ToTensor(),
         transforms.Normalize(mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225])
     ]),
@@ -38,6 +40,8 @@ transform = {
         transforms.Resize((224,224)),
         # transforms.CenterCrop(224),
         transforms.Grayscale(),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomVerticalFlip(),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.5, 0.5, 0.5],
                             std=[0.225, 0.225, 0.225]),
@@ -122,7 +126,7 @@ def train_net(net,
         # batch size should < 4000 due to the amount of data avaliable
         for batch_index, (id, z, image, true_mask) in enumerate(train_loader, 0):
 
-            if gpu is not "": #trying to use cuda 1 to prevent out of memory
+            if gpu != "": #trying to use cuda 1 to prevent out of memory
                 # z = z.cuda()
                 image = image.cuda(0)
                 true_mask = true_mask.cuda(0)
@@ -164,9 +168,9 @@ def train_net(net,
             optimizer.step()
         print('{}# Epoch finished ! Loss: {}, IOU: {}'.format(epoch_index+1, epoch_loss/(batch_index+1), epoch_iou/(batch_index+1)))
         # validation
-        if gpu is not "": torch.cuda.empty_cache() # release gpu memory
+        if gpu != "": torch.cuda.empty_cache() # release gpu memory
         if validation:
-            val_dice = eval_net(net, validation_loader, gpu, visualization=args.visualization, writer=writer)
+            val_dice = eval_net(net, validation_loader, gpu, visualization=args.visualization, writer=writer, epoch_num=epoch_index+1)
             print('Validation Dice Coeff: {}'.format(val_dice))
             writer.add_scalars('loss/epoch_validation', {'Validation': val_dice}, epoch_index+1)
         if args.visualization:
@@ -177,8 +181,8 @@ def train_net(net,
             if not os.path.exists(dir_checkpoint):
                 os.makedirs(dir_checkpoint)
             torch.save(net.state_dict(), dir_checkpoint + 'CP{}.pth'.format(epoch + 1))
-            print('Checkpoint #{} saved !'.format(epoch + 1))
-        if gpu is not "": torch.cuda.empty_cache()  # release gpu memory
+            print('Checkpoint {} saved !'.format(dir_checkpoint + 'CP{}.pth'.format(epoch + 1)))
+        if gpu != "": torch.cuda.empty_cache()  # release gpu memory
 
 def get_args():
     parser = OptionParser()
@@ -224,7 +228,7 @@ if __name__ == '__main__':
     # net = UNet(n_channels=3, n_classes=1)
     net = UNetResNet(encoder_depth=50, num_classes=1, num_filters=32, dropout_2d=0.2,
                  pretrained=True, is_deconv=True) #don't init weights, don't give depth
-    if args.gpu is not "": net = torch.nn.DataParallel(net, device_ids=[0, 1])
+    if args.gpu != "": net = torch.nn.DataParallel(net, device_ids=[int(i) for i in args.cuda.split(",")])
     
 
     # def init_weights(m):
@@ -240,9 +244,10 @@ if __name__ == '__main__':
         net.load_state_dict(torch.load(args.load))
         print('Model loaded from {}'.format(args.load))
 
-    if args.gpu is not "":
+    if args.gpu != "":
         os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu #default
-        print('Using GPU:' + args.gpu)
+        print('Using GPU: [' + args.gpu + ']')
+        torch.cuda.manual_seed_all(19)
         net.cuda()
     else:
         os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -270,5 +275,5 @@ if __name__ == '__main__':
     writer.export_scalars_to_json("tensorboard/" + args.tag + "/all_scalars.json")
     writer.close()
 #python train.py --epochs 5 --batch-size 32 --learning-rate 0.001 --weight_init 0.001 --dir_prefix '' --data_percent 0.01
-#python train.py --epochs 50 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "first-train"
+#python train.py --epochs 300 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "second-train" --load tensorboard/2018-10-05-03-05-24-773432-first-train/checkpoints/CP16.pth
 #python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-04 --port=6006

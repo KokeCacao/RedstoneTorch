@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 
 import torch
+from torch import random
 from PIL import Image
 from skimage import io
 from torch.utils import data
@@ -113,10 +114,12 @@ class TGSData(data.Dataset):
         if val_shuffle:
             np.random.seed(seed+1)
             np.random.shuffle(val_indices)
+            np.random.seed(seed)
         train_indices = indices[val_split:data_split]
         if train_shuffle:
             np.random.seed(seed+2)
             np.random.shuffle(train_indices)
+            np.random.seed(seed)
 
         self.tran_len = len(train_indices)
         self.val_len = len(val_indices)
@@ -134,7 +137,8 @@ class TGSData(data.Dataset):
         mask = self.sample['mask'][index]
         return ((z, image), mask)
 
-    def get_all_sample(self, ids):
+    def get_all_sample(self, ids, seed=19):
+        random.manual_seed(seed)
         # item_name = self.masks_frame.iloc[idx, 0]
         images = []
         masks = []

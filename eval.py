@@ -4,7 +4,7 @@ import numpy as np
 from dice_loss import dice_coeff
 
 
-def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None):
+def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None, epoch_num=0):
     """Evaluation without the densecrf with the dice coefficient"""
     # total_loss = 0
     total_iou = 0
@@ -13,7 +13,7 @@ def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None
         # image = image.unsqueeze(0)
         # true_mask = true_mask.unsqueeze(0)
 
-        if gpu is not "": #trying to use cuda 1 to prevent out of memory
+        if gpu != "": #trying to use cuda 1 to prevent out of memory
             # z = z.cuda()
             image = image.cuda()
             true_mask = true_mask.cuda()
@@ -26,6 +26,9 @@ def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None
         total_iou = total_iou + iou_score(masks_pred, true_mask).mean().float()
         if visualization:
             writer.add_pr_curve("loss/epoch_validation_image", true_mask, masks_pred)
+            writer.add_figure("image/epoch_validation_image", image, global_step=batch_index, close=False, walltime=None)
+            writer.add_figure("image/epoch_validation_predicted", masks_pred, global_step=batch_index, close=False, walltime=None)
+            writer.add_figure("image/epoch_validation_label", true_mask, global_step=batch_index, close=False, walltime=None)
         # print("iou:", iou.mean())
 
         # masks_probs = torch.sigmoid(masks_pred)
