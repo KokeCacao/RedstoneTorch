@@ -9,7 +9,6 @@ def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None
     """Evaluation without the densecrf with the dice coefficient"""
     # total_loss = 0
     total_iou = 0
-    global_step = 0
     for batch_index, (id, z, image, true_mask) in enumerate(validation_loader, 0):
 
         # image = image.unsqueeze(0)
@@ -31,11 +30,9 @@ def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None
 
         if visualization:
             writer.add_pr_curve("loss/epoch_validation_image", true_mask, masks_pred)
-            for image_out, masks_pred_out, true_mask_out in image, masks_pred, true_mask:
-                global_step = global_step+1
-                writer.add_figure("image/epoch_validation_image", tensor_to_PIL(image_out), global_step=global_step, close=False, walltime=None)
-                writer.add_figure("image/epoch_validation_predicted", tensor_to_PIL(masks_pred_out), global_step=global_step, close=False, walltime=None)
-                writer.add_figure("image/epoch_validation_label", tensor_to_PIL(true_mask_out), global_step=global_step, close=False, walltime=None)
+            writer.add_figure("image/epoch_validation_image", tensor_to_PIL(image[0]), global_step=batch_index, close=False, walltime=None)
+            writer.add_figure("image/epoch_validation_predicted", tensor_to_PIL(masks_pred[0]), global_step=batch_index, close=False, walltime=None)
+            writer.add_figure("image/epoch_validation_label", tensor_to_PIL(true_mask[0]), global_step=batch_index, close=False, walltime=None)
         # print("iou:", iou.mean())
 
         # masks_probs = torch.sigmoid(masks_pred)
