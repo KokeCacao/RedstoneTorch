@@ -114,7 +114,7 @@ def train_net(net,
     #                       lr=lr,
     #                       momentum=momentum,
     #                       weight_decay=weight_decay)
-    optimizer = torch.optim.Adam(net.parameters(), lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay)
+    optimizer = torch.optim.Adam(net.parameters(), lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay) # all parameter learnable
     train_begin = datetime.now()
     for epoch_index, epoch in enumerate(range(epochs)):
         epoch_begin = datetime.now()
@@ -244,6 +244,7 @@ if __name__ == '__main__':
         net.load_state_dict(torch.load(args.load))
         print('Model loaded from {}'.format(args.load))
 
+    torch.manual_seed(19)
     if args.gpu != "":
         os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu #default
         print('Using GPU: [' + args.gpu + ']')
