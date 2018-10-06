@@ -139,12 +139,9 @@ def train_net(net,
             # print("iou:", iou.mean())
 
             # calculating loss
-            masks_probs = torch.sigmoid(masks_pred)
-
-
             # loss
-            if epoch_index < -1: loss = torch.nn.BCELoss()(masks_probs.view(-1), true_mask.view(-1))
-            else: loss = L.lovasz_hinge(masks_probs, true_mask, ignore=None)
+            if epoch_index < -1: loss = torch.nn.BCELoss()(torch.sigmoid(masks_pred).view(-1), true_mask.view(-1))
+            else: loss = L.lovasz_hinge(masks_pred, true_mask, ignore=None)
 
 
 
