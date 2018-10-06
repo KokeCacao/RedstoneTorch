@@ -61,12 +61,12 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="3014" />
+          <entry key="py" value="3052" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="3014" />
+          <entry key="Python" value="3052" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -137,7 +137,7 @@
         <entry file="file://$PROJECT_DIR$/eval.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="690">
-              <caret line="50" column="59" selection-start-line="50" selection-start-column="59" selection-end-line="50" selection-end-column="59" />
+              <caret line="50" column="24" selection-start-line="50" selection-start-column="24" selection-end-line="50" selection-end-column="24" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -740,7 +740,7 @@
     <entry file="file://$PROJECT_DIR$/eval.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="690">
-          <caret line="50" column="59" selection-start-line="50" selection-start-column="59" selection-end-line="50" selection-end-column="59" />
+          <caret line="50" column="24" selection-start-line="50" selection-start-column="24" selection-end-line="50" selection-end-column="24" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
           </folding>
