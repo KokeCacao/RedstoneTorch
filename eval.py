@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+from torchvision import transforms
 
 from dice_loss import dice_coeff
 
@@ -24,11 +25,14 @@ def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None
 
         masks_pred = net(image)
         total_iou = total_iou + iou_score(masks_pred, true_mask).mean().float()
+
+
+
         if visualization:
             writer.add_pr_curve("loss/epoch_validation_image", true_mask, masks_pred)
-            writer.add_figure("image/epoch_validation_image", image, global_step=batch_index, close=False, walltime=None)
-            writer.add_figure("image/epoch_validation_predicted", masks_pred, global_step=batch_index, close=False, walltime=None)
-            writer.add_figure("image/epoch_validation_label", true_mask, global_step=batch_index, close=False, walltime=None)
+            writer.add_figure("image/epoch_validation_image", tensor_to_PIL(image), global_step=batch_index, close=False, walltime=None)
+            writer.add_figure("image/epoch_validation_predicted", tensor_to_PIL(masks_pred), global_step=batch_index, close=False, walltime=None)
+            writer.add_figure("image/epoch_validation_label", tensor_to_PIL(true_mask), global_step=batch_index, close=False, walltime=None)
         # print("iou:", iou.mean())
 
         # masks_probs = torch.sigmoid(masks_pred)
@@ -42,6 +46,11 @@ def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None
     # return total_loss / (num+1e-10)
     return total_iou/(batch_index+1e-10)
 
+def tensor_to_PIL(tensor):
+    image = tensor.cpu().clone()
+    image = image.squeeze(0)
+    image = transforms.ToPILImage()(image)
+    return image
 
 def iou_score(outputs, labels):
     outputs = outputs > 0.5 # threshold
