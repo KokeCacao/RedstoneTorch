@@ -15,6 +15,7 @@ from unet.unet_model import UNetResNet
 from utils.data import TGSData
 from datetime import datetime, date
 from tensorboardX import SummaryWriter
+from utils import lovasz_losses as L
 
 
 # dir_prefix = 'drive/My Drive/ML/Pytorch-UNet/'
@@ -34,7 +35,7 @@ transform = {
         transforms.RandomHorizontalFlip(),
         transforms.RandomVerticalFlip(),
         transforms.ToTensor(),
-        transforms.Normalize(mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225])
+        transforms.Normalize(mean = 0, std = 0.225)
     ]),
     'mask': transforms.Compose([
         transforms.Resize((224,224)),
@@ -43,13 +44,9 @@ transform = {
         transforms.RandomHorizontalFlip(),
         transforms.RandomVerticalFlip(),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.5, 0.5, 0.5],
-                            std=[0.225, 0.225, 0.225]),
+        transforms.Normalize(mean = 0, std=0.225),
         lambda x: x>0,
-        lambda x: x.float(),
-        transforms.Normalize(mean=[0.5, 0.5, 0.5],
-                            std=[0.225, 0.225, 0.225]),
-        lambda x: (x/4.4444)+0.5
+        lambda x: x.float()
     ])
 }
 
@@ -109,7 +106,6 @@ def train_net(net,
         Weight_decay: {}
     '''.format(epochs, batch_size, lr, tgs_data.train_len, tgs_data.val_len, str(save_cp), str(gpu), weight_init, momentum, weight_decay))
 
-    criterion = torch.nn.BCELoss()
     # optimizer = optim.SGD(net.parameters(),
     #                       lr=lr,
     #                       momentum=momentum,
@@ -144,11 +140,14 @@ def train_net(net,
 
             # calculating loss
             masks_probs = torch.sigmoid(masks_pred)
-            masks_probs_flat = masks_probs.view(-1)
-            # print ("Predicted Mask:", masks_probs_flat, "size=", masks_pred.size())
-            true_masks_flat = true_mask.view(-1)
-            # print ("True Mask:", true_masks_flat, "size=", true_mask.size())
-            loss = criterion(masks_probs_flat, true_masks_flat)
+
+
+            # loss
+            if epoch_index < -1: loss = torch.nn.BCELoss()(masks_probs.view(-1), true_mask.view(-1))
+            else: loss = L.lovasz_hinge(masks_probs, true_mask, ignore=None)
+
+
+
             epoch_loss += loss.item()
 
             now = datetime.now()
