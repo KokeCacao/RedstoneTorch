@@ -31,7 +31,7 @@ transform = {
     'image': transforms.Compose([
         transforms.Resize((224,224)),
         # transforms.RandomResizedCrop(224),
-        # transforms.Grayscale(),
+        transforms.Grayscale(),
         # transforms.RandomHorizontalFlip(),
         # transforms.RandomVerticalFlip(),
         transforms.ToTensor(),
@@ -40,7 +40,7 @@ transform = {
     'mask': transforms.Compose([
         transforms.Resize((224,224)),
         # transforms.CenterCrop(224),
-        # transforms.Grayscale(),
+        transforms.Grayscale(),
         # transforms.RandomHorizontalFlip(),
         # transforms.RandomVerticalFlip(),
         transforms.ToTensor(),

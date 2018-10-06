@@ -4,7 +4,6 @@ from torchvision import transforms
 
 from dice_loss import dice_coeff
 
-
 def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None, epoch_num=0):
     """Evaluation without the densecrf with the dice coefficient"""
     # total_loss = 0
@@ -29,7 +28,7 @@ def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None
 
 
         if visualization:
-            writer.add_pr_curve("loss/epoch_validation_image", true_mask, masks_pred)
+            writer.add_pr_curve("loss/epoch_validation_image", true_mask, masks_pred, global_step=epoch_num)
             # writer.add_figure("image/epoch_validation_image", tensor_to_PIL(image[0]), global_step=batch_index, close=False, walltime=None)
             # writer.add_figure("image/epoch_validation_predicted", tensor_to_PIL(masks_pred[0]), global_step=batch_index, close=False, walltime=None)
             # writer.add_figure("image/epoch_validation_label", tensor_to_PIL(true_mask[0]), global_step=batch_index, close=False, walltime=None)
