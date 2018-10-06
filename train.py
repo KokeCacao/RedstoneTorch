@@ -140,7 +140,7 @@ def train_net(net,
 
             # calculating loss
             # loss
-            if epoch_index < -1: loss = torch.nn.BCELoss()(torch.sigmoid(masks_pred).view(-1), true_mask.view(-1))
+            if epoch_index < 1e5: loss = torch.nn.BCELoss()(torch.sigmoid(masks_pred).view(-1), true_mask.view(-1))
             else: loss = L.lovasz_hinge(masks_pred, true_mask, ignore=None)
 
 
