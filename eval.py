@@ -30,9 +30,9 @@ def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None
 
         if visualization:
             writer.add_pr_curve("loss/epoch_validation_image", true_mask, masks_pred)
-            writer.add_figure("image/epoch_validation_image", tensor_to_PIL(image[0]), global_step=batch_index, close=False, walltime=None)
-            writer.add_figure("image/epoch_validation_predicted", tensor_to_PIL(masks_pred[0]), global_step=batch_index, close=False, walltime=None)
-            writer.add_figure("image/epoch_validation_label", tensor_to_PIL(true_mask[0]), global_step=batch_index, close=False, walltime=None)
+            # writer.add_figure("image/epoch_validation_image", tensor_to_PIL(image[0]), global_step=batch_index, close=False, walltime=None)
+            # writer.add_figure("image/epoch_validation_predicted", tensor_to_PIL(masks_pred[0]), global_step=batch_index, close=False, walltime=None)
+            # writer.add_figure("image/epoch_validation_label", tensor_to_PIL(true_mask[0]), global_step=batch_index, close=False, walltime=None)
         # print("iou:", iou.mean())
 
         # masks_probs = torch.sigmoid(masks_pred)
