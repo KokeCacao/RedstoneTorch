@@ -163,7 +163,7 @@ class TGSData(data.Dataset):
                 image = self.transform['image'](image)
 
             # mask_name = os.path.join(self.mask_dir, id + self.mask_suffix)
-            mask_name = os.path.join(self.img_dir, "groundtruth_(1)_images_" + id + self.mask_suffix) #augmentation
+            mask_name = os.path.join(self.img_dir, "_groundtruth_(1)_images_" + id + self.mask_suffix) #augmentation
             mask = Image.open(mask_name)
 
 
