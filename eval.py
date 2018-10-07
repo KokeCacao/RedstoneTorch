@@ -60,7 +60,7 @@ def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None
 
 
                 plt.subplot(224)
-                plt.imshow(tensor_to_PIL(np.abs(np.array(true_mask[index].detach())-np.array(masks_pred[index].detach()))))
+                plt.imshow(np.abs(np.array(true_mask[index].detach())-np.array(masks_pred[index].detach())))
                 plt.title("Error")
                 plt.grid(True)
                 writer.add_figure("image/epoch_validation/"+str(index), F, global_step=global_plot_step, close=False, walltime=None)
@@ -78,7 +78,7 @@ def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None
     return total_iou/(batch_index+1e-10)
 
 def tensor_to_PIL(tensor):
-    image = tensor.cpu().clone()
+    image = tensor.clone()
     if image.size()[0] == 1: image = image.repeat(3, 1, 1) # from gray sacale to RGB
     image = image.squeeze(0)
     image = transforms.ToPILImage()(image)
