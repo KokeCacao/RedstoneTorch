@@ -55,12 +55,12 @@ def eval_net(net, validation_loader, dataset, gpu=False, visualization=False, wr
                 plt.title("Image_Real")
                 plt.grid(False)
 
-                plt.subplot(324)
+                plt.subplot(323)
                 plt.imshow(tensor_to_PIL(masks_pred[index]))
                 plt.title("Predicted")
                 plt.grid(True)
 
-                plt.subplot(323)
+                plt.subplot(326)
                 plt.imshow(tensor_to_PIL(true_mask[index]))
                 plt.title("Mask_Trans")
                 plt.grid(False)
@@ -70,7 +70,7 @@ def eval_net(net, validation_loader, dataset, gpu=False, visualization=False, wr
                 plt.title("Error")
                 plt.grid(False)
 
-                plt.subplot(326)
+                plt.subplot(324)
                 plt.imshow(dataset.get_untransformed_mask_by_id(input_id[:10]).convert('RGB'))
                 plt.title("Mask_Real")
                 plt.grid(False)
