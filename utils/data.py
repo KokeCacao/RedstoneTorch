@@ -48,7 +48,7 @@ class TGSData(data.Dataset):
     # def __len__(self):
     #     return 0;
 
-    def __init__(self, csv_dir, img_dir, mask_dir, img_suffix=".png", mask_suffix=".png", transform=None):
+    def __init__(self, csv_dir, img_dir, mask_dir, untransformed_img_dir, untransformed_mask_dir, img_suffix=".png", mask_suffix=".png", transform=None):
         print("Reading Data...")
         self.masks_frame = pd.read_csv(csv_dir)
         self.img_dir = img_dir
@@ -56,6 +56,8 @@ class TGSData(data.Dataset):
         self.img_suffix = img_suffix
         self.mask_suffix = mask_suffix
         self.transform = transform
+        self.untransformed_img_dir = untransformed_img_dir
+        self.untransformed_mask_dir = untransformed_mask_dir
 
         self.data_len = len(self.masks_frame)
         self.train_len = 0
@@ -138,11 +140,17 @@ class TGSData(data.Dataset):
         mask = self.sample['mask'][index]
         return ((z, image), mask)
 
-    def get_image_by_id(self, id):
+    def get_transformed_image_by_id(self, id):
         return Image.open(os.path.join(self.img_dir, "images_original_" + id + self.img_suffix)).convert('RGB')
 
-    def get_mask_by_id(self, id):
-        return Image.open(os.path.join(self.img_dir, "_groundtruth_(1)_images_" + id + self.mask_suffix))
+    def get_transformed_mask_by_id(self, id):
+        return Image.open(os.path.join(self.mask_dir, "_groundtruth_(1)_images_" + id + self.mask_suffix))
+
+    def get_untransformed_image_by_id(self, id):
+        return Image.open(os.path.join(self.untransformed_img_dir + id + self.img_suffix)).convert('RGB')
+
+    def get_untransformed_mask_by_id(self, id):
+        return Image.open(os.path.join(self.untransformed_mask_dir + id + self.mask_suffix))
 
     def get_all_sample(self, ids, seed=19):
         random.manual_seed(seed)
@@ -165,13 +173,13 @@ class TGSData(data.Dataset):
         for id in ids:
             id_list.append(id)
 
-            image = self.get_image_by_id(id)
+            image = self.get_transformed_image_by_id(id)
 
             if self.transform:
                 image = self.transform['image'](image)
 
             # mask_name = os.path.join(self.mask_dir, id + self.mask_suffix)
-            mask = self.get_mask_by_id(id)
+            mask = self.get_transformed_mask_by_id(id)
 
 
             if self.transform:
