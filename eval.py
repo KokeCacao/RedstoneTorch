@@ -44,7 +44,7 @@ def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None
                 F = plt.figure()
 
                 plt.subplot(223)
-                plt.imshow(tensor_to_PIL(image[index]))
+                plt.imshow(image[index])
                 plt.title("Image")
                 plt.grid(True)
 
@@ -60,7 +60,7 @@ def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None
 
 
                 plt.subplot(224)
-                plt.imshow(tensor_to_PIL(true_mask[index]-masks_pred[index]))
+                plt.imshow(tensor_to_PIL(np.abs(true_mask[index]-masks_pred[index])))
                 plt.title("Error")
                 plt.grid(True)
                 writer.add_figure("image/epoch_validation/"+str(index), F, global_step=batch_index, close=False, walltime=None)
