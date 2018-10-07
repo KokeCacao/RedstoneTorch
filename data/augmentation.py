@@ -3,7 +3,7 @@ import os
 import Augmentor
 from optparse import OptionParser
 
-import matplotlib
+
 
 
 def get_args():
@@ -42,7 +42,7 @@ if __name__ == '__main__':
         # and augmented in parallel to the original data.
         p.ground_truth(args.mask_dir)
 
-        # p.greyscale(probability=1.0) # I don't need grey scale because resnet does not support
+        p.greyscale(probability=1.0) # I don't need grey scale because resnet does not support, but add it anyway in case it says wrong mode
         p.resize(1, 224, 224, resample_filter=u'BICUBIC') #BICUBIC, BILINEAR, ANTIALIAS, or NEAREST. https://i.stack.imgur.com/orwNd.png
         p.random_brightness(probability=0.5, min_factor=0.95, max_factor=1.05)
         # p.black_and_white(probability=1.0, threshold=128)
