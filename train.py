@@ -155,8 +155,8 @@ def train_net(net,
 
             if gpu != "": #trying to use cuda 1 to prevent out of memory
                 # z = z.cuda()
-                image = image.cuda(0)
-                true_mask = true_mask.cuda(0)
+                image = image.cuda()
+                true_mask = true_mask.cuda()
 
             # train
 
