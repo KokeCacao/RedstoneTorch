@@ -61,22 +61,22 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="5487" />
+          <entry key="py" value="5500" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="5487" />
+          <entry key="Python" value="5500" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="py" value="26" />
+          <entry key="py" value="27" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
-          <entry key="Python" value="26" />
+          <entry key="Python" value="27" />
         </counts>
       </usages-collector>
     </session>
@@ -86,13 +86,22 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/train.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="588">
-              <caret line="164" column="38" selection-start-line="164" selection-start-column="38" selection-end-line="164" selection-end-column="38" />
+            <state relative-caret-position="138">
+              <caret line="147" column="40" selection-start-line="147" selection-start-column="40" selection-end-line="147" selection-end-column="40" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
-                <marker date="1538954427724" expanded="true" signature="12259:12261" ph="..." />
-                <marker date="1538954427724" expanded="true" signature="13791:13802" ph="..." />
+                <marker date="1538955020402" expanded="true" signature="12252:12254" ph="..." />
+                <marker date="1538955020402" expanded="true" signature="13812:13823" ph="..." />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/miniconda2/envs/ml/lib/python3.6/site-packages/torch/optim/adam.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="390">
+              <caret line="28" column="29" selection-start-line="28" selection-start-column="23" selection-end-line="28" selection-end-column="29" />
             </state>
           </provider>
         </entry>
@@ -191,18 +200,6 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/dice_loss.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="105">
-              <caret line="8" column="30" selection-start-line="8" selection-start-column="30" selection-end-line="8" selection-end-column="30" />
-              <folding>
-                <element signature="e#0#12#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
     </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
@@ -214,7 +211,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>save_cp</find>
       <find>load</find>
       <find>seed</find>
       <find>[</find>
@@ -244,6 +240,7 @@
       <find>import tra</find>
       <find>save_state_dict</find>
       <find>crf</find>
+      <find>threa</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -749,13 +746,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/miniconda2/envs/ml/lib/python3.6/site-packages/torch/optim/adam.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="488">
-          <caret line="40" column="31" lean-forward="true" selection-start-line="40" selection-start-column="31" selection-end-line="40" selection-end-column="31" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/miniconda2/envs/ml/lib/python3.6/site-packages/PIL/ImageChops.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="518">
@@ -831,14 +821,21 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$USER_HOME$/miniconda2/envs/ml/lib/python3.6/site-packages/torch/optim/adam.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="390">
+          <caret line="28" column="29" selection-start-line="28" selection-start-column="23" selection-end-line="28" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/train.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="588">
-          <caret line="164" column="38" selection-start-line="164" selection-start-column="38" selection-end-line="164" selection-end-column="38" />
+        <state relative-caret-position="138">
+          <caret line="147" column="40" selection-start-line="147" selection-start-column="40" selection-end-line="147" selection-end-column="40" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
-            <marker date="1538954427724" expanded="true" signature="12259:12261" ph="..." />
-            <marker date="1538954427724" expanded="true" signature="13791:13802" ph="..." />
+            <marker date="1538955020402" expanded="true" signature="12252:12254" ph="..." />
+            <marker date="1538955020402" expanded="true" signature="13812:13823" ph="..." />
           </folding>
         </state>
       </provider>
