@@ -8,7 +8,7 @@ import subprocess
 exitFlag = 0
 
 
-class memory_thread(threading.Thread):  # 继承父类threading.Thread
+class memory_thread(threading.Thread):
     def __init__(self, threadID, writer, gpu):
         threading.Thread.__init__(self)
         self.threadID = threadID
