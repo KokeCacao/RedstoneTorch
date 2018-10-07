@@ -115,7 +115,7 @@ class TGSData(data.Dataset):
         if data_shuffle:
             np.random.seed(seed)
             np.random.shuffle(self.indices)
-        self.indices_to_id = zip(self.indices, self.id)
+        self.indices_to_id = dict(zip(self.indices, self.id))
 
         val_split = int(np.floor(data_percent * val_percent * self.data_len))
         print("Validation Size: {}".format(val_split))
