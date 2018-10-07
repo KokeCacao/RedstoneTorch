@@ -6,7 +6,7 @@ import numpy as np
 from torchvision import transforms
 import matplotlib as mpl
 if os.environ.get('DISPLAY','') == '':
-    print('no display found. Using non-interactive Agg backend')
+    print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')
     mpl.use('Agg')
 from matplotlib import pyplot as plt
 
@@ -60,7 +60,7 @@ def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None
 
 
                 plt.subplot(224)
-                plt.imshow(tensor_to_PIL(np.abs(true_mask[index]-masks_pred[index])))
+                plt.imshow(tensor_to_PIL(np.abs(np.array(true_mask[index])-np.array(masks_pred[index]))))
                 plt.title("Error")
                 plt.grid(True)
                 writer.add_figure("image/epoch_validation/"+str(index), F, global_step=global_plot_step, close=False, walltime=None)
