@@ -1,3 +1,4 @@
+import matplotlib
 import torch
 import numpy as np
 from torchvision import transforms
@@ -5,6 +6,7 @@ from matplotlib import pyplot as plt
 
 from dice_loss import dice_coeff
 global_plot_step = 0
+matplotlib.use('Agg') # add this to prevent error in Ubantu
 
 def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None, epoch_num=0):
     """Evaluation without the densecrf with the dice coefficient"""
