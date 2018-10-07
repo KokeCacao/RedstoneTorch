@@ -146,7 +146,7 @@ def train_net(net,
     #                       momentum=momentum,
     #                       weight_decay=weight_decay)
     optimizer = torch.optim.Adam(params=[
-                {'params': net.parameters()},
+                # {'params': net.parameters()},
                 # {'params': net.module.dropout_2d},
                 # {'params': net.module.pool},
                 # {'params': net.module.relu},
