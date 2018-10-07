@@ -3,6 +3,7 @@ import os
 import matplotlib
 import torch
 import numpy as np
+from PIL import ImageChops
 from torchvision import transforms
 import matplotlib as mpl
 if os.environ.get('DISPLAY','') == '':
@@ -60,7 +61,7 @@ def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None
 
 
                 plt.subplot(224)
-                plt.imshow(np.abs(np.array(true_mask[index].detach())-np.array(masks_pred[index].detach())))
+                plt.imshow(ImageChops.subtract(tensor_to_PIL(true_mask[index]), ensor_to_PIL(masks_pred[index])))
                 plt.title("Error")
                 plt.grid(True)
                 writer.add_figure("image/epoch_validation/"+str(index), F, global_step=global_plot_step, close=False, walltime=None)
