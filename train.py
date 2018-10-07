@@ -107,14 +107,14 @@ def train_net(net,
     # print("debug-z:",random, "is", tgs_data.get_data()['z'][random])
     # print("debug-mask:",random, "is", tgs_data.get_data()['mask'][random])
 
-    print("Id Size: {}".format(len(tgs_data.get_data()['id'])))
-    print("Z Size: {}".format(len(tgs_data.get_data()['z'])))
-    print("Image Size: {}".format(len(tgs_data.get_data()['image'])))
-    print("Mask Size: {}".format(len(tgs_data.get_data()['mask'])))
-    zip_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['z'], tgs_data.get_data()['image'], tgs_data.get_data()['mask']))
-    # x_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['z'], tgs_data.get_data()['image']))
-    # y_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['mask']))
-    print("Zip-Data Size: {}".format(len(zip_data)))
+    # print("Id Size: {}".format(len(tgs_data.get_data()['id'])))
+    # print("Z Size: {}".format(len(tgs_data.get_data()['z'])))
+    # print("Image Size: {}".format(len(tgs_data.get_data()['image'])))
+    # print("Mask Size: {}".format(len(tgs_data.get_data()['mask'])))
+    # zip_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['z'], tgs_data.get_data()['image'], tgs_data.get_data()['mask']))
+    # # x_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['z'], tgs_data.get_data()['image']))
+    # # y_data = list(zip(tgs_data.get_data()['id'], tgs_data.get_data()['mask']))
+    # print("Zip-Data Size: {}".format(len(zip_data)))
 
     # if args.visualization:
     #     visual_id = tgs_data.get_data()['id'][:10]
@@ -124,8 +124,8 @@ def train_net(net,
     #     writer.add_embedding(visual_image.view(10), metadata="image_"+visual_id, label_img=visual_image.unsqueeze(1))
     #     writer.add_embedding(visual_mask.view(10), metadata="mask_"+visual_id, label_img=visual_mask.unsqueeze(1))
 
-    train_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=train_sampler, shuffle=False, num_workers=0)
-    validation_loader = data.DataLoader(zip_data, batch_size=batch_size, sampler=validation_sampler, shuffle=False, num_workers=0)
+    train_loader = data.DataLoader(tgs_data, batch_size=batch_size, sampler=train_sampler, shuffle=False, num_workers=0)
+    validation_loader = data.DataLoader(tgs_data, batch_size=batch_size, sampler=validation_sampler, shuffle=False, num_workers=0)
 
     print('''
     Starting training:
@@ -198,12 +198,7 @@ def train_net(net,
             loss.backward()
             optimizer.step()
             del id, z, image, true_mask
-            if gpu != "":
-                torch.cuda.empty_cache()  # release gpu memory
-                for key, value in get_gpu_memory_map().items():
-                    writer.add_scalars('sys/memory', {"GPU-" + str(key): value}, epoch_index*batch_size+(batch_index+1))
-            writer.add_scalars('sys/memory', {"CPU Usage": psutil.cpu_percent()}, epoch_index * batch_size + (batch_index + 1))
-            writer.add_scalars('sys/memory', {"Physical_Mem Usage": psutil.virtual_memory()}, epoch_index * batch_size + (batch_index + 1))
+            if gpu != "": torch.cuda.empty_cache()  # release gpu memory
         print('{}# Epoch finished ! Loss: {}, IOU: {}'.format(epoch_index+1, epoch_loss/(batch_index+1), epoch_iou/(batch_index+1)))
         # validation
         if gpu != "": torch.cuda.empty_cache() # release gpu memory
@@ -243,25 +238,6 @@ def get_args():
 def log_data(file_name, data):
     with open(file_name+".txt", "a+") as file:
         file.write(data+"\n")
-
-def get_gpu_memory_map():
-    """Get the current gpu usage.
-
-    Returns
-    -------
-    usage: dict
-        Keys are device ids as integers.
-        Values are memory usage as integers in MB.
-    """
-    result = subprocess.check_output(
-        [
-            'nvidia-smi', '--query-gpu=memory.used',
-            '--format=csv,nounits,noheader'
-        ])
-    # Convert lines into a dictionary
-    gpu_memory = [int(x) for x in result.strip().split('\n')]
-    gpu_memory_map = dict(zip(range(len(gpu_memory)), gpu_memory))
-    return gpu_memory_map
 
 if __name__ == '__main__':
     # init artgs
