@@ -14,7 +14,6 @@ from eval import eval_net, iou_score
 from unet import UNet
 from resunet.resunet_model import ResUNet
 from unet.unet_model import UNetResNet
-from utils.data import TGSData
 from datetime import datetime, date
 from tensorboardX import SummaryWriter
 from utils import lovasz_losses as L
