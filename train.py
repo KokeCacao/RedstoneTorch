@@ -147,9 +147,9 @@ def train_net(net,
     #                       weight_decay=weight_decay)
     optimizer = torch.optim.Adam(params=[
                 {'params': net.parameters()},
-                {'params': net.module.dropout_2d},
-                {'params': net.module.pool},
-                {'params': net.module.relu},
+                # {'params': net.module.dropout_2d},
+                # {'params': net.module.pool},
+                # {'params': net.module.relu},
                 {'params': net.module.conv1.parameters(), 'lr': 0.0001},
                 {'params': net.module.conv2.parameters(), 'lr': 0.0004},
                 {'params': net.module.conv3.parameters(), 'lr': 0.0006},
