@@ -197,7 +197,7 @@ def train_net(net,
         # validation
         if gpu != "": torch.cuda.empty_cache() # release gpu memory
         if validation:
-            val_dice = eval_net(net, validation_loader, gpu, visualization=args.visualization, writer=writer, epoch_num=epoch_index+1)
+            val_dice = eval_net(net, validation_loader, gpu, tgs_data, visualization=args.visualization, writer=writer, epoch_num=epoch_index+1)
             print('Validation Dice Coeff: {}'.format(val_dice))
             writer.add_scalars('loss/epoch_validation', {'Validation': val_dice}, epoch_index+1)
         if args.visualization:
