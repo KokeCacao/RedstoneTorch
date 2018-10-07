@@ -66,7 +66,7 @@ def eval_net(net, validation_loader, dataset, gpu=False, visualization=False, wr
                 plt.grid(False)
 
                 plt.subplot(325)
-                plt.imshow(ImageChops.subtract(tensor_to_PIL(true_mask[index]), tensor_to_PIL(masks_pred[index])))
+                plt.imshow(ImageChops.difference(tensor_to_PIL(true_mask[index]), tensor_to_PIL(masks_pred[index])))
                 plt.title("Error")
                 plt.grid(False)
 

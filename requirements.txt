@@ -4,3 +4,8 @@ numpy
 Pillow
 torch
 torchvision
+augmentor
+tensorboardX
+psutil
+tensorboard
+tensorflow
