@@ -145,7 +145,25 @@ def train_net(net,
     #                       lr=lr,
     #                       momentum=momentum,
     #                       weight_decay=weight_decay)
-    optimizer = torch.optim.Adam(net.parameters(), lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay) # all parameter learnable
+    optimizer = torch.optim.Adam([
+                {'params': net.parameters()},
+                {'params': net.dropout_2d},
+                {'params': net.pool},
+                {'params': net.relu},
+                {'params': net.conv1.parameters(), 'lr': 0.0001},
+                {'params': net.conv2.parameters(), 'lr': 0.0004},
+                {'params': net.conv3.parameters(), 'lr': 0.0006},
+                {'params': net.conv4.parameters(), 'lr': 0.0008},
+                {'params': net.conv5.parameters(), 'lr': 0.0009},
+                {'params': net.center.parameters(), 'lr': 0.001},
+                {'params': net.dec5.parameters(), 'lr': 1e-3},
+                {'params': net.dec4.parameters(), 'lr': 1e-3},
+                {'params': net.dec3.parameters(), 'lr': 1e-3},
+                {'params': net.dec2.parameters(), 'lr': 1e-3},
+                {'params': net.dec1.parameters(), 'lr': 1e-3},
+                {'params': net.dec0.parameters(), 'lr': 1e-3},
+                {'params': net.final.parameters(), 'lr': 0.0015},
+            ], lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay) # all parameter learnable
     train_begin = datetime.now()
     for epoch_index, epoch in enumerate(range(epochs)):
         epoch_begin = datetime.now()
@@ -315,7 +333,7 @@ if __name__ == '__main__':
     writer.close()
 # python train.py --epochs 5 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 0.01 --gpu "0,1" --visualization "True" --tag "test"
 
-# python train.py --epochs 300 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "third-train" --load tensorboard/2018-10-05-03-05-24-773432-first-train/checkpoints/CP16.pth
+# python train.py --epochs 300 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "large-data" --load tensorboard/2018-10-05-03-05-24-773432-first-train/checkpoints/CP16.pth
 
 # python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-07-07-16-56-783295-third-train --port=6006
 
