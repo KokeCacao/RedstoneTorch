@@ -21,6 +21,8 @@ from utils import lovasz_losses as L
 
 
 # dir_prefix = 'drive/My Drive/ML/Pytorch-UNet/'
+from utils.memory import memory_thread
+
 img_suffix = ".png"
 mask_suffix = ".png"
 validation = True
@@ -273,6 +275,8 @@ if __name__ == '__main__':
     dir_depth = dir_prefix + 'data/depths.csv'
     dir_checkpoint = dir_prefix + "tensorboard/" + args.tag + '/checkpoints/'
     writer = SummaryWriter("tensorboard/" + args.tag)
+    memory = memory_thread(1, writer)
+    memory.start()
     print("Current Directory: " + str(os.getcwd()))
     print("====================================")
     print("Copy this line to command: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + args.tag + " --port=6006")
