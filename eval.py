@@ -46,7 +46,7 @@ def eval_net(net, validation_loader, dataset, gpu=False, visualization=False, wr
                 F = plt.figure()
 
                 plt.subplot(223)
-                plt.imshow(tensor_to_PIL(dataset.get_image_by_id(id).convert('RGB')))
+                plt.imshow(dataset.get_image_by_id(id).convert('RGB'))
                 plt.title("Image")
                 plt.grid(True)
 
