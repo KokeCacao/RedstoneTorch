@@ -3,9 +3,11 @@ import os
 from optparse import OptionParser
 
 import torch
+import psutil
 import torch.nn as nn
 import torch.utils.data as data
 from torch import optim
+import subprocess
 from torchvision import transforms
 
 from eval import eval_net, iou_score
@@ -194,14 +196,19 @@ def train_net(net,
             loss.backward()
             optimizer.step()
             del id, z, image, true_mask
-            if gpu != "": torch.cuda.empty_cache()  # release gpu memory
+            if gpu != "":
+                torch.cuda.empty_cache()  # release gpu memory
+                for key, value in get_gpu_memory_map():
+                    writer.add_scalars('sys/memory', {"GPU-" + str(key): value}, epoch_index*batch_size+(batch_index+1))
+            writer.add_scalars('sys/memory', {"CPU Usage": psutil.cpu_percent()}, epoch_index * batch_size + (batch_index + 1))
+            writer.add_scalars('sys/memory', {"Physical_Mem Usage": psutil.virtual_memory()}, epoch_index * batch_size + (batch_index + 1))
         print('{}# Epoch finished ! Loss: {}, IOU: {}'.format(epoch_index+1, epoch_loss/(batch_index+1), epoch_iou/(batch_index+1)))
         # validation
         if gpu != "": torch.cuda.empty_cache() # release gpu memory
         if validation:
             val_dice = eval_net(net, validation_loader, dataset=tgs_data, gpu=gpu, visualization=args.visualization, writer=writer, epoch_num=epoch_index+1)
             print('Validation Dice Coeff: {}'.format(val_dice))
-            writer.add_scalars('loss/epoch_validation', {'Validation': val_dice}, epoch_index+1)
+            writer.add_scalars('loss/epoch_validation', {'Validation': val_dice}, epoch_index + 1)
         if args.visualization:
             for name, param in net.named_parameters():
                 writer.add_histogram(name, param.clone().cpu().data.numpy(), epoch_index+1)
@@ -234,6 +241,25 @@ def get_args():
 def log_data(file_name, data):
     with open(file_name+".txt", "a+") as file:
         file.write(data+"\n")
+
+def get_gpu_memory_map():
+    """Get the current gpu usage.
+
+    Returns
+    -------
+    usage: dict
+        Keys are device ids as integers.
+        Values are memory usage as integers in MB.
+    """
+    result = subprocess.check_output(
+        [
+            'nvidia-smi', '--query-gpu=memory.used',
+            '--format=csv,nounits,noheader'
+        ], encoding='utf-8')
+    # Convert lines into a dictionary
+    gpu_memory = [int(x) for x in result.strip().split('\n')]
+    gpu_memory_map = dict(zip(range(len(gpu_memory)), gpu_memory))
+    return gpu_memory_map
 
 if __name__ == '__main__':
     # init artgs
