@@ -154,11 +154,11 @@ class TGSData(data.Dataset):
         if self.transform:
             image = self.transform['image'](image)
             mask = self.transform['mask'](mask)
-            
+
         # z = self.sample['z'][index]
         # image = self.sample['image'][index]
         # mask = self.sample['mask'][index]
-        return ((z, image), mask)
+        return (id, z, image, mask)
 
     def get_transformed_image_by_id(self, id):
         return Image.open(os.path.join(self.img_dir, "images_original_" + id + self.img_suffix)).convert('RGB')
