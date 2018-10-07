@@ -1,8 +1,10 @@
 import torch
 import numpy as np
 from torchvision import transforms
+from matplotlib import pyplot as plt
 
 from dice_loss import dice_coeff
+global_plot_step = 0
 
 def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None, epoch_num=0):
     """Evaluation without the densecrf with the dice coefficient"""
@@ -29,9 +31,32 @@ def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None
 
         if visualization:
             writer.add_pr_curve("loss/epoch_validation_image", true_mask, masks_pred, global_step=epoch_num)
-            # writer.add_figure("image/epoch_validation_image", tensor_to_PIL(image[0]), global_step=batch_index, close=False, walltime=None)
-            # writer.add_figure("image/epoch_validation_predicted", tensor_to_PIL(masks_pred[0]), global_step=batch_index, close=False, walltime=None)
-            # writer.add_figure("image/epoch_validation_label", tensor_to_PIL(true_mask[0]), global_step=batch_index, close=False, walltime=None)
+            global global_plot_step
+            global_plot_step=global_plot_step+1
+            for index, img in enumerate(image):
+                F = plt.figure()
+
+                plt.subplot(223)
+                plt.imshow(tensor_to_PIL(image[index]))
+                plt.title("Image")
+                plt.grid(True)
+
+                plt.subplot(221)
+                plt.imshow(tensor_to_PIL(masks_pred[index]))
+                plt.title("Predicted")
+                plt.grid(True)
+
+                plt.subplot(222)
+                plt.imshow(tensor_to_PIL(true_mask[index]))
+                plt.title("Label")
+                plt.grid(True)
+
+
+                plt.subplot(224)
+                plt.imshow(tensor_to_PIL(true_mask[index]-masks_pred[index]))
+                plt.title("Error")
+                plt.grid(True)
+                writer.add_figure("image/epoch_validation/"+str(index), F, global_step=batch_index, close=False, walltime=None)
         # print("iou:", iou.mean())
 
         # masks_probs = torch.sigmoid(masks_pred)
