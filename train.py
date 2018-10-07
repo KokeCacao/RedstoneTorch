@@ -94,7 +94,7 @@ def train_net(net,
               weight_decay=0.0005,
               seed=19):
 
-    tgs_data = TGSData(dir_depth, dir_img, dir_mask, img_suffix, mask_suffix, transform)
+    tgs_data = TGSData(dir_depth, dir_img, dir_mask, dir_untransformed_img, dir_untransformed_mask, img_suffix, mask_suffix, transform)
 
     train_sampler, validation_sampler = tgs_data.get_sampler(tgs_data.get_img_names(), data_percent=data_percent, val_percent=val_percent, data_shuffle = False, train_shuffle=True, val_shuffle=False, seed=seed)
 
@@ -239,7 +239,9 @@ if __name__ == '__main__':
     args.tag = str(datetime.now()).replace(" ","-").replace(".","-").replace(":","-") + "-" + args.tag
     dir_prefix = args.dir_prefix
     dir_img = dir_prefix + 'data/train/images/output/' #augmentation
-    dir_mask = dir_prefix + 'data/train/masks/output/' #augmentation
+    dir_mask = dir_prefix + 'data/train/images/output/' #augmentation
+    dir_untransformed_img = dir_prefix + 'data/train/images/' #augmentation
+    dir_untransformed_mask = dir_prefix + 'data/train/masks/' #augmentation
     dir_depth = dir_prefix + 'data/depths.csv'
     dir_checkpoint = dir_prefix + "tensorboard/" + args.tag + '/checkpoints/'
     writer = SummaryWriter("tensorboard/" + args.tag)

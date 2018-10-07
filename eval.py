@@ -42,29 +42,38 @@ def eval_net(net, validation_loader, dataset, gpu=False, visualization=False, wr
             writer.add_pr_curve("loss/epoch_validation_image", true_mask, masks_pred, global_step=epoch_num)
             global global_plot_step
             global_plot_step=global_plot_step+1
-            for index, id in enumerate(id):
+            for index, input_id in enumerate(id):
                 F = plt.figure()
 
-                plt.subplot(223)
-                plt.imshow(dataset.get_image_by_id(id).convert('RGB'))
-                plt.title("Image")
-                plt.grid(True)
+                plt.subplot(322)
+                plt.imshow(dataset.get_transformed_image_by_id(input_id).convert('RGB'))
+                plt.title("Image_Trans")
+                plt.grid(False)
 
-                plt.subplot(221)
+                plt.subplot(321)
+                plt.imshow(dataset.get_untransformed_image_by_id(input_id[:10]).convert('RGB'))
+                plt.title("Image_Real")
+                plt.grid(False)
+
+                plt.subplot(324)
                 plt.imshow(tensor_to_PIL(masks_pred[index]))
                 plt.title("Predicted")
                 plt.grid(True)
 
-                plt.subplot(222)
+                plt.subplot(323)
                 plt.imshow(tensor_to_PIL(true_mask[index]))
-                plt.title("Label")
-                plt.grid(True)
+                plt.title("Mask_Trans")
+                plt.grid(False)
 
-
-                plt.subplot(224)
+                plt.subplot(325)
                 plt.imshow(ImageChops.subtract(tensor_to_PIL(true_mask[index]), tensor_to_PIL(masks_pred[index])))
                 plt.title("Error")
-                plt.grid(True)
+                plt.grid(False)
+
+                plt.subplot(326)
+                plt.imshow(dataset.get_untransformed_mask_by_id(input_id[:10]).convert('RGB'))
+                plt.title("Mask_Real")
+                plt.grid(False)
                 writer.add_figure("image/epoch_validation/"+str(index), F, global_step=global_plot_step, close=False, walltime=None)
         # print("iou:", iou.mean())
 
