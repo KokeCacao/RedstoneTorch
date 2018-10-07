@@ -307,7 +307,7 @@ if __name__ == '__main__':
     writer.close()
 # python train.py --epochs 5 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 0.01 --gpu "0,1" --visualization "True" --tag "test"
 
-# python train.py --epochs 300 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "plot-test" --load tensorboard/2018-10-05-03-05-24-773432-first-train/checkpoints/CP16.pth
+# python train.py --epochs 300 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "third-train" --load tensorboard/2018-10-05-03-05-24-773432-first-train/checkpoints/CP16.pth
 
 # python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-05-03-05-24-773432-plot-test --port=6006
 
