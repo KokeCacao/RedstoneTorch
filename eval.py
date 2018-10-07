@@ -78,11 +78,12 @@ def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None
     return total_iou/(batch_index+1e-10)
 
 def tensor_to_PIL(tensor):
-    image = tensor.clone()
+    image = tensor.cpu().clone()
     if image.size()[0] == 1: image = image.repeat(3, 1, 1) # from gray sacale to RGB
     image = image.squeeze(0)
     image = transforms.ToPILImage()(image)
     return image
+
 
 def iou_score(outputs, labels):
     outputs = outputs > 0.5 # threshold
