@@ -197,7 +197,7 @@ def train_net(net,
         # validation
         if gpu != "": torch.cuda.empty_cache() # release gpu memory
         if validation:
-            val_dice = eval_net(net, validation_loader, gpu, tgs_data, visualization=args.visualization, writer=writer, epoch_num=epoch_index+1)
+            val_dice = eval_net(net, validation_loader, dataset=tgs_data, gpu=gpu, visualization=args.visualization, writer=writer, epoch_num=epoch_index+1)
             print('Validation Dice Coeff: {}'.format(val_dice))
             writer.add_scalars('loss/epoch_validation', {'Validation': val_dice}, epoch_index+1)
         if args.visualization:
@@ -253,6 +253,7 @@ if __name__ == '__main__':
 
     # net = ResUNet(n_channels=3, n_classes=1)
     # net = UNet(n_channels=3, n_classes=1)
+    print("Loading Neuronetwork...")
     net = UNetResNet(encoder_depth=50, num_classes=1, num_filters=32, dropout_2d=0.2,
                  pretrained=True, is_deconv=True) #don't init weights, don't give depth
     if args.gpu != "": net = torch.nn.DataParallel(net, device_ids=[int(i) for i in args.gpu.split(",")])
@@ -307,3 +308,5 @@ if __name__ == '__main__':
 # python train.py --epochs 300 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "plot-test" --load tensorboard/2018-10-05-03-05-24-773432-first-train/checkpoints/CP16.pth
 
 # python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-05-03-05-24-773432-plot-test --port=6006
+
+# python train.py --epochs 300 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 0.10 --gpu "0,1" --visualization "True" --tag "plot-test"
