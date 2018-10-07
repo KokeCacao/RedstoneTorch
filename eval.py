@@ -86,6 +86,8 @@ def eval_net(net, validation_loader, dataset, gpu=False, visualization=False, wr
         #
         # total_loss += dice_coeff(masks_probs_flat, true_mask_flat).item()
     # return total_loss / (num+1e-10)
+    del id, z, image, true_mask
+    if gpu != "": torch.cuda.empty_cache()  # release gpu memory
     return total_iou/(batch_index+1e-10)
 
 def tensor_to_PIL(tensor):
