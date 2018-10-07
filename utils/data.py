@@ -161,7 +161,10 @@ class TGSData(data.Dataset):
 
         i = 0
 
+        id_list = []
         for id in ids:
+            id_list.append(id)
+
             image = self.get_image_by_id(id)
 
             if self.transform:
@@ -195,7 +198,7 @@ class TGSData(data.Dataset):
 
         id_depth['image'] = images
         id_depth['mask'] = masks
-        id_depth['id'] = self.get_img_names() # use image id instead of id from .cvs because of image augmentation
+        id_depth['id'] = id_list # use image id instead of id from .cvs because of image augmentation
 
         self.sample = id_depth
 
