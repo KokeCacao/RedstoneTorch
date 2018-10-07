@@ -22,7 +22,7 @@ class memory_thread(threading.Thread):
             for key, value in get_gpu_memory_map().items():
                 self.writer.add_scalars('memory/GPU', {"GPU-" + str(key): value}, self.count)
         self.writer.add_scalars('memory/CPU', {"CPU Usage": psutil.cpu_percent()}, self.count)
-        self.writer.add_scalars('memory/Physical', {"Physical_Mem Usage": psutil.virtual_memory()}, self.count)
+        if psutil.virtual_memory() != None: self.writer.add_scalars('memory/Physical', {"Physical_Mem Usage": psutil.virtual_memory()}, self.count)
         self.count = self.count + 1
         time.sleep(1)
 

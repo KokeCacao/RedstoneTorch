@@ -200,7 +200,7 @@ def train_net(net,
             del id, z, image, true_mask
             if gpu != "":
                 torch.cuda.empty_cache()  # release gpu memory
-                for key, value in get_gpu_memory_map():
+                for key, value in get_gpu_memory_map().items():
                     writer.add_scalars('sys/memory', {"GPU-" + str(key): value}, epoch_index*batch_size+(batch_index+1))
             writer.add_scalars('sys/memory', {"CPU Usage": psutil.cpu_percent()}, epoch_index * batch_size + (batch_index + 1))
             writer.add_scalars('sys/memory', {"Physical_Mem Usage": psutil.virtual_memory()}, epoch_index * batch_size + (batch_index + 1))
