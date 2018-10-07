@@ -145,13 +145,20 @@ class TGSData(data.Dataset):
         return train_sampler, validation_sampler
 
     def __getitem__(self, index):
-        print ("loading new data for the batch...")
         id = self.indices_to_id.get(index)
 
+        z = self.get_transformed_z_by_id(id)
+        image = self.get_transformed_image_by_id(id)
+        mask = self.get_transformed_mask_by_id(id)
+
+        if self.transform:
+            image = self.transform['image'](image)
+            mask = self.transform['mask'](mask)
+            
         # z = self.sample['z'][index]
         # image = self.sample['image'][index]
         # mask = self.sample['mask'][index]
-        return ((self.get_transformed_z_by_id(id), self.get_transformed_image_by_id(id)), self.get_transformed_mask_by_id(id))
+        return ((z, image), mask)
 
     def get_transformed_image_by_id(self, id):
         return Image.open(os.path.join(self.img_dir, "images_original_" + id + self.img_suffix)).convert('RGB')
