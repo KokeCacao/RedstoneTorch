@@ -9,8 +9,6 @@ from skimage import io
 from torch.utils import data
 from torch.utils.data import SubsetRandomSampler
 
-import train
-
 
 class TGSData(data.Dataset):
     # def __init__(self, root, train=True, transform=None, mask_transform=None):
@@ -202,7 +200,6 @@ class TGSData(data.Dataset):
             mask_std = np.math.sqrt(mask_std ** 2 + mask.mean() ** 2)
 
             i=i+1
-
 
         # print (images)
         # image_mask = {'image': images, 'mask': masks}
