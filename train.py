@@ -33,8 +33,8 @@ transform = {
         transforms.Resize((224,224)),
         # transforms.RandomResizedCrop(224),
         # transforms.Grayscale(),
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomVerticalFlip(),
+        # transforms.RandomHorizontalFlip(),
+        # transforms.RandomVerticalFlip(),
         transforms.ToTensor(),
         transforms.Normalize(mean = [0.456, 0.456, 0.406], std = [0.229, 0.224, 0.225])
     ]),
@@ -42,8 +42,8 @@ transform = {
         transforms.Resize((224,224)),
         # transforms.CenterCrop(224),
         # transforms.Grayscale(),
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomVerticalFlip(),
+        # transforms.RandomHorizontalFlip(),
+        # transforms.RandomVerticalFlip(),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.5, 0.5, 0.5],
                             std=[0.225, 0.225, 0.225]),
@@ -193,6 +193,8 @@ def train_net(net,
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            del id, z, image, true_mask
+            if gpu != "": torch.cuda.empty_cache()  # release gpu memory
         print('{}# Epoch finished ! Loss: {}, IOU: {}'.format(epoch_index+1, epoch_loss/(batch_index+1), epoch_iou/(batch_index+1)))
         # validation
         if gpu != "": torch.cuda.empty_cache() # release gpu memory
@@ -309,6 +311,6 @@ if __name__ == '__main__':
 
 # python train.py --epochs 300 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "third-train" --load tensorboard/2018-10-05-03-05-24-773432-first-train/checkpoints/CP16.pth
 
-# python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-05-03-05-24-773432-plot-test --port=6006
+# python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-07-07-16-56-783295-third-train --port=6006
 
 # python train.py --epochs 300 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 0.10 --gpu "0,1" --visualization "True" --tag "plot-test"
