@@ -38,7 +38,7 @@ def eval_net(net, validation_loader, dataset, gpu=False, visualization=False, wr
 
 
 
-        if visualization:
+        if visualization and batch_index==0:
             writer.add_pr_curve("loss/epoch_validation_image", true_mask, masks_pred, global_step=epoch_num)
             global global_plot_step
             global_plot_step=global_plot_step+1
