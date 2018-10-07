@@ -195,7 +195,7 @@ class TGSData(data.Dataset):
 
         id_depth['image'] = images
         id_depth['mask'] = masks
-        id_depth['id'] = ids # use image id instead of id from .cvs because of image augmentation
+        id_depth['id'] = self.get_img_names # use image id instead of id from .cvs because of image augmentation
 
         self.sample = id_depth
 
