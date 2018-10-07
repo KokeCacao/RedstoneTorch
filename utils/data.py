@@ -138,6 +138,12 @@ class TGSData(data.Dataset):
         mask = self.sample['mask'][index]
         return ((z, image), mask)
 
+    def get_image_by_id(self, id):
+        return Image.open(os.path.join(self.img_dir, "images_original_" + id + self.img_suffix)).convert('RGB')
+
+    def get_mask_by_id(self, id):
+        return Image.open(os.path.join(self.img_dir, "_groundtruth_(1)_images_" + id + self.mask_suffix))
+
     def get_all_sample(self, ids, seed=19):
         random.manual_seed(seed)
         # item_name = self.masks_frame.iloc[idx, 0]
@@ -156,15 +162,13 @@ class TGSData(data.Dataset):
         i = 0
 
         for id in ids:
-            image_name = os.path.join(self.img_dir, "images_original_" + id + self.img_suffix)
-            image = Image.open(image_name).convert('RGB')
+            image = self.get_image_by_id(id)
 
             if self.transform:
                 image = self.transform['image'](image)
 
             # mask_name = os.path.join(self.mask_dir, id + self.mask_suffix)
-            mask_name = os.path.join(self.img_dir, "_groundtruth_(1)_images_" + id + self.mask_suffix) #augmentation
-            mask = Image.open(mask_name)
+            mask = self.get_mask_by_id(id)
 
 
             if self.transform:

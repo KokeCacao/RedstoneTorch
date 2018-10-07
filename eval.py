@@ -3,9 +3,10 @@ import os
 import matplotlib
 import torch
 import numpy as np
-from PIL import ImageChops
+from PIL import ImageChops, Image
 from torchvision import transforms
 import matplotlib as mpl
+
 if os.environ.get('DISPLAY','') == '':
     print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')
     mpl.use('Agg')
@@ -14,7 +15,7 @@ from matplotlib import pyplot as plt
 from dice_loss import dice_coeff
 global_plot_step = 0
 
-def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None, epoch_num=0):
+def eval_net(net, validation_loader, dataset, gpu=False, visualization=False, writer=None, epoch_num=0):
     """Evaluation without the densecrf with the dice coefficient"""
     # total_loss = 0
     total_iou = 0
@@ -41,11 +42,11 @@ def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None
             writer.add_pr_curve("loss/epoch_validation_image", true_mask, masks_pred, global_step=epoch_num)
             global global_plot_step
             global_plot_step=global_plot_step+1
-            for index, img in enumerate(image):
+            for index, id in enumerate(id):
                 F = plt.figure()
 
                 plt.subplot(223)
-                plt.imshow(tensor_to_PIL(image[index]))
+                plt.imshow(tensor_to_PIL(dataset.get_image_by_id(id).convert('RGB')))
                 plt.title("Image")
                 plt.grid(True)
 
