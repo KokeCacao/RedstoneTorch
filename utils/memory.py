@@ -19,7 +19,7 @@ class memory_thread(threading.Thread):
     def run(self):
         if self.gpu != "":
             torch.cuda.empty_cache()  # release gpu memory
-            for key, value in get_gpu_memory_map():
+            for key, value in get_gpu_memory_map().items():
                 self.writer.add_scalars('memory/GPU', {"GPU-" + str(key): value}, self.count)
         self.writer.add_scalars('memory/CPU', {"CPU Usage": psutil.cpu_percent()}, self.count)
         self.writer.add_scalars('memory/Physical', {"Physical_Mem Usage": psutil.virtual_memory()}, self.count)
@@ -42,5 +42,4 @@ def get_gpu_memory_map():
         ])
     # Convert lines into a dictionary
     gpu_memory = [int(x) for x in result.strip().split('\n')]
-    gpu_memory_map = dict(zip(range(len(gpu_memory)), gpu_memory))
-    return gpu_memory_map
+    return dict(zip(range(len(gpu_memory)), gpu_memory))
