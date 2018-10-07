@@ -274,7 +274,7 @@ if __name__ == '__main__':
     dir_depth = dir_prefix + 'data/depths.csv'
     dir_checkpoint = dir_prefix + "tensorboard/" + args.tag + '/checkpoints/'
     writer = SummaryWriter("tensorboard/" + args.tag)
-    memory = memory_thread(1, writer)
+    memory = memory_thread(1, writer, args.gpu)
     memory.start()
     print("Current Directory: " + str(os.getcwd()))
     print("====================================")
