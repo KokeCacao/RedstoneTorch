@@ -145,7 +145,7 @@ def train_net(net,
     #                       lr=lr,
     #                       momentum=momentum,
     #                       weight_decay=weight_decay)
-    optimizer = torch.optim.Adam([
+    optimizer = torch.optim.Adam(params=[
                 {'params': net.parameters()},
                 {'params': net.module.dropout_2d},
                 {'params': net.module.pool},
@@ -162,8 +162,7 @@ def train_net(net,
                 {'params': net.module.dec2.parameters(), 'lr': 1e-3},
                 {'params': net.module.dec1.parameters(), 'lr': 1e-3},
                 {'params': net.module.dec0.parameters(), 'lr': 1e-3},
-                {'params': net.module.final.parameters(), 'lr': 0.0015},
-            ], lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay) # all parameter learnable
+                {'params': net.module.final.parameters(), 'lr': 0.0015}], lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay) # all parameter learnable
     train_begin = datetime.now()
     for epoch_index, epoch in enumerate(range(epochs)):
         epoch_begin = datetime.now()
@@ -270,6 +269,7 @@ if __name__ == '__main__':
     dir_checkpoint = dir_prefix + "tensorboard/" + args.tag + '/checkpoints/'
     writer = SummaryWriter("tensorboard/" + args.tag)
     memory = memory_thread(1, writer, args.gpu)
+    memory.setDaemon(False)
     memory.start()
     print("Current Directory: " + str(os.getcwd()))
     print("====================================")
