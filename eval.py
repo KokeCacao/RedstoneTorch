@@ -1,12 +1,17 @@
+import os
+
 import matplotlib
 import torch
 import numpy as np
 from torchvision import transforms
+import matplotlib as mpl
+if os.environ.get('DISPLAY','') == '':
+    print('no display found. Using non-interactive Agg backend')
+    mpl.use('Agg')
 from matplotlib import pyplot as plt
 
 from dice_loss import dice_coeff
 global_plot_step = 0
-matplotlib.use('Agg') # add this to prevent error in Ubantu
 
 def eval_net(net, validation_loader, gpu=False, visualization=False, writer=None, epoch_num=0):
     """Evaluation without the densecrf with the dice coefficient"""
