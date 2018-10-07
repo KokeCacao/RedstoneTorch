@@ -36,7 +36,7 @@ transform = {
         transforms.RandomHorizontalFlip(),
         transforms.RandomVerticalFlip(),
         transforms.ToTensor(),
-        transforms.Normalize(mean = [0.456, 0.456, 0.406], std = [0.229, 0.224, 0.225])
+        transforms.Normalize(mean = [0.5], std = [0.225])
     ]),
     'mask': transforms.Compose([
         transforms.Resize((224,224)),
@@ -45,12 +45,10 @@ transform = {
         transforms.RandomHorizontalFlip(),
         transforms.RandomVerticalFlip(),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.5, 0.5, 0.5],
-                            std=[0.225, 0.225, 0.225]),
+        transforms.Normalize(mean=[0.5], std=[0.225]),
         lambda x: x>0,
         lambda x: x.float(),
-        transforms.Normalize(mean=[0.5, 0.5, 0.5],
-                            std=[0.225, 0.225, 0.225]),
+        transforms.Normalize(mean=[0.5], std=[0.225]),
         lambda x: (x/4.4444)+0.5
     ])
 }
@@ -302,6 +300,8 @@ if __name__ == '__main__':
 
     writer.export_scalars_to_json("tensorboard/" + args.tag + "/all_scalars.json")
     writer.close()
-#python train.py --epochs 5 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 0.01 --gpu "0,1" --visualization "True" --tag "test"
-#python train.py --epochs 300 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "second-train" --load tensorboard/2018-10-05-03-05-24-773432-first-train/checkpoints/CP16.pth
-#python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-05-03-05-24-773432-first-train --port=6006
+# python train.py --epochs 5 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 0.01 --gpu "0,1" --visualization "True" --tag "test"
+
+# python train.py --epochs 300 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "plot-test" --load tensorboard/2018-10-05-03-05-24-773432-first-train/checkpoints/CP16.pth
+
+# python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-05-03-05-24-773432-plot-test --port=6006
