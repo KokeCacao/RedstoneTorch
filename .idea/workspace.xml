@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0dd777d8-05cc-4cce-86da-522041d1016c" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/memory.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/memory.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -63,12 +61,12 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="5266" />
+          <entry key="py" value="5268" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="5266" />
+          <entry key="Python" value="5268" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -88,12 +86,12 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/train.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1878">
-              <caret line="249" column="75" lean-forward="true" selection-start-line="249" selection-start-column="62" selection-end-line="249" selection-end-column="75" />
+            <state relative-caret-position="2913">
+              <caret line="317" column="2" lean-forward="true" selection-start-line="317" selection-start-column="2" selection-end-line="317" selection-end-column="159" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
-                <marker date="1538929753002" expanded="true" signature="11126:11128" ph="..." />
-                <marker date="1538929753002" expanded="true" signature="12658:12669" ph="..." />
+                <marker date="1538932100853" expanded="true" signature="11142:11144" ph="..." />
+                <marker date="1538932100853" expanded="true" signature="12674:12685" ph="..." />
               </folding>
             </state>
           </provider>
@@ -102,11 +100,11 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/utils/data.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1785">
-              <caret line="158" column="45" lean-forward="true" selection-start-line="158" selection-start-column="45" selection-end-line="158" selection-end-column="45" />
+            <state relative-caret-position="377">
+              <caret line="117" column="61" selection-start-line="117" selection-start-column="61" selection-end-line="117" selection-end-column="61" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
-                <marker date="1538931899842" expanded="true" signature="6580:6616" ph="..." />
+                <marker date="1538932582539" expanded="true" signature="6586:6622" ph="..." />
               </folding>
             </state>
           </provider>
@@ -207,13 +205,13 @@
       <find>cache</find>
       <find>size</find>
       <find>eva</find>
-      <find>tgs_data</find>
       <find>writer</find>
       <find>dataset</find>
       <find>/train/images</find>
       <find>train</find>
-      <find>import tra</find>
       <find>=)</find>
+      <find>import tra</find>
+      <find>tgs_data</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -747,6 +745,13 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$USER_HOME$/.PyCharmCE2018.2/system/python_stubs/885077940/builtins.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="308">
+          <caret line="5744" column="6" selection-start-line="5744" selection-start-column="6" selection-end-line="5744" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/utils/memory.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="435">
@@ -759,30 +764,23 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/train.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1878">
-          <caret line="249" column="75" lean-forward="true" selection-start-line="249" selection-start-column="62" selection-end-line="249" selection-end-column="75" />
+        <state relative-caret-position="2913">
+          <caret line="317" column="2" lean-forward="true" selection-start-line="317" selection-start-column="2" selection-end-line="317" selection-end-column="159" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
-            <marker date="1538929753002" expanded="true" signature="11126:11128" ph="..." />
-            <marker date="1538929753002" expanded="true" signature="12658:12669" ph="..." />
+            <marker date="1538932100853" expanded="true" signature="11142:11144" ph="..." />
+            <marker date="1538932100853" expanded="true" signature="12674:12685" ph="..." />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/.PyCharmCE2018.2/system/python_stubs/885077940/builtins.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="308">
-          <caret line="5744" column="6" selection-start-line="5744" selection-start-column="6" selection-end-line="5744" selection-end-column="6" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/utils/data.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1785">
-          <caret line="158" column="45" lean-forward="true" selection-start-line="158" selection-start-column="45" selection-end-line="158" selection-end-column="45" />
+        <state relative-caret-position="377">
+          <caret line="117" column="61" selection-start-line="117" selection-start-column="61" selection-end-line="117" selection-end-column="61" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
-            <marker date="1538931899842" expanded="true" signature="6580:6616" ph="..." />
+            <marker date="1538932582539" expanded="true" signature="6586:6622" ph="..." />
           </folding>
         </state>
       </provider>
