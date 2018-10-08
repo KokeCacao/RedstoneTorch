@@ -275,26 +275,11 @@ if __name__ == '__main__':
     print("====================================")
     print("Copy this line to command: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + args.tag + " --port=6006")
 
-    # 3 channels: 3 form image, 1 mask
-    # 1 classes: separate salt and others
-
-
-    # net = ResUNet(n_channels=3, n_classes=1)
-    # net = UNet(n_channels=3, n_classes=1)
     print("Loading Neuronetwork...")
     net = UNetResNet(encoder_depth=50, num_classes=1, num_filters=32, dropout_2d=0.2,
                  pretrained=True, is_deconv=True) #don't init weights, don't give depth
     if args.gpu != "": net = torch.nn.DataParallel(net, device_ids=[int(i) for i in args.gpu.split(",")])
-    
 
-    # def init_weights(m):
-    #     if type(m) == nn.Linear:
-    #         torchp.nn.init.xavier_uniform(m.weight)
-    #         m.bias.data.fill_(args.weight_init)
-
-
-    # print("Initializing Weights...")
-    # net.apply(init_weights)
 
     if args.load:
         net.load_state_dict(torch.load(args.load))
@@ -337,4 +322,4 @@ if __name__ == '__main__':
 
 # python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-07-07-16-56-783295-third-train --port=6006
 
-# python train.py --epochs 300 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 0.10 --gpu "0,1" --visualization "True" --tag "plot-test"
+# python train.py --epochs 5 --batch-size 10 --learning-rate 0.01 --dir_prefix '' --data_percent 0.01 --gpu "0,1" --visualization "False" --tag "test" --load tensorboard/2018-10-07-23-40-34-439264-different-lr/checkpoints/CP2.pth

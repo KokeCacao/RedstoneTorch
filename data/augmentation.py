@@ -51,7 +51,7 @@ if __name__ == '__main__':
         p.rotate(probability=0.5, max_left_rotation=5, max_right_rotation=5)
         # p.crop_random(probability=0.5, percentage_area, randomise_percentage_area=False) already 'croped' by skew
         p.skew(probability=0.5, magnitude=0.1)
-        p.random_distortion(probability=0.8, grid_width=16, grid_height=16, magnitude=8)
+        p.random_distortion(probability=0.8, grid_width=16, grid_height=16, magnitude=4)
 
         # 1.5625% data will not be modified
 
