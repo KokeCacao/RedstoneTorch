@@ -48,7 +48,7 @@ if __name__ == '__main__':
         # p.black_and_white(probability=1.0, threshold=128)
         p.flip_random(probability=0.75)
         p.rotate_random_90(probability=0.75)
-        p.rotate(probability=0.5, max_left_rotation=5, max_right_rotation=5)
+        p.rotate(probability=0.8, max_left_rotation=10, max_right_rotation=10)
         # p.crop_random(probability=0.5, percentage_area, randomise_percentage_area=False) already 'croped' by skew
         p.skew(probability=0.5, magnitude=0.1)
         p.random_distortion(probability=0.8, grid_width=16, grid_height=16, magnitude=4)
