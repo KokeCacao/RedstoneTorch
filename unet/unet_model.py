@@ -138,6 +138,10 @@ class UNetResNet(nn.Module):
         self.dec0 = ConvRelu(num_filters, num_filters)
         self.final = nn.Conv2d(num_filters, num_classes, kernel_size=1)
 
+        self.inter_conv = nn.Conv2d(in_, out, 1)
+        self.linear1 = nn.Linear(64, num_classes)
+        self.linear2 = nn.Linear(64, num_classes)
+
     def forward(self, x):
         # print (x.size()) # (32, 3, 101, 101)(32, 3, 224, 224)
         conv1 = self.conv1(x)
@@ -170,8 +174,15 @@ class UNetResNet(nn.Module):
         dec0 = self.dec0(dec1)
         # print (dec0.size())
 
+        inter = F.avg_pool2d(pool, pool.size()[3]) #average
 
-
+        inter = self.inter_conv(inter)
+        inter = self.linear1(inter)
+        inter = self.linear2(inter)
+        inter = F.softmax(inter, )
+        # softmax
+        pool = pool.view(pool.size(0), -1)
+        pool = self.linear(pool)
 
 
 
