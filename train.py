@@ -318,8 +318,16 @@ if __name__ == '__main__':
     writer.close()
 # python train.py --epochs 5 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 0.01 --gpu "0,1" --visualization "True" --tag "test"
 
-# python train.py --epochs 300 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "different-lr" --load tensorboard/2018-10-05-03-05-24-773432-first-train/checkpoints/CP16.pth
+# python train.py --epochs 300 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "load-different-lr" --load tensorboard/2018-10-07-23-40-34-439264-different-lr/checkpoints/CP21.pth
 
-# python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-07-07-16-56-783295-third-train --port=6006
+# python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-07-23-40-34-439264-different-lr --port=6006
 
 # python train.py --epochs 5 --batch-size 10 --learning-rate 0.01 --dir_prefix '' --data_percent 0.01 --gpu "0,1" --visualization "False" --tag "test" --load tensorboard/2018-10-07-23-40-34-439264-different-lr/checkpoints/CP2.pth
+
+
+"""
+Good Models
+
+2018-10-07-23-40-34-439264-different-lr 21Epoch
+2018-10-08-23-24-27-715364-load-different-lr
+"""
