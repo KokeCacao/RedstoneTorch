@@ -34,8 +34,8 @@ def eval_net(net, validation_loader, dataset, gpu=False, visualization=False, wr
         # masks_pred = net(image, z)
 
         masks_pred = net(image)
-        iou_score = iou_score(masks_pred, true_mask).mean().float()
-        total_iou = total_iou + iou_score
+        iou = iou_score(masks_pred, true_mask).mean().float()
+        total_iou = total_iou + iou
 
 
 
