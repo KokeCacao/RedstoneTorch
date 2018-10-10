@@ -45,20 +45,20 @@ def eval_net(net, validation_loader, dataset, gpu=False, visualization=False, wr
             for index, input_id in enumerate(id):
                 F = plt.figure()
 
-                plt.subplot(322)
-                plt.imshow(dataset.get_transformed_image_by_id(input_id).convert('RGB'))
-                plt.title("Image_Trans")
-                plt.grid(False)
-
                 plt.subplot(321)
                 plt.imshow(dataset.get_untransformed_image_by_id(input_id[:10]).convert('RGB'))
                 plt.title("Image_Real")
                 plt.grid(False)
 
-                plt.subplot(326)
-                plt.imshow(tensor_to_PIL(masks_pred[index]))
-                plt.title("Predicted")
-                plt.grid(True)
+                plt.subplot(322)
+                plt.imshow(dataset.get_transformed_image_by_id(input_id).convert('RGB'))
+                plt.title("Image_Trans")
+                plt.grid(False)
+
+                plt.subplot(323)
+                plt.imshow(dataset.get_untransformed_mask_by_id(input_id[:10]).convert('RGB'))
+                plt.title("Mask_Real")
+                plt.grid(False)
 
                 plt.subplot(324)
                 plt.imshow(tensor_to_PIL(true_mask[index]))
@@ -70,9 +70,9 @@ def eval_net(net, validation_loader, dataset, gpu=False, visualization=False, wr
                 plt.title("Error")
                 plt.grid(False)
 
-                plt.subplot(323)
-                plt.imshow(dataset.get_untransformed_mask_by_id(input_id[:10]).convert('RGB'))
-                plt.title("Mask_Real")
+                plt.subplot(326)
+                plt.imshow(tensor_to_PIL(masks_pred[index]))
+                plt.title("Predicted")
                 plt.grid(False)
                 writer.add_figure("image/epoch_validation/"+str(index), F, global_step=global_plot_step, close=False, walltime=None)
         # print("iou:", iou.mean())
