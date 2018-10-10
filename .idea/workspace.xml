@@ -4,6 +4,7 @@
     <list default="true" id="0dd777d8-05cc-4cce-86da-522041d1016c" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/eval.py" beforeDir="false" afterPath="$PROJECT_DIR$/eval.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/memory.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/memory.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -63,12 +64,12 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="6093" />
+          <entry key="py" value="6619" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="6093" />
+          <entry key="Python" value="6619" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -85,14 +86,14 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/train.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="512">
-              <caret line="220" column="132" selection-start-line="220" selection-start-column="132" selection-end-line="220" selection-end-column="132" />
+            <state relative-caret-position="647">
+              <caret line="316" column="23" lean-forward="true" selection-start-line="309" selection-start-column="4" selection-end-line="316" selection-end-column="23" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
-                <marker date="1539195987604" expanded="true" signature="12498:12500" ph="..." />
+                <marker date="1539198660620" expanded="true" signature="12498:12500" ph="..." />
               </folding>
             </state>
           </provider>
@@ -101,11 +102,11 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/eval.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="465">
-              <caret line="47" column="28" selection-start-line="47" selection-start-column="28" selection-end-line="47" selection-end-column="29" />
+            <state relative-caret-position="17">
+              <caret line="70" column="54" selection-start-line="70" selection-start-column="54" selection-end-line="70" selection-end-column="54" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
-                <marker date="1539193544720" expanded="true" signature="3554:3556" ph="..." />
+                <marker date="1539197422255" expanded="true" signature="3606:3608" ph="..." />
               </folding>
             </state>
           </provider>
@@ -173,13 +174,13 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/utils/memory.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="435">
-              <caret line="29" column="25" selection-start-line="29" selection-start-column="25" selection-end-line="50" selection-end-column="17" />
+            <state relative-caret-position="810">
+              <caret line="54" column="26" lean-forward="true" selection-start-line="54" selection-start-column="26" selection-end-line="54" selection-end-column="26" />
               <folding>
-                <element signature="e#0#16#0" expanded="true" />
+                <element signature="e#0#9#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -251,12 +252,12 @@
         <option value="$PROJECT_DIR$/data/__init__.py" />
         <option value="$PROJECT_DIR$/utils/lovasz_losses.py" />
         <option value="$PROJECT_DIR$/utils/__init__.py" />
-        <option value="$PROJECT_DIR$/utils/memory.py" />
         <option value="$PROJECT_DIR$/utils/data.py" />
         <option value="$PROJECT_DIR$/data/augmentation.py" />
         <option value="$PROJECT_DIR$/unet/unet_model.py" />
         <option value="$PROJECT_DIR$/eval.py" />
         <option value="$PROJECT_DIR$/train.py" />
+        <option value="$PROJECT_DIR$/utils/memory.py" />
       </list>
     </option>
   </component>
@@ -773,23 +774,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/miniconda2/envs/ml/lib/python3.6/site-packages/Augmentor/Pipeline.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="503">
-          <caret line="1463" column="33" lean-forward="true" selection-start-line="1463" selection-start-column="33" selection-end-line="1463" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/utils/memory.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="435">
-          <caret line="29" column="25" selection-start-line="29" selection-start-column="25" selection-end-line="50" selection-end-column="17" />
-          <folding>
-            <element signature="e#0#16#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/data/augmentation.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="855">
@@ -814,24 +798,41 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$USER_HOME$/miniconda2/envs/ml/lib/python3.6/site-packages/Augmentor/Pipeline.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="503">
+          <caret line="1463" column="33" lean-forward="true" selection-start-line="1463" selection-start-column="33" selection-end-line="1463" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/eval.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="465">
-          <caret line="47" column="28" selection-start-line="47" selection-start-column="28" selection-end-line="47" selection-end-column="29" />
+        <state relative-caret-position="17">
+          <caret line="70" column="54" selection-start-line="70" selection-start-column="54" selection-end-line="70" selection-end-column="54" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
-            <marker date="1539193544720" expanded="true" signature="3554:3556" ph="..." />
+            <marker date="1539197422255" expanded="true" signature="3606:3608" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/train.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="512">
-          <caret line="220" column="132" selection-start-line="220" selection-start-column="132" selection-end-line="220" selection-end-column="132" />
+        <state relative-caret-position="647">
+          <caret line="316" column="23" lean-forward="true" selection-start-line="309" selection-start-column="4" selection-end-line="316" selection-end-column="23" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
-            <marker date="1539195987604" expanded="true" signature="12498:12500" ph="..." />
+            <marker date="1539198660620" expanded="true" signature="12498:12500" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils/memory.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="810">
+          <caret line="54" column="26" lean-forward="true" selection-start-line="54" selection-start-column="26" selection-end-line="54" selection-end-column="26" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
