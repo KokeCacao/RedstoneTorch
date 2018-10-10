@@ -22,6 +22,7 @@ class memory_thread(threading.Thread):
         while(True):
             if self.gpu != "":
                 torch.cuda.empty_cache()  # release gpu memory
+                map = get_gpu_memory_map()
                 for key, value in get_gpu_memory_map().items():
                     self.writer.add_scalars('memory/GPU', {"GPU-" + str(key): value}, self.count)
             self.writer.add_scalars('memory/CPU', {"CPU Usage": psutil.cpu_percent()}, self.count)
@@ -54,3 +55,4 @@ def get_gpu_memory_map():
             sys.exit(0)
         except SystemExit:
             os._exit(0)
+    return result
