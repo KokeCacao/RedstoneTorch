@@ -145,24 +145,26 @@ def train_net(net,
     #                       lr=lr,
     #                       momentum=momentum,
     #                       weight_decay=weight_decay)
-    optimizer = torch.optim.Adam(params=[
-                # {'params': net.parameters()},
-                # {'params': net.module.dropout_2d},
-                # {'params': net.module.pool},
-                # {'params': net.module.relu},
-                {'params': net.module.conv1.parameters(), 'lr': 0.0001},
-                {'params': net.module.conv2.parameters(), 'lr': 0.0004},
-                {'params': net.module.conv3.parameters(), 'lr': 0.0006},
-                {'params': net.module.conv4.parameters(), 'lr': 0.0008},
-                {'params': net.module.conv5.parameters(), 'lr': 0.0009},
-                {'params': net.module.center.parameters(), 'lr': 0.001},
-                {'params': net.module.dec5.parameters(), 'lr': 1e-3},
-                {'params': net.module.dec4.parameters(), 'lr': 1e-3},
-                {'params': net.module.dec3.parameters(), 'lr': 1e-3},
-                {'params': net.module.dec2.parameters(), 'lr': 1e-3},
-                {'params': net.module.dec1.parameters(), 'lr': 1e-3},
-                {'params': net.module.dec0.parameters(), 'lr': 1e-3},
-                {'params': net.module.final.parameters(), 'lr': 0.0015}], lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay) # all parameter learnable
+    # optimizer = torch.optim.Adam(params=[
+    #             # {'params': net.parameters()},
+    #             # {'params': net.module.dropout_2d},
+    #             # {'params': net.module.pool},
+    #             # {'params': net.module.relu},
+    #             {'params': net.module.conv1.parameters(), 'lr': 0.0001},
+    #             {'params': net.module.conv2.parameters(), 'lr': 0.0004},
+    #             {'params': net.module.conv3.parameters(), 'lr': 0.0006},
+    #             {'params': net.module.conv4.parameters(), 'lr': 0.0008},
+    #             {'params': net.module.conv5.parameters(), 'lr': 0.0009},
+    #             {'params': net.module.center.parameters(), 'lr': 0.001},
+    #             {'params': net.module.dec5.parameters(), 'lr': 1e-3},
+    #             {'params': net.module.dec4.parameters(), 'lr': 1e-3},
+    #             {'params': net.module.dec3.parameters(), 'lr': 1e-3},
+    #             {'params': net.module.dec2.parameters(), 'lr': 1e-3},
+    #             {'params': net.module.dec1.parameters(), 'lr': 1e-3},
+    #             {'params': net.module.dec0.parameters(), 'lr': 1e-3},
+    #             {'params': net.module.final.parameters(), 'lr': 0.0015}], lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay) # all parameter learnable
+
+    optimizer = torch.optim.Adam(params=net.parameters(), lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay) # all parameter learnable
     train_begin = datetime.now()
     for epoch_index, epoch in enumerate(range(epochs)):
         epoch_begin = datetime.now()
