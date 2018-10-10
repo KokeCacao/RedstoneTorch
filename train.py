@@ -219,6 +219,11 @@ def train_net(net,
             del id, z, image, true_mask
             if gpu != "": torch.cuda.empty_cache()  # release gpu memory
         print('{}# Epoch finished ! Loss: {}, IOU: {}'.format(epoch_index+1, epoch_loss/(batch_index+1), epoch_iou/(batch_index+1)))
+        if save_cp:
+            if not os.path.exists(dir_checkpoint):
+                os.makedirs(dir_checkpoint)
+            torch.save(net.state_dict(), dir_checkpoint + 'CP{}.pth'.format(epoch + 1))
+            print('Checkpoint {} saved !'.format(dir_checkpoint + 'CP{}.pth'.format(epoch + 1)))
         # validation
         if gpu != "": torch.cuda.empty_cache() # release gpu memory
         if validation:
@@ -226,14 +231,9 @@ def train_net(net,
             print('Validation Dice Coeff: {}'.format(val_dice))
             writer.add_scalars('loss/epoch_validation', {'Validation': val_dice}, epoch_index + 1)
         if args.visualization:
-            for name, param in net.named_parameters():
+            for i, (name, param) in enumerate(net.named_parameters()):
+                print("Calculating Histogram #{}".format(i))
                 writer.add_histogram(name, param.clone().cpu().data.numpy(), epoch_index+1)
-        # save parameter
-        if save_cp:
-            if not os.path.exists(dir_checkpoint):
-                os.makedirs(dir_checkpoint)
-            torch.save(net.state_dict(), dir_checkpoint + 'CP{}.pth'.format(epoch + 1))
-            print('Checkpoint {} saved !'.format(dir_checkpoint + 'CP{}.pth'.format(epoch + 1)))
         if gpu != "": torch.cuda.empty_cache()  # release gpu memory
 
 def get_args():
@@ -330,8 +330,12 @@ if __name__ == '__main__':
 """
 Good Models
 
-2018-10-07-23-40-34-439264-different-lr 21Epoch
+2018-10-07-23-40-34-439264-different-lr 21Epoch -> python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-07-23-40-34-439264-different-lr --port=6006
 2018-10-08-23-24-27-715364-load-different-lr
-python train.py --epochs 300 --batch-size 32 --learning-rate 0.01 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "fast-train"
+python train.py --epochs 300 --batch-size 32 --learning-rate 0.01 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "fast-train" -> gray pictures
+python train.py --epochs 300 --batch-size 16 --learning-rate 0.005 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "fast-train" -> First Epoch good, but bad after the first
+python train.py --epochs 300 --batch-size 16 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "adjust-train" --load tensorboard/2018-10-10-02-14-05-405869-fast-train/checkpoints/CP1.pth
+python train.py --epochs 300 --batch-size 16 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "adjust-train2" --load tensorboard/2018-10-10-03-02-43-871959-adjust-train/checkpoints/CP5.pth
+python train.py --epochs 300 --batch-size 16 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "adjust-train3" --load tensorboard/2018-10-10-10-29-55-491693-adjust-train2/checkpoints/CP1.pth
 
 """
