@@ -34,7 +34,8 @@ def eval_net(net, validation_loader, dataset, gpu=False, visualization=False, wr
         # masks_pred = net(image, z)
 
         masks_pred = net(image)
-        total_iou = total_iou + iou_score(masks_pred, true_mask).mean().float()
+        iou_score = iou_score(masks_pred, true_mask).mean().float()
+        total_iou = total_iou + iou_score
 
 
 
@@ -67,7 +68,7 @@ def eval_net(net, validation_loader, dataset, gpu=False, visualization=False, wr
 
                 plt.subplot(325)
                 plt.imshow(ImageChops.difference(tensor_to_PIL(true_mask[index]), tensor_to_PIL(masks_pred[index])))
-                plt.title("Error")
+                plt.title("Error: {}".format(iou_score))
                 plt.grid(False)
 
                 plt.subplot(326)

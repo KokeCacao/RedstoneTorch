@@ -1,3 +1,5 @@
+import os
+import sys
 import threading
 import time
 
@@ -46,6 +48,9 @@ def get_gpu_memory_map():
         # Convert lines into a dictionary
         gpu_memory = [int(x) for x in result.strip().split('\n')]
         result = dict(zip(range(len(gpu_memory)), gpu_memory))
-    except Exception as e:
+    except KeyboardInterrupt as e:
         print(e)
-    return result
+        try:
+            sys.exit(0)
+        except SystemExit:
+            os._exit(0)
