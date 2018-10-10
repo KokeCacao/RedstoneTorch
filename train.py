@@ -95,7 +95,7 @@ def train_net(net,
               weight_init=0.01,
               data_percent=0.181818182,
               momentum=0.9,
-              weight_decay=0.0005,
+              weight_decay=0.0001,
               seed=19):
 
     tgs_data = TGSData(dir_depth, dir_img, dir_mask, dir_untransformed_img, dir_untransformed_mask, img_suffix, mask_suffix, transform)
