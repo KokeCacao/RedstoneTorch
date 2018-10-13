@@ -13,7 +13,7 @@ from torch.utils.data import SubsetRandomSampler
 class TGSData(data.Dataset):
     def __init__(self, csv_dir, load_img_dir, load_mask_dir, img_suffix=".png", mask_suffix=".png", transform=None):
         print("Reading Data...")
-        self.masks_frame = pd.read_csv(csv_dir)
+        self.masks_frame = pd.read_csv(csv_dir).set_index([0])
         self.load_img_dir = load_img_dir
         self.load_mask_dir = load_mask_dir
         self.img_suffix = img_suffix
