@@ -37,7 +37,7 @@ TRAIN_TRASNFORM = {
     #     transforms.Normalize([0.5], [0.5])
     # ]),
     'image': transforms.Compose([
-        transforms.Resize((224,224)),
+        transforms.Resize((3, 224,224)),
         # transforms.RandomResizedCrop(224),
         # transforms.Grayscale(),
         # transforms.RandomHorizontalFlip(),
@@ -46,7 +46,7 @@ TRAIN_TRASNFORM = {
         # transforms.Normalize(mean = [0.456, 0.456, 0.406], std = [0.229, 0.224, 0.225])
     ]),
     'mask': transforms.Compose([
-        transforms.Resize((224,224)),
+        transforms.Resize((3, 224,224)),
         # transforms.CenterCrop(224),
         # transforms.Grayscale(),
         # transforms.RandomHorizontalFlip(),
