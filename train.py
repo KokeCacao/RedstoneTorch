@@ -90,27 +90,33 @@ def train_net(net,
         epoch_loss = 0
         epoch_iou = 0
 
+        print("0")
         # batch size should < 4000 due to the amount of data avaliable
         for batch_index, (id, z, image, true_mask) in enumerate(train_loader, 0):
-
+            print("1")
             # https://imgaug.readthedocs.io/en/latest/source/examples_segmentation_maps.html#a-simple-example
             seq_det = config.TRAIN_SEQUENCE.to_deterministic()
             image = seq_det.augment_batches(image)
             true_mask = seq_det.augment_batches(true_mask)
 
+            print("2")
             if gpu != "":
                 # z = z.cuda()
                 image = image.cuda()
                 true_mask = true_mask.cuda()
 
+            print("3")
             masks_pred = net(image)
 
+            print("4")
             iou = iou_score(masks_pred, true_mask).mean().float()
             epoch_iou = epoch_iou + iou
 
+            print("5")
             if epoch_index < 1e5: loss = torch.nn.BCELoss()(torch.sigmoid(masks_pred).view(-1), true_mask.view(-1))
             else: loss = L.lovasz_hinge(masks_pred, true_mask, ignore=None)
 
+            print("6")
             epoch_loss += loss.item()
 
             now = datetime.now()
