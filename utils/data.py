@@ -94,7 +94,7 @@ class TGSData(data.Dataset):
             #     transforms.Normalize([0.5], [0.5])
             # ]),
             'image': transforms.Compose([
-                image_aug_transform(),
+                image_aug_transform,
                 lambda x: PIL.Image.fromarray(x),
                 transforms.Resize((224, 224)),
                 # transforms.RandomResizedCrop(224),
@@ -105,7 +105,7 @@ class TGSData(data.Dataset):
                 # transforms.Normalize(mean = [0.456, 0.456, 0.406], std = [0.229, 0.224, 0.225])
             ]),
             'mask': transforms.Compose([
-                image_aug_transform(),
+                image_aug_transform,
                 lambda x: PIL.Image.fromarray(x),
                 transforms.Resize((224, 224)),
                 # transforms.CenterCrop(224),
