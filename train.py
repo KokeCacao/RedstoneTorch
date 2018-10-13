@@ -95,16 +95,17 @@ def train_net(net,
         # batch size should < 4000 due to the amount of data avaliable
         for batch_index, (id, z, image, true_mask) in enumerate(train_loader, 0):
 
-            if gpu != "":
-                # z = z.cuda()
-                image = image.cuda()
-                true_mask = true_mask.cuda()
 
             # https://imgaug.readthedocs.io/en/latest/source/examples_segmentation_maps.html#a-simple-example
             seq_det = config.TRAIN_SEQUENCE.to_deterministic()
             image = seq_det.augment_images(image.numpy())
             true_mask = seq_det.augment_images(true_mask.numpy())
 
+            if gpu != "":
+                # z = z.cuda()
+                image = image.cuda()
+                true_mask = true_mask.cuda()
+                
             masks_pred = net(image)
 
             iou = iou_score(masks_pred, true_mask).mean().float()
