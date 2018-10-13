@@ -43,7 +43,7 @@ TRAIN_TRASNFORM = {
         # transforms.RandomHorizontalFlip(),
         # transforms.RandomVerticalFlip(),
         transforms.ToTensor(),
-        transforms.Normalize(mean = [0.456, 0.456, 0.406], std = [0.229, 0.224, 0.225])
+        # transforms.Normalize(mean = [0.456, 0.456, 0.406], std = [0.229, 0.224, 0.225])
     ]),
     'mask': transforms.Compose([
         transforms.Resize((224,224)),
@@ -52,10 +52,10 @@ TRAIN_TRASNFORM = {
         # transforms.RandomHorizontalFlip(),
         # transforms.RandomVerticalFlip(),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.5, 0.5, 0.5],
-                            std=[0.225, 0.225, 0.225]),
-        lambda x: x>0.5,
-        lambda x: x.float()
+        # transforms.Normalize(mean=[0.5, 0.5, 0.5],
+        #                     std=[0.225, 0.225, 0.225]),
+        # lambda x: x>0.5,
+        # lambda x: x.float()
     ])
 }
 
