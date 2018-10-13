@@ -60,7 +60,7 @@ TRAIN_TRASNFORM = {
 }
 
 TRAIN_SEQUENCE = iaa.Sequential([
-               iaa.Scale({"height": 32, "width": 64}),
+               iaa.Scale({"height": 224, "width": 224}),
                iaa.Fliplr(0.5),
                iaa.Flipud(0.5),
                iaa.OneOf([iaa.Noop(), iaa.Add((-40, 40)), iaa.EdgeDetect(alpha=(0.0, 0.1)), iaa.Multiply((0.95, 1.05))], iaa.ContrastNormalization((0.95, 1.05))),
