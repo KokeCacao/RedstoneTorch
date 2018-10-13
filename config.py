@@ -49,7 +49,8 @@ class ImgAugTransform:
         return self.aug.augment_image(img)
 
     def to_deterministic(self, n=None):
-        return self.aug.to_deterministic(n)
+        self.aug = self.aug.to_deterministic(n)
+        return self
 
 
 
