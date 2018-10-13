@@ -105,6 +105,8 @@ def train_net(net,
 
             masks_pred = net(image)
 
+            print(masks_pred.size())
+            print(true_mask.size())
             iou = iou_score(masks_pred, true_mask).mean().float()
             epoch_iou = epoch_iou + iou
 
