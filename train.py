@@ -95,8 +95,8 @@ def train_net(net,
 
             # https://imgaug.readthedocs.io/en/latest/source/examples_segmentation_maps.html#a-simple-example
             seq_det = config.TRAIN_SEQUENCE.to_deterministic()
-            image = seq_det.augment_batches(image)
-            true_mask = seq_det.augment_batches(true_mask)
+            image = seq_det.augment_images(image)
+            true_mask = seq_det.augment_images(true_mask)
 
             if gpu != "":
                 # z = z.cuda()

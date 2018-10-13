@@ -80,17 +80,13 @@ class TGSData(data.Dataset):
         id = self.indices_to_id.get(index)
 
         z = self.get_load_z_by_id(id)
+        print(z)
         image = self.get_load_image_by_id(id)
         mask = self.get_load_mask_by_id(id)
 
-        print(z)
-        print(id)
         if self.transform:
-            print("-1")
             image = self.transform['image'](image)
-            print("0")
             mask = self.transform['mask'](mask)
-            print("1")
         return (id, z, image, mask)
 
     """CONFIGURATION"""
@@ -101,7 +97,7 @@ class TGSData(data.Dataset):
         # return Image.open(os.path.join(self.load_mask_dir, "_groundtruth_(1)_images_" + id + self.mask_suffix))
         return Image.open(os.path.join(self.load_mask_dir, id + self.mask_suffix))
     def get_load_z_by_id(self, id):
-        return 0
+        return self.masks_frame.loc[id, "z"]
 
     # removed due to big data
     # def get_all_sample(self, ids, seed=19):
