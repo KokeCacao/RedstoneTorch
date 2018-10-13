@@ -9,6 +9,8 @@ from skimage import io
 from torch.utils import data
 from torch.utils.data import SubsetRandomSampler
 
+import config
+
 
 class TGSData(data.Dataset):
     def __init__(self, csv_dir, load_img_dir, load_mask_dir, img_suffix=".png", mask_suffix=".png", transform=None):
@@ -82,6 +84,10 @@ class TGSData(data.Dataset):
         z = self.get_load_z_by_id(id)
         image = self.get_load_image_by_id(id)
         mask = self.get_load_mask_by_id(id)
+
+        seq_det = config.TRAIN_SEQUENCE.to_deterministic()
+        image = seq_det.augment_images(image)
+        mask = seq_det.augment_images(mask)
 
         if self.transform:
             image = self.transform['image'](image)

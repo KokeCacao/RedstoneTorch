@@ -96,9 +96,6 @@ def train_net(net,
         for batch_index, (id, z, image, true_mask) in enumerate(train_loader, 0):
 
             # https://imgaug.readthedocs.io/en/latest/source/examples_segmentation_maps.html#a-simple-example
-            seq_det = config.TRAIN_SEQUENCE.to_deterministic()
-            image = torch.from_numpy(seq_det.augment_images(image.numpy().astype('uint8')), dtype=torch.byte)
-            true_mask = torch.from_numpy(seq_det.augment_images(true_mask.numpy().astype('uint8')), dtype=torch.byte)
 
 
             if gpu != "":
