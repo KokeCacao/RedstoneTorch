@@ -1,4 +1,6 @@
 import os
+
+import PIL
 import pandas as pd
 import numpy as np
 
@@ -8,6 +10,7 @@ from PIL import Image
 from skimage import io
 from torch.utils import data
 from torch.utils.data import SubsetRandomSampler
+from torchvision.transforms import transforms
 
 import config
 
@@ -85,14 +88,45 @@ class TGSData(data.Dataset):
         image = self.get_load_image_by_id(id)
         mask = self.get_load_mask_by_id(id)
 
-        image = config.TRAIN_TRASNFORM['image'](image)
-        mask = config.TRAIN_TRASNFORM['mask'](mask)
+        image_aug_transform = config.ImgAugTransform().to_deterministic()
+        TRAIN_TRASNFORM = {
+            # 'depth': transforms.Compose([
+            #     transforms.ToTensor(),
+            #     transforms.Normalize([0.5], [0.5])
+            # ]),
+            'image': transforms.Compose([
+                image_aug_transform(),
+                lambda x: PIL.Image.fromarray(x),
+                transforms.Resize((224, 224)),
+                # transforms.RandomResizedCrop(224),
+                # transforms.Grayscale(),
+                # transforms.RandomHorizontalFlip(),
+                # transforms.RandomVerticalFlip(),
+                transforms.ToTensor(),
+                # transforms.Normalize(mean = [0.456, 0.456, 0.406], std = [0.229, 0.224, 0.225])
+            ]),
+            'mask': transforms.Compose([
+                image_aug_transform(),
+                lambda x: PIL.Image.fromarray(x),
+                transforms.Resize((224, 224)),
+                # transforms.CenterCrop(224),
+                # transforms.Grayscale(),
+                # transforms.RandomHorizontalFlip(),
+                # transforms.RandomVerticalFlip(),
+                transforms.ToTensor(),
+                # transforms.Normalize(mean=[0.5, 0.5, 0.5],
+                #                     std=[0.225, 0.225, 0.225]),
+            ])
+        }
 
-        seq_det = config.TRAIN_SEQUENCE.to_deterministic()
-        image = seq_det.augment_images([np.array(image)])
-        mask = seq_det.augment_images([np.array(mask)])
+        image = TRAIN_TRASNFORM['image'](image)
+        mask = TRAIN_TRASNFORM['mask'](mask)
 
-        return (id, z, torch.Tensor(image), torch.Tensor(mask))
+        # seq_det = TRAIN_SEQUENCE.to_deterministic()
+        # image = seq_det.augment_images(np.array(image))
+        # mask = seq_det.augment_images(np.array(mask))
+
+        return (id, z, image, mask)
 
     """CONFIGURATION"""
     def get_load_image_by_id(self, id):
