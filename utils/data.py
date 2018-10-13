@@ -16,14 +16,13 @@ import config
 
 
 class TGSData(data.Dataset):
-    def __init__(self, csv_dir, load_img_dir, load_mask_dir, img_suffix=".png", mask_suffix=".png", transform=None):
+    def __init__(self, csv_dir, load_img_dir, load_mask_dir, img_suffix=".png", mask_suffix=".png"):
         print("Reading Data...")
         self.masks_frame = pd.read_csv(csv_dir, index_col=0)
         self.load_img_dir = load_img_dir
         self.load_mask_dir = load_mask_dir
         self.img_suffix = img_suffix
         self.mask_suffix = mask_suffix
-        self.transform = transform
 
         self.id = self.get_img_names()
         """WARNING: data length and indices depends on the length of images"""
