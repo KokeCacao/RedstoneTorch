@@ -64,13 +64,13 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="dummy" value="15" />
-          <entry key="py" value="9367" />
+          <entry key="py" value="9371" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="15" />
-          <entry key="Python" value="9367" />
+          <entry key="Python" value="9371" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -90,11 +90,11 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/train.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="225">
-              <caret line="99" column="31" selection-start-line="99" selection-start-column="31" selection-end-line="99" selection-end-column="31" />
+            <state relative-caret-position="330">
+              <caret line="106" column="46" selection-start-line="106" selection-start-column="46" selection-end-line="106" selection-end-column="46" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
-                <marker date="1539437972102" expanded="true" signature="9143:9145" ph="..." />
+                <marker date="1539438078668" expanded="true" signature="9162:9164" ph="..." />
               </folding>
             </state>
           </provider>
@@ -127,8 +127,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/eval.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="105">
-              <caret line="7" lean-forward="true" selection-start-line="7" selection-end-line="7" />
+            <state relative-caret-position="300">
+              <caret line="89" column="58" lean-forward="true" selection-start-line="89" selection-start-column="43" selection-end-line="89" selection-end-column="58" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
                 <marker date="1539403371319" expanded="true" signature="3575:3577" ph="..." />
@@ -782,17 +782,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/eval.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="7" lean-forward="true" selection-start-line="7" selection-end-line="7" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-            <marker date="1539403371319" expanded="true" signature="3575:3577" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/miniconda2/envs/ml/lib/python3.6/site-packages/PIL/__init__.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -830,13 +819,24 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/eval.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="300">
+          <caret line="89" column="58" lean-forward="true" selection-start-line="89" selection-start-column="43" selection-end-line="89" selection-end-column="58" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+            <marker date="1539403371319" expanded="true" signature="3575:3577" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/train.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="99" column="31" selection-start-line="99" selection-start-column="31" selection-end-line="99" selection-end-column="31" />
+        <state relative-caret-position="330">
+          <caret line="106" column="46" selection-start-line="106" selection-start-column="46" selection-end-line="106" selection-end-column="46" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
-            <marker date="1539437972102" expanded="true" signature="9143:9145" ph="..." />
+            <marker date="1539438078668" expanded="true" signature="9162:9164" ph="..." />
           </folding>
         </state>
       </provider>
