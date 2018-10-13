@@ -51,7 +51,7 @@ if __name__ == '__main__':
         p.rotate(probability=0.8, max_left_rotation=20, max_right_rotation=20)
         # p.crop_random(probability=0.5, percentage_area, randomise_percentage_area=False) already 'croped' by skew
         p.skew(probability=0.5, magnitude=0.1)
-        p.random_distortion(probability=0.8, grid_width=16, grid_height=16, magnitude=2)
+        p.random_distortion(probability=0.8, grid_width=10, grid_height=10, magnitude=0.1)
 
         # 0.625% data will not be modified -> magnified 160times
 
