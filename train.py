@@ -100,6 +100,8 @@ def train_net(net,
             image = torch.from_numpy(seq_det.augment_images(image.numpy().astype('uint8')))
             true_mask = torch.from_numpy(seq_det.augment_images(true_mask.numpy().astype('uint8')))
 
+            print(image.size())
+
             if gpu != "":
                 # z = z.cuda()
                 image = image.cuda()
