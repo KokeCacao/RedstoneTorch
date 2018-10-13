@@ -23,6 +23,7 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
         seq_det = config.TRAIN_SEQUENCE.to_deterministic()
         image = torch.from_numpy(seq_det.augment_images(image_0.numpy().astype('uint8')))
         true_mask = torch.from_numpy(seq_det.augment_images(true_mask_0.numpy().astype('uint8')))
+
         if gpu != "":
             # z = z.cuda()
             image = image.cuda()
