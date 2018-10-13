@@ -271,8 +271,16 @@ python train.py --epochs 300 --batch-size 16 --learning-rate 0.0008 --dir_prefix
 Different Augmentation
 python train.py --tag "diff-aug3" --load tensorboard/2018-10-13-13-41-28-633198-test-success/checkpoints/CP1.pth
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-13-15-02-56-313421-diff-aug3 --port=6006
+cp: tensorboard/2018-10-13-15-02-56-066021-test/checkpoints/CP21.pth
 
 Try not change brightness of mask, add global step
-python train.py --tag "diff-aug4" --load tensorboard/2018-10-13-15-02-56-313421-diff-aug3/checkpoints/CP21.pth
+python train.py --tag "success-music" --load tensorboard/2018-10-13-15-02-56-066021-test/checkpoints/CP21.pth
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-13-18-46-22-184141-success-music --port=6006
+
+
+
+====================================
+python train.py --tag "success-music2" --load tensorboard/2018-10-13-18-46-21-934969-test/checkpoints/CP2.pth
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-13-19-21-11-323191-success-music2 --port=6006
 
 """
