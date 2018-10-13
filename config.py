@@ -1,5 +1,7 @@
-from datetime import datetime
+import PIL
+import numpy as np
 
+from datetime import datetime
 from imgaug import augmenters as iaa
 from torchvision.transforms import transforms
 
@@ -31,40 +33,34 @@ DIRECTORY_MASK = DIRECTORY_PREFIX + 'data/train/masks/'  # augmentation
 DIRECTORY_DEPTH = DIRECTORY_PREFIX + 'data/depths.csv'
 DIRECTORY_CHECKPOINT = DIRECTORY_PREFIX + "tensorboard/" + TRAIN_TAG + "/checkpoints/"
 
-TRAIN_TRASNFORM = {
-    # 'depth': transforms.Compose([
-    #     transforms.ToTensor(),
-    #     transforms.Normalize([0.5], [0.5])
-    # ]),
-    'image': transforms.Compose([
-        transforms.Resize((224,224)),
-        # transforms.RandomResizedCrop(224),
-        # transforms.Grayscale(),
-        # transforms.RandomHorizontalFlip(),
-        # transforms.RandomVerticalFlip(),
-        # transforms.ToTensor(),
-        # transforms.Normalize(mean = [0.456, 0.456, 0.406], std = [0.229, 0.224, 0.225])
-    ]),
-    'mask': transforms.Compose([
-        transforms.Resize((224,224)),
-        # transforms.CenterCrop(224),
-        # transforms.Grayscale(),
-        # transforms.RandomHorizontalFlip(),
-        # transforms.RandomVerticalFlip(),
-        # transforms.ToTensor(),
-        # transforms.Normalize(mean=[0.5, 0.5, 0.5],
-        #                     std=[0.225, 0.225, 0.225]),
-    ])
-}
-
-TRAIN_SEQUENCE = iaa.Sequential([
+class ImgAugTransform:
+    def __init__(self):
+        self.aug = iaa.Sequential([
                iaa.Scale({"height": 224, "width": 224}),
                iaa.Fliplr(0.5),
                iaa.Flipud(0.5),
-               # iaa.OneOf([iaa.Noop(), iaa.Add((-40, 40)), iaa.EdgeDetect(alpha=(0.0, 0.1)), iaa.Multiply((0.95, 1.05))], iaa.ContrastNormalization((0.95, 1.05))),
-               # iaa.OneOf([iaa.Noop(), iaa.PiecewiseAffine(scale=(0.00, 0.02)), iaa.Affine(rotate=(-10,10)), iaa.Affine(shear=(-10, 10))]),
+               iaa.OneOf([iaa.Noop(), iaa.Add((-40, 40)), iaa.EdgeDetect(alpha=(0.0, 0.1)), iaa.Multiply((0.95, 1.05))], iaa.ContrastNormalization((0.95, 1.05))),
+               iaa.OneOf([iaa.Noop(), iaa.PiecewiseAffine(scale=(0.00, 0.02)), iaa.Affine(rotate=(-10,10)), iaa.Affine(shear=(-10, 10))]),
                iaa.CropAndPad(percent=(-0.12, 0))
-               ], random_order=True)
+               ], random_order=False)
+
+    def __call__(self, img):
+        img = np.array(img)
+        return self.aug.augment_image(img)
+
+    def to_deterministic(self, n=None):
+        return self.aug.to_deterministic(n)
+
+
+
+# TRAIN_SEQUENCE = iaa.Sequential([
+#                iaa.Scale({"height": 224, "width": 224}),
+#                iaa.Fliplr(0.5),
+#                iaa.Flipud(0.5),
+#                # iaa.OneOf([iaa.Noop(), iaa.Add((-40, 40)), iaa.EdgeDetect(alpha=(0.0, 0.1)), iaa.Multiply((0.95, 1.05))], iaa.ContrastNormalization((0.95, 1.05))),
+#                # iaa.OneOf([iaa.Noop(), iaa.PiecewiseAffine(scale=(0.00, 0.02)), iaa.Affine(rotate=(-10,10)), iaa.Affine(shear=(-10, 10))]),
+#                iaa.CropAndPad(percent=(-0.12, 0))
+#                ], random_order=True)
 
 # transform = {
 #     # 'depth': transforms.Compose([
