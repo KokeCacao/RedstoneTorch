@@ -35,7 +35,7 @@ def train_net(net,
               weight_decay,
               seed):
 
-    tgs_data = TGSData(config.DIRECTORY_DEPTH, config.DIRECTORY_IMG, config.DIRECTORY_MASK, config.DIRECTORY_SUFFIX_IMG, config.DIRECTORY_SUFFIX_MASK, config.TRAIN_TRASNFORM)
+    tgs_data = TGSData(config.DIRECTORY_DEPTH, config.DIRECTORY_IMG, config.DIRECTORY_MASK, config.DIRECTORY_SUFFIX_IMG, config.DIRECTORY_SUFFIX_MASK)
 
     train_sampler, validation_sampler = tgs_data.get_sampler(data_percent=data_percent, val_percent=val_percent, data_shuffle = False, train_shuffle=True, val_shuffle=False, seed=seed)
 
