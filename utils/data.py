@@ -99,7 +99,7 @@ class TGSData(data.Dataset):
         return Image.open(os.path.join(self.load_img_dir, id + self.img_suffix)).convert('RGB')
     def get_load_mask_by_id(self, id):
         # return Image.open(os.path.join(self.load_mask_dir, "_groundtruth_(1)_images_" + id + self.mask_suffix))
-        return Image.open(os.path.join(self.load_mask_dir, id + self.mask_suffix))
+        return Image.open(os.path.join(self.load_mask_dir, id + self.mask_suffix)).convert('RGB')
     def get_load_z_by_id(self, id):
         return self.masks_frame.loc[id, "z"]
 
