@@ -104,7 +104,7 @@ def train_net(net,
                 image = image.cuda()
                 true_mask = true_mask.cuda()
 
-            masks_pred = net(image)
+            masks_pred = net(image).repeat(1, 3, 1, 1)
 
             print(masks_pred.size())
             print(true_mask.size())
