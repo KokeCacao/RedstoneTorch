@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 from imgaug import augmenters as iaa
 from torchvision.transforms import transforms
@@ -14,7 +14,7 @@ TRAIN_LOAD = None
 TRAIN_VAL_PERCENT = 0.05
 TRAIN_DATA_PERCENT = 1.0
 TRAIN_VISUALIZATION = True
-TRAIN_TAG = ""
+TRAIN_TAG = "test"
 TRAIN_SEED = 19
 TRAIN_VALIDATION = True
 TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + TRAIN_TAG
