@@ -103,6 +103,10 @@ def train_net(net,
             image = seq_det.augment_images(image)
             true_mask = seq_det.augment_images(true_mask)
 
+            if config.transforms:
+                image = config.TRAIN_TRASNFORM['image'](image)
+                true_mask = config.TRAIN_TRASNFORM['mask'](true_mask)
+
             masks_pred = net(image)
 
             iou = iou_score(masks_pred, true_mask).mean().float()
