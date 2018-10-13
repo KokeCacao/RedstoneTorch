@@ -93,21 +93,16 @@ def train_net(net,
         epoch_iou = 0
 
         # batch size should < 4000 due to the amount of data avaliable
-        for batch_index, (id, z, image, true_mask) in enumerate(train_loader, 0):
-
-            # https://imgaug.readthedocs.io/en/latest/source/examples_segmentation_maps.html#a-simple-example
-
-            print(image.size())
+        for batch_index, (id, z, image, true_mask, image_0, true_mask_0) in enumerate(train_loader, 0):
 
             if gpu != "":
                 # z = z.cuda()
                 image = image.cuda()
                 true_mask = true_mask.cuda()
 
+            """Need to repeat three times because the net will automatically reduce C when the Cs are the same"""
             masks_pred = net(image).repeat(1, 3, 1, 1)
 
-            print(masks_pred.size())
-            print(true_mask.size())
             iou = iou_score(masks_pred, true_mask).mean().float()
             epoch_iou = epoch_iou + iou
 
