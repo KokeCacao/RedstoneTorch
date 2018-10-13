@@ -102,8 +102,8 @@ def train_net(net,
 
             # https://imgaug.readthedocs.io/en/latest/source/examples_segmentation_maps.html#a-simple-example
             seq_det = config.TRAIN_SEQUENCE.to_deterministic()
-            image = seq_det.augment_images(tensor_to_PIL(image))
-            true_mask = seq_det.augment_images(tensor_to_PIL(true_mask))
+            image = seq_det.augment_images(image.numpy())
+            true_mask = seq_det.augment_images(true_mask.numpy())
 
             masks_pred = net(image)
 
