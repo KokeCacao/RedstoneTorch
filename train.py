@@ -98,14 +98,14 @@ def train_net(net,
 
             # https://imgaug.readthedocs.io/en/latest/source/examples_segmentation_maps.html#a-simple-example
             seq_det = config.TRAIN_SEQUENCE.to_deterministic()
-            image = seq_det.augment_images(image.numpy())
-            true_mask = seq_det.augment_images(true_mask.numpy())
+            image = seq_det.augment_images(image.numpy().astype('uint8'))
+            true_mask = seq_det.augment_images(true_mask.numpy().astype('uint8'))
 
             if gpu != "":
                 # z = z.cuda()
                 image = image.cuda()
                 true_mask = true_mask.cuda()
-                
+
             masks_pred = net(image)
 
             iou = iou_score(masks_pred, true_mask).mean().float()
