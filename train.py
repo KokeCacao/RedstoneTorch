@@ -148,17 +148,12 @@ def train_net(net,
 
 def get_args():
     parser = OptionParser()
-    parser.add_option('-e', '--epochs', dest='epochs', default=5, type='int', help='number of epochs')
-    parser.add_option('-b', '--batch-size', dest='batchsize', default=10, type='int', help='batch size')
-    parser.add_option('-l', '--learning-rate', dest='lr', default=0.1, type='float', help='learning rate')
-    # parser.add_option('-g', '--gpu', action='store_true', dest='gpu', default="", help='use cuda, please put all gpu id here')
+    parser.add_option('-e', '--epochs', dest='epochs', default=0, type='int', help='number of epochs')
+    parser.add_option('-b', '--batch-size', dest='batchsize', default=0, type='int', help='batch size')
+    parser.add_option('-l', '--learning-rate', dest='lr', default=0, type='float', help='learning rate')
     parser.add_option('-g', '--gpu', dest='gpu', default="", help='use cuda, please put all gpu id here')
     parser.add_option('-c', '--load', dest='load', default=False, help='load file model')
-    parser.add_option('-w', '--weight_init', dest='weight_init', default=0.01, type='float', help='weight initialization number')
-    parser.add_option('-v', '--val_percent', dest='val_percent', default=0.05, type='float', help='percent for validation')
-    parser.add_option('-p', '--dir_prefix', dest='dir_prefix', default='', help='the root directory')
-    parser.add_option('-d', '--data_percent', dest='data_percent', default=1.0, type='float', help='the root directory')
-    parser.add_option('-i', '--visualization', dest='visualization', action='store_true', default="False", help='visualization the data')
+    parser.add_option('-p', '--dir_prefix', dest='dir_prefix', default="", help='the root directory')
     parser.add_option('-t', '--tag', dest='tag', default="", help='tag for tensorboard-log')
 
     (options, args) = parser.parse_args()
@@ -176,16 +171,15 @@ def tensor_to_PIL(tensor):
     return image
 
 if __name__ == '__main__':
-    # init artgs
-    # args = get_args()
-    # args.tag = str(datetime.now()).replace(" ","-").replace(".","-").replace(":","-") + "-" + args.tag
-    # dir_prefix = args.dir_prefix
-    # dir_img = dir_prefix + 'data/train/images/output/' #augmentation
-    # dir_mask = dir_prefix + 'data/train/images/output/' #augmentation
-    # dir_untransformed_img = dir_prefix + 'data/train/images/' #augmentation
-    # dir_untransformed_mask = dir_prefix + 'data/train/masks/' #augmentation
-    # dir_depth = dir_prefix + 'data/depths.csv'
-    # dir_checkpoint = dir_prefix + "tensorboard/" + args.tag + '/checkpoints/'
+    args = get_args()
+    if args.epochs != 0: config.MODEL_EPOCHS = args.epochs
+    if args.batchsize != 0: config.MODEL_BATCH_SIZE = args.batchsize
+    if args.lr != 0: config.MODEL_LEARNING_RATE = args.lr
+    if args.gpu != "": config.TRAIN_GPU = args.gpu
+    if args.load != False: config.TRAIN_LOAD = args.load
+    if args.dir_prefix != "": config.DIRECTORY_PREFIX = args.dir_prefix
+    if args.tag != "": config.TRAIN_TAG = args.tag
+    
     writer = SummaryWriter("tensorboard/" + config.TRAIN_TAG)
 
 
