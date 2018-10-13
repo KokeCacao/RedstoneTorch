@@ -3,6 +3,8 @@ import os
 from optparse import OptionParser
 
 import torch
+from torchvision.transforms import transforms
+
 import config
 import torch.utils.data as data
 import imgaug as ia
@@ -100,12 +102,8 @@ def train_net(net,
 
             # https://imgaug.readthedocs.io/en/latest/source/examples_segmentation_maps.html#a-simple-example
             seq_det = config.TRAIN_SEQUENCE.to_deterministic()
-            image = seq_det.augment_images(image)
-            true_mask = seq_det.augment_images(true_mask)
-
-            if config.transforms:
-                image = config.TRAIN_TRASNFORM['image'](image)
-                true_mask = config.TRAIN_TRASNFORM['mask'](true_mask)
+            image = seq_det.augment_images(tensor_to_PIL(image))
+            true_mask = seq_det.augment_images(tensor_to_PIL(true_mask))
 
             masks_pred = net(image)
 
@@ -173,6 +171,13 @@ def get_args():
 def log_data(file_name, data):
     with open(file_name+".txt", "a+") as file:
         file.write(data+"\n")
+
+def tensor_to_PIL(tensor):
+    image = tensor.cpu().clone()
+    if image.size()[0] == 1: image = image.repeat(3, 1, 1) # from gray sacale to RGB
+    image = image.squeeze(0)
+    image = transforms.ToPILImage()(image)
+    return image
 
 if __name__ == '__main__':
     # init artgs

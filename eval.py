@@ -20,14 +20,8 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
     for batch_index, (id, z, image_0, true_mask_0) in enumerate(validation_loader, 0):
 
         seq_det = config.TRAIN_SEQUENCE.to_deterministic()
-        image = seq_det.augment_batches(image_0)
-        true_mask = seq_det.augment_batches(true_mask_0)
-
-        if config.transforms:
-            image = config.TRAIN_TRASNFORM['image'](image)
-            true_mask = config.TRAIN_TRASNFORM['mask'](true_mask)
-            image_0 = config.TRAIN_TRASNFORM['image'](image_0)
-            true_mask_0 = config.TRAIN_TRASNFORM['mask'](true_mask_0)
+        image = seq_det.augment_batches(tensor_to_PIL(image_0))
+        true_mask = seq_det.augment_batches(tensor_to_PIL(true_mask_0))
 
         # image = image.unsqueeze(0)
         # true_mask = true_mask.unsqueeze(0)
