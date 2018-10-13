@@ -84,9 +84,13 @@ class TGSData(data.Dataset):
         id = self.indices_to_id.get(index)
 
         z = self.get_load_z_by_id(id)
-        image = self.get_load_image_by_id(id)
-        mask = self.get_load_mask_by_id(id)
+        image_0 = self.get_load_image_by_id(id)
+        mask_0 = self.get_load_mask_by_id(id)
 
+        """CONFUGURATION
+        IMGAUG: https://imgaug.readthedocs.io/en/latest/source/examples_segmentation_maps.html#a-simple-example
+        EXAMPLE: https://colab.research.google.com/drive/109vu3F1LTzD1gdVV6cho9fKGx7lzbFll#scrollTo=8q8a2Ha9pnaz
+        """
         image_aug_transform = config.ImgAugTransform().to_deterministic()
         TRAIN_TRASNFORM = {
             # 'depth': transforms.Compose([
@@ -118,14 +122,14 @@ class TGSData(data.Dataset):
             ])
         }
 
-        image = TRAIN_TRASNFORM['image'](image)
-        mask = TRAIN_TRASNFORM['mask'](mask)
+        image = TRAIN_TRASNFORM['image'](image_0)
+        mask = TRAIN_TRASNFORM['mask'](mask_0)
 
         # seq_det = TRAIN_SEQUENCE.to_deterministic()
         # image = seq_det.augment_images(np.array(image))
         # mask = seq_det.augment_images(np.array(mask))
 
-        return (id, z, image, mask)
+        return (id, z, image, mask, transforms.ToTensor()(image_0), transforms.ToTensor()(mask_0))
 
     """CONFIGURATION"""
     def get_load_image_by_id(self, id):
