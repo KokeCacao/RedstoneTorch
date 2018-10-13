@@ -153,6 +153,7 @@ def get_args():
     parser.add_option('-l', '--learning-rate', dest='lr', default=0, type='float', help='learning rate')
     parser.add_option('-g', '--gpu', dest='gpu', default="", help='use cuda, please put all gpu id here')
     parser.add_option('-c', '--load', dest='load', default=False, help='load file model')
+    parser.add_option('-d', '--data_percent', dest='data_percent', default=0.0, type='float', help='the root directory')
     parser.add_option('-p', '--dir_prefix', dest='dir_prefix', default="", help='the root directory')
     parser.add_option('-t', '--tag', dest='tag', default="", help='tag for tensorboard-log')
 
@@ -177,9 +178,10 @@ if __name__ == '__main__':
     if args.lr != 0: config.MODEL_LEARNING_RATE = args.lr
     if args.gpu != "": config.TRAIN_GPU = args.gpu
     if args.load != False: config.TRAIN_LOAD = args.load
+    if args.data_percent != "0.0": config.TRAIN_DATA_PERCENT = args.data_percent
     if args.dir_prefix != "": config.DIRECTORY_PREFIX = args.dir_prefix
     if args.tag != "": config.TRAIN_TAG = args.tag
-    
+
     writer = SummaryWriter("tensorboard/" + config.TRAIN_TAG)
 
 
@@ -265,6 +267,6 @@ reduce weight decay, decrease learning rate. The CP3.pth is good, others are ove
 python train.py --epochs 300 --batch-size 16 --learning-rate 0.0008 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "adjust-train5" --load tensorboard/2018-10-10-19-59-21-422178-adjust-train4/checkpoints/CP2.pth
 
 Different Augmentation
-
+python train.py --tag "diff-aug1" --load tensorboard/2018-10-13-13-41-28-633198-test-success/checkpoints/CP1.pth
 
 """
