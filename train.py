@@ -140,7 +140,7 @@ def train_net(net,
             val_dice = eval_net(net, validation_loader, dataset=tgs_data, gpu=gpu, visualization=config.TRAIN_VISUALIZATION, writer=writer, epoch_num=epoch_index+1)
             print('Validation Dice Coeff: {}'.format(val_dice))
             writer.add_scalars('loss/epoch_validation', {'Validation': val_dice}, epoch_index + 1)
-        if config.TRAIN_VISUALIZATION:
+        if config.Train_HISTOGRAM:
             for i, (name, param) in enumerate(net.named_parameters()):
                 print("Calculating Histogram #{}".format(i))
                 writer.add_histogram(name, param.clone().cpu().data.numpy(), epoch_index+1)
