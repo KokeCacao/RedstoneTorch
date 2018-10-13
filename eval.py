@@ -1,25 +1,27 @@
 import os
 
-import matplotlib
-import torch
-import numpy as np
-from PIL import ImageChops, Image
-from torchvision import transforms
 import matplotlib as mpl
+import torch
+import config
+from PIL import ImageChops
+from torchvision import transforms
 
 if os.environ.get('DISPLAY','') == '':
     print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')
     mpl.use('Agg')
 from matplotlib import pyplot as plt
 
-from dice_loss import dice_coeff
 global_plot_step = 0
 
-def eval_net(net, validation_loader, dataset, gpu=False, visualization=False, writer=None, epoch_num=0):
+def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_num=0):
     """Evaluation without the densecrf with the dice coefficient"""
     # total_loss = 0
     total_iou = 0
-    for batch_index, (id, z, image, true_mask) in enumerate(validation_loader, 0):
+    for batch_index, (id, z, image_0, true_mask_0) in enumerate(validation_loader, 0):
+
+        seq_det = config.TRAIN_SEQUENCE.to_deterministic()
+        image = seq_det.augment_batches(image_0)
+        true_mask = seq_det.augment_batches(true_mask_0)
 
         # image = image.unsqueeze(0)
         # true_mask = true_mask.unsqueeze(0)
@@ -29,15 +31,9 @@ def eval_net(net, validation_loader, dataset, gpu=False, visualization=False, wr
             image = image.cuda()
             true_mask = true_mask.cuda()
 
-        # why do you do [0]
-
-        # masks_pred = net(image, z)
-
         masks_pred = net(image)
         iou = iou_score(masks_pred, true_mask).mean().float()
         total_iou = total_iou + iou
-
-
 
         if visualization and batch_index==0:
             writer.add_pr_curve("loss/epoch_validation_image", true_mask, masks_pred, global_step=epoch_num)
@@ -47,17 +43,17 @@ def eval_net(net, validation_loader, dataset, gpu=False, visualization=False, wr
                 F = plt.figure()
 
                 plt.subplot(321)
-                plt.imshow(dataset.get_untransformed_image_by_id(input_id[:10]).convert('RGB'))
+                plt.imshow(tensor_to_PIL(image_0[index]))
                 plt.title("Image_Real")
                 plt.grid(False)
 
                 plt.subplot(322)
-                plt.imshow(dataset.get_transformed_image_by_id(input_id).convert('RGB'))
+                plt.imshow(tensor_to_PIL(image[index]))
                 plt.title("Image_Trans")
                 plt.grid(False)
 
                 plt.subplot(323)
-                plt.imshow(dataset.get_untransformed_mask_by_id(input_id[:10]).convert('RGB'))
+                plt.imshow(tensor_to_PIL(true_mask_0[index]))
                 plt.title("Mask_Real")
                 plt.grid(False)
 
@@ -86,9 +82,9 @@ def eval_net(net, validation_loader, dataset, gpu=False, visualization=False, wr
         # true_mask_flat = true_mask.view(-1)
         #
         # total_loss += dice_coeff(masks_probs_flat, true_mask_flat).item()
-    # return total_loss / (num+1e-10)
-    del id, z, image, true_mask
-    if gpu != "": torch.cuda.empty_cache()  # release gpu memory
+        # return total_loss / (num+1e-10)
+        del id, z, image, true_mask
+        if gpu != "": torch.cuda.empty_cache()  # release gpu memory
     return total_iou/(batch_index+1e-10)
 
 def tensor_to_PIL(tensor):

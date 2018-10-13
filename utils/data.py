@@ -11,64 +11,21 @@ from torch.utils.data import SubsetRandomSampler
 
 
 class TGSData(data.Dataset):
-    # def __init__(self, root, train=True, transform=None, mask_transform=None):
-    #     self.root = root
-    #     self.transform = transform
-    #     self.mask_transform = mask_transform
-    #     self.train = train  # training set or test set
-    #
-    #     if not self._check_exists():
-    #         raise RuntimeError('Dataset not found.' +
-    #                            ' You can use download=True to download it')
-    #
-    #     if self.train:
-    #         self.train_data, self.train_labels = torch.load(
-    #             os.path.join(root, self.processed_folder, self.training_file))
-    #     else:
-    #         self.test_data, self.test_labels = torch.load(os.path.join(root, self.processed_folder, self.test_file))
-    #
-    # def __getitem__(self, index):
-    #     if self.train:
-    #         img, mask = self.train_data[index], self.train_labels[index]
-    #     else:
-    #         img, mask = self.test_data[index], self.test_labels[index]
-    #
-    #     # doing this so that it is consistent with all other datasets
-    #     # to return a PIL Image
-    #     img = Image.fromarray(img.numpy(), mode='L')
-    #
-    #     if self.transform is not None:
-    #         img = self.transform(img)
-    #
-    #     if self.mask_transform is not None:
-    #         mask = self.mask_transform(mask)
-    #
-    #     return img, mask
-    #
-    # def __len__(self):
-    #     return 0;
-
-    def __init__(self, csv_dir, img_dir, mask_dir, untransformed_img_dir, untransformed_mask_dir, img_suffix=".png", mask_suffix=".png", transform=None):
+    def __init__(self, csv_dir, load_img_dir, load_mask_dir, img_suffix=".png", mask_suffix=".png", transform=None):
         print("Reading Data...")
         self.masks_frame = pd.read_csv(csv_dir)
-        self.img_dir = img_dir
-        self.mask_dir = mask_dir
+        self.load_img_dir = load_img_dir
+        self.load_mask_dir = load_mask_dir
         self.img_suffix = img_suffix
         self.mask_suffix = mask_suffix
         self.transform = transform
-        self.untransformed_img_dir = untransformed_img_dir
-        self.untransformed_mask_dir = untransformed_mask_dir
-
-        #
-        # self.sample = None
-        # self.means = None
-        # self.stds = None
 
         self.id = self.get_img_names()
-        self.data_len = len(os.listdir(self.img_dir))
+        """WARNING: data length and indices depends on the length of images"""
+        self.data_len = len(os.listdir(self.load_img_dir))
         self.indices = list(range(self.data_len))
 
-        # init by get_sampler
+        # these parameters will be init by get_sampler
         self.indices_to_id = dict()
         self.tran_len = None
         self.val_len = None
@@ -78,39 +35,15 @@ class TGSData(data.Dataset):
     def __len__(self):
         return self.data_len
 
+    """CONFIGURATION"""
     def get_img_names(self):
-        return (f[:-len(self.img_suffix)].replace("images_original_","").replace("_groundtruth_(1)_images_","") for f in os.listdir(self.img_dir))
+        return (f[:-len(self.img_suffix)].replace("images_original_", "").replace("_groundtruth_(1)_images_", "") for f
+                in os.listdir(self.load_img_dir))
         # return (f[:].replace(self.img_suffix, "", 1) for f in os.listdir(self.img_dir))
 
-    # def get_data(self):
-    #     if (self.sample == None): print("WARNING: Tyring to load empty data!")
-    #     return self.sample
-
-    def get_sampler(self, all_id, data_percent=1.0, val_percent=0.05, data_shuffle = False, train_shuffle=True, val_shuffle=False, seed=19):
-
-        # removed due to big data
-        # self.sample = self.get_all_sample(all_id)
-        # print ("Loading sample:")
-        # print ("Sample size: {} samples".format(self.data_len))
-        #
-        # print ("Sample mean of depth: {}".format(self.means.get("z").float()))
-        # print ("Sample mean of image: {}".format(self.means.get("image").float()))
-        # print ("Sample mean of masks: {}".format(self.means.get("mask").float()))
-        # print ("Sample std of depth: {}".format(self.stds.get("z").float()))
-        # print ("Sample std of image: {}".format(self.stds.get("image")))
-        # print ("Sample std of masks: {}".format(self.stds.get("mask")))
-
-
-        # print ("Data Structure of Sample: {'id': id(size), 'z': z(size), 'image': image(size, 225, 225), 'mask': mask(size, 225, 225)}")
-
-        # ABANDONED: get indice
-        # train_size = int(val_percent * len(self.sample))
-        # test_size = len(self.sample) - train_size
-        # train_dataset, test_dataset = torch.utils.data.random_split(self.sample, [train_size, test_size])
-
-        # get indice
+    def get_sampler(self, data_percent=1.0, val_percent=0.05, data_shuffle=False, train_shuffle=True, val_shuffle=False,
+                    seed=19):
         print("Total Size:", self.data_len)
-
 
         if data_shuffle:
             np.random.seed(seed)
@@ -121,17 +54,17 @@ class TGSData(data.Dataset):
         print("Validation Size: {}".format(val_split))
         self.val_len = val_split
         data_split = int(np.floor(data_percent * self.data_len))
-        print("Traning Size: {}".format(data_split-val_split))
-        self.train_len = data_split-val_split
+        print("Traning Size: {}".format(data_split - val_split))
+        self.train_len = data_split - val_split
 
         self.val_indices = self.indices[:val_split]
         if val_shuffle:
-            np.random.seed(seed+1)
+            np.random.seed(seed + 1)
             np.random.shuffle(self.val_indices)
             np.random.seed(seed)
         self.train_indices = self.indices[val_split:data_split]
         if train_shuffle:
-            np.random.seed(seed+2)
+            np.random.seed(seed + 2)
             np.random.shuffle(self.train_indices)
             np.random.seed(seed)
 
@@ -141,39 +74,27 @@ class TGSData(data.Dataset):
         train_sampler = SubsetRandomSampler(self.train_indices)
         validation_sampler = SubsetRandomSampler(self.val_indices)
 
-
         return train_sampler, validation_sampler
 
     def __getitem__(self, index):
         id = self.indices_to_id.get(index)
 
-        z = self.get_transformed_z_by_id(id)
-        image = self.get_transformed_image_by_id(id)
-        mask = self.get_transformed_mask_by_id(id)
+        z = self.get_load_z_by_id(id)
+        image = self.get_load_image_by_id(id)
+        mask = self.get_load_mask_by_id(id)
 
         if self.transform:
             image = self.transform['image'](image)
             mask = self.transform['mask'](mask)
-
-        # z = self.sample['z'][index]
-        # image = self.sample['image'][index]
-        # mask = self.sample['mask'][index]
         return (id, z, image, mask)
 
-    def get_transformed_image_by_id(self, id):
-        return Image.open(os.path.join(self.img_dir, "images_original_" + id + self.img_suffix)).convert('RGB')
-
-    def get_transformed_mask_by_id(self, id):
-        return Image.open(os.path.join(self.mask_dir, "_groundtruth_(1)_images_" + id + self.mask_suffix))
-
-    def get_transformed_z_by_id(self, id):
+    """CONFIGURATION"""
+    def get_load_image_by_id(self, id):
+        return Image.open(os.path.join(self.load_img_dir, "images_original_" + id + self.img_suffix)).convert('RGB')
+    def get_load_mask_by_id(self, id):
+        return Image.open(os.path.join(self.load_mask_dir, "_groundtruth_(1)_images_" + id + self.mask_suffix))
+    def get_load_z_by_id(self, id):
         return 0
-
-    def get_untransformed_image_by_id(self, id):
-        return Image.open(os.path.join(self.untransformed_img_dir + id + self.img_suffix)).convert('RGB')
-
-    def get_untransformed_mask_by_id(self, id):
-        return Image.open(os.path.join(self.untransformed_mask_dir + id + self.mask_suffix))
 
     # removed due to big data
     # def get_all_sample(self, ids, seed=19):
@@ -250,4 +171,3 @@ class TGSData(data.Dataset):
     #     mask = self.transform['mask'](mask[1])
     #
     #     return {'id': id, 'z': z, 'image': image, 'mask': mask}
-
