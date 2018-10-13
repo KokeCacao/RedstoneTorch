@@ -22,6 +22,7 @@ TRAIN_VALIDATION = True
 TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + TRAIN_TAG
 TRAIN_SAVE_CHECKPOINT = True
 TRAIN_NUM_WORKER = 0
+Train_HISTOGRAM = False
 
 DIRECTORY_PREFIX = ""
 DIRECTORY_SUFFIX_IMG = ".png"
