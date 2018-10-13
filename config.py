@@ -34,6 +34,8 @@ DIRECTORY_MASK = DIRECTORY_PREFIX + 'data/train/masks/'  # augmentation
 DIRECTORY_DEPTH = DIRECTORY_PREFIX + 'data/depths.csv'
 DIRECTORY_CHECKPOINT = DIRECTORY_PREFIX + "tensorboard/" + TRAIN_TAG + "/checkpoints/"
 
+global_step = 0
+
 class ImgAugTransform:
     def __init__(self):
         self.aug = iaa.Sequential([

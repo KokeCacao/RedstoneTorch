@@ -94,6 +94,7 @@ def train_net(net,
 
         # batch size should < 4000 due to the amount of data avaliable
         for batch_index, (id, z, image, true_mask, image_0, true_mask_0) in enumerate(train_loader, 0):
+            config.global_step = config.global_step +1
 
             if gpu != "":
                 # z = z.cuda()
@@ -122,7 +123,8 @@ def train_net(net,
                                                                                                      (batch_index+1)*batch_size,
                                                                                                      tgs_data.train_len,
                                                                                                      loss.item(), iou))
-            writer.add_scalars('loss/batch_training', {'Epoch': epoch_index+1, 'TrainLoss': loss.item(), 'IOU': iou}, epoch_index*batch_size+(batch_index+1))
+            # writer.add_scalars('loss/batch_training', {'Epoch': epoch_index+1, 'TrainLoss': loss.item(), 'IOU': iou}, epoch_index*batch_size+(batch_index+1))
+            writer.add_scalars('loss/batch_training', {'Epoch': epoch_index+1, 'TrainLoss': loss.item(), 'IOU': iou}, config.global_step)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -267,6 +269,10 @@ reduce weight decay, decrease learning rate. The CP3.pth is good, others are ove
 python train.py --epochs 300 --batch-size 16 --learning-rate 0.0008 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "adjust-train5" --load tensorboard/2018-10-10-19-59-21-422178-adjust-train4/checkpoints/CP2.pth
 
 Different Augmentation
-python train.py --tag "diff-aug3" --load tensorboard/diff-aug2/checkpoints/CP1.pth
+python train.py --tag "diff-aug3" --load tensorboard/2018-10-13-13-41-28-633198-test-success/checkpoints/CP1.pth
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-13-15-02-56-313421-diff-aug3 --port=6006
+
+Try not change brightness of mask, add global step
+python train.py --tag "diff-aug4" --load tensorboard/2018-10-13-15-02-56-313421-diff-aug3/checkpoints/CP21.pth
 
 """
