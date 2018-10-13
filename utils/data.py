@@ -89,9 +89,8 @@ class TGSData(data.Dataset):
         image = seq_det.augment_images(image)
         mask = seq_det.augment_images(mask)
 
-        if self.transform:
-            image = self.transform['image'](image)
-            mask = self.transform['mask'](mask)
+        image = config.TRAIN_TRASNFORM['image'](image)
+        mask = config.TRAIN_TRASNFORM['mask'](mask)
         return (id, z, image, mask)
 
     """CONFIGURATION"""
