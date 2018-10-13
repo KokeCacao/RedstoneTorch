@@ -89,8 +89,8 @@ class TGSData(data.Dataset):
         mask = config.TRAIN_TRASNFORM['mask'](mask)
 
         seq_det = config.TRAIN_SEQUENCE.to_deterministic()
-        image = seq_det.augment_images(np.array(image))
-        mask = seq_det.augment_images(np.array(mask))
+        image = seq_det.augment_images([np.array(image)])
+        mask = seq_det.augment_images([np.array(mask)])
 
         return (id, z, torch.from_numpy(image), torch.from_numpy(mask))
 
