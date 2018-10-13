@@ -83,6 +83,9 @@ class TGSData(data.Dataset):
         image = self.get_load_image_by_id(id)
         mask = self.get_load_mask_by_id(id)
 
+        if self.transform:
+            image = self.transform['image'](image)
+            mask = self.transform['mask'](mask)
         return (id, z, image, mask)
 
     """CONFIGURATION"""

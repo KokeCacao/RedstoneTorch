@@ -46,7 +46,6 @@ TRAIN_TRASNFORM = {
         # transforms.Normalize(mean = [0.456, 0.456, 0.406], std = [0.229, 0.224, 0.225])
     ]),
     'mask': transforms.Compose([
-        transforms.Resize((224,224)),
         # transforms.CenterCrop(224),
         # transforms.Grayscale(),
         # transforms.RandomHorizontalFlip(),
@@ -60,7 +59,7 @@ TRAIN_TRASNFORM = {
 }
 
 TRAIN_SEQUENCE = iaa.Sequential([
-                iaa.Scale({"height": 32, "width": 64}),
+               iaa.Scale({"height": 32, "width": 64}),
                iaa.Fliplr(0.5),
                iaa.Flipud(0.5),
                iaa.OneOf([iaa.Noop(), iaa.Add((-40, 40)), iaa.EdgeDetect(alpha=(0.0, 0.1)), iaa.Multiply((0.95, 1.05))], iaa.ContrastNormalization((0.95, 1.05))),
