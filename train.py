@@ -173,13 +173,13 @@ def tensor_to_PIL(tensor):
 
 if __name__ == '__main__':
     args = get_args()
-    if args.epochs != 0: config.MODEL_EPOCHS = args.epochs
-    if args.batchsize != 0: config.MODEL_BATCH_SIZE = args.batchsize
-    if args.lr != 0: config.MODEL_LEARNING_RATE = args.lr
-    if args.gpu != "": config.TRAIN_GPU = args.gpu
+    # if args.epochs != 0: config.MODEL_EPOCHS = args.epochs
+    # if args.batchsize != 0: config.MODEL_BATCH_SIZE = args.batchsize
+    # if args.lr != 0: config.MODEL_LEARNING_RATE = args.lr
+    # if args.gpu != "": config.TRAIN_GPU = args.gpu
     if args.load != False: config.TRAIN_LOAD = args.load
-    if args.data_percent != "0.0": config.TRAIN_DATA_PERCENT = args.data_percent
-    if args.dir_prefix != "": config.DIRECTORY_PREFIX = args.dir_prefix
+    # if args.data_percent != "0.0": config.TRAIN_DATA_PERCENT = args.data_percent
+    # if args.dir_prefix != "": config.DIRECTORY_PREFIX = args.dir_prefix
     if args.tag != "": config.TRAIN_TAG = args.tag
 
     writer = SummaryWriter("tensorboard/" + config.TRAIN_TAG)
@@ -267,6 +267,6 @@ reduce weight decay, decrease learning rate. The CP3.pth is good, others are ove
 python train.py --epochs 300 --batch-size 16 --learning-rate 0.0008 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "adjust-train5" --load tensorboard/2018-10-10-19-59-21-422178-adjust-train4/checkpoints/CP2.pth
 
 Different Augmentation
-python train.py --tag "diff-aug1" --load tensorboard/2018-10-13-13-41-28-633198-test-success/checkpoints/CP1.pth
+python train.py --tag "diff-aug2" --load tensorboard/2018-10-13-13-41-28-633198-test-success/checkpoints/CP1.pth
 
 """
