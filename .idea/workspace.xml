@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0dd777d8-05cc-4cce-86da-522041d1016c" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/utils/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -64,13 +64,13 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="dummy" value="15" />
-          <entry key="py" value="9345" />
+          <entry key="py" value="9364" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="15" />
-          <entry key="Python" value="9345" />
+          <entry key="Python" value="9364" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -87,24 +87,24 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/train.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="285">
-              <caret line="37" column="149" selection-start-line="37" selection-start-column="149" selection-end-line="37" selection-end-column="149" />
+            <state relative-caret-position="360">
+              <caret line="108" column="35" selection-start-line="108" selection-start-column="35" selection-end-line="108" selection-end-column="35" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
-                <marker date="1539437395786" expanded="true" signature="9038:9040" ph="..." />
+                <marker date="1539437901383" expanded="true" signature="9111:9113" ph="..." />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/utils/data.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="405">
-              <caret line="108" column="49" lean-forward="true" selection-start-line="108" selection-start-column="49" selection-end-line="108" selection-end-column="49" />
+            <state relative-caret-position="375">
+              <caret line="106" column="40" lean-forward="true" selection-start-line="106" selection-start-column="40" selection-end-line="106" selection-end-column="40" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -220,8 +220,8 @@
       <find>img_suffix</find>
       <find>get_sampler</find>
       <find>starting e</find>
-      <find>rgb</find>
       <find>add</find>
+      <find>rgb</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -251,9 +251,9 @@
         <option value="$PROJECT_DIR$/utils/memory.py" />
         <option value="$PROJECT_DIR$/data/augmentation.py" />
         <option value="$PROJECT_DIR$/eval.py" />
-        <option value="$PROJECT_DIR$/train.py" />
         <option value="$PROJECT_DIR$/config.py" />
         <option value="$PROJECT_DIR$/utils/data.py" />
+        <option value="$PROJECT_DIR$/train.py" />
       </list>
     </option>
   </component>
@@ -803,17 +803,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/train.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="37" column="149" selection-start-line="37" selection-start-column="149" selection-end-line="37" selection-end-column="149" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-            <marker date="1539437395786" expanded="true" signature="9038:9040" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/miniconda2/envs/ml/lib/python3.6/site-packages/torchvision/transforms/transforms.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="300">
@@ -833,10 +822,21 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/utils/data.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="405">
-          <caret line="108" column="49" lean-forward="true" selection-start-line="108" selection-start-column="49" selection-end-line="108" selection-end-column="49" />
+        <state relative-caret-position="375">
+          <caret line="106" column="40" lean-forward="true" selection-start-line="106" selection-start-column="40" selection-end-line="106" selection-end-column="40" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/train.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="108" column="35" selection-start-line="108" selection-start-column="35" selection-end-line="108" selection-end-column="35" />
+          <folding>
+            <element signature="e#0#10#0" expanded="true" />
+            <marker date="1539437901383" expanded="true" signature="9111:9113" ph="..." />
           </folding>
         </state>
       </provider>
