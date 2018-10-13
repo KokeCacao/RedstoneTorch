@@ -97,6 +97,7 @@ def train_net(net,
 
             # https://imgaug.readthedocs.io/en/latest/source/examples_segmentation_maps.html#a-simple-example
 
+            print(image.size())
 
             if gpu != "":
                 # z = z.cuda()
