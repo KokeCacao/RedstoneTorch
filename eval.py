@@ -24,7 +24,7 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
             image = image.cuda()
             true_mask = true_mask.cuda()
 
-        masks_pred = net(image)
+        masks_pred = net(image).repeat(1, 3, 1, 1)
         iou = iou_score(masks_pred, true_mask).mean().float()
         total_iou = total_iou + iou
 
