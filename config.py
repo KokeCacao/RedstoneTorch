@@ -54,10 +54,8 @@ TRAIN_TRASNFORM = {
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.5, 0.5, 0.5],
                             std=[0.225, 0.225, 0.225]),
-        lambda x: x>0,
-        lambda x: x.float(),
-        transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.225, 0.225, 0.225]),
-        lambda x: (x/4.4444)+0.5
+        lambda x: x>0.5,
+        lambda x: x.float()
     ])
 }
 

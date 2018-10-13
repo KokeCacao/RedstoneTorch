@@ -79,16 +79,17 @@ class TGSData(data.Dataset):
     def __getitem__(self, index):
         id = self.indices_to_id.get(index)
 
-        print("0")
         z = self.get_load_z_by_id(id)
         image = self.get_load_image_by_id(id)
         mask = self.get_load_mask_by_id(id)
 
-        print("1")
+        print("-2")
         if self.transform:
+            print("-1")
             image = self.transform['image'](image)
+            print("0")
             mask = self.transform['mask'](mask)
-            print("2")
+            print("1")
         return (id, z, image, mask)
 
     """CONFIGURATION"""
