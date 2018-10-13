@@ -83,7 +83,8 @@ class TGSData(data.Dataset):
         image = self.get_load_image_by_id(id)
         mask = self.get_load_mask_by_id(id)
 
-        print("-2")
+        print(z)
+        print(id)
         if self.transform:
             print("-1")
             image = self.transform['image'](image)
