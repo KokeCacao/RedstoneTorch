@@ -18,6 +18,7 @@ from unet import UNet
 
 
 def submit(net, gpu):
+    print("start")
     """Used for Kaggle submission: predicts and encode all test images"""
     directory_list = os.listdir(config.DIRECTORY_TEST)
     if not os.path.exists(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG):
@@ -28,9 +29,12 @@ def submit(net, gpu):
             print('{} --- {}/{}'.format(img_name, index, len(directory_list)))
 
             img = Image.open(config.DIRECTORY_TEST + img_name).convert('RGB')
+            print(img.size())
             img = config.PREDICT_TRANSFORM(img).unsqueeze(0)
+            print(img.size())
 
             mask_pred = predict(net, img, gpu).squeeze(0)
+            print(img.size())
             masks_pred_pil = config.PREDICT_TRANSFORM_Back(tensor_to_PIL(mask_pred))
             masks_pred_np = np.array(masks_pred_pil)
 
@@ -123,6 +127,6 @@ if __name__ == '__main__':
 # print(f"Usedtime = {t2-t1} s")
 
 """
-python submit.py --load tensorboard/2018-10-13-19-53-02-729361-test/checkpoints/CP31.pth --tag first-submit
+python submit.py --load tensorboard/2018-10-13-19-53-02-729361-test/checkpoints/CP31.pth --tag test
 
 """

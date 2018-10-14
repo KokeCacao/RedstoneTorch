@@ -65,12 +65,20 @@ from torchvision import transforms
 #
 #     return full_mask > out_threshold
 
+"""
+input: Tensor:(N, D=3, H, W)
+output: Tensor:(N, D, H, W)
+"""
 def predict(net, image, gpu):
     if gpu != "": image = image.cuda()
 
-    if image.mean() < 1e-5: return tensor.new_zeros(image.size())
+    if image.mean() < 1e-5:
+        print("dark")
+        print(image.size())
+        return tensor.new_zeros(image.size())
     """Need to repeat three times because the net will automatically reduce C when the Cs are the same"""
-    masks_pred = net(image).repeat(1, 3, 1, 1)
+    masks_pred = net(image)
+    print(masks_pred.size())
 
     del image
     if gpu != "": torch.cuda.empty_cache()
