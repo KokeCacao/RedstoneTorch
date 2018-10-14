@@ -20,6 +20,8 @@ from unet import UNet
 def submit(net, gpu):
     """Used for Kaggle submission: predicts and encode all test images"""
     directory_list = os.listdir(config.DIRECTORY_TEST)
+    if not os.path.exists(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG):
+        os.makedirs(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG)
     with open(config.DIRECTORY_TEST + "SUBMISSION" + config.PREDICTION_TAG + ".csv", 'a') as f:
         f.write('img,rle_mask\n')
         for index, img_name in enumerate(directory_list):
@@ -34,7 +36,7 @@ def submit(net, gpu):
 
             enc = rle_encode(np.mean(masks_pred_np, 0, keepdims=False))
             f.write('{},{}\n'.format(img_name, ' '.join(map(str, enc))))
-            masks_pred_pil.save(config.DIRECTORY_TEST + "predicted/" + img_name + ".png")
+            masks_pred_pil.save(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + "/" + img_name)
 
 def tensor_to_PIL(tensor):
     image = tensor.cpu().clone()
