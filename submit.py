@@ -27,7 +27,7 @@ def submit(net, gpu):
         f.write('id,rle_mask\n')
         for index, img_name in enumerate(tqdm(directory_list)):
             if config.DIRECTORY_SUFFIX_IMG not in img_name: continue
-            
+
             img = Image.open(config.DIRECTORY_TEST + img_name).convert('RGB')
             img = config.PREDICT_TRANSFORM(img).unsqueeze(0) # add N
 
