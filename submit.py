@@ -24,7 +24,7 @@ def submit(net, gpu):
     if not os.path.exists(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG):
         os.makedirs(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG)
     with open(config.DIRECTORY_TEST + "predicted/SUBMISSION-" + config.PREDICTION_TAG + ".csv", 'a') as f:
-        f.write('img,rle_mask\n')
+        f.write('id,rle_mask\n')
         for index, img_name in tqdm(enumerate(directory_list)):
             print('{} --- {}/{}'.format(img_name, index, len(directory_list)))
 
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     if args.shreshold != 0.5: config.PREDICT_TRANSFORM_Back = transforms.Compose([
                 transforms.Resize((101, 101)),
                 transforms.Grayscale(),
-                lambda x: x>args.shreshold * 1.0
+                lambda x: x.convert('L').point(lambda x: 255 if x > 255*args.shreshold else 0, mode='1'),
             ])
 
     print("Current Directory: " + str(os.getcwd()))
