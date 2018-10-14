@@ -9,7 +9,7 @@ import numpy as np
 import torchvision
 from PIL import Image
 
-from .utils import resize_and_crop, normalize, hwc_to_chw, rle_encode
+from .utils import resize_and_crop, normalize, hwc_to_chw
 
 # for each id, get (id, sub-id)
 def split_ids_for_augmentation(ids, n=1):
