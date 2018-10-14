@@ -152,7 +152,7 @@ if __name__ == '__main__':
 
 """
 python submit.py --load tensorboard/2018-10-13-19-53-02-729361-test/checkpoints/CP36.pth --tag bronze-here
-download: ResUnet/data/test/images/predicted/SUBMISSION-2018-10-14-05-12-51-616453-bronze-here.csv
+download: ResUnet/data/test/images/predicted/SUBMISSION-2018-10-14-11-53-06-571963-bronze-here.csv
 ResUnet/data/test/images/predicted/2018-10-14-05-12-51-616453-bronze-here/78a68dece6.png
 
 """
