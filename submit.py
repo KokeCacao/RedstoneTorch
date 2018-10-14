@@ -26,7 +26,7 @@ def submit(net, gpu):
             print('{} --- {}/{}'.format(img_name, index, len(directory_list)))
 
             img = Image.open(config.DIRECTORY_TEST + img_name).convert('RGB')
-            img = config.PREDICT_TRANSFORM(img)
+            img = config.PREDICT_TRANSFORM(img).unsqueeze()
 
             mask_pred = predict(net, img, gpu)
             masks_pred_pil = config.PREDICT_TRANSFORM_Back(tensor_to_PIL(mask_pred))
