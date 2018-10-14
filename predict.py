@@ -77,7 +77,6 @@ def predict(net, image, gpu):
         return torch.zeros(image.size())
     """Need to repeat three times because the net will automatically reduce C when the Cs are the same"""
     masks_pred = net(image)
-    print(masks_pred.size())
 
     del image
     if gpu != "": torch.cuda.empty_cache()
