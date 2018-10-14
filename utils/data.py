@@ -120,7 +120,7 @@ class TGSData(data.Dataset):
                 # transforms.Normalize(mean=[0.5, 0.5, 0.5],
                 #                     std=[0.225, 0.225, 0.225]),
                 lambda x: x>0.5,
-                lambda x: x.float()
+                lambda x: float(x)
             ])
         }
 
