@@ -33,7 +33,7 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
                     thresold_dict.update({threshold: [iou_score(masks_pred, true_mask, threshold).mean().float()]})
                 else:
                     thresold_dict.update({threshold, thresold_dict.get(threshold).append(iou_score(masks_pred, true_mask, threshold).mean().float())})
-        total_ious = total_ious + ious
+        total_ious = total_ious + list(ious)
         # iou = ious.mean().float()
 
         if visualization and batch_index==0:
