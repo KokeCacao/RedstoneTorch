@@ -121,6 +121,6 @@ if __name__ == '__main__':
 # print(f"Usedtime = {t2-t1} s")
 
 """
-python submit --load tensorboard/2018-10-13-19-53-02-729361-test/checkpoints/CP31.pth --tag first-submit
+python submit.py --load tensorboard/2018-10-13-19-53-02-729361-test/checkpoints/CP31.pth --tag first-submit
 
 """
