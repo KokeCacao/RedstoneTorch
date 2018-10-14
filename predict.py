@@ -67,7 +67,7 @@ from torchvision import transforms
 
 """
 input: Tensor:(N, D=3, H, W)
-output: Tensor:(N, D, H, W)
+output: Tensor:(N, D=1, H, W) or (N, D=3, H, W) when it is black
 """
 def predict(net, image, gpu):
     if gpu != "": image = image.cuda()
