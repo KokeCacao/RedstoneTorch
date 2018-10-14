@@ -32,7 +32,7 @@ def submit(net, gpu):
             masks_pred_pil = config.PREDICT_TRANSFORM_Back(tensor_to_PIL(mask_pred))
             masks_pred_np = np.array(masks_pred_pil)
 
-            enc = rle_encode(masks_pred_np)
+            enc = rle_encode(torch.mean(masks_pred_np, 0))
             f.write('{},{}\n'.format(img_name, ' '.join(map(str, enc))))
             masks_pred_pil.save(config.DIRECTORY_TEST + "predicted/" + img_name + ".png")
 
