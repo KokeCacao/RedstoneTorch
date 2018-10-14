@@ -28,13 +28,13 @@ def submit(net, gpu):
             print('{} --- {}/{}'.format(img_name, index, len(directory_list)))
 
             img = Image.open(config.DIRECTORY_TEST + img_name).convert('RGB')
-            img = config.PREDICT_TRANSFORM(img).unsqueeze(0)
+            img = config.PREDICT_TRANSFORM(img).unsqueeze(0) # add N
             print(img.size())
 
-            mask_pred = predict(net, img, gpu).squeeze(0)
+            mask_pred = predict(net, img, gpu).squeeze(0) # reduce N
             print(mask_pred.size())
-            masks_pred_pil = config.PREDICT_TRANSFORM_Back(tensor_to_PIL(mask_pred))
-            masks_pred_np = np.array(masks_pred_pil)
+            masks_pred_pil = config.PREDICT_TRANSFORM_Back(tensor_to_PIL(mask_pred)) # reduce C from 3 to 1
+            masks_pred_np = np.expand_dims(np.array(masks_pred_pil), axis=0) # squeezed out by numpy, but add one
             print(masks_pred_np.shape)
 
             enc = rle_encode(masks_pred_np)
