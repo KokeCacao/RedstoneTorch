@@ -25,7 +25,8 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
             true_mask = true_mask.cuda()
 
         masks_pred = net(image).repeat(1, 3, 1, 1)
-        iou = iou_score(masks_pred, true_mask).mean().float()
+        ious = iou_score(masks_pred, true_mask)
+        iou = ious.mean().float()
         total_iou = total_iou + iou
 
         if visualization and batch_index==0:
@@ -57,7 +58,7 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
 
                 plt.subplot(325)
                 plt.imshow(ImageChops.difference(tensor_to_PIL(true_mask[index]), tensor_to_PIL(masks_pred[index])))
-                plt.title("Error: {}".format(iou))
+                plt.title("Error: {}".format(ious[index]))
                 plt.grid(False)
 
                 plt.subplot(326)
@@ -88,8 +89,8 @@ def tensor_to_PIL(tensor):
     return image
 
 
-def iou_score(outputs, labels):
-    outputs = outputs > 0.5 # threshold
+def iou_score(outputs, labels, threshold=0.5):
+    outputs = outputs > threshold # threshold
 
     # You can comment out this line if you are passing tensors of equal shape
     # But if you are passing output from UNet or something it will most probably

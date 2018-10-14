@@ -182,7 +182,10 @@ if __name__ == '__main__':
     if args.load != False: config.TRAIN_LOAD = args.load
     # if args.data_percent != "0.0": config.TRAIN_DATA_PERCENT = args.data_percent
     # if args.dir_prefix != "": config.DIRECTORY_PREFIX = args.dir_prefix
-    if args.tag != "": config.TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + args.tag
+    if args.tag != "":
+        """Update values"""
+        config.TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + args.tag
+        config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "tensorboard/" + config.TRAIN_TAG + "/checkpoints/"
 
     writer = SummaryWriter("tensorboard/" + config.TRAIN_TAG)
 
@@ -282,5 +285,7 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/t
 ====================================
 python train.py --tag "success-music2" --load tensorboard/2018-10-13-18-46-21-934969-test/checkpoints/CP2.pth
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-13-19-21-11-323191-success-music2 --port=6006
-
+===================================
+python train.py --tag "success-music3" --load tensorboard/2018-10-13-18-46-21-934969-test/checkpoints/CP2.pth
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-13-19-53-02-991722-success-music3 --port=6006
 """
