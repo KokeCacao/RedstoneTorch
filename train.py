@@ -292,6 +292,6 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/t
 python train.py --tag "success-music3" --load tensorboard/2018-10-13-18-46-21-934969-test/checkpoints/CP2.pth
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-13-19-53-02-991722-success-music3 --port=6006
 
-python train.py --tag "success-submit" --load tensorboard/2018-10-13-19-53-02-991722-success-music3/checkpoints/CP73.pth
-
+python train.py --tag "success-submit5" --load tensorboard/2018-10-13-19-53-02-991722-success-music3/checkpoints/CP73.pth
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-14-12-29-43-331445-success-submit5 --port=6006
 """
