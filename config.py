@@ -22,7 +22,9 @@ TRAIN_VALIDATION = True
 TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + TRAIN_TAG
 TRAIN_SAVE_CHECKPOINT = True
 TRAIN_NUM_WORKER = 0
-Train_HISTOGRAM = False
+TRAIN_HISTOGRAM = False
+TRAIN_TRY_THRESHOLD = np.linspace(0.3, 0.7, 31)
+TRAIN_THRESHOLD_TEST = True
 
 DIRECTORY_PREFIX = ""
 DIRECTORY_SUFFIX_IMG = ".png"
