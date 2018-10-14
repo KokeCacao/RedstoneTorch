@@ -27,6 +27,7 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
             true_mask = true_mask.cuda()
 
         masks_pred = net(image).repeat(1, 3, 1, 1)
+        """return: shape(N, iou)"""
         ious = iou_score(masks_pred, true_mask, threshold=0.5)
         if config.TRAIN_THRESHOLD_TEST == True:
             for threshold in config.TRAIN_TRY_THRESHOLD:
@@ -34,7 +35,7 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
                     thresold_dict.update({threshold: [iou_score(masks_pred, true_mask, threshold).mean().float()]})
                 else:
                     thresold_dict.update({threshold: thresold_dict.get(threshold).append(iou_score(masks_pred, true_mask, threshold).mean().float())})
-        total_ious = total_ious + np.array(ious)
+        total_ious = total_ious + np.array(ious).flatten()
         # iou = ious.mean().float()
 
         if visualization and batch_index==0:
