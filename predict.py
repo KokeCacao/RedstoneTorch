@@ -5,6 +5,7 @@ import numpy as np
 import torch
 
 from PIL import Image
+from torch import tensor
 
 from unet import UNet
 from utils import resize_and_crop, normalize, hwc_to_chw, dense_crf
@@ -64,6 +65,17 @@ def predict_img(net,
         full_mask = dense_crf(np.array(full_img).astype(np.uint8), full_mask)
 
     return full_mask > out_threshold
+
+def predict(net, image, gpu):
+    if gpu != "": image = image.cuda()
+
+    if image.mean() < 1e-5: return tensor.new_zeros(image.size())
+    """Need to repeat three times because the net will automatically reduce C when the Cs are the same"""
+    masks_pred = net(image).repeat(1, 3, 1, 1)
+
+    del image
+    if gpu != "": torch.cuda.empty_cache()
+    return masks_pred
 
 
 

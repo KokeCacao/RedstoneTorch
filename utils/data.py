@@ -92,7 +92,7 @@ class TGSData(data.Dataset):
         EXAMPLE: https://colab.research.google.com/drive/109vu3F1LTzD1gdVV6cho9fKGx7lzbFll#scrollTo=8q8a2Ha9pnaz
         """
         image_aug_transform = config.ImgAugTransform().to_deterministic()
-        TRAIN_TRASNFORM = {
+        TRAIN_TRANSFORM = {
             # 'depth': transforms.Compose([
             #     transforms.ToTensor(),
             #     transforms.Normalize([0.5], [0.5])
@@ -124,8 +124,8 @@ class TGSData(data.Dataset):
             ])
         }
 
-        image = TRAIN_TRASNFORM['image'](image_0)
-        mask = TRAIN_TRASNFORM['mask'](mask_0)
+        image = TRAIN_TRANSFORM['image'](image_0)
+        mask = TRAIN_TRANSFORM['mask'](mask_0)
 
         # seq_det = TRAIN_SEQUENCE.to_deterministic()
         # image = seq_det.augment_images(np.array(image))
@@ -143,78 +143,59 @@ class TGSData(data.Dataset):
     def get_load_z_by_id(self, id):
         return self.masks_frame.loc[id, "z"]
 
-    # removed due to big data
-    # def get_all_sample(self, ids, seed=19):
-    #     random.manual_seed(seed)
-    #     # item_name = self.masks_frame.iloc[idx, 0]
-    #     images = []
-    #     masks = []
-    #     id_depth = self.masks_frame.to_dict('list') # {'id': dis, 'z': depths}
-    #     id_depth['z'] = torch.Tensor(id_depth['z'])
-    #
-    #     z_mean = id_depth['z'].mean()
-    #     z_std = id_depth['z'].std()
-    #     image_mean = 0.0
-    #     image_std = 0.0
-    #     mask_mean = 0.0
-    #     mask_std = 0.0
-    #
-    #     i = 0
-    #
-    #     id_list = []
-    #     for id in ids:
-    #         id_list.append(id)
-    #
-    #         image = self.get_transformed_image_by_id(id)
-    #
-    #         if self.transform:
-    #             image = self.transform['image'](image)
-    #
-    #         # mask_name = os.path.join(self.mask_dir, id + self.mask_suffix)
-    #         mask = self.get_transformed_mask_by_id(id)
-    #
-    #
-    #         if self.transform:
-    #             mask = self.transform['mask'](mask)
-    #
-    #         # depth = self.masks_frame.iloc[id, 1].astype('float')
-    #         # switch from io to PIL
-    #         # image = io.imread(img_name)
-    #         # masks = self.masks_frame.iloc[idx, 1:].as_matrix()
-    #         # WARNING: I don't know if I keep reshape
-    #         # masks = masks.astype('float').reshape(-1, 2)
-    #         images.append(image)
-    #         image_mean = image_mean + image.mean()
-    #         image_std = np.math.sqrt(image_std ** 2 + image.mean() ** 2)
-    #         # depths.append(depth)
-    #         masks.append(mask)
-    #         mask_mean = mask_mean + mask.mean()
-    #         mask_std = np.math.sqrt(mask_std ** 2 + mask.mean() ** 2)
-    #
-    #         i=i+1
-    #
-    #     # print (images)
-    #     # image_mask = {'image': images, 'mask': masks}
-    #
-    #     id_depth['image'] = images
-    #     id_depth['mask'] = masks
-    #     id_depth['id'] = id_list # use image id instead of id from .cvs because of image augmentation
-    #
-    #     self.sample = id_depth
-    #
-    #     self.means = {'id': None, 'z': z_mean/i, 'image': image_mean/i, 'mask': mask_mean/i}
-    #     self.stds = {'id': None, 'z': z_std, 'image': image_std, 'mask': mask_std}
-    #
-    #     return self.sample
+class TGSData_predict(data.Dataset):
+    def __init__(self, csv_dir, load_img_dir, img_suffix=".png"):
+        print("Reading Data...")
+        self.masks_frame = pd.read_csv(csv_dir, index_col=0)
+        self.load_img_dir = load_img_dir
+        self.img_suffix = img_suffix
 
-    # implemented in the __getitem__()
-    # def all_transform(self, sample):
-    #     id, z, image, mask = sample.items()
-    #     # # z cannot be transformed using pytorch.vision
-    #     # z = np.asarray(z[1], dtype='float32')
-    #     # z = self.transform['depth'](z)
-    #     z = z[1]
-    #     image = self.transform['image'](image[1])
-    #     mask = self.transform['mask'](mask[1])
-    #
-    #     return {'id': id, 'z': z, 'image': image, 'mask': mask}
+        self.id = self.get_img_names()
+        """WARNING: data length and indices depends on the length of images"""
+        self.data_len = len(os.listdir(self.load_img_dir))
+        self.indices = list(range(self.data_len))
+
+        self.indices_to_id = dict()
+
+    def __len__(self):
+        return self.data_len
+
+    """CONFIGURATION"""
+    def get_img_names(self):
+        return (f[:-len(self.img_suffix)].replace("images_original_", "").replace("_groundtruth_(1)_images_", "") for f
+                in os.listdir(self.load_img_dir))
+        # return (f[:].replace(self.img_suffix, "", 1) for f in os.listdir(self.img_dir))
+
+    def get_sampler(self):
+        print("Total Size:", self.data_len)
+        self.indices_to_id = dict(zip(self.indices, self.id))
+
+        train_sampler = SubsetRandomSampler(self.indices)
+
+        return train_sampler
+
+    def __getitem__(self, index):
+        id = self.indices_to_id.get(index)
+
+        z = self.get_load_z_by_id(id)
+        image_0 = self.get_load_image_by_id(id)
+
+        """CONFUGURATION
+        IMGAUG: https://imgaug.readthedocs.io/en/latest/source/examples_segmentation_maps.html#a-simple-example
+        EXAMPLE: https://colab.research.google.com/drive/109vu3F1LTzD1gdVV6cho9fKGx7lzbFll#scrollTo=8q8a2Ha9pnaz
+        """
+
+        image = TRAIN_TRASNFORM['image'](image_0)
+
+        # seq_det = TRAIN_SEQUENCE.to_deterministic()
+        # image = seq_det.augment_images(np.array(image))
+        # mask = seq_det.augment_images(np.array(mask))
+
+        return (id, z, image, transforms.ToTensor()(image_0))
+
+    """CONFIGURATION"""
+    def get_load_image_by_id(self, id):
+        # return Image.open(os.path.join(self.load_img_dir, "images_original_" + id + self.img_suffix)).convert('RGB')
+        return Image.open(os.path.join(self.load_img_dir, id + self.img_suffix)).convert('RGB')
+    def get_load_z_by_id(self, id):
+        return self.masks_frame.loc[id, "z"]

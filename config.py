@@ -16,7 +16,7 @@ TRAIN_LOAD = None
 TRAIN_VAL_PERCENT = 0.05
 TRAIN_DATA_PERCENT = 1.0
 TRAIN_VISUALIZATION = True
-TRAIN_TAG = "test"
+TRAIN_TAG = "train"
 TRAIN_SEED = 19
 TRAIN_VALIDATION = True
 TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + TRAIN_TAG
@@ -33,6 +33,10 @@ DIRECTORY_MASK = DIRECTORY_PREFIX + 'data/train/masks/'  # augmentation
 # DIRECTORY_UNTRANSFORMED_MASK = DIRECTORY_PREFIX + 'data/train/masks/'  # augmentation
 DIRECTORY_DEPTH = DIRECTORY_PREFIX + 'data/depths.csv'
 DIRECTORY_CHECKPOINT = DIRECTORY_PREFIX + "tensorboard/" + TRAIN_TAG + "/checkpoints/"
+DIRECTORY_TEST = DIRECTORY_PREFIX + 'data/test/images/'
+
+PREDICTION_TAG = "test"
+PREDICTION_LOAD_TAG = ""
 
 global_step = 0
 
@@ -55,6 +59,9 @@ class ImgAugTransform:
         self.aug = self.aug.to_deterministic(n)
         return self
 
+PREDICT_TRANSFORM = transforms.Compose([
+                transforms.Resize((101, 101))
+            ])
 
 
 # TRAIN_SEQUENCE = iaa.Sequential([
