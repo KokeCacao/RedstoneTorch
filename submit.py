@@ -35,6 +35,7 @@ def submit(net, gpu):
             print(mask_pred.size())
             masks_pred_pil = config.PREDICT_TRANSFORM_Back(tensor_to_PIL(mask_pred))
             masks_pred_np = np.array(masks_pred_pil)
+            print(masks_pred_np.shape)
 
             enc = rle_encode(masks_pred_np)
             f.write('{},{}\n'.format(img_name, ' '.join(map(str, enc))))
