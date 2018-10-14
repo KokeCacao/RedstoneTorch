@@ -101,10 +101,11 @@ def train_net(net,
                 image = image.cuda()
                 true_mask = true_mask.cuda()
 
-            """Need to repeat three times because the net will automatically reduce C when the Cs are the same"""
-            masks_pred = net(image).repeat(1, 3, 1, 1)
-            print(masks_pred.size())
-            print(true_mask.size())
+            """
+            Input: N, 1, H, W
+            Output: N, 1, H, W
+            """
+            masks_pred = net(image)
 
             iou = iou_score(masks_pred, true_mask).mean().float()
             epoch_iou = epoch_iou + iou
