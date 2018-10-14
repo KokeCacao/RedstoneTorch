@@ -60,32 +60,32 @@ def get_args():
 
 
 # credits to https://stackoverflow.com/users/6076729/manuel-lagunas
-# def rle_encode(mask_image):
-#     pixels = mask_image.flatten()
-#     # We avoid issues with '1' at the start or end (at the corners of
-#     # the original image) by setting those pixels to '0' explicitly.
-#     # We do not expect these to be non-zero for an accurate mask,
-#     # so this should not harm the score.
-#     pixels[0] = 0
-#     pixels[-1] = 0
-#     runs = np.where(pixels[1:] != pixels[:-1])[0] + 2
-#     runs[1::2] = runs[1::2] - runs[:-1:2]
-#     return runs
+def rle_encode(mask_image):
+    pixels = mask_image.flatten()
+    # We avoid issues with '1' at the start or end (at the corners of
+    # the original image) by setting those pixels to '0' explicitly.
+    # We do not expect these to be non-zero for an accurate mask,
+    # so this should not harm the score.
+    pixels[0] = 0
+    pixels[-1] = 0
+    runs = np.where(pixels[1:] != pixels[:-1])[0] + 2
+    runs[1::2] = runs[1::2] - runs[:-1:2]
+    return runs
 
 
-# ref.: https://www.kaggle.com/stainsby/fast-tested-rle
-def rle_encode(img):
-    '''
-    img: numpy array, 1 - mask, 0 - background
-    Returns run length as string formated
-    '''
-    pixels = img.flatten(order = 'F')
-    pixels[0] = 0 # add to prevent bug
-    pixels[-1] = 0 # add to prevent bug
-    pixels = np.concatenate([[0], pixels, [0]])
-    runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
-    runs[1::2] -= runs[::2]
-    return ' '.join(str(x) for x in runs)
+# # ref.: https://www.kaggle.com/stainsby/fast-tested-rle
+# def rle_encode(img):
+#     '''
+#     img: numpy array, 1 - mask, 0 - background
+#     Returns run length as string formated
+#     '''
+#     pixels = img.flatten(order = 'F')
+#     pixels[0] = 0 # add to prevent bug
+#     pixels[-1] = 0 # add to prevent bug
+#     pixels = np.concatenate([[0], pixels, [0]])
+#     runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
+#     runs[1::2] -= runs[::2]
+#     return ' '.join(str(x) for x in runs)
 
 
 def rle_decode(mask_rle, shape):
