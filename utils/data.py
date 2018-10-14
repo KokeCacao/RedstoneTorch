@@ -91,42 +91,50 @@ class TGSData(data.Dataset):
         IMGAUG: https://imgaug.readthedocs.io/en/latest/source/examples_segmentation_maps.html#a-simple-example
         EXAMPLE: https://colab.research.google.com/drive/109vu3F1LTzD1gdVV6cho9fKGx7lzbFll#scrollTo=8q8a2Ha9pnaz
         """
-        image_aug_transform = config.ImgAugTransform().to_deterministic()
-        TRAIN_TRANSFORM = {
-            'image': transforms.Compose([
-                image_aug_transform,
-                lambda x: PIL.Image.fromarray(x),
-                transforms.Resize((224, 224)),
-                # transforms.RandomResizedCrop(224),
-                # transforms.Grayscale(),
-                # transforms.RandomHorizontalFlip(),
-                # transforms.RandomVerticalFlip(),
-                transforms.ToTensor(),
-                # transforms.Normalize(mean = [0.456, 0.456, 0.406], std = [0.229, 0.224, 0.225])
-            ]),
-            'mask': transforms.Compose([
-                image_aug_transform,
-                lambda x: PIL.Image.fromarray(x),
-                transforms.Resize((224, 224)),
-                # transforms.CenterCrop(224),
-                transforms.Grayscale(3),
-                # transforms.RandomHorizontalFlip(),
-                # transforms.RandomVerticalFlip(),
-                lambda x: x.convert('L').point(lambda x : 255 if x > 127.5 else 0, mode='1'),
-                transforms.ToTensor(),
-                # transforms.Normalize(mean=[0.5, 0.5, 0.5],
-                #                     std=[0.225, 0.225, 0.225]),
-            ])
-        }
 
-        image = TRAIN_TRANSFORM['image'](image_0)
-        mask = TRAIN_TRANSFORM['mask'](mask_0)
+        if index in self.train_indices:
+            image_aug_transform = config.ImgAugTransform().to_deterministic()
+            TRAIN_TRANSFORM = {
+                'image': transforms.Compose([
+                    image_aug_transform,
+                    lambda x: PIL.Image.fromarray(x),
+                    transforms.Resize((224, 224)),
+                    # transforms.RandomResizedCrop(224),
+                    # transforms.Grayscale(),
+                    # transforms.RandomHorizontalFlip(),
+                    # transforms.RandomVerticalFlip(),
+                    transforms.ToTensor(),
+                    # transforms.Normalize(mean = [0.456, 0.456, 0.406], std = [0.229, 0.224, 0.225])
+                ]),
+                'mask': transforms.Compose([
+                    image_aug_transform,
+                    lambda x: PIL.Image.fromarray(x),
+                    transforms.Resize((224, 224)),
+                    # transforms.CenterCrop(224),
+                    transforms.Grayscale(3),
+                    # transforms.RandomHorizontalFlip(),
+                    # transforms.RandomVerticalFlip(),
+                    lambda x: x.convert('L').point(lambda x : 255 if x > 127.5 else 0, mode='1'),
+                    transforms.ToTensor(),
+                    # transforms.Normalize(mean=[0.5, 0.5, 0.5],
+                    #                     std=[0.225, 0.225, 0.225]),
+                ])
+            }
 
-        # seq_det = TRAIN_SEQUENCE.to_deterministic()
-        # image = seq_det.augment_images(np.array(image))
-        # mask = seq_det.augment_images(np.array(mask))
+            image = TRAIN_TRANSFORM['image'](image_0)
+            mask = TRAIN_TRANSFORM['mask'](mask_0)
 
-        return (id, z, image, mask, transforms.ToTensor()(image_0), transforms.ToTensor()(mask_0))
+            # seq_det = TRAIN_SEQUENCE.to_deterministic()
+            # image = seq_det.augment_images(np.array(image))
+            # mask = seq_det.augment_images(np.array(mask))
+
+            return (id, z, image, mask, transforms.ToTensor()(image_0), transforms.ToTensor()(mask_0))
+        elif index in self.val_indices:
+            image = config.PREDICT_TRANSFORM(image_0)
+            mask = config.PREDICT_TRANSFORM(mask_0)
+            return (id, z, image, mask, transforms.ToTensor()(image_0), transforms.ToTensor()(mask_0))
+        else:
+            return None
 
     """CONFIGURATION"""
     def get_load_image_by_id(self, id):
