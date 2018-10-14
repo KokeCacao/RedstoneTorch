@@ -116,11 +116,10 @@ class TGSData(data.Dataset):
                 # transforms.Grayscale(),
                 # transforms.RandomHorizontalFlip(),
                 # transforms.RandomVerticalFlip(),
+                lambda x: x.convert('L').point(lambda x : 255 if x > 127.5 else 0, mode='1')
                 transforms.ToTensor(),
                 # transforms.Normalize(mean=[0.5, 0.5, 0.5],
                 #                     std=[0.225, 0.225, 0.225]),
-                lambda x: x>0.5,
-                lambda x: float(x)
             ])
         }
 
