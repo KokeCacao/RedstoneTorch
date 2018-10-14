@@ -16,7 +16,7 @@ global_plot_step = 0
 def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_num=0):
     """Evaluation without the densecrf with the dice coefficient"""
     # total_loss = 0
-    total_iou = 0
+    total_ious = []
     for batch_index, (id, z, image, true_mask, image_0, true_mask_0) in enumerate(validation_loader, 0):
 
         if gpu != "":
@@ -26,8 +26,8 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
 
         masks_pred = net(image).repeat(1, 3, 1, 1)
         ious = iou_score(masks_pred, true_mask)
+        total_ious = total_ious + ious
         iou = ious.mean().float()
-        total_iou = total_iou + iou
 
         if visualization and batch_index==0:
             writer.add_pr_curve("loss/epoch_validation_image", true_mask, masks_pred, global_step=epoch_num)
@@ -79,7 +79,9 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
         # return total_loss / (num+1e-10)
         del id, z, image, true_mask
         if gpu != "": torch.cuda.empty_cache()  # release gpu memory
-    return total_iou/(batch_index+1e-10)
+
+    writer.add_histogram("iou", total_ious, global_step=global_plot_step)
+    return total_ious.mean().float()
 
 def tensor_to_PIL(tensor):
     image = tensor.cpu().clone()
