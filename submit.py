@@ -113,8 +113,7 @@ if __name__ == '__main__':
     if args.shreshold != 0.5: config.PREDICT_TRANSFORM_Back = transforms.Compose([
                 transforms.Resize((101, 101)),
                 transforms.Grayscale(),
-                lambda x: x>args.shreshold,
-                lambda x: float(x)
+                lambda x: x>args.shreshold * 1.0
             ])
 
     print("Current Directory: " + str(os.getcwd()))

@@ -70,8 +70,7 @@ PREDICT_TRANSFORM = transforms.Compose([
 PREDICT_TRANSFORM_Back = transforms.Compose([
                 transforms.Resize((101, 101)),
                 transforms.Grayscale(),
-                lambda x: x>0.5,
-                lambda x: float(x)
+                lambda x: x>args.shreshold * 1.0
             ])
 
 
