@@ -29,7 +29,6 @@ def submit(net, gpu):
             print('{} --- {}/{}'.format(img_name, index, len(directory_list)))
 
             img = Image.open(config.DIRECTORY_TEST + img_name).convert('RGB')
-            print(img.size())
             img = config.PREDICT_TRANSFORM(img).unsqueeze(0)
             print(img.size())
 
