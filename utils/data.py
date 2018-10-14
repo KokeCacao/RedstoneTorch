@@ -113,7 +113,7 @@ class TGSData(data.Dataset):
                 lambda x: PIL.Image.fromarray(x),
                 transforms.Resize((224, 224)),
                 # transforms.CenterCrop(224),
-                # transforms.Grayscale(),
+                transforms.Grayscale(3),
                 # transforms.RandomHorizontalFlip(),
                 # transforms.RandomVerticalFlip(),
                 lambda x: x.convert('L').point(lambda x : 255 if x > 127.5 else 0, mode='1'),
