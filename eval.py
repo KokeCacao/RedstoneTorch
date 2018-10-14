@@ -17,7 +17,8 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
     thresold_dict = dict()
     """Evaluation without the densecrf with the dice coefficient"""
     # total_loss = 0
-    total_ious = np.array()
+    total_ious = np.array([])
+
     for batch_index, (id, z, image, true_mask, image_0, true_mask_0) in enumerate(validation_loader, 0):
 
         if gpu != "":
