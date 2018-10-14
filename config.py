@@ -71,7 +71,7 @@ PREDICT_TRANSFORM = transforms.Compose([
 PREDICT_TRANSFORM_Back = transforms.Compose([
                 transforms.Resize((101, 101)),
                 transforms.Grayscale(),
-                lambda x: x>TRAIN_CHOSEN_THRESHOLD * 1.0
+                lambda x: x.convert('L').point(lambda x : 255 if x > 127.5 else 0, mode='1')
             ])
 
 
