@@ -29,7 +29,7 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
         ious = iou_score(masks_pred, true_mask, threshold=0.5)
         if config.TRAIN_THRESHOLD_TEST == True:
             for threshold in config.TRAIN_TRY_THRESHOLD:
-                thresold_dict[threshold] = thresold_dict[threshold].append(iou_score(masks_pred, true_mask, threshold).mean().float())
+                thresold_dict.update({threshold, thresold_dict.get(threshold).append(iou_score(masks_pred, true_mask, threshold).mean().float())})
         total_ious = total_ious + ious
         # iou = ious.mean().float()
 
@@ -69,7 +69,7 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
                 plt.imshow(tensor_to_PIL(masks_pred[index]))
                 plt.title("Predicted")
                 plt.grid(False)
-                writer.add_figure("image/epoch_validation/"+str(index), F, global_step=global_plot_step, close=False, walltime=None)
+                writer.add_figure("image/epoch_validation/"+str(index)+"img", F, global_step=global_plot_step, close=False, walltime=None)
         # print("iou:", iou.mean())
 
         # masks_probs = torch.sigmoid(masks_pred)
