@@ -75,7 +75,7 @@ def predict(net, image, gpu):
     if image.mean() < 1e-5:
         print("dark")
         print(image.size())
-        return tensor.new_zeros(image.size())
+        return torch.zeros(image.size())
     """Need to repeat three times because the net will automatically reduce C when the Cs are the same"""
     masks_pred = net(image)
     print(masks_pred.size())

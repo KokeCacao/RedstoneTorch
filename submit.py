@@ -18,6 +18,7 @@ from unet import UNet
 
 
 def submit(net, gpu):
+    torch.no_grad()
     """Used for Kaggle submission: predicts and encode all test images"""
     directory_list = os.listdir(config.DIRECTORY_TEST)
     if not os.path.exists(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG):
@@ -71,7 +72,8 @@ def rle_encode(mask_image):
     runs = np.where(pixels[1:] != pixels[:-1])[0] + 2
     runs[1::2] = runs[1::2] - runs[:-1:2]
     return runs
-
+# def rle_to_string(runs):
+#     return ' '.join(str(x) for x in runs)
 
 # # ref.: https://www.kaggle.com/stainsby/fast-tested-rle
 # def rle_encode(img):
