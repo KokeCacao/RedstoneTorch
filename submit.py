@@ -52,6 +52,7 @@ def get_args():
     parser.add_option('-c', '--load', dest='load', default=False, help='load file model')
     parser.add_option('-p', '--dir_prefix', dest='dir_prefix', default="", help='the root directory')
     parser.add_option('-t', '--tag', dest='tag', default="", help='tag for tensorboard-log')
+    parser.add_option('-h', '--shreshold', dest='shreshold', default=0.5, type='float', help='tag for tensorboard-log')
 
     (options, args) = parser.parse_args()
     return options
@@ -109,6 +110,12 @@ if __name__ == '__main__':
         config.TRAIN_LOAD = args.load
         config.PREDICTION_LOAD_TAG = config.TRAIN_LOAD.replace("/", "-").replace(".pth", "-")
     if args.tag != "": config.PREDICTION_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + args.tag
+    if args.shreshold != 0.5: config.PREDICT_TRANSFORM_Back = transforms.Compose([
+                transforms.Resize((101, 101)),
+                transforms.Grayscale(),
+                lambda x: x>args.shreshold,
+                lambda x: x.float()
+            ])
 
     print("Current Directory: " + str(os.getcwd()))
     print("====================================")
@@ -145,6 +152,7 @@ if __name__ == '__main__':
 # print(f"Usedtime = {t2-t1} s")
 
 """
-python submit.py --load tensorboard/2018-10-13-19-53-02-729361-test/checkpoints/CP31.pth --tag bronze-here
+python submit.py --load tensorboard/2018-10-13-19-53-02-729361-test/checkpoints/CP36.pth --tag bronze-here
+download: ResUnet/data/test/images/predicted/SUBMISSION-2018-10-14-03-07-31-316206-bronze-here.csv
 
 """
