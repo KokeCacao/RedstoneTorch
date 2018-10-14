@@ -25,6 +25,7 @@ TRAIN_NUM_WORKER = 0
 TRAIN_HISTOGRAM = False
 TRAIN_TRY_THRESHOLD = np.linspace(0.3, 0.7, 31)
 TRAIN_THRESHOLD_TEST = True
+TRAIN_CHOSEN_THRESHOLD = 0.5
 
 DIRECTORY_PREFIX = ""
 DIRECTORY_SUFFIX_IMG = ".png"
@@ -70,7 +71,7 @@ PREDICT_TRANSFORM = transforms.Compose([
 PREDICT_TRANSFORM_Back = transforms.Compose([
                 transforms.Resize((101, 101)),
                 transforms.Grayscale(),
-                lambda x: x>args.shreshold * 1.0
+                lambda x: x>TRAIN_CHOSEN_THRESHOLD * 1.0
             ])
 
 
