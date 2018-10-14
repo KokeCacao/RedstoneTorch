@@ -131,8 +131,8 @@ def get_args():
 
 if __name__ == "__main__":
     args = get_args()
-    in_files = args.input
-    out_files = get_output_filenames(args)
+    # in_files = args.input
+    # out_files = get_output_filenames(args)
 
     # net = UNet(n_channels=3, n_classes=1)
     #
