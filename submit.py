@@ -52,7 +52,7 @@ def get_args():
     parser.add_option('-c', '--load', dest='load', default=False, help='load file model')
     parser.add_option('-p', '--dir_prefix', dest='dir_prefix', default="", help='the root directory')
     parser.add_option('-t', '--tag', dest='tag', default="", help='tag for tensorboard-log')
-    parser.add_option('-h', '--shreshold', dest='shreshold', default=0.5, type='float', help='tag for tensorboard-log')
+    parser.add_option('-s', '--shreshold', dest='shreshold', default=0.5, type='float', help='tag for tensorboard-log')
 
     (options, args) = parser.parse_args()
     return options
