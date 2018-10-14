@@ -18,7 +18,6 @@ from unet import UNet
 
 
 def submit(net, gpu):
-    print("start")
     """Used for Kaggle submission: predicts and encode all test images"""
     directory_list = os.listdir(config.DIRECTORY_TEST)
     if not os.path.exists(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG):
@@ -33,11 +32,12 @@ def submit(net, gpu):
             print(img.size())
 
             mask_pred = predict(net, img, gpu).squeeze(0)
-            print(img.size())
+            print(mask_pred.size())
             masks_pred_pil = config.PREDICT_TRANSFORM_Back(tensor_to_PIL(mask_pred))
             masks_pred_np = np.array(masks_pred_pil)
 
             enc = rle_encode(np.mean(masks_pred_np, 0, keepdims=False))
+            print(enc.size())
             f.write('{},{}\n'.format(img_name, ' '.join(map(str, enc))))
             masks_pred_pil.save(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + "/" + img_name)
 
