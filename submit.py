@@ -1,9 +1,15 @@
 import os
 import sys
+import matplotlib as mpl
 import numpy as np
 from datetime import datetime
 from tqdm import tqdm
 from PIL import Image
+
+if os.environ.get('DISPLAY','') == '':
+    print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')
+    mpl.use('Agg')
+from matplotlib import pyplot as plt
 
 import torch
 
@@ -14,10 +20,10 @@ from torchvision.transforms import transforms
 import config
 from predict import predict
 from unet.unet_model import UNetResNet
-from unet import UNet
+from tensorboardX import SummaryWriter
 
 
-def submit(net, gpu):
+def submit(net, gpu, writer):
     torch.no_grad()
     """Used for Kaggle submission: predicts and encode all test images"""
     directory_list = os.listdir(config.DIRECTORY_TEST)
@@ -29,15 +35,27 @@ def submit(net, gpu):
             if config.DIRECTORY_SUFFIX_IMG not in img_name: continue
 
             img = Image.open(config.DIRECTORY_TEST + img_name).convert('RGB')
-            img = config.PREDICT_TRANSFORM(img).unsqueeze(0) # add N
+            img_n = config.PREDICT_TRANSFORM(img).unsqueeze(0) # add N
 
-            mask_pred = predict(net, img, gpu).squeeze(0) # reduce N
+            mask_pred = predict(net, img_n, gpu).squeeze(0) # reduce N
             masks_pred_pil = config.PREDICT_TRANSFORM_BACK(tensor_to_PIL(mask_pred)) # reduce C from 3 to 1
             masks_pred_np = np.expand_dims(np.array(masks_pred_pil), axis=0) # squeezed out by numpy, but add one
 
             enc = rle_encode(masks_pred_np)
             f.write('{},{}\n'.format(img_name.replace(config.DIRECTORY_SUFFIX_MASK, ""), ' '.join(map(str, enc))))
-            masks_pred_pil.save(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + "/" + img_name)
+
+            if index % 100 == 0:
+                F = plt.figure()
+                plt.subplot(121)
+                plt.imshow(img)
+                plt.title("Image_Real")
+                plt.grid(False)
+                plt.subplot(122)
+                plt.imshow(masks_pred_pil)
+                plt.title("Predicted")
+                plt.grid(False)
+                writer.add_figure("image/" + str(img_name) + "img", F, global_step=index)
+            if config.PREDICTION_SAVE_IMG: masks_pred_pil.save(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + "/" + img_name)
 
 def tensor_to_PIL(tensor):
     image = tensor.cpu().clone()
@@ -110,6 +128,8 @@ if __name__ == '__main__':
         config.TRAIN_LOAD = args.load
         config.PREDICTION_LOAD_TAG = config.TRAIN_LOAD.replace("/", "-").replace(".pth", "-")
     if args.tag != "": config.PREDICTION_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + args.tag
+    writer = SummaryWriter("tensorboard/" + config.TRAIN_TAG + "-predict")
+    print("Copy this line to command: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + config.TRAIN_TAG + "-predict" + " --port=6006")
     if args.shreshold != 0.5: config.PREDICT_TRANSFORM_BACK = transforms.Compose([
                 transforms.Resize((101, 101)),
                 transforms.Grayscale(),
@@ -137,7 +157,7 @@ if __name__ == '__main__':
         os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
     try:
-        submit(net=net, gpu=config.TRAIN_GPU)
+        submit(net=net, gpu=config.TRAIN_GPU, writer=writer)
     except KeyboardInterrupt as e:
         print(e)
         try:
@@ -152,6 +172,12 @@ if __name__ == '__main__':
 
 """
 python submit.py --load tensorboard/2018-10-13-19-53-02-729361-test/checkpoints/CP36.pth --tag bronze-here
+download: ResUnet/data/test/images/predicted/SUBMISSION-2018-10-14-11-53-06-571963-bronze-here.csv
+ResUnet/data/test/images/predicted/2018-10-14-05-12-51-616453-bronze-here/78a68dece6.png
+
+
+python submit.py --load tensorboard/2018-10-13-19-53-02-729361-test/checkpoints/CP50.pth --tag second
+
 download: ResUnet/data/test/images/predicted/SUBMISSION-2018-10-14-11-53-06-571963-bronze-here.csv
 ResUnet/data/test/images/predicted/2018-10-14-05-12-51-616453-bronze-here/78a68dece6.png
 

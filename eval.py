@@ -69,7 +69,7 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
                 plt.imshow(tensor_to_PIL(masks_pred[index]))
                 plt.title("Predicted")
                 plt.grid(False)
-                writer.add_figure("image/epoch_validation/"+str(index)+"img", F, global_step=global_plot_step, close=False, walltime=None)
+                writer.add_figure("image/epoch_validation/"+str(index)+"img", F, global_step=global_plot_step)
         # print("iou:", iou.mean())
 
         # masks_probs = torch.sigmoid(masks_pred)
