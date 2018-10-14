@@ -26,17 +26,17 @@ def submit(net, gpu):
     with open(config.DIRECTORY_TEST + "predicted/SUBMISSION-" + config.PREDICTION_TAG + ".csv", 'a') as f:
         f.write('id,rle_mask\n')
         for index, img_name in enumerate(tqdm(directory_list)):
-            print('{} --- {}/{}'.format(img_name, index, len(directory_list)))
-
+            if config.DIRECTORY_SUFFIX_IMG not in img_name: continue
+            
             img = Image.open(config.DIRECTORY_TEST + img_name).convert('RGB')
             img = config.PREDICT_TRANSFORM(img).unsqueeze(0) # add N
 
             mask_pred = predict(net, img, gpu).squeeze(0) # reduce N
-            masks_pred_pil = config.PREDICT_TRANSFORM_Back(tensor_to_PIL(mask_pred)) # reduce C from 3 to 1
+            masks_pred_pil = config.PREDICT_TRANSFORM_BACK(tensor_to_PIL(mask_pred)) # reduce C from 3 to 1
             masks_pred_np = np.expand_dims(np.array(masks_pred_pil), axis=0) # squeezed out by numpy, but add one
 
             enc = rle_encode(masks_pred_np)
-            f.write('{},{}\n'.format(img_name, ' '.join(map(str, enc))))
+            f.write('{},{}\n'.format(img_name.replace(config.DIRECTORY_SUFFIX_MASK, ""), ' '.join(map(str, enc))))
             masks_pred_pil.save(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + "/" + img_name)
 
 def tensor_to_PIL(tensor):
@@ -110,7 +110,7 @@ if __name__ == '__main__':
         config.TRAIN_LOAD = args.load
         config.PREDICTION_LOAD_TAG = config.TRAIN_LOAD.replace("/", "-").replace(".pth", "-")
     if args.tag != "": config.PREDICTION_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + args.tag
-    if args.shreshold != 0.5: config.PREDICT_TRANSFORM_Back = transforms.Compose([
+    if args.shreshold != 0.5: config.PREDICT_TRANSFORM_BACK = transforms.Compose([
                 transforms.Resize((101, 101)),
                 transforms.Grayscale(),
                 lambda x: x.convert('L').point(lambda x: 255 if x > 255*args.shreshold else 0, mode='1'),
@@ -152,6 +152,7 @@ if __name__ == '__main__':
 
 """
 python submit.py --load tensorboard/2018-10-13-19-53-02-729361-test/checkpoints/CP36.pth --tag bronze-here
-download: ResUnet/data/test/images/predicted/SUBMISSION-2018-10-14-03-07-31-316206-bronze-here.csv
+download: ResUnet/data/test/images/predicted/SUBMISSION-2018-10-14-05-12-51-616453-bronze-here.csv
+ResUnet/data/test/images/predicted/2018-10-14-05-12-51-616453-bronze-here/78a68dece6.png
 
 """
