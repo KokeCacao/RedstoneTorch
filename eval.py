@@ -97,7 +97,7 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
 
     print(total_ious)
     writer.add_histogram("iou", total_ious, global_plot_step)
-    return total_ious.mean().float()
+    return total_ious.mean()
 
 def tensor_to_PIL(tensor):
     image = tensor.cpu().clone()
