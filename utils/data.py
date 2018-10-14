@@ -93,10 +93,6 @@ class TGSData(data.Dataset):
         """
         image_aug_transform = config.ImgAugTransform().to_deterministic()
         TRAIN_TRANSFORM = {
-            # 'depth': transforms.Compose([
-            #     transforms.ToTensor(),
-            #     transforms.Normalize([0.5], [0.5])
-            # ]),
             'image': transforms.Compose([
                 image_aug_transform,
                 lambda x: PIL.Image.fromarray(x),

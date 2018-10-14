@@ -103,6 +103,8 @@ def train_net(net,
 
             """Need to repeat three times because the net will automatically reduce C when the Cs are the same"""
             masks_pred = net(image).repeat(1, 3, 1, 1)
+            print(masks_pred.size())
+            print(true_mask.size())
 
             iou = iou_score(masks_pred, true_mask).mean().float()
             epoch_iou = epoch_iou + iou
