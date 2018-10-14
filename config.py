@@ -61,7 +61,7 @@ class ImgAugTransform:
 
 PREDICT_TRANSFORM = transforms.Compose([
                 transforms.Resize((224, 224)),
-                transforms.Grayscale(),
+                transforms.Grayscale(3),
                 transforms.ToTensor(),
             ])
 
