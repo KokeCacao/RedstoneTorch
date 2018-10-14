@@ -1,6 +1,7 @@
 import os
 
 import matplotlib as mpl
+import numpy as np
 import torch
 import config
 from PIL import ImageChops
@@ -12,8 +13,8 @@ if os.environ.get('DISPLAY','') == '':
 from matplotlib import pyplot as plt
 
 global_plot_step = 0
-
 def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_num=0):
+    thresold_dict = dict()
     """Evaluation without the densecrf with the dice coefficient"""
     # total_loss = 0
     total_ious = []
@@ -25,9 +26,12 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
             true_mask = true_mask.cuda()
 
         masks_pred = net(image).repeat(1, 3, 1, 1)
-        ious = iou_score(masks_pred, true_mask)
+        ious = iou_score(masks_pred, true_mask, threshold=0.5)
+        if config.TRAIN_THRESHOLD_TEST == True:
+            for threshold in config.TRAIN_TRY_THRESHOLD:
+                thresold_dict[threshold] = thresold_dict[threshold].append(iou_score(masks_pred, true_mask, threshold).mean().float())
         total_ious = total_ious + ious
-        iou = ious.mean().float()
+        # iou = ious.mean().float()
 
         if visualization and batch_index==0:
             writer.add_pr_curve("loss/epoch_validation_image", true_mask, masks_pred, global_step=epoch_num)
@@ -80,7 +84,13 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
         del id, z, image, true_mask
         if gpu != "": torch.cuda.empty_cache()  # release gpu memory
 
-    writer.add_histogram("iou", total_ious, global_step=global_plot_step)
+    for key, item in thresold_dict.items():
+        item = np.mean(item)
+        writer.add_scalars('val/threshold', {'Thresold': item}, key)
+
+    writer.add_scalars('val/max_threshold', {'MaxThresold': np.max(thresold_dict.values())}, global_plot_step)
+
+    writer.add_histogram("iou", total_ious, global_plot_step)
     return total_ious.mean().float()
 
 def tensor_to_PIL(tensor):
