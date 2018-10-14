@@ -25,7 +25,7 @@ def submit(net, gpu):
         os.makedirs(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG)
     with open(config.DIRECTORY_TEST + "predicted/SUBMISSION-" + config.PREDICTION_TAG + ".csv", 'a') as f:
         f.write('id,rle_mask\n')
-        for index, img_name in tqdm(enumerate(directory_list)):
+        for index, img_name in enumerate(tqdm(directory_list)):
             print('{} --- {}/{}'.format(img_name, index, len(directory_list)))
 
             img = Image.open(config.DIRECTORY_TEST + img_name).convert('RGB')
