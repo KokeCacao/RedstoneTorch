@@ -150,13 +150,13 @@ def train_net(net,
 
 def get_args():
     parser = OptionParser()
-    parser.add_option('-e', '--epochs', dest='epochs', default=0, type='int', help='number of epochs')
-    parser.add_option('-b', '--batch-size', dest='batchsize', default=0, type='int', help='batch size')
-    parser.add_option('-l', '--learning-rate', dest='lr', default=0, type='float', help='learning rate')
-    parser.add_option('-g', '--gpu', dest='gpu', default="", help='use cuda, please put all gpu id here')
+    # parser.add_option('-e', '--epochs', dest='epochs', default=0, type='int', help='number of epochs')
+    # parser.add_option('-b', '--batch-size', dest='batchsize', default=0, type='int', help='batch size')
+    # parser.add_option('-l', '--learning-rate', dest='lr', default=0, type='float', help='learning rate')
+    # parser.add_option('-g', '--gpu', dest='gpu', default="", help='use cuda, please put all gpu id here')
     parser.add_option('-c', '--load', dest='load', default=False, help='load file model')
-    parser.add_option('-d', '--data_percent', dest='data_percent', default=0.0, type='float', help='the root directory')
-    parser.add_option('-p', '--dir_prefix', dest='dir_prefix', default="", help='the root directory')
+    # parser.add_option('-d', '--data_percent', dest='data_percent', default=0.0, type='float', help='the root directory')
+    # parser.add_option('-p', '--dir_prefix', dest='dir_prefix', default="", help='the root directory')
     parser.add_option('-t', '--tag', dest='tag', default="", help='tag for tensorboard-log')
 
     (options, args) = parser.parse_args()
