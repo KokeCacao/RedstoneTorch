@@ -29,7 +29,7 @@ def submit(net, gpu):
             img = config.PREDICT_TRANSFORM(img)
 
             mask_pred = predict(net, img, gpu)
-            masks_pred_pil = config.PREDICT_TRANSFORM(tensor_to_PIL(mask_pred))
+            masks_pred_pil = config.PREDICT_TRANSFORM_Back(tensor_to_PIL(mask_pred))
             masks_pred_np = np.array(masks_pred_pil)
 
             enc = rle_encode(masks_pred_np)
