@@ -68,7 +68,7 @@ PREDICT_TRANSFORM = transforms.Compose([
                 transforms.ToTensor()
             ])
 
-PREDICT_TRANSFORM_Back = transforms.Compose([
+PREDICT_TRANSFORM_BACK = transforms.Compose([
                 transforms.Resize((101, 101)),
                 transforms.Grayscale(),
                 lambda x: x.convert('L').point(lambda x : 255 if x > 127.5 else 0, mode='1')
