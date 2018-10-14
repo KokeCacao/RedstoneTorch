@@ -40,6 +40,7 @@ DIRECTORY_TEST = DIRECTORY_PREFIX + 'data/test/images/'
 
 PREDICTION_TAG = "test"
 PREDICTION_LOAD_TAG = ""
+PREDICTION_SAVE_IMG = False
 
 global_step = 0
 
