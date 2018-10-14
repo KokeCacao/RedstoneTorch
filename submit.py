@@ -114,7 +114,7 @@ if __name__ == '__main__':
                 transforms.Resize((101, 101)),
                 transforms.Grayscale(),
                 lambda x: x>args.shreshold,
-                lambda x: x.float()
+                lambda x: x.astype(float)
             ])
 
     print("Current Directory: " + str(os.getcwd()))
