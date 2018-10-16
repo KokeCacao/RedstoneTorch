@@ -98,7 +98,8 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
         if gpu != "": torch.cuda.empty_cache()  # release gpu memory
 
     for key, item in thresold_dict.items():
-        item = np.mean(item)
+        print(item)
+        item = item.mean()
         writer.add_scalars('val/threshold', {'Thresold': item}, key)
 
     writer.add_scalars('val/max_threshold', {'MaxThresold': np.max(thresold_dict.values())}, global_plot_step)
@@ -115,8 +116,6 @@ def tensor_to_PIL(tensor):
 
 
 def iou_score(outputs, labels, threshold=0.5):
-    print(outputs.shape)
-    print(labels.shape)
     outputs = outputs > threshold # threshold
 
     # You can comment out this line if you are passing tensors of equal shape
@@ -129,7 +128,6 @@ def iou_score(outputs, labels, threshold=0.5):
     union = (outputs | labels).float().sum((1, 2))  # Will be zero if both are 0
 
     iou = (intersection + 1e-10) / (union + 1e-10)  # We smooth our devision to avoid 0/0
-    print(iou.shape)
 
     # thresholded = torch.clamp(20 * (iou - 0.5), 0, 10).ceil() / 10  # This is equal to comparing with thresolds
 
