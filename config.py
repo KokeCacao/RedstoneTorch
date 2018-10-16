@@ -63,9 +63,16 @@ class ImgAugTransform:
         self.aug = self.aug.to_deterministic(n)
         return self
 
-PREDICT_TRANSFORM = transforms.Compose([
+
+PREDICT_TRANSFORM_IMG = transforms.Compose([
+                transforms.Resize((224, 224)),
+                transforms.ToTensor()
+            ])
+
+PREDICT_TRANSFORM_MASK = transforms.Compose([
                 transforms.Resize((224, 224)),
                 transforms.Grayscale(3),
+                lambda x: x.convert('L').point(lambda x : 255 if x > 127.5 else 0, mode='1'),
                 transforms.ToTensor()
             ])
 
