@@ -34,7 +34,7 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
         if config.TRAIN_THRESHOLD_TEST:
             for threshold in config.TRAIN_TRY_THRESHOLD:
                 print("Evaluating Threshold: {}".format(threshold))
-                iou_temp = iou_score(masks_pred, true_mask, threshold).mean().float()
+                iou_temp = iou_score(masks_pred, true_mask, threshold).mean()
                 if iou_temp.size == 0: print("WARNING: numpy list of IOU score is empty")
                 if thresold_dict.get(threshold) == None:
                     thresold_dict.update({threshold: [iou_temp]})
