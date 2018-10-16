@@ -39,7 +39,10 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
                 if thresold_dict.get(threshold) == None:
                     thresold_dict.update({threshold: [iou_temp]})
                 else:
-                    thresold_dict.update({threshold: thresold_dict.get(threshold).append(iou_temp)})
+                    threshold_pre = thresold_dict.get(threshold)
+                    threshold_pre.append(iou_temp)
+
+                    thresold_dict.update({threshold: threshold_pre})
                 print("Evaluation dictionary: {}".format(thresold_dict))
         total_ious = np.concatenate((total_ious, np.array(ious).flatten()), axis=None)
         # iou = ious.mean().float()
