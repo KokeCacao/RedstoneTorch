@@ -73,7 +73,8 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
                 # plt.grid(False)
 
                 plt.subplot(325)
-                plt.imshow(tensor_to_PIL((masks_pred[index] > Variable(torch.Tensor([config.TRAIN_CHOSEN_THRESHOLD]))).float()*1))
+                if config.TRAIN_GPU: plt.imshow(tensor_to_PIL((masks_pred[index] > Variable(torch.Tensor([config.TRAIN_CHOSEN_THRESHOLD])).cuda()).float()*1))
+                else: pass # TODO
                 plt.title("Error: {}".format(ious[index]))
                 plt.grid(False)
 
@@ -114,6 +115,8 @@ def tensor_to_PIL(tensor):
 
 
 def iou_score(outputs, labels, threshold=0.5):
+    print(outputs.shape)
+    print(labels.shape)
     outputs = outputs > threshold # threshold
 
     # You can comment out this line if you are passing tensors of equal shape
