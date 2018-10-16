@@ -154,13 +154,7 @@ def train_net(net,
 
 def get_args():
     parser = OptionParser()
-    # parser.add_option('-e', '--epochs', dest='epochs', default=0, type='int', help='number of epochs')
-    # parser.add_option('-b', '--batch-size', dest='batchsize', default=0, type='int', help='batch size')
-    # parser.add_option('-l', '--learning-rate', dest='lr', default=0, type='float', help='learning rate')
-    # parser.add_option('-g', '--gpu', dest='gpu', default="", help='use cuda, please put all gpu id here')
     parser.add_option('-c', '--load', dest='load', default=False, help='load file model')
-    # parser.add_option('-d', '--data_percent', dest='data_percent', default=0.0, type='float', help='the root directory')
-    # parser.add_option('-p', '--dir_prefix', dest='dir_prefix', default="", help='the root directory')
     parser.add_option('-t', '--tag', dest='tag', default="", help='tag for tensorboard-log')
 
     (options, args) = parser.parse_args()
@@ -179,13 +173,7 @@ def tensor_to_PIL(tensor):
 
 if __name__ == '__main__':
     args = get_args()
-    # if args.epochs != 0: config.MODEL_EPOCHS = args.epochs
-    # if args.batchsize != 0: config.MODEL_BATCH_SIZE = args.batchsize
-    # if args.lr != 0: config.MODEL_LEARNING_RATE = args.lr
-    # if args.gpu != "": config.TRAIN_GPU = args.gpu
     if args.load != False: config.TRAIN_LOAD = args.load
-    # if args.data_percent != "0.0": config.TRAIN_DATA_PERCENT = args.data_percent
-    # if args.dir_prefix != "": config.DIRECTORY_PREFIX = args.dir_prefix
     if args.tag != "":
         """Update values"""
         config.TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + args.tag
