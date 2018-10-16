@@ -17,7 +17,8 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
     thresold_dict = dict()
     """Evaluation without the densecrf with the dice coefficient"""
     # total_loss = 0
-    total_ious = []
+    total_ious = np.array([])
+
     for batch_index, (id, z, image, true_mask, image_0, true_mask_0) in enumerate(validation_loader, 0):
 
         if gpu != "":
@@ -25,15 +26,16 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
             image = image.cuda()
             true_mask = true_mask.cuda()
 
-        masks_pred = net(image)
+        masks_pred = net(image).repeat(1, 3, 1, 1)
+        """return: shape(N, iou)"""
         ious = iou_score(masks_pred, true_mask, threshold=0.5)
         if config.TRAIN_THRESHOLD_TEST == True:
             for threshold in config.TRAIN_TRY_THRESHOLD:
                 if thresold_dict.get(threshold) == None:
-                    thresold_dict.update({threshold, [iou_score(masks_pred, true_mask, threshold).mean().float()]})
+                    thresold_dict.update({threshold: [iou_score(masks_pred, true_mask, threshold).mean().float()]})
                 else:
-                    thresold_dict.update({threshold, thresold_dict.get(threshold).append(iou_score(masks_pred, true_mask, threshold).mean().float())})
-        total_ious = total_ious + ious
+                    thresold_dict.update({threshold: thresold_dict.get(threshold).append(iou_score(masks_pred, true_mask, threshold).mean().float())})
+        total_ious = np.concatenate((total_ious, np.array(ious).flatten()), axis=None)
         # iou = ious.mean().float()
 
         if visualization and batch_index==0:
@@ -93,8 +95,9 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
 
     writer.add_scalars('val/max_threshold', {'MaxThresold': np.max(thresold_dict.values())}, global_plot_step)
 
+    print(total_ious)
     writer.add_histogram("iou", total_ious, global_plot_step)
-    return total_ious.mean().float()
+    return total_ious.mean()
 
 def tensor_to_PIL(tensor):
     image = tensor.cpu().clone()
