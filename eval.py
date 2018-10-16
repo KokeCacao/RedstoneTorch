@@ -97,7 +97,7 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
         print(key)
         print(item)
         if item == None: continue
-        item = item.mean()
+        item = np.mean(item)
         writer.add_scalars('val/threshold', {'Thresold': item}, key)
 
     writer.add_scalars('val/max_threshold', {'MaxThresold': np.max(thresold_dict.values())}, global_plot_step)
