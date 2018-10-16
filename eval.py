@@ -33,7 +33,6 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
         ious = iou_score(masks_pred, true_mask, threshold=0.5)
         if config.TRAIN_THRESHOLD_TEST:
             for threshold in config.TRAIN_TRY_THRESHOLD:
-                print("Evaluating Threshold: {}".format(threshold))
                 iou_temp = iou_score(masks_pred, true_mask, threshold).mean()
                 if iou_temp.size == 0: print("WARNING: numpy list of IOU score is empty")
                 if thresold_dict.get(threshold) == None:
@@ -43,7 +42,6 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
                     threshold_pre.append(iou_temp)
 
                     thresold_dict.update({threshold: threshold_pre})
-                print("Evaluation dictionary: {}".format(thresold_dict))
         total_ious = np.concatenate((total_ious, np.array(ious).flatten()), axis=None)
         # iou = ious.mean().float()
 
@@ -94,8 +92,6 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
         if gpu != "": torch.cuda.empty_cache()  # release gpu memory
 
     for key, item in thresold_dict.items():
-        print(key)
-        print(item)
         if item == None: continue
         item = np.mean(item)
         writer.add_scalars('val/threshold', {'Thresold': item}, key)
