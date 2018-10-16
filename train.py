@@ -189,7 +189,6 @@ if __name__ == '__main__':
     print("Current Directory: " + str(os.getcwd()))
     print("====================================")
     print("Copy this line to command: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + config.TRAIN_TAG + " --port=6006")
-    print(config.TRAIN_TRY_THRESHOLD)
     print("Loading Neuronetwork...")
     net = UNetResNet(encoder_depth=50, num_classes=1, num_filters=32, dropout_2d=0.2,
                  pretrained=True, is_deconv=True) #don't init weights, don't give depth
