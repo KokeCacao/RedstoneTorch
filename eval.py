@@ -37,7 +37,7 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
                 if thresold_dict.get(threshold) == None:
                     thresold_dict.update({threshold: [iou_score(masks_pred, true_mask, threshold).mean().float()]})
                 else:
-                    thresold_dict.update({threshold: thresold_dict.get(threshold) + iou_score(masks_pred, true_mask, threshold).mean().float()})
+                    thresold_dict.update({threshold: thresold_dict.get(threshold).append(iou_score(masks_pred, true_mask, threshold).mean().float())})
                 print("Evaluation dictionary: {}".format(thresold_dict))
         total_ious = np.concatenate((total_ious, np.array(ious).flatten()), axis=None)
         # iou = ious.mean().float()
@@ -85,18 +85,7 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
                 plt.title("Predicted")
                 plt.grid(False)
                 writer.add_figure("image/epoch_validation/"+str(index), F, global_step=global_plot_step)
-        # print("iou:", iou.mean())
-
-        # masks_probs = torch.sigmoid(masks_pred)
-        # masks_probs_flat = masks_probs.view(-1)
-        # # threshole transform from probability to solid mask
-        # masks_probs_flat = (masks_probs_flat > 0.5).float()
-        #
-        # true_mask_flat = true_mask.view(-1)
-        #
-        # total_loss += dice_coeff(masks_probs_flat, true_mask_flat).item()
-        # return total_loss / (num+1e-10)
-        del id, z, image, true_mask
+        # del id, z, image, true_mask
         if gpu != "": torch.cuda.empty_cache()  # release gpu memory
 
     for key, item in thresold_dict.items():
