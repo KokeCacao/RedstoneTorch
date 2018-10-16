@@ -85,11 +85,13 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
                 plt.title("Predicted")
                 plt.grid(False)
                 writer.add_figure("image/epoch_validation/"+str(index), F, global_step=global_plot_step)
-        # del id, z, image, true_mask
+        del id, z, image, true_mask
         if gpu != "": torch.cuda.empty_cache()  # release gpu memory
 
     for key, item in thresold_dict.items():
+        print(key)
         print(item)
+        if item == None: continue
         item = item.mean()
         writer.add_scalars('val/threshold', {'Thresold': item}, key)
 
