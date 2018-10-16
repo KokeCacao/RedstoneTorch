@@ -8,3 +8,4 @@ SUBMISSION*
 .idea/workspace.xml
 data/train/images/output/*
 data/train/masks/output/*
+.idea
