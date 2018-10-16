@@ -35,7 +35,7 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
             for threshold in config.TRAIN_TRY_THRESHOLD:
                 print("Evaluating Threshold: {}".format(threshold))
                 iou_temp = iou_score(masks_pred, true_mask, threshold).mean().float()
-                if iou_temp == None: print("WARNING: IOU score is None")
+                if iou_temp.size == 0: print("WARNING: numpy list of IOU score is empty")
                 if thresold_dict.get(threshold) == None:
                     thresold_dict.update({threshold: [iou_temp]})
                 else:
@@ -125,8 +125,6 @@ def iou_score(outputs, labels, threshold=0.5):
     iou = np.array((intersection + 1e-10) / (union + 1e-10))  # We smooth our devision to avoid 0/0
 
     # thresholded = torch.clamp(20 * (iou - 0.5), 0, 10).ceil() / 10  # This is equal to comparing with thresolds
-    if iou == None:
-        print("WARNING: iou output is None")
     return iou  # Or thresholded.mean() if you are interested in average across the batch
 
 
