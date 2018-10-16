@@ -31,7 +31,7 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
         masks_pred = net(image)
         """return: shape(N, iou)"""
         ious = iou_score(masks_pred, true_mask, threshold=0.5)
-        if config.TRAIN_THRESHOLD_TEST == True:
+        if config.TRAIN_THRESHOLD_TEST:
             for threshold in config.TRAIN_TRY_THRESHOLD:
                 if thresold_dict.get(threshold) == None:
                     thresold_dict.update({threshold: [iou_score(masks_pred, true_mask, threshold).mean().float()]})
