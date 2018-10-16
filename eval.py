@@ -3,6 +3,8 @@ import os
 import matplotlib as mpl
 import numpy as np
 import torch
+from torch.autograd import Variable
+
 import config
 from PIL import ImageChops
 from torchvision import transforms
@@ -65,8 +67,13 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
                 plt.title("Mask_Trans")
                 plt.grid(False)
 
+                # plt.subplot(325)
+                # plt.imshow(ImageChops.difference(tensor_to_PIL(true_mask[index]), tensor_to_PIL(masks_pred[index])))
+                # plt.title("Error: {}".format(ious[index]))
+                # plt.grid(False)
+
                 plt.subplot(325)
-                plt.imshow(ImageChops.difference(tensor_to_PIL(true_mask[index]), tensor_to_PIL(masks_pred[index])))
+                plt.imshow(tensor_to_PIL((masks_pred[index] > Variable(torch.Tensor([config.TRAIN_CHOSEN_THRESHOLD]))).float()*1))
                 plt.title("Error: {}".format(ious[index]))
                 plt.grid(False)
 
@@ -119,6 +126,7 @@ def iou_score(outputs, labels, threshold=0.5):
     union = (outputs | labels).float().sum((1, 2))  # Will be zero if both are 0
 
     iou = (intersection + 1e-10) / (union + 1e-10)  # We smooth our devision to avoid 0/0
+    print(iou.shape)
 
     # thresholded = torch.clamp(20 * (iou - 0.5), 0, 10).ceil() / 10  # This is equal to comparing with thresolds
 
