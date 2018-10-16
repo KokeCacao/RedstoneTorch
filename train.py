@@ -94,6 +94,7 @@ def train_net(net,
 
         # batch size should < 4000 due to the amount of data avaliable
         for batch_index, (id, z, image, true_mask, image_0, true_mask_0) in enumerate(train_loader, 0):
+
             config.global_step = config.global_step +1
 
             if gpu != "":
@@ -297,5 +298,6 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/t
 
 
 
-python train.py --tag "new day"
+python train.py --tag "new-day"
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-14-14-05-57-388044-new-day2 --port=6006
 """
