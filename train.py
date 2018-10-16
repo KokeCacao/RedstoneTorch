@@ -132,7 +132,7 @@ def train_net(net,
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            del id, z, image, true_mask
+            # del id, z, image, true_mask
             if gpu != "": torch.cuda.empty_cache()  # release gpu memory
         print('{}# Epoch finished ! Loss: {}, IOU: {}'.format(epoch_index+1, epoch_loss/(batch_index+1), epoch_iou/(batch_index+1)))
         if save_cp:
