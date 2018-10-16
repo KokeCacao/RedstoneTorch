@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0dd777d8-05cc-4cce-86da-522041d1016c" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/eval.py" beforeDir="false" afterPath="$PROJECT_DIR$/eval.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/data.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -66,23 +64,23 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="dummy" value="35" />
-          <entry key="py" value="12647" />
+          <entry key="py" value="12687" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="35" />
-          <entry key="Python" value="12647" />
+          <entry key="Python" value="12687" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="py" value="73" />
+          <entry key="py" value="76" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
-          <entry key="Python" value="73" />
+          <entry key="Python" value="76" />
         </counts>
       </usages-collector>
     </session>
@@ -92,8 +90,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/train.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1185">
-              <caret line="160" column="18" lean-forward="true" selection-start-line="160" selection-start-column="18" selection-end-line="160" selection-end-column="18" />
+            <state relative-caret-position="693">
+              <caret line="288" selection-start-line="288" selection-end-line="288" selection-end-column="31" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -128,8 +126,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/eval.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="375">
-              <caret line="30" column="31" selection-start-line="30" selection-start-column="31" selection-end-line="30" selection-end-column="31" />
+            <state relative-caret-position="370">
+              <caret line="100" column="18" selection-start-line="100" selection-start-column="18" selection-end-line="100" selection-end-column="18" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -140,7 +138,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/submit.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="705">
+            <state relative-caret-position="570">
               <caret line="47" column="23" selection-start-line="47" selection-start-column="23" selection-end-line="47" selection-end-column="23" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
@@ -198,10 +196,10 @@
       <find>.mean()</find>
       <find>TRAIN_THRESHOLD_TEST</find>
       <find>total_ious</find>
-      <find>total_ious.mean().float()</find>
-      <find>plt</find>
-      <find>ious</find>
       <find>224</find>
+      <find>total_ious.mean().float()</find>
+      <find>ious</find>
+      <find>plt</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -457,20 +455,6 @@
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$USER_HOME$/miniconda2/envs/ml/lib/python3.6/site-packages/torch/utils/data/sampler.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="308">
-          <caret line="63" column="8" selection-start-line="63" selection-start-column="8" selection-end-line="63" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/miniconda2/envs/ml/lib/python3.6/site-packages/torch/utils/data/dataset.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-180">
-          <caret line="7" column="6" selection-start-line="7" selection-start-column="6" selection-end-line="7" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydev_imps/_pydev_execfile.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="255">
@@ -759,33 +743,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.PyCharmCE2018.2/system/python_stubs/885077940/numpy/core/multiarray.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="308">
-          <caret line="569" column="4" selection-start-line="569" selection-start-column="4" selection-end-line="569" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/train.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1185">
-          <caret line="160" column="18" lean-forward="true" selection-start-line="160" selection-start-column="18" selection-end-line="160" selection-end-column="18" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/submit.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="705">
-          <caret line="47" column="23" selection-start-line="47" selection-start-column="23" selection-end-line="47" selection-end-column="23" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/config.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="347">
@@ -816,10 +773,51 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$APPLICATION_HOME_DIR$/helpers/python-skeletons/numpy/core/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="300">
+          <caret line="586" column="8" selection-start-line="586" selection-start-column="8" selection-end-line="586" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharmCE2018.2/system/python_stubs/885077940/numpy/core/multiarray.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="308">
+          <caret line="4749" column="8" selection-start-line="4749" selection-start-column="8" selection-end-line="4749" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharmCE2018.2/system/python_stubs/885077940/torch/_C/_TensorBase.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="308">
+          <caret line="2500" column="8" selection-start-line="2500" selection-start-column="8" selection-end-line="2500" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/train.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="693">
+          <caret line="288" selection-start-line="288" selection-end-line="288" selection-end-column="31" />
+          <folding>
+            <element signature="e#0#10#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/submit.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="570">
+          <caret line="47" column="23" selection-start-line="47" selection-start-column="23" selection-end-line="47" selection-end-column="23" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/eval.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="375">
-          <caret line="30" column="31" selection-start-line="30" selection-start-column="31" selection-end-line="30" selection-end-column="31" />
+        <state relative-caret-position="370">
+          <caret line="100" column="18" selection-start-line="100" selection-start-column="18" selection-end-line="100" selection-end-column="18" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>
