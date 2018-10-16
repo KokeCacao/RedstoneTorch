@@ -74,7 +74,7 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
                 plt.imshow(tensor_to_PIL(masks_pred[index]))
                 plt.title("Predicted")
                 plt.grid(False)
-                writer.add_figure("image/epoch_validation/"+str(index)+"img", F, global_step=global_plot_step)
+                writer.add_figure("image/epoch_validation/"+str(index), F, global_step=global_plot_step)
         # print("iou:", iou.mean())
 
         # masks_probs = torch.sigmoid(masks_pred)
@@ -95,7 +95,6 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
 
     writer.add_scalars('val/max_threshold', {'MaxThresold': np.max(thresold_dict.values())}, global_plot_step)
 
-    print(total_ious)
     writer.add_histogram("iou", total_ious, global_plot_step)
     return total_ious.mean()
 
@@ -121,9 +120,9 @@ def iou_score(outputs, labels, threshold=0.5):
 
     iou = (intersection + 1e-10) / (union + 1e-10)  # We smooth our devision to avoid 0/0
 
-    thresholded = torch.clamp(20 * (iou - 0.5), 0, 10).ceil() / 10  # This is equal to comparing with thresolds
+    # thresholded = torch.clamp(20 * (iou - 0.5), 0, 10).ceil() / 10  # This is equal to comparing with thresolds
 
-    return thresholded  # Or thresholded.mean() if you are interested in average across the batch
+    return iou  # Or thresholded.mean() if you are interested in average across the batch
 
 
 
