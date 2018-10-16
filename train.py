@@ -108,7 +108,7 @@ def train_net(net,
             """
             masks_pred = net(image)
 
-            iou = iou_score(masks_pred, true_mask).mean().float()
+            iou = iou_score(masks_pred, true_mask).mean()
             epoch_iou = epoch_iou + iou
 
             if epoch_index < 1e5: loss = torch.nn.BCELoss()(torch.sigmoid(masks_pred).view(-1), true_mask.view(-1))
