@@ -130,8 +130,8 @@ class TGSData(data.Dataset):
 
             return (id, z, image, mask, transforms.ToTensor()(image_0), transforms.ToTensor()(mask_0))
         elif index in self.val_indices:
-            image = config.PREDICT_TRANSFORM(image_0)
-            mask = config.PREDICT_TRANSFORM(mask_0)
+            image = config.PREDICT_TRANSFORM_IMG(image_0)
+            mask = config.PREDICT_TRANSFORM_MASK(mask_0)
             return (id, z, image, mask, transforms.ToTensor()(image_0), transforms.ToTensor()(mask_0))
         else:
             return None

@@ -28,7 +28,7 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
             image = image.cuda()
             true_mask = true_mask.cuda()
 
-        masks_pred = net(image).repeat(1, 3, 1, 1)
+        masks_pred = net(image)
         """return: shape(N, iou)"""
         ious = iou_score(masks_pred, true_mask, threshold=0.5)
         if config.TRAIN_THRESHOLD_TEST == True:
