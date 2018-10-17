@@ -35,7 +35,7 @@ def submit(net, gpu, writer):
             if config.DIRECTORY_SUFFIX_IMG not in img_name: continue
 
             img = Image.open(config.DIRECTORY_TEST + img_name).convert('RGB')
-            img_n = config.PREDICT_TRANSFORM(img).unsqueeze(0) # add N
+            img_n = config.PREDICT_TRANSFORM_IMG(img).unsqueeze(0) # add N
 
             mask_pred = predict(net, img_n, gpu).squeeze(0) # reduce N
             masks_pred_pil = config.PREDICT_TRANSFORM_BACK(tensor_to_PIL(mask_pred)) # reduce C from 3 to 1
@@ -183,4 +183,5 @@ download: ResUnet/data/test/images/predicted/SUBMISSION-2018-10-14-11-53-06-5719
 ResUnet/data/test/images/predicted/2018-10-14-05-12-51-616453-bronze-here/78a68dece6.png
 
 
+python submit.py --load tensorboard/2018-10-17-17-00-26-568369-wednesday-aft/checkpoints/CP13.pth --tag 'submit'
 """
