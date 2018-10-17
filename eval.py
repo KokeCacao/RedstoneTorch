@@ -2,6 +2,7 @@ import os
 
 import matplotlib as mpl
 import numpy as np
+import operator
 import torch
 from torch.autograd import Variable
 
@@ -93,10 +94,11 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
 
     for key, item in thresold_dict.items():
         item = np.mean(item)
-        print(key, item)
-        writer.add_scalars('val/threshold', {'Thresold': item}, key)
+        writer.add_scalars('val/threshold/' + global_plot_step, {'Thresold': item}, key*1000)
 
-    writer.add_scalars('val/max_threshold', {'MaxThresold': np.max(thresold_dict.values())}, global_plot_step)
+    writer.add_scalars('val/max_threshold_val', {'MaxThresold': np.max(thresold_dict.values())}, global_plot_step)
+    writer.add_scalars('val/max_threshold', {'MaxThresold': max(thresold_dict.items(), key=operator.itemgetter(1))[0]}, global_plot_step)
+
 
     writer.add_histogram("iou", total_ious, global_plot_step)
     return total_ious.mean()
