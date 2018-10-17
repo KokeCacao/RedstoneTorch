@@ -42,8 +42,8 @@ def submit(net, writer):
             masks_pred_pil = config.PREDICT_TRANSFORM_BACK(mask_pred) # reduce C from 3 to 1
             masks_pred_np = np.array(masks_pred_pil)
 
-            enc = rle_encode(masks_pred_np)
-            f.write('{},{}\n'.format(img_name.replace(config.DIRECTORY_SUFFIX_MASK, ""), ' '.join(map(str, enc))))
+            enc = +(masks_pred_np)
+            f.write('{},{}\n'.format(img_name.replace(config.DIRECTORY_SUFFIX_MASK, ""), enc))
 
             if index % 100 == 0:
                 F = plt.figure()
@@ -75,18 +75,24 @@ def get_args():
     return options
 
 
+def rle_encode(img):
+    pixels = img.flatten()
+    pixels = np.concatenate([[0], pixels, [0]])
+    runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
+    runs[1::2] -= runs[::2]
+    return ' '.join(map(str, runs))
 # credits to https://stackoverflow.com/users/6076729/manuel-lagunas
-def rle_encode(mask_image):
-    pixels = mask_image.flatten()
-    # We avoid issues with '1' at the start or end (at the corners of
-    # the original image) by setting those pixels to '0' explicitly.
-    # We do not expect these to be non-zero for an accurate mask,
-    # so this should not harm the score.
-    pixels[0] = 0
-    pixels[-1] = 0
-    runs = np.where(pixels[1:] != pixels[:-1])[0] + 2
-    runs[1::2] = runs[1::2] - runs[:-1:2]
-    return runs
+# def rle_encode(mask_image):
+#     pixels = mask_image.flatten()
+#     # We avoid issues with '1' at the start or end (at the corners of
+#     # the original image) by setting those pixels to '0' explicitly.
+#     # We do not expect these to be non-zero for an accurate mask,
+#     # so this should not harm the score.
+#     pixels[0] = 0
+#     pixels[-1] = 0
+#     runs = np.where(pixels[1:] != pixels[:-1])[0] + 2
+#     runs[1::2] = runs[1::2] - runs[:-1:2]
+#     return runs
 # def rle_to_string(runs):
 #     return ' '.join(str(x) for x in runs)
 
@@ -104,22 +110,6 @@ def rle_encode(mask_image):
 #     runs[1::2] -= runs[::2]
 #     return ' '.join(str(x) for x in runs)
 
-
-def rle_decode(mask_rle, shape):
-    '''
-    mask_rle: run-length as string formated (start length)
-    shape: (height,width) of array to return
-    Returns numpy array, 1 - mask, 0 - background
-
-    '''
-    s = mask_rle.split()
-    starts, lengths = [np.asarray(x, dtype=int) for x in (s[0:][::2], s[1:][::2])]
-    starts -= 1
-    ends = starts + lengths
-    img = np.zeros(shape[0] * shape[1], dtype=np.uint8)
-    for lo, hi in zip(starts, ends):
-        img[lo:hi] = 1
-    return img.reshape(shape)
 
 if __name__ == '__main__':
     args = get_args()
@@ -179,8 +169,6 @@ ResUnet/data/test/images/predicted/2018-10-14-05-12-51-616453-bronze-here/78a68d
 
 
 python submit.py --load tensorboard/2018-10-17-17-00-26-568369-wednesday-aft/checkpoints/CP13.pth --tag 'submit'
-
-
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/data/test/images/predicted/tensorboard --port=6006
-Download: ResUnet/data/test/images/predicted/tensorboard/2018-10-17-17-00-26-568369-wednesday-aft/checkpoints/CP13-submit.csv
+Download: ResUnet/data/test/images/predicted/2018-10-17-17-00-26-568369-wednesday-aft-CP13-submit.csv
 """
