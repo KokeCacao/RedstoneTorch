@@ -29,7 +29,7 @@ def submit(net, writer):
     directory_list = os.listdir(config.DIRECTORY_TEST)
     if not os.path.exists(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG):
         os.makedirs(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG)
-    with open(config.DIRECTORY_TEST + "predicted/SUBMISSION-" + config.PREDICTION_TAG + ".csv", 'a') as f:
+    with open(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + ".csv", 'a') as f:
         f.write('id,rle_mask\n')
         for index, img_name in enumerate(tqdm(directory_list)):
             if config.DIRECTORY_SUFFIX_IMG not in img_name: continue
@@ -124,12 +124,11 @@ def rle_decode(mask_rle, shape):
 
 if __name__ == '__main__':
     args = get_args()
-    if args.load != False:
-        config.TRAIN_LOAD = args.load
-        config.PREDICTION_LOAD_TAG = config.TRAIN_LOAD.replace("/", "-").replace(".pth", "-")
-    config.PREDICTION_TAG = config.TRAIN_LOAD.replace("tensorboard/", "").replace("/checkpoints/", "-").replace(".pth", "")
+    config.TRAIN_LOAD = args.load
+    config.PREDICTION_LOAD_TAG = config.TRAIN_LOAD.replace("/", "-").replace(".pth", "-")
+    config.PREDICTION_TAG = config.TRAIN_LOAD.replace("tensorboard-", "").replace("/-checkpoints-", "-").replace(".pth", "")
     if args.tag != "": config.PREDICTION_TAG = config.PREDICTION_TAG + "-" + args.tag
-    writer = SummaryWriter("tensorboard/" + config.PREDICTION_LOAD_TAG + "-predict")
+    writer = SummaryWriter(config.DIRECTORY_TEST + "predicted/tensorboard")
     print("Copy this line to command: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + config.PREDICTION_LOAD_TAG + "-predict" + " --port=6006")
     if args.shreshold != 0.5: config.PREDICT_TRANSFORM_BACK = transforms.Compose([
                 transforms.Resize((101, 101)),
