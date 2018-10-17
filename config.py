@@ -83,6 +83,7 @@ PREDICT_TRANSFORM_MASK = transforms.Compose([
 PREDICT_TRANSFORM_BACK = transforms.Compose([
                 lambda x: (x > Variable(torch.Tensor([TRAIN_CHOSEN_THRESHOLD])).cuda()).float()*1,
                 lambda x: tensor_to_PIL(x),
+                transforms.Grayscale(),
                 transforms.Resize((101, 101))
             ])
 
