@@ -59,7 +59,7 @@ def submit(net, writer):
                 plt.imshow(config.tensor_to_PIL(mask_pred))
                 plt.title("Predicted")
                 plt.grid(False)
-                writer.add_figure("image/" + str(img_name), F, global_step=index)
+                writer.add_figure(config.PREDICTION_TAG + "/" + str(img_name), F, global_step=index)
             if config.PREDICTION_SAVE_IMG: masks_pred_pil.save(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + "/" + img_name)
 
 
