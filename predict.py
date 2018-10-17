@@ -75,7 +75,7 @@ def predict(net, image):
 
     if image.mean() < 1e-5:
         """WARNING: Encounter Dark Image"""
-        return torch.zeros((image.size()[0], 1, image.size()[2], image.size()[3]))
+        return torch.zeros((image.size()[0], 1, image.size()[2], image.size()[3])).cuda()
     """Need to repeat three times because the net will automatically reduce C when the Cs are the same"""
     masks_pred = net(image)
 
