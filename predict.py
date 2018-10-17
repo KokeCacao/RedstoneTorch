@@ -73,7 +73,7 @@ output: Tensor:(N, D=1, H, W) or (N, D=3, H, W) when it is black
 def predict(net, image):
     if config.TRAIN_GPU: image = image.cuda()
 
-    if image.mean() < 1e-5:
+    if image.mean() < config.PREDICTION_DARK_THRESHOLD:
         """WARNING: Encounter Dark Image"""
         return torch.zeros((image.size()[0], 1, image.size()[2], image.size()[3])).cuda()
     """Need to repeat three times because the net will automatically reduce C when the Cs are the same"""

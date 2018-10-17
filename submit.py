@@ -126,10 +126,10 @@ if __name__ == '__main__':
     args = get_args()
     config.TRAIN_LOAD = args.load
     config.PREDICTION_LOAD_TAG = config.TRAIN_LOAD.replace("/", "-").replace(".pth", "-")
-    config.PREDICTION_TAG = config.TRAIN_LOAD.replace("tensorboard-", "").replace("/-checkpoints-", "-").replace(".pth", "")
+    config.PREDICTION_TAG = config.TRAIN_LOAD.replace("tensorboard-", "").replace("-checkpoints-", "-").replace(".pth", "").replace("tensorboard/", "").replace("/checkpoints/", "-").replace(".pth", "")
     if args.tag != "": config.PREDICTION_TAG = config.PREDICTION_TAG + "-" + args.tag
     writer = SummaryWriter(config.DIRECTORY_TEST + "predicted/tensorboard")
-    print("Copy this line to command: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + config.PREDICTION_LOAD_TAG + "-predict" + " --port=6006")
+    print("Copy this line to command: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/" + config.DIRECTORY_TEST + "predicted/tensorboard" + " --port=6006")
     if args.shreshold != 0.5: config.PREDICT_TRANSFORM_BACK = transforms.Compose([
                 transforms.Resize((101, 101)),
                 transforms.Grayscale(),
@@ -184,4 +184,7 @@ ResUnet/data/test/images/predicted/2018-10-14-05-12-51-616453-bronze-here/78a68d
 
 
 python submit.py --load tensorboard/2018-10-17-17-00-26-568369-wednesday-aft/checkpoints/CP13.pth --tag 'submit'
+
+
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/data/test/images/predicted/tensorboard --port=6006
 """
