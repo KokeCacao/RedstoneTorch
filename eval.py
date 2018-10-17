@@ -39,8 +39,6 @@ def eval_net(net, validation_loader, gpu, visualization, writer, epoch_num=0):
                 if threshold_pre != None: threshold_pre = threshold_pre.append(iou_temp)
                 else: threshold_pre = [iou_temp]
                 thresold_dict[threshold] = threshold_pre
-                print(threshold)
-                print(threshold_pre)
         total_ious = np.concatenate((total_ious, np.array(ious).flatten()), axis=None)
         # iou = ious.mean().float()
 
