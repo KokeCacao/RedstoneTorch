@@ -16,7 +16,7 @@ if os.environ.get('DISPLAY','') == '':
 from matplotlib import pyplot as plt
 
 global_plot_step = 0
-def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_num=0):
+def eval_net(net, validation_loader, gpu, visualization, writer, epoch_num=0):
     thresold_dict = dict()
     """Evaluation without the densecrf with the dice coefficient"""
     # total_loss = 0
@@ -35,14 +35,11 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
         if config.TRAIN_THRESHOLD_TEST:
             for threshold in config.TRAIN_TRY_THRESHOLD:
                 iou_temp = iou_score(masks_pred, true_mask, threshold).mean()
-                if iou_temp.size == 0: print("WARNING: numpy list of IOU score is empty")
-                if thresold_dict.get(threshold) == None:
-                    thresold_dict.update({threshold: [iou_temp]})
-                else:
-                    threshold_pre = thresold_dict.get(threshold)
-                    threshold_pre.append(iou_temp)
-
-                    thresold_dict.update({threshold: threshold_pre})
+                threshold_pre = thresold_dict.get(threshold)
+                if threshold_pre != None: threshold_pre.append(iou_temp)
+                else: threshold_pre = [iou_temp]
+                thresold_dict[threshold] = threshold_pre
+                print(threshold_pre)
         total_ious = np.concatenate((total_ious, np.array(ious).flatten()), axis=None)
         # iou = ious.mean().float()
 
