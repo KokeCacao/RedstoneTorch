@@ -293,8 +293,9 @@ python train.py --tag "tuesday-night"
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-17-00-00-33-668670-tuesday-night --port=6006
 
 
-python train.py --tag "tuesday-night" --load tensorboard/2018-10-17-00-00-33-668670-tuesday-night/CP5.pth
+python train.py --tag "tuesday-night" --load tensorboard/2018-10-17-00-00-33-668670-tuesday-night/checkpoints/CP5.pth
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-17-00-53-07-003683-tuesday-night --port=6006
 
-python train.py --tag "wednesday-mor" --load tensorboard/2018-10-17-00-53-07-003683-tuesday-night/CP71.pth
+python train.py --tag "wednesday-mor" --load tensorboard/2018-10-17-00-53-07-003683-tuesday-night/checkpoints/CP71.pth
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-17-14-06-12-467559-wednesday-mor --port=6006
 """
