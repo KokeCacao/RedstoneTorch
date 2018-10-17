@@ -2,7 +2,7 @@ import os
 import sys
 import matplotlib as mpl
 import numpy as np
-from datetime import datetime
+
 from tqdm import tqdm
 from PIL import Image
 
@@ -38,8 +38,9 @@ def submit(net, gpu, writer):
             img_n = config.PREDICT_TRANSFORM_IMG(img).unsqueeze(0) # add N
 
             mask_pred = predict(net, img_n, gpu).squeeze(0) # reduce N
-            masks_pred_pil = config.PREDICT_TRANSFORM_BACK(tensor_to_PIL(mask_pred)) # reduce C from 3 to 1
-            masks_pred_np = np.expand_dims(np.array(masks_pred_pil), axis=0) # squeezed out by numpy, but add one
+            """if config.TRAIN_GPU: """
+            masks_pred_pil = config.PREDICT_TRANSFORM_BACK(mask_pred) # reduce C from 3 to 1
+            masks_pred_np = np.array(masks_pred_pil)
 
             enc = rle_encode(masks_pred_np)
             f.write('{},{}\n'.format(img_name.replace(config.DIRECTORY_SUFFIX_MASK, ""), ' '.join(map(str, enc))))
@@ -57,12 +58,7 @@ def submit(net, gpu, writer):
                 writer.add_figure("image/" + str(img_name) + "img", F, global_step=index)
             if config.PREDICTION_SAVE_IMG: masks_pred_pil.save(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + "/" + img_name)
 
-def tensor_to_PIL(tensor):
-    image = tensor.cpu().clone()
-    if image.size()[0] == 1: image = image.repeat(3, 1, 1) # from gray sacale to RGB
-    image = image.squeeze(0)
-    image = transforms.ToPILImage()(image)
-    return image
+
 
 def get_args():
     parser = OptionParser()

@@ -2,7 +2,10 @@ import PIL
 import numpy as np
 
 from datetime import datetime
+
+import torch
 from imgaug import augmenters as iaa
+from torch.autograd import Variable
 from torchvision.transforms import transforms
 
 MODEL_EPOCHS = 300
@@ -77,9 +80,9 @@ PREDICT_TRANSFORM_MASK = transforms.Compose([
             ])
 
 PREDICT_TRANSFORM_BACK = transforms.Compose([
-                transforms.Resize((101, 101)),
-                transforms.Grayscale(),
-                lambda x: x.convert('L').point(lambda x : 255 if x > 127.5 else 0, mode='1')
+                lambda x: (x > Variable(torch.Tensor([TRAIN_CHOSEN_THRESHOLD])).cuda()).float()*1,
+                lambda x: tensor_to_PIL(x),
+                transforms.Resize((101, 101))
             ])
 
 
@@ -118,3 +121,9 @@ PREDICT_TRANSFORM_BACK = transforms.Compose([
 #         lambda x: x.float()
 #     ])
 # }
+def tensor_to_PIL(tensor):
+    image = tensor.cpu().clone()
+    if image.size()[0] == 1: image = image.repeat(3, 1, 1) # from gray sacale to RGB
+    image = image.squeeze(0)
+    image = transforms.ToPILImage()(image)
+    return image
