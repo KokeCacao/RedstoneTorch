@@ -23,7 +23,7 @@ from unet.unet_model import UNetResNet
 from tensorboardX import SummaryWriter
 
 
-def submit(net, gpu, writer):
+def submit(net, writer):
     torch.no_grad()
     """Used for Kaggle submission: predicts and encode all test images"""
     directory_list = os.listdir(config.DIRECTORY_TEST)
@@ -37,7 +37,7 @@ def submit(net, gpu, writer):
             img = Image.open(config.DIRECTORY_TEST + img_name).convert('RGB')
             img_n = config.PREDICT_TRANSFORM_IMG(img).unsqueeze(0) # add N
 
-            mask_pred = predict(net, img_n, gpu).squeeze(0) # reduce N
+            mask_pred = predict(net, img_n).squeeze(0) # reduce N
             """if config.TRAIN_GPU: """
             masks_pred_pil = config.PREDICT_TRANSFORM_BACK(mask_pred) # reduce C from 3 to 1
             masks_pred_np = np.array(masks_pred_pil)
@@ -154,7 +154,7 @@ if __name__ == '__main__':
         os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
     try:
-        submit(net=net, gpu=config.TRAIN_GPU, writer=writer)
+        submit(net=net, writer=writer)
     except KeyboardInterrupt as e:
         print(e)
         try:

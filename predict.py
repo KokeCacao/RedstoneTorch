@@ -64,13 +64,14 @@ from torchvision import transforms
 #         full_mask = dense_crf(np.array(full_img).astype(np.uint8), full_mask)
 #
 #     return full_mask > out_threshold
+import config
 
 """
 input: Tensor:(N, D=3, H, W)
 output: Tensor:(N, D=1, H, W) or (N, D=3, H, W) when it is black
 """
-def predict(net, image, gpu):
-    if gpu != "": image = image.cuda()
+def predict(net, image):
+    if config.TRAIN_GPU: image = image.cuda()
 
     if image.mean() < 1e-5:
         """WARNING: Encounter Dark Image"""
@@ -79,7 +80,7 @@ def predict(net, image, gpu):
     masks_pred = net(image)
 
     del image
-    if gpu != "": torch.cuda.empty_cache()
+    if config.TRAIN_GPU: torch.cuda.empty_cache()
     return masks_pred
 
 
