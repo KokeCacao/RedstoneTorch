@@ -96,7 +96,10 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
     for key, item in thresold_dict.items():
         item = np.mean(item)
         threshold_dict_mean[key] = item
-        writer.add_scalars('val/threshold/' + global_plot_step, {'Thresold': item}, key*1000)
+        print(key)
+        print(item)
+        print(key*100)
+        writer.add_scalars('val/threshold/' + global_plot_step, {'Thresold': item}, key*100)
 
     writer.add_scalars('val/max_threshold_val', {'MaxThresold': np.max(threshold_dict_mean.values())}, global_plot_step)
     writer.add_scalars('val/max_threshold', {'MaxThresold': max(threshold_dict_mean.items(), key=operator.itemgetter(1))[0]}, global_plot_step)
