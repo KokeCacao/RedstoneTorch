@@ -143,7 +143,7 @@ def train_net(net,
         # validation
         if config.TRAIN_GPU != "": torch.cuda.empty_cache() # release gpu memory
         if config.TRAIN_VALIDATION:
-            val_dice = eval_net(net, validation_loader, dataset=tgs_data, gpu=gpu, visualization=config.TRAIN_VISUALIZATION, writer=writer, epoch_num=epoch_index+1)
+            val_dice = eval_net(net, validation_loader, gpu=gpu, visualization=config.TRAIN_VISUALIZATION, writer=writer, epoch_num=epoch_index+1)
             print('Validation Dice Coeff: {}'.format(val_dice))
             writer.add_scalars('loss/epoch_validation', {'Validation': val_dice}, epoch_index + 1)
         if config.TRAIN_HISTOGRAM:
@@ -156,6 +156,7 @@ def get_args():
     parser = OptionParser()
     parser.add_option('-c', '--load', dest='load', default=False, help='load file model')
     parser.add_option('-t', '--tag', dest='tag', default="", help='tag for tensorboard-log')
+    # parser.add_option('-e', '--continue', dest='continu', default=False, help='continue in the same folder (but potentially break down the statistics')
 
     (options, args) = parser.parse_args()
     return options
@@ -176,6 +177,8 @@ if __name__ == '__main__':
     if args.load != False: config.TRAIN_LOAD = args.load
     if args.tag != "":
         """Update values"""
+        # if args.continu and args.loca != False: config.TRAIN_TAG = args.load.split("/", 2)[1]
+        # else: config.TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + args.tag
         config.TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + args.tag
         config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "tensorboard/" + config.TRAIN_TAG + "/checkpoints/"
 
@@ -296,5 +299,5 @@ python train.py --tag "tuesday-night" --load tensorboard/2018-10-17-00-00-33-668
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-17-00-53-07-003683-tuesday-night --port=6006
 
 python train.py --tag "wednesday-aft" --load tensorboard/2018-10-17-00-53-07-003683-tuesday-night/checkpoints/CP71.pth
-python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-17-16-57-18-769750-wednesday-aft --port=6006
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-17-17-00-26-568369-wednesday-aft --port=6006
 """
