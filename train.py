@@ -287,4 +287,8 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/t
 
 python train.py --tag "new-day"
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-14-14-05-57-388044-new-day2 --port=6006
+
+
+python train.py --tag "tuesday-night"
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-17-00-00-33-668670-tuesday-night --port=6006
 """

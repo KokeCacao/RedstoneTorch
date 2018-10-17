@@ -92,8 +92,8 @@ def eval_net(net, validation_loader, dataset, gpu, visualization, writer, epoch_
         if gpu != "": torch.cuda.empty_cache()  # release gpu memory
 
     for key, item in thresold_dict.items():
-        if item == None: continue
         item = np.mean(item)
+        print(key, item)
         writer.add_scalars('val/threshold', {'Thresold': item}, key)
 
     writer.add_scalars('val/max_threshold', {'MaxThresold': np.max(thresold_dict.values())}, global_plot_step)
