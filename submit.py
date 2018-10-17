@@ -47,15 +47,19 @@ def submit(net, writer):
 
             if index % 100 == 0:
                 F = plt.figure()
-                plt.subplot(121)
+                plt.subplot(131)
                 plt.imshow(img)
                 plt.title("Image_Real")
                 plt.grid(False)
-                plt.subplot(122)
+                plt.subplot(132)
                 plt.imshow(masks_pred_pil)
+                plt.title("Result")
+                plt.grid(False)
+                plt.subplot(133)
+                plt.imshow(config.tensor_to_PIL(mask_pred))
                 plt.title("Predicted")
                 plt.grid(False)
-                writer.add_figure("image/" + str(img_name) + "img", F, global_step=index)
+                writer.add_figure("image/" + str(img_name), F, global_step=index)
             if config.PREDICTION_SAVE_IMG: masks_pred_pil.save(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + "/" + img_name)
 
 
