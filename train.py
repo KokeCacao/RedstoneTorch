@@ -302,4 +302,5 @@ python train.py --tag "wednesday-aft" --load tensorboard/2018-10-17-00-53-07-003
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-17-17-00-26-568369-wednesday-aft --port=6006
 
 python train.py --tag "wednesday-eve" --load tensorboard/2018-10-17-17-00-26-568369-wednesday-aft/checkpoints/CP13.pth
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-17-19-47-01-207026-wednesday-eve --port=6006
 """

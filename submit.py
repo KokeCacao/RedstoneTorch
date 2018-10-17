@@ -127,7 +127,8 @@ if __name__ == '__main__':
     if args.load != False:
         config.TRAIN_LOAD = args.load
         config.PREDICTION_LOAD_TAG = config.TRAIN_LOAD.replace("/", "-").replace(".pth", "-")
-    if args.tag != "": config.PREDICTION_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + args.tag
+    config.PREDICTION_TAG = config.TRAIN_LOAD.replace("tensorboard/", "").replace("/checkpoints/", "-").replace(".pth", "")
+    if args.tag != "": config.PREDICTION_TAG = config.PREDICTION_TAG + "-" + args.tag
     writer = SummaryWriter("tensorboard/" + config.TRAIN_TAG + "-predict")
     print("Copy this line to command: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + config.TRAIN_TAG + "-predict" + " --port=6006")
     if args.shreshold != 0.5: config.PREDICT_TRANSFORM_BACK = transforms.Compose([
