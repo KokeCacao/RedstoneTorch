@@ -70,7 +70,6 @@ def get_args():
     parser.add_option('-c', '--load', dest='load', default=False, help='load file model')
     parser.add_option('-p', '--dir_prefix', dest='dir_prefix', default="", help='the root directory')
     parser.add_option('-t', '--tag', dest='tag', default="", help='tag for tensorboard-log')
-    parser.add_option('-s', '--shreshold', dest='shreshold', default=0.5, type='float', help='tag for tensorboard-log')
 
     (options, args) = parser.parse_args()
     return options
@@ -130,11 +129,7 @@ if __name__ == '__main__':
     if args.tag != "": config.PREDICTION_TAG = config.PREDICTION_TAG + "-" + args.tag
     writer = SummaryWriter(config.DIRECTORY_TEST + "predicted/tensorboard")
     print("Copy this line to command: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/" + config.DIRECTORY_TEST + "predicted/tensorboard" + " --port=6006")
-    if args.shreshold != 0.5: config.PREDICT_TRANSFORM_BACK = transforms.Compose([
-                transforms.Resize((101, 101)),
-                transforms.Grayscale(),
-                lambda x: x.convert('L').point(lambda x: 255 if x > 255*args.shreshold else 0, mode='1'),
-            ])
+
 
     print("Current Directory: " + str(os.getcwd()))
     print("====================================")
@@ -187,4 +182,5 @@ python submit.py --load tensorboard/2018-10-17-17-00-26-568369-wednesday-aft/che
 
 
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/data/test/images/predicted/tensorboard --port=6006
+Download: ResUnet/data/test/images/predicted/tensorboard/2018-10-17-17-00-26-568369-wednesday-aft/checkpoints/CP13-submit.csv
 """
