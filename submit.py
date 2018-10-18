@@ -87,11 +87,11 @@ def rle_encoding(x):
     return ' '.join(map(str, run_lengths))
 
 def rle_encode(img):
-    img.squeeze(0)
+    img = img.squeeze(0)
     if len(img.shape) != 2:
-        print("WARNING: The Image shape is {}, expected H, W.".format(img.shape))
+        print("WARNING: The Image shape is {}, expected (H, W).".format(img.shape))
 
-    pixels = img.flatten().tobytes()
+    pixels = img.flatten().astype(dtype=int)
     if (pixels[0]) is not 0 or (pixels[0]) is not 1:
         print("WARNING: The Image Start with non-binary value. Expected 0 or 1, got {}.".format(pixels[0]))
     pixels = np.concatenate(([0], pixels, [0]))
