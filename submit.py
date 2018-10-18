@@ -43,24 +43,28 @@ def submit(net, writer):
             mask_pred = predict(net, img_n).squeeze(0) # reduce N
             """if config.TRAIN_GPU: """
             masks_pred_pil = config.PREDICT_TRANSFORM_BACK(mask_pred) # reduce C from 3 to 1
-            masks_pred_np = np.array(transforms.ToTensor()(masks_pred_pil))
+            masks_pred_np = np.round(np.array(transforms.ToTensor()(masks_pred_pil)))
 
             enc = rle_encode(masks_pred_np)
             f.write('{},{}\n'.format(img_name.replace(config.DIRECTORY_SUFFIX_MASK, ""), enc))
 
             if index % 100 == 0:
                 F = plt.figure()
-                plt.subplot(131)
+                plt.subplot(221)
                 plt.imshow(img)
                 plt.title("Image_Real")
                 plt.grid(False)
-                plt.subplot(132)
+                plt.subplot(222)
                 plt.imshow(masks_pred_pil)
                 plt.title("Result")
                 plt.grid(False)
-                plt.subplot(133)
+                plt.subplot(223)
                 plt.imshow(config.tensor_to_PIL(mask_pred))
                 plt.title("Predicted")
+                plt.grid(False)
+                plt.subplot(224)
+                plt.imshow(config.tensor_to_PIL(masks_pred_np))
+                plt.title("Encoded")
                 plt.grid(False)
                 writer.add_figure(config.PREDICTION_TAG + "/" + str(img_name), F, global_step=index)
             if config.PREDICTION_SAVE_IMG: masks_pred_pil.save(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + "/" + img_name)
@@ -96,7 +100,6 @@ def get_args():
 #     return ' '.join(map(str, run_lengths))
 
 def rle_encode(img):
-    img = np.round(img)
     if len(img.shape) != 3 or img.shape[0] != 1:
         print("WARNING: The Image shape is {}, expected (1, H, W).".format(img.shape))
     pixels = img.flatten(order = 'F')
