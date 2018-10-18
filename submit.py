@@ -46,7 +46,7 @@ def submit(net, writer):
             masks_pred_np = np.asarray(masks_pred_pil, order="F") # return tensor with (H, W) - proved
             print(masks_pred_np.shape)
 
-            enc = rle_encoding(masks_pred_np)
+            enc = rle_encode(masks_pred_np)
             f.write('{},{}\n'.format(img_name.replace(config.DIRECTORY_SUFFIX_MASK, ""), enc))
 
             if index % 100 == 0:
@@ -107,6 +107,8 @@ def rle_encode(img):
         print("WARNING: The Image Start with non-binary value. Expected 0 or 1, got {}.".format(pixels[0]))
     pixels = np.concatenate(([0], pixels, [0]))
     runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
+    print(runs[1::2])
+    print(runs[::2])
     runs[1::2] -= runs[::2]
     return ' '.join(str(x) for x in runs)
 
@@ -208,5 +210,5 @@ python submit.py --load tensorboard/2018-10-17-19-47-01-207026-wednesday-eve/che
 python submit.py --load tensorboard/2018-10-17-19-47-01-207026-wednesday-eve/checkpoints/CP7.pth --tag 'submit5'
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/data/test
 /images/predicted/tensorboard --port=6006
-ResUnet/data/test/images/predicted/2018-10-17-19-47-01-207026-wednesday-eve-CP7-submit4.csv
+ResUnet/data/test/images/predicted/2018-10-17-19-47-01-207026-wednesday-eve-CP7-submita.csv
 """
