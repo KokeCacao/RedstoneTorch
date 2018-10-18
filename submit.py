@@ -88,9 +88,7 @@ def rle_encoding(x):
 
 def rle_encode(img):
     pixels = img.flatten()
-    print(pixels)
     pixels = np.concatenate(([0], pixels, [0]))
-    print(pixels)
     runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
     runs[1::2] -= runs[::2]
     return ' '.join(map(str, runs))
@@ -189,4 +187,6 @@ python submit.py --load tensorboard/2018-10-17-19-47-01-207026-wednesday-eve/che
 Download: ResUnet/data/test/images/predicted/2018-10-17-19-47-01-207026-wednesday-eve-CP7-submit.csv
 
 python submit.py --load tensorboard/2018-10-17-19-47-01-207026-wednesday-eve/checkpoints/CP7.pth --tag 'submit2'
+
+python submit.py --load tensorboard/2018-10-17-19-47-01-207026-wednesday-eve/checkpoints/CP7.pth --tag 'submit4'
 """
