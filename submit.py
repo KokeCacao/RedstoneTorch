@@ -88,7 +88,7 @@ def rle_encoding(x):
 
 def rle_encode(img):
     print(img)
-    print(img.size)
+    print(img.shape)
     if len(img.shape) != 2:
         print("WARNING: The Image size is {}, expected H, W.".format(img.size))
 
