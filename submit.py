@@ -42,7 +42,7 @@ def submit(net, writer):
             masks_pred_pil = config.PREDICT_TRANSFORM_BACK(mask_pred) # reduce C from 3 to 1
             masks_pred_np = np.array(masks_pred_pil)
 
-            enc = +(masks_pred_np)
+            enc = rle_encode(masks_pred_np)
             f.write('{},{}\n'.format(img_name.replace(config.DIRECTORY_SUFFIX_MASK, ""), enc))
 
             if index % 100 == 0:
@@ -81,6 +81,7 @@ def rle_encode(img):
     runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
     runs[1::2] -= runs[::2]
     return ' '.join(map(str, runs))
+
 # credits to https://stackoverflow.com/users/6076729/manuel-lagunas
 # def rle_encode(mask_image):
 #     pixels = mask_image.flatten()
@@ -92,9 +93,7 @@ def rle_encode(img):
 #     pixels[-1] = 0
 #     runs = np.where(pixels[1:] != pixels[:-1])[0] + 2
 #     runs[1::2] = runs[1::2] - runs[:-1:2]
-#     return runs
-# def rle_to_string(runs):
-#     return ' '.join(str(x) for x in runs)
+#     return ' '.join(map(str, runs))
 
 # # ref.: https://www.kaggle.com/stainsby/fast-tested-rle
 # def rle_encode(img):
@@ -122,6 +121,7 @@ if __name__ == '__main__':
 
 
     print("Current Directory: " + str(os.getcwd()))
+    print("Download Model here: " + config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + ".csv")
     print("====================================")
     print("Loading Neuronetwork...")
     net = UNetResNet(encoder_depth=50, num_classes=1, num_filters=32, dropout_2d=0.2,
@@ -171,4 +171,7 @@ ResUnet/data/test/images/predicted/2018-10-14-05-12-51-616453-bronze-here/78a68d
 python submit.py --load tensorboard/2018-10-17-17-00-26-568369-wednesday-aft/checkpoints/CP13.pth --tag 'submit'
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/data/test/images/predicted/tensorboard --port=6006
 Download: ResUnet/data/test/images/predicted/2018-10-17-17-00-26-568369-wednesday-aft-CP13-submit.csv
+
+python submit.py --load tensorboard/2018-10-17-19-47-01-207026-wednesday-eve/checkpoints/CP7.pth --tag 'submit'
+Download: ResUnet/data/test/images/predicted/2018-10-17-19-47-01-207026-wednesday-eve-CP7-submit.csv
 """
