@@ -63,7 +63,7 @@ def submit(net, writer):
                 plt.title("Predicted")
                 plt.grid(False)
                 plt.subplot(224)
-                plt.imshow(Image.fromarray(masks_pred_np, mode="L"))
+                plt.imshow(Image.fromarray(masks_pred_np.squeeze(0), mode="L"))
                 plt.title("Encoded")
                 plt.grid(False)
                 writer.add_figure(config.PREDICTION_TAG + "/" + str(img_name), F, global_step=index)
