@@ -165,12 +165,30 @@ def log_data(file_name, data):
     with open(file_name+".txt", "a+") as file:
         file.write(data+"\n")
 
-def tensor_to_PIL(tensor):
-    image = tensor.cpu().clone()
-    if image.size()[0] == 1: image = image.repeat(3, 1, 1) # from gray sacale to RGB
-    image = image.squeeze(0)
-    image = transforms.ToPILImage()(image)
-    return image
+def save_checkpoint():
+    torch.save({
+        'epoch': cur_epoch,
+        'state_dict': model.state_dict(),
+        'best_prec': best_prec,
+        'loss_train': loss_train,
+        'optimizer': optimizer.state_dict(),
+    }, is_best, OUT_DIR, 'acc-{:.4f}_loss-{:.4f}_epoch-{}_checkpoint.pth.tar'.format(val_acc, val_loss, cur_epoch))
+
+def load_checkpoint(checkpoint, model, optimizer):
+    """ loads state into model and optimizer and returns:
+        epoch, best_precision, loss_train[]
+    """
+    if os.path.isfile(load_path):
+        print("=> loading checkpoint '{}'".format(load_path))
+        checkpoint = torch.load(load_path)
+        epoch = checkpoint['epoch']
+        best_prec = checkpoint['best_prec']
+        loss_train = checkpoint['loss_train']
+        model.load_state_dict(checkpoint['state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer'])
+        print("=> loaded checkpoint '{}' (epoch {})"
+              .format(epoch, checkpoint['epoch']))
+        return epoch, best_prec, loss_train
 
 if __name__ == '__main__':
     args = get_args()
