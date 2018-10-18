@@ -44,7 +44,6 @@ def submit(net, writer):
             """if config.TRAIN_GPU: """
             masks_pred_pil = config.PREDICT_TRANSFORM_BACK(mask_pred) # return gray scale PIL
             masks_pred_np = np.where(np.asarray(masks_pred_pil, order="F") > config.TRAIN_CHOSEN_THRESHOLD, 1, 0) # return tensor with (H, W) - proved
-            print(masks_pred_np.shape)
 
             enc = rle_encode(masks_pred_np)
             f.write('{},{}\n'.format(img_name.replace(config.DIRECTORY_SUFFIX_MASK, ""), enc))
