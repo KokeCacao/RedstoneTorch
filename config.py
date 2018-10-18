@@ -84,7 +84,7 @@ PREDICT_TRANSFORM_BACK = transforms.Compose([
                 lambda x: tensor_to_PIL(x),
                 transforms.Resize((101, 101)),
                 transforms.ToTensor(),
-                lambda x: (x > Variable(torch.Tensor([TRAIN_CHOSEN_THRESHOLD])).cuda()).float()*1,
+                lambda x: (x > Variable(torch.Tensor([TRAIN_CHOSEN_THRESHOLD]))).float()*1,
                 lambda x: tensor_to_PIL(x),
                 transforms.Grayscale(),
             ])
