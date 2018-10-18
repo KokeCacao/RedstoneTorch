@@ -43,7 +43,7 @@ def submit(net, writer):
             mask_pred = predict(net, img_n).squeeze(0) # reduce N
             """if config.TRAIN_GPU: """
             masks_pred_pil = config.PREDICT_TRANSFORM_BACK(mask_pred) # return gray scale PIL
-            masks_pred_np = np.asarray(masks_pred_pil) # return tensor with (1, H, W)
+            masks_pred_np = np.asarray(masks_pred_pil) # return tensor with (H, W) - proved
             print(masks_pred_np.shape)
 
             enc = rle_encode(masks_pred_np)
@@ -64,7 +64,7 @@ def submit(net, writer):
                 plt.title("Predicted")
                 plt.grid(False)
                 plt.subplot(224)
-                plt.imshow(Image.fromarray(masks_pred_np.squeeze(0), mode="L"))
+                plt.imshow(Image.fromarray(masks_pred_np, mode="L"))
                 plt.title("Encoded")
                 plt.grid(False)
                 writer.add_figure(config.PREDICTION_TAG + "/" + str(img_name), F, global_step=index)
