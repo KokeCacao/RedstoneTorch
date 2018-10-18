@@ -45,7 +45,7 @@ def submit(net, writer):
             masks_pred_pil = config.PREDICT_TRANSFORM_BACK(mask_pred) # reduce C from 3 to 1
             masks_pred_np = np.array(transforms.ToTensor()(masks_pred_pil))
 
-            enc = rle_encode(masks_pred_np)
+            enc = rle_encoding(masks_pred_np)
             f.write('{},{}\n'.format(img_name.replace(config.DIRECTORY_SUFFIX_MASK, ""), enc))
 
             if index % 100 == 0:
@@ -77,8 +77,16 @@ def get_args():
     (options, args) = parser.parse_args()
     return options
 
-def rle_encoding(x):
-    dots = np.where(x.T.flatten() == 1)[0]
+def rle_encoding(img):
+    img = img.squeeze(0)
+    if len(img.shape) != 2:
+        print("WARNING: The Image shape is {}, expected (H, W).".format(img.shape))
+
+    pixels = img.flatten().astype(dtype=int)
+    if (pixels[0]) != 0 and (pixels[0]) != 1:
+        print("WARNING: The Image Start with non-binary value. Expected 0 or 1, got {}.".format(pixels[0]))
+
+    dots = np.where(img.T.flatten() == 1)[0]
     run_lengths = []
     prev = -2
     for b in dots:
