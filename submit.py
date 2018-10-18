@@ -43,7 +43,7 @@ def submit(net, writer):
             mask_pred = predict(net, img_n).squeeze(0) # reduce N
             """if config.TRAIN_GPU: """
             masks_pred_pil = config.PREDICT_TRANSFORM_BACK(mask_pred) # return gray scale PIL
-            masks_pred_np = np.round(np.array(transforms.ToTensor()(masks_pred_pil))) # return tensor with (1, H, W)
+            masks_pred_np = np.asarray(masks_pred_pil) # return tensor with (1, H, W)
             print(masks_pred_np.shape)
 
             enc = rle_encode(masks_pred_np)
