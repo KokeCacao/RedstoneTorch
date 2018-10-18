@@ -105,7 +105,7 @@ def rle_encode(img):
     pixels = img.flatten(order = 'F')
     if (pixels[0]) != 0 and (pixels[0]) != 1:
         print("WARNING: The Image Start with non-binary value. Expected 0 or 1, got {}.".format(pixels[0]))
-    pixels = np.concatenate(([0], pixels,))
+    pixels = np.concatenate(([0], pixels, [0], [0]))
     runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
     print(runs[1::2])
     print(runs[::2])
