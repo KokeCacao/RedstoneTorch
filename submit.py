@@ -46,7 +46,6 @@ def submit(net, writer):
             masks_pred_np = np.array(transforms.ToTensor()(masks_pred_pil))
 
             enc = rle_encode(masks_pred_np)
-            print(enc)
             f.write('{},{}\n'.format(img_name.replace(config.DIRECTORY_SUFFIX_MASK, ""), enc))
 
             if index % 100 == 0:
@@ -78,27 +77,27 @@ def get_args():
     (options, args) = parser.parse_args()
     return options
 
-def rle_encoding(img):
-    img = img.squeeze(0)
-    if len(img.shape) != 2:
-        print("WARNING: The Image shape is {}, expected (H, W).".format(img.shape))
-
-    pixels = img.flatten().astype(dtype=np.byte)
-    if (pixels[0]) != 0 and (pixels[0]) != 1:
-        print("WARNING: The Image Start with non-binary value. Expected 0 or 1, got {}.".format(pixels[0]))
-
-    dots = np.where(img.T.flatten() == 1)[0]
-    run_lengths = []
-    prev = -2
-    for b in dots:
-        if (b>prev+1): run_lengths.extend((b + 1, 0))
-        run_lengths[-1] += 1
-        prev = b
-    return ' '.join(map(str, run_lengths))
+# def rle_encoding(img):
+#     img = img.squeeze(0)
+#     if len(img.shape) != 2:
+#         print("WARNING: The Image shape is {}, expected (H, W).".format(img.shape))
+#
+#     pixels = img.flatten().astype(dtype=np.byte)
+#     if (pixels[0]) != 0 and (pixels[0]) != 1:
+#         print("WARNING: The Image Start with non-binary value. Expected 0 or 1, got {}.".format(pixels[0]))
+#
+#     dots = np.where(img.T.flatten() == 1)[0]
+#     run_lengths = []
+#     prev = -2
+#     for b in dots:
+#         if (b>prev+1): run_lengths.extend((b + 1, 0))
+#         run_lengths[-1] += 1
+#         prev = b
+#     return ' '.join(map(str, run_lengths))
 
 def rle_encode(img):
     img = np.round(img)
-    if len(img.shape) != 3:
+    if len(img.shape) != 3 or img.shape[0] != 1:
         print("WARNING: The Image shape is {}, expected (1, H, W).".format(img.shape))
     pixels = img.flatten(order = 'F')
     if (pixels[0]) != 0 and (pixels[0]) != 1:
