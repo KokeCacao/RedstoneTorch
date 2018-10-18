@@ -108,7 +108,7 @@ def rle_encode(img):
     pixels[0] = 0
     pixels[-1] = 0
     # pixels = np.concatenate(([0], pixels, [0], [0]))
-    runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
+    runs = np.where(pixels[1:] != pixels[:-1])[0] + 2
     print(runs[1::2])
     print(runs[::2])
     runs[1::2] -= runs[::2]
