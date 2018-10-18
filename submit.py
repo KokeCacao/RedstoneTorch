@@ -46,6 +46,7 @@ def submit(net, writer):
             masks_pred_np = np.array(transforms.ToTensor()(masks_pred_pil))
 
             enc = rle_encode(masks_pred_np)
+            print(enc)
             f.write('{},{}\n'.format(img_name.replace(config.DIRECTORY_SUFFIX_MASK, ""), enc))
 
             if index % 100 == 0:
