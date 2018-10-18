@@ -43,7 +43,7 @@ def submit(net, writer):
             mask_pred = predict(net, img_n).squeeze(0) # reduce N
             """if config.TRAIN_GPU: """
             masks_pred_pil = config.PREDICT_TRANSFORM_BACK(mask_pred) # return gray scale PIL
-            masks_pred_np = np.asarray(masks_pred_pil, order="F") # return tensor with (H, W) - proved
+            masks_pred_np = np.where(np.asarray(masks_pred_pil, order="F") > config.TRAIN_CHOSEN_THRESHOLD, 1, 0) # return tensor with (H, W) - proved
             print(masks_pred_np.shape)
 
             enc = rle_encode(masks_pred_np)
@@ -103,7 +103,7 @@ def rle_encode(img):
     if len(img.shape) != 2 or img.shape[0] == 1:
         print("WARNING: The Image shape is {}, expected (H, W).".format(img.shape))
     pixels = img.flatten(order = 'F')
-    if (pixels[0]) != 0 and (pixels[0]) != 1:
+    if 255 in img:
         print("WARNING: The Image Start with non-binary value. Expected 0 or 1, got {}.".format(pixels[0]))
         print("Here is an example of the image: {}".format(img))
     # We avoid issues with '1' at the start or end (at the corners of
