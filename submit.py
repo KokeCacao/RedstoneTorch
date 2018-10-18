@@ -105,15 +105,31 @@ def rle_encode(img):
     pixels = img.flatten(order = 'F')
     if (pixels[0]) != 0 and (pixels[0]) != 1:
         print("WARNING: The Image Start with non-binary value. Expected 0 or 1, got {}.".format(pixels[0]))
+    # We avoid issues with '1' at the start or end (at the corners of
+    # the original image) by setting those pixels to '0' explicitly.
+    # We do not expect these to be non-zero for an accurate mask,
+    # so this should not harm the score.
     pixels[0] = 0
     pixels[-1] = 0
-    # pixels = np.concatenate(([0], pixels, [0], [0]))
     runs = np.where(pixels[1:] != pixels[:-1])[0] + 2
-    print(runs[1::2])
-    print(runs[::2])
-    runs[1::2] -= runs[::2]
+    runs[1::2] = runs[1::2] - runs[:-1:2]
     return ' '.join(str(x) for x in runs)
 
+
+def rle(img):
+    '''
+    img: numpy array, 1 - mask, 0 - background
+    Returns run length as string formated
+    '''
+    bytes = np.where(img.flatten(order = 'F') == 1)[0]
+    runs = []
+    prev = -2
+    for b in bytes:
+        if (b > prev + 1): runs.extend((b + 1, 0))
+        runs[-1] += 1
+        prev = b
+
+    return ' '.join([str(i) for i in runs])
 # credits to https://stackoverflow.com/users/6076729/manuel-lagunas
 # def rle_encode(mask_image):
 #     pixels = mask_image.flatten()
