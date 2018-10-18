@@ -96,18 +96,16 @@ def rle_encoding(img):
     return ' '.join(map(str, run_lengths))
 
 def rle_encode(img):
-    img = img.squeeze(0)
+    img = np.round(img).squeeze(0)
     if len(img.shape) != 2:
         print("WARNING: The Image shape is {}, expected (H, W).".format(img.shape))
-
-    pixels = img.flatten().astype(dtype=np.byte)
+    pixels = img.flatten(order = 'F')
     if (pixels[0]) != 0 and (pixels[0]) != 1:
         print("WARNING: The Image Start with non-binary value. Expected 0 or 1, got {}.".format(pixels[0]))
     pixels = np.concatenate(([0], pixels, [0]))
-    print(pixels)
     runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
     runs[1::2] -= runs[::2]
-    return ' '.join(map(str, runs))
+    return ' '.join(str(x) for x in runs))
 
 # credits to https://stackoverflow.com/users/6076729/manuel-lagunas
 # def rle_encode(mask_image):
