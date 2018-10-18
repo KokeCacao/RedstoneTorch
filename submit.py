@@ -76,6 +76,7 @@ def get_args():
 
 
 def rle_encode(img):
+    print(img.shape)
     pixels = img.flatten()
     pixels = np.concatenate([[0], pixels, [0]])
     runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
@@ -174,4 +175,6 @@ Download: ResUnet/data/test/images/predicted/2018-10-17-17-00-26-568369-wednesda
 
 python submit.py --load tensorboard/2018-10-17-19-47-01-207026-wednesday-eve/checkpoints/CP7.pth --tag 'submit'
 Download: ResUnet/data/test/images/predicted/2018-10-17-19-47-01-207026-wednesday-eve-CP7-submit.csv
+
+python submit.py --load tensorboard/2018-10-17-19-47-01-207026-wednesday-eve/checkpoints/CP7.pth --tag 'submit2'
 """
