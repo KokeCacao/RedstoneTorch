@@ -29,6 +29,8 @@ def submit(net, writer):
     directory_list = os.listdir(config.DIRECTORY_TEST)
     if not os.path.exists(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG):
         os.makedirs(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG)
+    if os.path.exists(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + ".csv"):
+        os.remove(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + ".csv")
     with open(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + ".csv", 'a') as f:
         f.write('id,rle_mask\n')
         for index, img_name in enumerate(tqdm(directory_list)):
@@ -133,7 +135,7 @@ if __name__ == '__main__':
 
 
     print("Current Directory: " + str(os.getcwd()))
-    print("Download Model here: " + config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + ".csv")
+    print("Download Model here: " + "ResUnet/" + config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + ".csv")
     print("====================================")
     print("Loading Neuronetwork...")
     net = UNetResNet(encoder_depth=50, num_classes=1, num_filters=32, dropout_2d=0.2,
