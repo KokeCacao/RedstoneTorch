@@ -131,3 +131,9 @@ def tensor_to_PIL(tensor):
     image = image.squeeze(0)
     image = transforms.ToPILImage()(image)
     return image
+def numpy_to_PIL(image):
+    image = tensor.cpu().clone()
+    if image.size()[0] == 1: image = image.repeat(3, 1, 1) # from gray sacale to RGB
+    image = image.squeeze(0)
+    image = transforms.ToPILImage()(image)
+    return image
