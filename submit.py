@@ -105,6 +105,7 @@ def rle_encode(img):
     pixels = img.flatten(order = 'F')
     if (pixels[0]) != 0 and (pixels[0]) != 1:
         print("WARNING: The Image Start with non-binary value. Expected 0 or 1, got {}.".format(pixels[0]))
+        print("Here is an example of the image: {}".format(img))
     # We avoid issues with '1' at the start or end (at the corners of
     # the original image) by setting those pixels to '0' explicitly.
     # We do not expect these to be non-zero for an accurate mask,
