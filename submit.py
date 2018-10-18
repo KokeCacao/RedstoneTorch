@@ -92,7 +92,7 @@ def rle_encode(img):
         print("WARNING: The Image shape is {}, expected (H, W).".format(img.shape))
 
     pixels = img.flatten().astype(dtype=int)
-    if (pixels[0]) is not 0 or (pixels[0]) is not 1:
+    if (pixels[0]) != 0 or (pixels[0]) != 1:
         print("WARNING: The Image Start with non-binary value. Expected 0 or 1, got {}.".format(pixels[0]))
     pixels = np.concatenate(([0], pixels, [0]))
     runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
