@@ -42,8 +42,9 @@ def submit(net, writer):
 
             mask_pred = predict(net, img_n).squeeze(0) # reduce N
             """if config.TRAIN_GPU: """
-            masks_pred_pil = config.PREDICT_TRANSFORM_BACK(mask_pred) # reduce C from 3 to 1
+            masks_pred_pil = config.PREDICT_TRANSFORM_BACK(mask_pred)
             masks_pred_np = np.round(np.array(transforms.ToTensor()(masks_pred_pil)))
+            print(masks_pred_np.shape)
 
             enc = rle_encoding(masks_pred_np)
             f.write('{},{}\n'.format(img_name.replace(config.DIRECTORY_SUFFIX_MASK, ""), enc))
