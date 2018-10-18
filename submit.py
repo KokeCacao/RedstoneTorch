@@ -78,6 +78,8 @@ def get_args():
 def rle_encode(img):
     print(img.shape)
     pixels = img.flatten()
+    pixels[0] = 0
+    pixels[-1] = 0
     pixels = np.concatenate([[0], pixels, [0]])
     runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
     runs[1::2] -= runs[::2]
