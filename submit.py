@@ -42,7 +42,7 @@ def submit(net, writer):
             masks_pred_pil = config.PREDICT_TRANSFORM_BACK(mask_pred) # reduce C from 3 to 1
             masks_pred_np = np.array(masks_pred_pil)
 
-            enc = rle_encode(masks_pred_np)
+            enc = rle_encoding(masks_pred_np)
             f.write('{},{}\n'.format(img_name.replace(config.DIRECTORY_SUFFIX_MASK, ""), enc))
 
             if index % 100 == 0:
@@ -74,6 +74,15 @@ def get_args():
     (options, args) = parser.parse_args()
     return options
 
+def rle_encoding(x):
+    dots = np.where(x.T.flatten() == 1)[0]
+    run_lengths = []
+    prev = -2
+    for b in dots:
+        if (b>prev+1): run_lengths.extend((b + 1, 0))
+        run_lengths[-1] += 1
+        prev = b
+    return ' '.join(map(str, run_lengths))
 
 def rle_encode(img):
     print(img.shape)
