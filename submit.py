@@ -87,6 +87,13 @@ def rle_encoding(x):
     return ' '.join(map(str, run_lengths))
 
 def rle_encode(img):
+    print(img)
+    print(img.size)
+    if (img[0]) is not 0 or (img[0]) is not 1:
+        print("WARNING: The Image Start with non-binary value. Expected 0 or 1, got {}.".format(img[0]))
+    if len(img.size) != 2:
+        print("WARNING: The Image size is {}, expected H, W.".format(img.size))
+
     pixels = img.flatten()
     pixels = np.concatenate(([0], pixels, [0]))
     runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
@@ -189,4 +196,5 @@ Download: ResUnet/data/test/images/predicted/2018-10-17-19-47-01-207026-wednesda
 python submit.py --load tensorboard/2018-10-17-19-47-01-207026-wednesday-eve/checkpoints/CP7.pth --tag 'submit2'
 
 python submit.py --load tensorboard/2018-10-17-19-47-01-207026-wednesday-eve/checkpoints/CP7.pth --tag 'submit4'
+ResUnet/data/test/images/predicted/2018-10-17-19-47-01-207026-wednesday-eve-CP7-submit4.csv
 """
