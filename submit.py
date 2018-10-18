@@ -31,6 +31,7 @@ def submit(net, writer):
         os.makedirs(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG)
     if os.path.exists(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + ".csv"):
         os.remove(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + ".csv")
+        print("WARNING: delete file '{}'".format(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + ".csv"))
     with open(config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + ".csv", 'a') as f:
         f.write('id,rle_mask\n')
         for index, img_name in enumerate(tqdm(directory_list)):
