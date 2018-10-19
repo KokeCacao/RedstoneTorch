@@ -165,8 +165,8 @@ def save_checkpoint(state_dict, optimizer_dict, epoch=config.epoch, global_step=
     }, dir + interupt + config.DIRECTORY_CP_NAME.format(epoch))
     print('Checkpoint = {}'.format(config.DIRECTORY_CHECKPOINT + interupt + config.DIRECTORY_CP_NAME.format(epoch)))
 
-def load_checkpoint(net, optimizer, load_path=config.DIRECTORY_CHECKPOINT):
-    if os.path.isfile(load_path) and config.TRAIN_LOAD:
+def load_checkpoint(net, optimizer, load_path=config.TRAIN_LOAD):
+    if config.TRAIN_LOAD and os.path.isfile(config.TRAIN_LOAD):
         print("=> loading checkpoint '{}'".format(load_path))
         checkpoint = torch.load(load_path)
         if checkpoint['epoch'] != None: config.epoch = checkpoint['epoch']
@@ -177,6 +177,7 @@ def load_checkpoint(net, optimizer, load_path=config.DIRECTORY_CHECKPOINT):
             print("=> loaded only the model")
         if checkpoint['optimizer'] != None: optimizer.load_state_dict(checkpoint['optimizer'])
         print("=> loaded checkpoint 'epoch = {}' (global_step = {})".format(config.epoch, config.global_step))
+    else: print("=> nothing loaded")
 
 def load_args():
     args = get_args()
