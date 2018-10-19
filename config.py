@@ -29,6 +29,7 @@ TRAIN_HISTOGRAM = False
 TRAIN_TRY_THRESHOLD = np.linspace(0.3, 0.7, 21)
 TRAIN_THRESHOLD_TEST = True
 TRAIN_CHOSEN_THRESHOLD = 0.5
+TRAIN_CONTINUE: True
 
 DIRECTORY_PREFIX = ""
 DIRECTORY_SUFFIX_IMG = ".png"
@@ -40,6 +41,7 @@ DIRECTORY_MASK = DIRECTORY_PREFIX + 'data/train/masks/'  # augmentation
 DIRECTORY_DEPTH = DIRECTORY_PREFIX + 'data/depths.csv'
 DIRECTORY_CHECKPOINT = DIRECTORY_PREFIX + "tensorboard/" + TRAIN_TAG + "/checkpoints/"
 DIRECTORY_TEST = DIRECTORY_PREFIX + 'data/test/images/'
+DIRECTORY_CP_NAME = 'CP{}.pth'
 
 PREDICTION_TAG = "test"
 PREDICTION_LOAD_TAG = ""
@@ -47,6 +49,7 @@ PREDICTION_SAVE_IMG = False
 PREDICTION_DARK_THRESHOLD = 0.05
 
 global_step = 0
+epoch = 0
 
 class ImgAugTransform:
     def __init__(self):

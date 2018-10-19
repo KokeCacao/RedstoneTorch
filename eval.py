@@ -15,7 +15,6 @@ if os.environ.get('DISPLAY','') == '':
     mpl.use('Agg')
 from matplotlib import pyplot as plt
 
-global_plot_step = 0
 def eval_net(net, validation_loader, gpu, visualization, writer, epoch_num=0):
     thresold_dict = dict()
     """Evaluation without the densecrf with the dice coefficient"""
@@ -44,8 +43,6 @@ def eval_net(net, validation_loader, gpu, visualization, writer, epoch_num=0):
 
         if visualization and batch_index==0:
             writer.add_pr_curve("loss/epoch_validation_image", true_mask, masks_pred, global_step=epoch_num)
-            global global_plot_step
-            global_plot_step=global_plot_step+1
             for index, input_id in enumerate(id):
                 F = plt.figure()
 
@@ -84,7 +81,7 @@ def eval_net(net, validation_loader, gpu, visualization, writer, epoch_num=0):
                 plt.imshow(tensor_to_PIL(masks_pred[index]))
                 plt.title("Predicted")
                 plt.grid(False)
-                writer.add_figure("image/epoch_validation/"+str(index), F, global_step=global_plot_step)
+                writer.add_figure("image/epoch_validation/"+str(index), F, global_step=config.global_step)
         del id, z, image, true_mask
         if gpu != "": torch.cuda.empty_cache()  # release gpu memory
 
@@ -92,13 +89,13 @@ def eval_net(net, validation_loader, gpu, visualization, writer, epoch_num=0):
     for key, item in thresold_dict.items():
         item = np.mean(item)
         threshold_dict_mean[key] = item
-        writer.add_scalars('val/threshold/' + str(global_plot_step), {'Thresold': item}, key*100)
+        writer.add_scalars('val/threshold/' + str(config.global_step), {'Thresold': item}, key*100)
 
-    writer.add_scalars('val/max_threshold_val', {'MaxThresold': np.max(threshold_dict_mean.values())}, global_plot_step)
-    writer.add_scalars('val/max_threshold', {'MaxThresold': max(threshold_dict_mean.items(), key=operator.itemgetter(1))[0]}, global_plot_step)
+    writer.add_scalars('val/max_threshold_val', {'MaxThresold': np.max(threshold_dict_mean.values())}, config.global_step)
+    writer.add_scalars('val/max_threshold', {'MaxThresold': max(threshold_dict_mean.items(), key=operator.itemgetter(1))[0]}, config.global_step)
 
 
-    writer.add_histogram("iou", total_ious, global_plot_step)
+    writer.add_histogram("iou", total_ious, config.global_step)
     return total_ious.mean()
 
 def tensor_to_PIL(tensor):

@@ -24,15 +24,12 @@ from utils.memory import memory_thread
 
 
 def train_net(net,
+              optimizer,
               epochs,
               batch_size,
-              lr,
               val_percent,
-              save_cp,
               gpu,
               data_percent,
-              momentum,
-              weight_decay,
               seed):
 
     tgs_data = TGSData(config.DIRECTORY_DEPTH, config.DIRECTORY_IMG, config.DIRECTORY_MASK, config.DIRECTORY_SUFFIX_IMG, config.DIRECTORY_SUFFIX_MASK)
@@ -42,18 +39,18 @@ def train_net(net,
     train_loader = data.DataLoader(tgs_data, batch_size=batch_size, sampler=train_sampler, shuffle=False, num_workers=config.TRAIN_NUM_WORKER)
     validation_loader = data.DataLoader(tgs_data, batch_size=batch_size, sampler=validation_sampler, shuffle=False, num_workers=config.TRAIN_NUM_WORKER)
 
-    print('''
-    Starting training:
-        Epochs: {}
-        Batch size: {}
-        Learning rate: {}
-        Training size: {}
-        Validation size: {}
-        Checkpoints: {}
-        CUDA: {}
-        Momentum: {}
-        Weight_decay: {}
-    '''.format(epochs, batch_size, lr, tgs_data.train_len, tgs_data.val_len, str(save_cp), str(gpu), momentum, weight_decay))
+    # print('''
+    # Starting training:
+    #     Epochs: {}
+    #     Batch size: {}
+    #     Learning rate: {}
+    #     Training size: {}
+    #     Validation size: {}
+    #     Checkpoints: {}
+    #     CUDA: {}
+    #     Momentum: {}
+    #     Weight_decay: {}
+    # '''.format(epochs, batch_size, lr, tgs_data.train_len, tgs_data.val_len, str(save_cp), str(gpu), momentum, weight_decay))
 
     # optimizer = optim.SGD(net.parameters(),
     #                       lr=lr,
@@ -77,11 +74,6 @@ def train_net(net,
     #             {'params': net.module.dec1.parameters(), 'lr': 1e-3},
     #             {'params': net.module.dec0.parameters(), 'lr': 1e-3},
     #             {'params': net.module.final.parameters(), 'lr': 0.0015}], lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay) # all parameter learnable
-
-    """CONFIGURATION"""
-    optimizer = torch.optim.Adam(params=net.parameters(), lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay) # all parameter learnable
-    ia.seed(config.TRAIN_SEED)
-
 
 
     train_begin = datetime.now()
@@ -127,7 +119,6 @@ def train_net(net,
                                                                                                      (batch_index+1)*batch_size,
                                                                                                      tgs_data.train_len,
                                                                                                      loss.item(), iou))
-            # writer.add_scalars('loss/batch_training', {'Epoch': epoch_index+1, 'TrainLoss': loss.item(), 'IOU': iou}, epoch_index*batch_size+(batch_index+1))
             writer.add_scalars('loss/batch_training', {'Epoch': epoch_index+1, 'TrainLoss': loss.item(), 'IOU': iou}, config.global_step)
             optimizer.zero_grad()
             loss.backward()
@@ -135,11 +126,7 @@ def train_net(net,
             del id, z, image, true_mask
             if gpu != "": torch.cuda.empty_cache()  # release gpu memory
         print('{}# Epoch finished ! Loss: {}, IOU: {}'.format(epoch_index+1, epoch_loss/(batch_index+1), epoch_iou/(batch_index+1)))
-        if save_cp:
-            if not os.path.exists(config.DIRECTORY_CHECKPOINT):
-                os.makedirs(config.DIRECTORY_CHECKPOINT)
-            torch.save(net.state_dict(), config.DIRECTORY_CHECKPOINT + 'CP{}.pth'.format(epoch + 1))
-            print('Checkpoint {} saved !'.format(config.DIRECTORY_CHECKPOINT + 'CP{}.pth'.format(epoch + 1)))
+        save_checkpoint(state_dict=net.state_dict(), optimizer_dict=optimizer.state_dict())
         # validation
         if config.TRAIN_GPU != "": torch.cuda.empty_cache() # release gpu memory
         if config.TRAIN_VALIDATION:
@@ -165,60 +152,65 @@ def log_data(file_name, data):
     with open(file_name+".txt", "a+") as file:
         file.write(data+"\n")
 
-def save_checkpoint():
+def save_checkpoint(state_dict, optimizer_dict, epoch=config.epoch, global_step=config.global_step, dir=config.TRAIN_SAVE_CHECKPOINT, interupt=False):
+    interupt = "INTERUPT-" if interupt else ""
+    if config.TRAIN_SAVE_CHECKPOINT:
+        if not os.path.exists(dir):
+            os.makedirs(dir)
     torch.save({
-        'epoch': cur_epoch,
-        'state_dict': model.state_dict(),
-        'best_prec': best_prec,
-        'loss_train': loss_train,
-        'optimizer': optimizer.state_dict(),
-    }, is_best, OUT_DIR, 'acc-{:.4f}_loss-{:.4f}_epoch-{}_checkpoint.pth.tar'.format(val_acc, val_loss, cur_epoch))
+        'epoch': epoch,
+        'global_step': global_step,
+        'state_dict': state_dict,
+        'optimizer': optimizer_dict,
+    }, dir + interupt + config.DIRECTORY_CP_NAME.format(epoch))
+    print('Checkpoint = {}'.format(config.DIRECTORY_CHECKPOINT + interupt + config.DIRECTORY_CP_NAME.format(epoch)))
 
-def load_checkpoint(checkpoint, model, optimizer):
-    """ loads state into model and optimizer and returns:
-        epoch, best_precision, loss_train[]
-    """
-    if os.path.isfile(load_path):
+def load_checkpoint(net, optimizer, load_path=config.DIRECTORY_CHECKPOINT):
+    if os.path.isfile(load_path) and config.TRAIN_LOAD:
         print("=> loading checkpoint '{}'".format(load_path))
         checkpoint = torch.load(load_path)
-        epoch = checkpoint['epoch']
-        best_prec = checkpoint['best_prec']
-        loss_train = checkpoint['loss_train']
-        model.load_state_dict(checkpoint['state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer'])
-        print("=> loaded checkpoint '{}' (epoch {})"
-              .format(epoch, checkpoint['epoch']))
-        return epoch, best_prec, loss_train
+        if checkpoint['epoch'] != None: config.epoch = checkpoint['epoch']
+        if checkpoint['global_step'] != None: config.global_step = checkpoint['global_step']
+        if checkpoint['state_dict'] != None: net.load_state_dict(checkpoint['state_dict'])
+        else:
+            net.load_state_dict(checkpoint)
+            print("=> loaded only the model")
+        if checkpoint['optimizer'] != None: optimizer.load_state_dict(checkpoint['optimizer'])
+        print("=> loaded checkpoint 'epoch = {}' (global_step = {})".format(config.epoch, config.global_step))
 
-if __name__ == '__main__':
+def load_args():
     args = get_args()
-    if args.load != False: config.TRAIN_LOAD = args.load
     if args.tag != "":
-        """Update values"""
         # if args.continu and args.loca != False: config.TRAIN_TAG = args.load.split("/", 2)[1]
         # else: config.TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + args.tag
         config.TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + args.tag
         config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "tensorboard/" + config.TRAIN_TAG + "/checkpoints/"
+    if args.load != False:
+        config.TRAIN_LOAD = args.load
+        if config.TRAIN_CONTINUE: config.TRAIN_TAG = args.load.split("/", 3)[1]
+
+if __name__ == '__main__':
+    load_args()
 
     writer = SummaryWriter("tensorboard/" + config.TRAIN_TAG)
+    print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + config.TRAIN_TAG + " --port=6006")
 
+
+    ia.seed(config.TRAIN_SEED)
 
 
     memory = memory_thread(1, writer, config.TRAIN_GPU)
     memory.setDaemon(True)
     memory.start()
-    print("Current Directory: " + str(os.getcwd()))
-    print("====================================")
-    print("Copy this line to command: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + config.TRAIN_TAG + " --port=6006")
-    print("Loading Neuronetwork...")
+    print("=> Current Directory: " + str(os.getcwd()))
+    print("=> Loading neuronetwork...")
+
     net = UNetResNet(encoder_depth=50, num_classes=1, num_filters=32, dropout_2d=0.2,
                  pretrained=True, is_deconv=True) #don't init weights, don't give depth
     if config.TRAIN_GPU != "": net = torch.nn.DataParallel(net, device_ids=[int(i) for i in config.TRAIN_GPU.split(",")])
 
-
-    if config.TRAIN_LOAD:
-        net.load_state_dict(torch.load(config.TRAIN_LOAD))
-        print('Model loaded from {}'.format(config.TRAIN_LOAD))
+    optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY)  # all parameter learnable
+    load_checkpoint(net, optimizer)
 
     torch.manual_seed(config.TRAIN_SEED)
     if config.TRAIN_GPU != "":
@@ -226,32 +218,23 @@ if __name__ == '__main__':
         print('Using GPU: [' + config.TRAIN_GPU + ']')
         torch.cuda.manual_seed_all(config.TRAIN_SEED)
         net.cuda()
-    else:
-        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-        # cudnn.benchmark = True # faster convolutions, but more memory
+    else: os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
     try:
         train_net(net=net,
+                  optimizer=optimizer,
                   epochs=config.MODEL_EPOCHS,
                   batch_size=config.MODEL_BATCH_SIZE,
-                  lr=config.MODEL_LEARNING_RATE,
                   val_percent=config.TRAIN_VAL_PERCENT,
-                  save_cp=config.TRAIN_SAVE_CHECKPOINT,
                   gpu=config.TRAIN_GPU,
                   data_percent=config.TRAIN_DATA_PERCENT,
-                  momentum=config.MODEL_MOMENTUM,
-                  weight_decay=config.MODEL_WEIGHT_DEFAY,
                   seed=config.TRAIN_SEED)
     except KeyboardInterrupt as e:
-        writer.close()
         print(e)
-        torch.save(net.state_dict(), config.DIRECTORY_CHECKPOINT + 'INTERUPTED.pth')
-        print('Saved interrupt')
-        try:
-            sys.exit(0)
-        except SystemExit:
-            os._exit(0)
-    writer.close()
+        writer.close()
+        save_checkpoint(net.state_dict(), optimizer.state_dict(), interupt=True)
+        try: sys.exit(0)
+        except SystemExit: os._exit(0)
 
 # python train.py --epochs 5 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 0.01 --gpu "0,1" --visualization "True" --tag "test"
 # python train.py --epochs 300 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "fast-train" --load tensorboard/2018-10-07-23-40-34-439264-different-lr/checkpoints/CP21.pth
