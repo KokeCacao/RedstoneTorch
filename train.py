@@ -189,7 +189,7 @@ def load_args():
         config.tag = args.tag
         config.TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + config.tag
         config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "tensorboard/" + config.TRAIN_TAG + "/checkpoints/"
-    if args.load:
+    if args.load != None:
         config.TRAIN_LOAD = args.load
         if config.TRAIN_CONTINUE: config.TRAIN_TAG = args.load.split("/", 3)[1]
 
