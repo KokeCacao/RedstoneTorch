@@ -237,7 +237,7 @@ if __name__ == '__main__':
         print(e)
         writer.close()
         save_checkpoint(net.state_dict(), optimizer.state_dict(), interupt=True)
-        print("To Resume: python train.py --tag 'default' --load " + config.DIRECTORY_CHECKPOINT + "INTERUPT-" + tag + config.DIRECTORY_CP_NAME.format(config.epoch))
+        print("To Resume: python train.py --tag 'default' --load " + config.DIRECTORY_CHECKPOINT + "INTERUPT-" + config.tag + config.DIRECTORY_CP_NAME.format(config.epoch))
         print("Or: python train.py --tag 'default' --load " + config.DIRECTORY_CHECKPOINT + config.tag + config.DIRECTORY_CP_NAME.format(config.epoch-1))
         try: sys.exit(0)
         except SystemExit: os._exit(0)
@@ -316,4 +316,15 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/t
 
 
 python train.py --tag "thursday-final" --load tensorboard/2018-10-19-02-11-20-325481-thursday-eve/checkpoints/INTERUPT-CP0.pth
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-19-02-11-20-325481-thursday-eve --port=6006 
+
+
+python train.py --tag "test" --load tensorboard/2018-10-19-03-56-22-480073-thursday-final/checkpoints/INTERUPT-thursday-final-CP0.pth
+
+
+g.mul_(beta1).add_(1 - beta1, grad)
+RuntimeError: Expected object of type torch.FloatTensor but found type torch.cuda.FloatTensor for argument #4 'other'
+k1412042720@ml-k80-3:~/ResUnet$ python train.py --tag "thursday-a" --load tensorboard/2018-10-17-19-47-01-207026-wednesday-eve/checkpoints/CP73.pth
+WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.
+=> Tensorboard: python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-17-19-47-01-207026-wednesday-eve --port=6006
 """
