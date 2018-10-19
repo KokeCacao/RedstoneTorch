@@ -213,9 +213,8 @@ if __name__ == '__main__':
 
     writer = SummaryWriter("tensorboard/" + config.TRAIN_TAG)
     print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + config.TRAIN_TAG + " --port=6006")
-
-
     ia.seed(config.TRAIN_SEED)
+    torch.manual_seed(config.TRAIN_SEED)
 
 
     memory = memory_thread(1, writer, config.TRAIN_GPU)
@@ -231,7 +230,6 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY)  # all parameter learnable
     load_checkpoint(net, optimizer, config.TRAIN_LOAD)
 
-    torch.manual_seed(config.TRAIN_SEED)
     if config.TRAIN_GPU != "":
         os.environ["CUDA_VISIBLE_DEVICES"] = config.TRAIN_GPU #default
         print('Using GPU: [' + config.TRAIN_GPU + ']')
@@ -344,4 +342,5 @@ WARNING: No display found. Using non-interactive Agg backend for loading matplot
 => Tensorboard: python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-17-19-47-01-207026-wednesday-eve --port=6006
 
 python train.py --tag "thursday-a" --load tensorboard/2018-10-19-04-09-09-838061-thursday-a/checkpoints/thursday-a-CP0.pth
+
 """

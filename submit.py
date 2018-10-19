@@ -157,51 +157,69 @@ def rle(img):
 #     runs[1::2] -= runs[::2]
 #     return ' '.join(str(x) for x in runs)
 
+def load_checkpoint(net, load_path):
+    if load_path and os.path.isfile(load_path):
+        print("=> Loading checkpoint '{}'".format(load_path))
+        checkpoint = torch.load(load_path)
+        if 'state_dict' not in checkpoint:
+            net.load_state_dict(checkpoint)
+            print("=> Loaded only the model")
+            return
+        config.epoch = checkpoint['epoch']
+        config.global_step = checkpoint['global_step']
+        net.load_state_dict(checkpoint['state_dict'])
+        print("=> Loaded checkpoint 'epoch = {}' (global_step = {})".format(config.epoch, config.global_step))
+    else: print("=> Nothing loaded")
 
-if __name__ == '__main__':
+def move_optimizer_to_cuda(optimizer):
+    """
+    Move the optimizer state to GPU, if necessary.
+    After calling, any parameter specific state in the optimizer
+    will be located on the same device as the parameter.
+    """
+    for param_group in optimizer.param_groups:
+        for param in param_group['params']:
+            # if param.is_cuda:
+            param_state = optimizer.state[param]
+            for k in param_state.keys():
+                if torch.is_tensor(param_state[k]):
+                    param_state[k] = param_state[k].cuda()
+
+def load_args():
     args = get_args()
     config.TRAIN_LOAD = args.load
     config.PREDICTION_LOAD_TAG = config.TRAIN_LOAD.replace("/", "-").replace(".pth", "-")
     config.PREDICTION_TAG = config.TRAIN_LOAD.replace("tensorboard-", "").replace("-checkpoints-", "-").replace(".pth", "").replace("tensorboard/", "").replace("/checkpoints/", "-").replace(".pth", "")
     if args.tag != "": config.PREDICTION_TAG = config.PREDICTION_TAG + "-" + args.tag
-    writer = SummaryWriter(config.DIRECTORY_TEST + "predicted/tensorboard")
-    print("Copy this line to command: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/" + config.DIRECTORY_TEST + "predicted/tensorboard" + " --port=6006")
 
+if __name__ == '__main__':
+    load_args()
+    writer = SummaryWriter("tensorboard/" + config.TRAIN_TAG)
+    print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + config.TRAIN_TAG + " --port=6006")
+    torch.manual_seed(config.TRAIN_SEED)
+    print("=> Current Directory: " + str(os.getcwd()))
+    print("=> Download Model here: " + "ResUnet/" + config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + ".csv")
 
-    print("Current Directory: " + str(os.getcwd()))
-    print("Download Model here: " + "ResUnet/" + config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + ".csv")
-    print("====================================")
-    print("Loading Neuronetwork...")
     net = UNetResNet(encoder_depth=50, num_classes=1, num_filters=32, dropout_2d=0.2,
                  pretrained=True, is_deconv=True)
     if config.TRAIN_GPU != "": net = torch.nn.DataParallel(net, device_ids=[int(i) for i in config.TRAIN_GPU.split(",")])
 
-    if config.TRAIN_LOAD:
-        net.load_state_dict(torch.load(config.TRAIN_LOAD))
-        print('Model loaded from {}'.format(config.TRAIN_LOAD))
+    load_checkpoint(net, config.TRAIN_LOAD)
 
-    torch.manual_seed(config.TRAIN_SEED)
     if config.TRAIN_GPU != "":
-        os.environ["CUDA_VISIBLE_DEVICES"] = config.TRAIN_GPU
+        os.environ["CUDA_VISIBLE_DEVICES"] = config.TRAIN_GPU #default
         print('Using GPU: [' + config.TRAIN_GPU + ']')
         torch.cuda.manual_seed_all(config.TRAIN_SEED)
         net.cuda()
-    else:
-        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    else: os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
     try:
         submit(net=net, writer=writer)
     except KeyboardInterrupt as e:
         print(e)
-        try:
-            sys.exit(0)
-        except SystemExit:
-            os._exit(0)
-# t1 = time.time()
-# pred_dict = {idx: rle_encode(      np.round(      downsample(preds_test[i]) > threshold_best    )      ) for i, idx in enumerate(tqdm_notebook(test_df.index.values))}
-# t2 = time.time()
-#
-# print(f"Usedtime = {t2-t1} s")
+        writer.close()
+        try: sys.exit(0)
+        except SystemExit: os._exit(0)
 
 """
 python submit.py --load tensorboard/2018-10-13-19-53-02-729361-test/checkpoints/CP36.pth --tag bronze-here
@@ -231,4 +249,8 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/d
 ResUnet/data/test/images/predicted/2018-10-17-19-47-01-207026-wednesday-eve-CP7-submita.csv
 
 python submit.py --load tensorboard/2018-10-17-19-47-01-207026-wednesday-eve/checkpoints/CP73.pth
+
+
+
+python submit.py --load tensorboard/2018-10-19-04-42-36-919742-thursday-a/checkpoints/thursday-a-CP0.pth
 """
