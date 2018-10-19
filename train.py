@@ -178,7 +178,7 @@ def load_checkpoint(net, optimizer, load_path):
         config.global_step = checkpoint['global_step']
         net.load_state_dict(checkpoint['state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer'])
-        optimizer.param_groups = optimizer.param_groups.cuda()
+        optimizer.param_groups = optimizer.param_groups.type(torch.cuda.FloatTensor)
         print("=> Loaded checkpoint 'epoch = {}' (global_step = {})".format(config.epoch, config.global_step))
     else: print("=> Nothing loaded")
 
