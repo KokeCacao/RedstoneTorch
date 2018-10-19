@@ -165,19 +165,19 @@ def save_checkpoint(state_dict, optimizer_dict, epoch=config.epoch, global_step=
     }, dir + interupt + config.DIRECTORY_CP_NAME.format(epoch))
     print('Checkpoint = {}'.format(config.DIRECTORY_CHECKPOINT + interupt + config.DIRECTORY_CP_NAME.format(epoch)))
 
-def load_checkpoint(net, optimizer, load_path=config.TRAIN_LOAD):
-    if config.TRAIN_LOAD and os.path.isfile(config.TRAIN_LOAD):
-        print("=> loading checkpoint '{}'".format(load_path))
+def load_checkpoint(net, optimizer, load_path):
+    if load_path and os.path.isfile(load_path):
+        print("=> Loading checkpoint '{}'".format(load_path))
         checkpoint = torch.load(load_path)
         if checkpoint['epoch'] != None: config.epoch = checkpoint['epoch']
         if checkpoint['global_step'] != None: config.global_step = checkpoint['global_step']
         if checkpoint['state_dict'] != None: net.load_state_dict(checkpoint['state_dict'])
         else:
             net.load_state_dict(checkpoint)
-            print("=> loaded only the model")
+            print("=> Loaded only the model")
         if checkpoint['optimizer'] != None: optimizer.load_state_dict(checkpoint['optimizer'])
-        print("=> loaded checkpoint 'epoch = {}' (global_step = {})".format(config.epoch, config.global_step))
-    else: print("=> nothing loaded")
+        print("=> Loaded checkpoint 'epoch = {}' (global_step = {})".format(config.epoch, config.global_step))
+    else: print("=> Nothing loaded")
 
 def load_args():
     args = get_args()
@@ -186,7 +186,7 @@ def load_args():
         # else: config.TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + args.tag
         config.TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + args.tag
         config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "tensorboard/" + config.TRAIN_TAG + "/checkpoints/"
-    if args.load != False:
+    if args.load:
         config.TRAIN_LOAD = args.load
         if config.TRAIN_CONTINUE: config.TRAIN_TAG = args.load.split("/", 3)[1]
 
@@ -211,7 +211,7 @@ if __name__ == '__main__':
     if config.TRAIN_GPU != "": net = torch.nn.DataParallel(net, device_ids=[int(i) for i in config.TRAIN_GPU.split(",")])
 
     optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY)  # all parameter learnable
-    load_checkpoint(net, optimizer)
+    load_checkpoint(net, optimizer, config.TRAIN_LOAD)
 
     torch.manual_seed(config.TRAIN_SEED)
     if config.TRAIN_GPU != "":
