@@ -123,7 +123,7 @@ def train_net(net,
             optimizer.step()
             del id, z, image, true_mask
             if gpu != "": torch.cuda.empty_cache()  # release gpu memory
-            config.epoch = config.epoch + 1
+        config.epoch = config.epoch + 1
         print('{}# Epoch finished ! Loss: {}, IOU: {}'.format(epochs + 1, epoch_loss / (batch_index + 1), epoch_iou / (batch_index + 1)))
         save_checkpoint(state_dict=net.state_dict(), optimizer_dict=optimizer.state_dict())
         # validation
@@ -257,8 +257,8 @@ if __name__ == '__main__':
         print(e)
         writer.close()
         save_checkpoint(net.state_dict(), optimizer.state_dict(), interupt=True)
-        print("To Resume: python train.py --tag 'default' --load " + config.DIRECTORY_CHECKPOINT + "INTERUPT-" + config.tag + config.DIRECTORY_CP_NAME.format(config.epoch))
-        print("Or: python train.py --tag 'default' --load " + config.DIRECTORY_CHECKPOINT + config.tag + config.DIRECTORY_CP_NAME.format(config.epoch - 1))
+        print("To Resume: python train.py --tag 'default' --load " + config.DIRECTORY_CHECKPOINT + "INTERUPT-" + config.tag + "-" + config.DIRECTORY_CP_NAME.format(config.epoch))
+        print("Or: python train.py --tag 'default' --load " + config.DIRECTORY_CHECKPOINT + config.tag + "-" + config.DIRECTORY_CP_NAME.format(config.epoch - 1))
         try:
             sys.exit(0)
         except SystemExit:

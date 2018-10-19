@@ -46,8 +46,7 @@ class TGSData(data.Dataset):
                 in os.listdir(self.load_img_dir))
         # return (f[:].replace(self.img_suffix, "", 1) for f in os.listdir(self.img_dir))
 
-    def get_sampler(self, data_percent=1.0, val_percent=0.05, data_shuffle=False, train_shuffle=True, val_shuffle=False,
-                    seed=19):
+    def get_sampler(self, data_percent=1.0, val_percent=0.05, data_shuffle=False, train_shuffle=True, val_shuffle=False, seed=19, fold=-1):
         print("     Data Size: {}".format(self.data_len))
 
         if data_shuffle:
@@ -55,31 +54,38 @@ class TGSData(data.Dataset):
             np.random.shuffle(self.indices)
         self.indices_to_id = dict(zip(self.indices, self.id))
 
-        val_split = int(np.floor(data_percent * val_percent * self.data_len))
-        print("     Validation Size: {}".format(val_split))
-        self.val_len = val_split
-        data_split = int(np.floor(data_percent * self.data_len))
-        print("     Traning Size: {}".format(data_split - val_split))
-        self.train_len = data_split - val_split
+        if fold == -1:
+            val_split = int(np.floor(data_percent * val_percent * self.data_len))
+            print("     Validation Size: {}".format(val_split))
+            self.val_len = val_split
+            data_split = int(np.floor(data_percent * self.data_len))
+            print("     Traning Size: {}".format(data_split - val_split))
+            self.train_len = data_split - val_split
 
-        self.val_indices = self.indices[:val_split]
-        if val_shuffle:
-            np.random.seed(seed + 1)
-            np.random.shuffle(self.val_indices)
-            np.random.seed(seed)
-        self.train_indices = self.indices[val_split:data_split]
-        if train_shuffle:
-            np.random.seed(seed + 2)
-            np.random.shuffle(self.train_indices)
-            np.random.seed(seed)
+            self.val_indices = self.indices[:val_split]
+            if val_shuffle:
+                np.random.seed(seed + 1)
+                np.random.shuffle(self.val_indices)
+                np.random.seed(seed)
+            self.train_indices = self.indices[val_split:data_split]
+            if train_shuffle:
+                np.random.seed(seed + 2)
+                np.random.shuffle(self.train_indices)
+                np.random.seed(seed)
 
-        self.tran_len = len(self.train_indices)
-        self.val_len = len(self.val_indices)
+            self.tran_len = len(self.train_indices)
+            self.val_len = len(self.val_indices)
 
-        train_sampler = SubsetRandomSampler(self.train_indices)
-        validation_sampler = SubsetRandomSampler(self.val_indices)
+            train_sampler = SubsetRandomSampler(self.train_indices)
+            validation_sampler = SubsetRandomSampler(self.val_indices)
 
-        return train_sampler, validation_sampler
+            return train_sampler, validation_sampler
+        else:
+            left_over = self.indices[:-(self.data_len % fold)]
+            cv_size = len(self.indices)-len(left_over) / fold
+            print("      cv_size: {}".format(cv_))
+
+            for
 
     def __getitem__(self, index):
         id = self.indices_to_id.get(index)
