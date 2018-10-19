@@ -152,18 +152,18 @@ def log_data(file_name, data):
     with open(file_name+".txt", "a+") as file:
         file.write(data+"\n")
 
-def save_checkpoint(state_dict, optimizer_dict, epoch=config.epoch, global_step=config.global_step, dir=config.DIRECTORY_CHECKPOINT, interupt=False):
+def save_checkpoint(state_dict, optimizer_dict, dir=config.DIRECTORY_CHECKPOINT, interupt=False):
     interupt = "INTERUPT-" if interupt else ""
     if config.TRAIN_SAVE_CHECKPOINT:
         if not os.path.exists(dir):
             os.makedirs(dir)
     torch.save({
-        'epoch': epoch,
-        'global_step': global_step,
+        'epoch': config.epoch,
+        'global_step': config.global_step,
         'state_dict': state_dict,
         'optimizer': optimizer_dict,
-    }, dir + interupt + config.DIRECTORY_CP_NAME.format(epoch))
-    print('Checkpoint = {}'.format(config.DIRECTORY_CHECKPOINT + interupt + config.DIRECTORY_CP_NAME.format(epoch)))
+    }, dir + interupt + config.DIRECTORY_CP_NAME.format(config.epoch))
+    print('Checkpoint: {} step, dir: {}'.format(config.global_step, config.DIRECTORY_CHECKPOINT + interupt + config.DIRECTORY_CP_NAME.format(config.epoch)))
 
 def load_checkpoint(net, optimizer, load_path):
     if load_path and os.path.isfile(load_path):
@@ -235,7 +235,7 @@ if __name__ == '__main__':
         print(e)
         writer.close()
         save_checkpoint(net.state_dict(), optimizer.state_dict(), interupt=True)
-        print("To Resume: python train.py --tag 'default' --load " + config.DIRECTORY_CP_NAME + "INTERUPT-" + config.DIRECTORY_CP_NAME.format(config.epoch))
+        print("To Resume: python train.py --tag 'default' --load " + config.DIRECTORY_CHECKPOINT + "INTERUPT-" + config.DIRECTORY_CP_NAME.format(config.epoch))
         try: sys.exit(0)
         except SystemExit: os._exit(0)
 
