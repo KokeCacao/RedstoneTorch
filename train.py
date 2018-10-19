@@ -166,7 +166,7 @@ def save_checkpoint(state_dict, optimizer_dict, interupt=False):
         'state_dict': state_dict,
         'optimizer': optimizer_dict,
     }, config.DIRECTORY_CHECKPOINT + interupt + tag + config.DIRECTORY_CP_NAME.format(config.epoch))
-    print('Checkpoint: {} step, dir: {}'.format(config.global_step, config.DIRECTORY_CHECKPOINT + interupt + tag + config.DIRECTORY_CP_NAME.format(config.epoch)))
+    print('Checkpoint: {} step, dir: {}'.format(config.global_step, config.DIRECTORY_CHECKPOINT + interupt + config.tag + config.DIRECTORY_CP_NAME.format(config.epoch)))
 
 
 def load_checkpoint(net, optimizer, load_path):
@@ -212,7 +212,9 @@ def load_args():
         config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "tensorboard/" + config.TRAIN_TAG + "/checkpoints/"
     if args.load != None:
         config.TRAIN_LOAD = args.load
-        if config.TRAIN_CONTINUE: config.TRAIN_TAG = args.load.split("/", 3)[1]
+        if config.TRAIN_CONTINUE:
+            config.TRAIN_TAG = args.load.split("/", 3)[1]
+            config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "tensorboard/" + config.TRAIN_TAG + "/checkpoints/"
 
 
 if __name__ == '__main__':
