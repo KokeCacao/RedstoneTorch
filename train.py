@@ -169,12 +169,13 @@ def load_checkpoint(net, optimizer, load_path):
     if load_path and os.path.isfile(load_path):
         print("=> Loading checkpoint '{}'".format(load_path))
         checkpoint = torch.load(load_path)
-        if checkpoint['epoch'] != None: config.epoch = checkpoint['epoch']
-        if checkpoint['global_step'] != None: config.global_step = checkpoint['global_step']
-        if checkpoint['state_dict'] != None: net.load_state_dict(checkpoint['state_dict'])
-        else:
+        if 'state_dict' in checkpoint:
             net.load_state_dict(checkpoint)
             print("=> Loaded only the model")
+            return
+        config.epoch = checkpoint['epoch']
+        config.global_step = checkpoint['global_step']
+        net.load_state_dict(checkpoint['state_dict'])
         if checkpoint['optimizer'] != None: optimizer.load_state_dict(checkpoint['optimizer'])
         print("=> Loaded checkpoint 'epoch = {}' (global_step = {})".format(config.epoch, config.global_step))
     else: print("=> Nothing loaded")
