@@ -169,7 +169,7 @@ def load_checkpoint(net, optimizer, load_path):
     if load_path and os.path.isfile(load_path):
         print("=> Loading checkpoint '{}'".format(load_path))
         checkpoint = torch.load(load_path)
-        if 'state_dict' in checkpoint:
+        if 'state_dict' not in checkpoint:
             net.load_state_dict(checkpoint)
             print("=> Loaded only the model")
             return
@@ -307,6 +307,6 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/t
 python train.py --tag "wednesday-eve" --load tensorboard/2018-10-17-17-00-26-568369-wednesday-aft/checkpoints/CP13.pth
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-17-19-47-01-207026-wednesday-eve --port=6006
 
-python train.py --tag "thursday-eve" --load tensorboard/2018-10-17-19-47-01-207026-wednesday-eve/checkpoints/CP74.pth
+python train.py --tag "thursday-eve" --load tensorboard/2018-10-17-19-47-01-207026-wednesday-eve/checkpoints/CP73.pth
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-17-19-47-01-207026-wednesday-eve --port=6006
 """
