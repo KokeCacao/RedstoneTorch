@@ -47,7 +47,7 @@ class TGSData(data.Dataset):
 
     def get_sampler(self, data_percent=1.0, val_percent=0.05, data_shuffle=False, train_shuffle=True, val_shuffle=False,
                     seed=19):
-        print("Total Size:", self.data_len)
+        print("     Data Size: {}".format(self.data_len))
 
         if data_shuffle:
             np.random.seed(seed)
@@ -55,10 +55,10 @@ class TGSData(data.Dataset):
         self.indices_to_id = dict(zip(self.indices, self.id))
 
         val_split = int(np.floor(data_percent * val_percent * self.data_len))
-        print("Validation Size: {}".format(val_split))
+        print("     Validation Size: {}".format(val_split))
         self.val_len = val_split
         data_split = int(np.floor(data_percent * self.data_len))
-        print("Traning Size: {}".format(data_split - val_split))
+        print("     Traning Size: {}".format(data_split - val_split))
         self.train_len = data_split - val_split
 
         self.val_indices = self.indices[:val_split]

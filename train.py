@@ -79,7 +79,7 @@ def train_net(net,
     train_begin = datetime.now()
     for epoch_index, epoch in enumerate(range(epochs)):
         epoch_begin = datetime.now()
-        print('Starting epoch {}/{}.'.format(epoch + 1, epochs))
+        print('Starting epoch {}/{}'.format(epoch + 1, epochs))
 
         epoch_loss = 0
         epoch_iou = 0
@@ -235,6 +235,7 @@ if __name__ == '__main__':
         print(e)
         writer.close()
         save_checkpoint(net.state_dict(), optimizer.state_dict(), interupt=True)
+        print("To Resume: python train.py --tag 'default' --load " + config.DIRECTORY_CP_NAME + "INTERUPT-" + config.DIRECTORY_CP_NAME.format(config.epoch))
         try: sys.exit(0)
         except SystemExit: os._exit(0)
 
