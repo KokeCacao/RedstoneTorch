@@ -89,7 +89,7 @@ def eval_net(net, validation_loader, gpu, visualization, writer, epoch_num=0):
     for key, item in thresold_dict.items():
         item = np.mean(item)
         threshold_dict_mean[key] = item
-        writer.add_scalars('val/threshold/' + str(config.global_step), {'Thresold': item}, key*100)
+        writer.add_scalars('val/threshold', {'Thresold': item}, key*100)
 
     writer.add_scalars('val/max_threshold_val', {'MaxThresold': np.max(threshold_dict_mean.values())}, config.global_step)
     writer.add_scalars('val/max_threshold', {'MaxThresold': max(threshold_dict_mean.items(), key=operator.itemgetter(1))[0]}, config.global_step)

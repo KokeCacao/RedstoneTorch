@@ -152,7 +152,7 @@ def log_data(file_name, data):
     with open(file_name+".txt", "a+") as file:
         file.write(data+"\n")
 
-def save_checkpoint(state_dict, optimizer_dict, epoch=config.epoch, global_step=config.global_step, dir=config.TRAIN_SAVE_CHECKPOINT, interupt=False):
+def save_checkpoint(state_dict, optimizer_dict, epoch=config.epoch, global_step=config.global_step, dir=config.DIRECTORY_CHECKPOINT, interupt=False):
     interupt = "INTERUPT-" if interupt else ""
     if config.TRAIN_SAVE_CHECKPOINT:
         if not os.path.exists(dir):

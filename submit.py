@@ -229,4 +229,6 @@ python submit.py --load tensorboard/2018-10-17-19-47-01-207026-wednesday-eve/che
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/data/test
 /images/predicted/tensorboard --port=6006
 ResUnet/data/test/images/predicted/2018-10-17-19-47-01-207026-wednesday-eve-CP7-submita.csv
+
+python submit.py --load tensorboard/2018-10-17-19-47-01-207026-wednesday-eve/checkpoints/CP73.pth
 """
