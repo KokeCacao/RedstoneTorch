@@ -177,7 +177,8 @@ def load_checkpoint(net, optimizer, load_path):
         config.epoch = checkpoint['epoch']
         config.global_step = checkpoint['global_step']
         net.load_state_dict(checkpoint['state_dict'])
-        if checkpoint['optimizer'] != None: optimizer.load_state_dict(checkpoint['optimizer'])
+        optimizer.load_state_dict(checkpoint['optimizer'])
+        optimizer.param_groups = optimizer.param_groups.cuda()
         print("=> Loaded checkpoint 'epoch = {}' (global_step = {})".format(config.epoch, config.global_step))
     else: print("=> Nothing loaded")
 
@@ -327,4 +328,6 @@ RuntimeError: Expected object of type torch.FloatTensor but found type torch.cud
 k1412042720@ml-k80-3:~/ResUnet$ python train.py --tag "thursday-a" --load tensorboard/2018-10-17-19-47-01-207026-wednesday-eve/checkpoints/CP73.pth
 WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.
 => Tensorboard: python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-17-19-47-01-207026-wednesday-eve --port=6006
+
+python train.py --tag "thursday-a" --load tensorboard/2018-10-19-04-09-09-838061-thursday-a/checkpoints/thursday-a-CP0.pth
 """
