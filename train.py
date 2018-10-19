@@ -189,16 +189,12 @@ def move_optimizer_to_cuda(optimizer):
     will be located on the same device as the parameter.
     """
     for param_group in optimizer.param_groups:
-        print("1")
         for param in param_group['params']:
-            print("2")
+            param.is_cuda = True
             if param.is_cuda:
-                print("3")
                 param_state = optimizer.state[param]
                 for k in param_state.keys():
-                    print("4")
                     if torch.is_tensor(param_state[k]):
-                        print("5")
                         param_state[k] = param_state[k].cuda(device=param.get_device())
 
 def load_args():
