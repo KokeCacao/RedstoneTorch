@@ -50,6 +50,7 @@ PREDICTION_DARK_THRESHOLD = 0.05
 
 global_step = 0
 epoch = 0
+tag = ""
 
 class ImgAugTransform:
     def __init__(self):

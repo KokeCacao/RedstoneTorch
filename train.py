@@ -152,18 +152,19 @@ def log_data(file_name, data):
     with open(file_name+".txt", "a+") as file:
         file.write(data+"\n")
 
-def save_checkpoint(state_dict, optimizer_dict, dir=config.DIRECTORY_CHECKPOINT, interupt=False):
+def save_checkpoint(state_dict, optimizer_dict, interupt=False):
+    tag = config.tag + "-" if config.tag != "" else ""
     interupt = "INTERUPT-" if interupt else ""
     if config.TRAIN_SAVE_CHECKPOINT:
-        if not os.path.exists(dir):
-            os.makedirs(dir)
+        if not os.path.exists(config.DIRECTORY_CHECKPOINT):
+            os.makedirs(config.DIRECTORY_CHECKPOINT)
     torch.save({
         'epoch': config.epoch,
         'global_step': config.global_step,
         'state_dict': state_dict,
         'optimizer': optimizer_dict,
-    }, dir + interupt + config.DIRECTORY_CP_NAME.format(config.epoch))
-    print('Checkpoint: {} step, dir: {}'.format(config.global_step, config.DIRECTORY_CHECKPOINT + interupt + config.DIRECTORY_CP_NAME.format(config.epoch)))
+    }, config.DIRECTORY_CHECKPOINT + interupt + tag + config.DIRECTORY_CP_NAME.format(config.epoch))
+    print('Checkpoint: {} step, dir: {}'.format(config.global_step, config.DIRECTORY_CHECKPOINT + interupt + tag + config.DIRECTORY_CP_NAME.format(config.epoch)))
 
 def load_checkpoint(net, optimizer, load_path):
     if load_path and os.path.isfile(load_path):
@@ -185,7 +186,8 @@ def load_args():
     if args.tag != "":
         # if args.continu and args.loca != False: config.TRAIN_TAG = args.load.split("/", 2)[1]
         # else: config.TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + args.tag
-        config.TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + args.tag
+        config.tag = args.tag
+        config.TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + config.TAG
         config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "tensorboard/" + config.TRAIN_TAG + "/checkpoints/"
     if args.load:
         config.TRAIN_LOAD = args.load
@@ -235,7 +237,8 @@ if __name__ == '__main__':
         print(e)
         writer.close()
         save_checkpoint(net.state_dict(), optimizer.state_dict(), interupt=True)
-        print("To Resume: python train.py --tag 'default' --load " + config.DIRECTORY_CHECKPOINT + "INTERUPT-" + config.DIRECTORY_CP_NAME.format(config.epoch))
+        print("To Resume: python train.py --tag 'default' --load " + config.DIRECTORY_CHECKPOINT + "INTERUPT-" + tag + config.DIRECTORY_CP_NAME.format(config.epoch))
+        print("Or: python train.py --tag 'default' --load " + config.DIRECTORY_CHECKPOINT + config.tag + config.DIRECTORY_CP_NAME.format(config.epoch-1))
         try: sys.exit(0)
         except SystemExit: os._exit(0)
 
@@ -310,4 +313,7 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/t
 
 python train.py --tag "thursday-eve" --load tensorboard/2018-10-17-19-47-01-207026-wednesday-eve/checkpoints/CP73.pth
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-17-19-47-01-207026-wednesday-eve --port=6006
+
+
+python train.py --tag "thursday-final" --load tensorboard/2018-10-19-02-11-20-325481-thursday-eve/checkpoints/INTERUPT-CP0.pth
 """
