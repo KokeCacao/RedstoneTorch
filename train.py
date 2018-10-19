@@ -178,9 +178,24 @@ def load_checkpoint(net, optimizer, load_path):
         config.global_step = checkpoint['global_step']
         net.load_state_dict(checkpoint['state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer'])
-        optimizer.param_groups = optimizer.param_groups.type(torch.cuda.FloatTensor)
+        move_optimizer_to_cuda(optimizer)
         print("=> Loaded checkpoint 'epoch = {}' (global_step = {})".format(config.epoch, config.global_step))
     else: print("=> Nothing loaded")
+
+def move_optimizer_to_cuda(optimizer):
+    """
+    Move the optimizer state to GPU, if necessary.
+    After calling, any parameter specific state in the optimizer
+    will be located on the same device as the parameter.
+    """
+    for param_group in optimizer.param_groups:
+        for param in param_group['params']:
+            if param.is_cuda:
+                param_state = optimizer.state[param]
+                for k in param_state.keys():
+                    if torch.is_tensor(param_state[k]):
+                        param_state[k] = param_state[k].cuda(
+                                        device=param.get_device())
 
 def load_args():
     args = get_args()
