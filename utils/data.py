@@ -40,6 +40,7 @@ class TGSData(data.Dataset):
         return self.data_len
 
     """CONFIGURATION"""
+
     def get_img_names(self):
         return (f[:-len(self.img_suffix)].replace("images_original_", "").replace("_groundtruth_(1)_images_", "") for f
                 in os.listdir(self.load_img_dir))
@@ -114,7 +115,7 @@ class TGSData(data.Dataset):
                     transforms.Grayscale(3),
                     # transforms.RandomHorizontalFlip(),
                     # transforms.RandomVerticalFlip(),
-                    lambda x: x.convert('L').point(lambda x : 255 if x > 127.5 else 0, mode='1'),
+                    lambda x: x.convert('L').point(lambda x: 255 if x > 127.5 else 0, mode='1'),
                     transforms.ToTensor(),
                     # transforms.Normalize(mean=[0.5, 0.5, 0.5],
                     #                     std=[0.225, 0.225, 0.225]),
@@ -137,11 +138,14 @@ class TGSData(data.Dataset):
             return None
 
     """CONFIGURATION"""
+
     def get_load_image_by_id(self, id):
         # return Image.open(os.path.join(self.load_img_dir, "images_original_" + id + self.img_suffix)).convert('RGB')
         return Image.open(os.path.join(self.load_img_dir, id + self.img_suffix)).convert('RGB')
+
     def get_load_mask_by_id(self, id):
         # return Image.open(os.path.join(self.load_mask_dir, "_groundtruth_(1)_images_" + id + self.mask_suffix))
         return Image.open(os.path.join(self.load_mask_dir, id + self.mask_suffix)).convert('RGB')
+
     def get_load_z_by_id(self, id):
         return self.masks_frame.loc[id, "z"]

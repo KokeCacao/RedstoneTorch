@@ -10,10 +10,11 @@ import config
 from PIL import ImageChops
 from torchvision import transforms
 
-if os.environ.get('DISPLAY','') == '':
+if os.environ.get('DISPLAY', '') == '':
     print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')
     mpl.use('Agg')
 from matplotlib import pyplot as plt
+
 
 def eval_net(net, validation_loader, gpu, visualization, writer, epoch_num=0):
     thresold_dict = dict()
@@ -35,13 +36,15 @@ def eval_net(net, validation_loader, gpu, visualization, writer, epoch_num=0):
             for threshold in config.TRAIN_TRY_THRESHOLD:
                 iou_temp = iou_score(masks_pred, true_mask, threshold).mean()
                 threshold_pre = thresold_dict.get(threshold)
-                if threshold_pre != None: threshold_pre = threshold_pre.append(iou_temp)
-                else: threshold_pre = [iou_temp]
+                if threshold_pre != None:
+                    threshold_pre = threshold_pre.append(iou_temp)
+                else:
+                    threshold_pre = [iou_temp]
                 thresold_dict[threshold] = threshold_pre
         total_ious = np.concatenate((total_ious, np.array(ious).flatten()), axis=None)
         # iou = ious.mean().float()
 
-        if visualization and batch_index==0:
+        if visualization and batch_index == 0:
             writer.add_pr_curve("loss/epoch_validation_image", true_mask, masks_pred, global_step=epoch_num)
             for index, input_id in enumerate(id):
                 F = plt.figure()
@@ -72,8 +75,10 @@ def eval_net(net, validation_loader, gpu, visualization, writer, epoch_num=0):
                 # plt.grid(False)
 
                 plt.subplot(325)
-                if config.TRAIN_GPU: plt.imshow(tensor_to_PIL((masks_pred[index] > Variable(torch.Tensor([config.TRAIN_CHOSEN_THRESHOLD])).cuda()).float()*1))
-                else: pass # TODO
+                if config.TRAIN_GPU:
+                    plt.imshow(tensor_to_PIL((masks_pred[index] > Variable(torch.Tensor([config.TRAIN_CHOSEN_THRESHOLD])).cuda()).float() * 1))
+                else:
+                    pass  # TODO
                 plt.title("Error: {}".format(ious[index]))
                 plt.grid(False)
 
@@ -81,7 +86,7 @@ def eval_net(net, validation_loader, gpu, visualization, writer, epoch_num=0):
                 plt.imshow(tensor_to_PIL(masks_pred[index]))
                 plt.title("Predicted")
                 plt.grid(False)
-                writer.add_figure("image/epoch_validation/"+str(index), F, global_step=config.global_step)
+                writer.add_figure("image/epoch_validation/" + str(index), F, global_step=config.global_step)
         del id, z, image, true_mask
         if gpu != "": torch.cuda.empty_cache()  # release gpu memory
 
@@ -89,25 +94,25 @@ def eval_net(net, validation_loader, gpu, visualization, writer, epoch_num=0):
     for key, item in thresold_dict.items():
         item = np.mean(item)
         threshold_dict_mean[key] = item
-        writer.add_scalars('val/threshold', {'Thresold': item}, key*100)
+        writer.add_scalars('val/threshold', {'Thresold': item}, key * 100)
 
     writer.add_scalars('val/max_threshold_val', {'MaxThresold': np.max(threshold_dict_mean.values())}, config.global_step)
     writer.add_scalars('val/max_threshold', {'MaxThresold': max(threshold_dict_mean.items(), key=operator.itemgetter(1))[0]}, config.global_step)
 
-
     writer.add_histogram("iou", total_ious, config.global_step)
     return total_ious.mean()
 
+
 def tensor_to_PIL(tensor):
     image = tensor.cpu().clone()
-    if image.size()[0] == 1: image = image.repeat(3, 1, 1) # from gray sacale to RGB
+    if image.size()[0] == 1: image = image.repeat(3, 1, 1)  # from gray sacale to RGB
     image = image.squeeze(0)
     image = transforms.ToPILImage()(image)
     return image
 
 
 def iou_score(outputs, labels, threshold=0.5):
-    outputs = outputs > threshold # threshold
+    outputs = outputs > threshold  # threshold
 
     # You can comment out this line if you are passing tensors of equal shape
     # But if you are passing output from UNet or something it will most probably
@@ -122,8 +127,6 @@ def iou_score(outputs, labels, threshold=0.5):
 
     # thresholded = torch.clamp(20 * (iou - 0.5), 0, 10).ceil() / 10  # This is equal to comparing with thresolds
     return iou  # Or thresholded.mean() if you are interested in average across the batch
-
-
 
 # def calculate_scores(y_true, y_pred):
 #     iou = intersection_over_union(y_true, y_pred)

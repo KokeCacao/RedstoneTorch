@@ -15,12 +15,9 @@ from datetime import datetime
 from tensorboardX import SummaryWriter
 from utils import lovasz_losses as L
 
-
 # dir_prefix = 'drive/My Drive/ML/Pytorch-UNet/'
 from utils.data import TGSData
 from utils.memory import memory_thread
-
-
 
 
 def train_net(net,
@@ -31,10 +28,9 @@ def train_net(net,
               gpu,
               data_percent,
               seed):
-
     tgs_data = TGSData(config.DIRECTORY_DEPTH, config.DIRECTORY_IMG, config.DIRECTORY_MASK, config.DIRECTORY_SUFFIX_IMG, config.DIRECTORY_SUFFIX_MASK)
 
-    train_sampler, validation_sampler = tgs_data.get_sampler(data_percent=data_percent, val_percent=val_percent, data_shuffle = False, train_shuffle=True, val_shuffle=False, seed=seed)
+    train_sampler, validation_sampler = tgs_data.get_sampler(data_percent=data_percent, val_percent=val_percent, data_shuffle=False, train_shuffle=True, val_shuffle=False, seed=seed)
 
     train_loader = data.DataLoader(tgs_data, batch_size=batch_size, sampler=train_sampler, shuffle=False, num_workers=config.TRAIN_NUM_WORKER)
     validation_loader = data.DataLoader(tgs_data, batch_size=batch_size, sampler=validation_sampler, shuffle=False, num_workers=config.TRAIN_NUM_WORKER)
@@ -75,11 +71,10 @@ def train_net(net,
     #             {'params': net.module.dec0.parameters(), 'lr': 1e-3},
     #             {'params': net.module.final.parameters(), 'lr': 0.0015}], lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay) # all parameter learnable
 
-
     train_begin = datetime.now()
-    for epoch_index, epoch in enumerate(range(epochs)):
+    for epoch in range(epochs):
         epoch_begin = datetime.now()
-        print('Starting epoch {}/{}'.format(epoch + 1, epochs))
+        print('Starting epoch {}/{} - total of {}'.format(epoch + 1, epochs, config.epoch))
 
         epoch_loss = 0
         epoch_iou = 0
@@ -87,7 +82,7 @@ def train_net(net,
         # batch size should < 4000 due to the amount of data avaliable
         for batch_index, (id, z, image, true_mask, image_0, true_mask_0) in enumerate(train_loader, 0):
 
-            config.global_step = config.global_step +1
+            config.global_step = config.global_step + 1
 
             if gpu != "":
                 # z = z.cuda()
@@ -103,8 +98,10 @@ def train_net(net,
             iou = iou_score(masks_pred, true_mask).mean()
             epoch_iou = epoch_iou + iou
 
-            if epoch_index < 1e5: loss = torch.nn.BCELoss()(torch.sigmoid(masks_pred).view(-1), true_mask.view(-1))
-            else: loss = L.lovasz_hinge(masks_pred, true_mask, ignore=None)
+            if epochs < 1e5:
+                loss = torch.nn.BCELoss()(torch.sigmoid(masks_pred).view(-1), true_mask.view(-1))
+            else:
+                loss = L.lovasz_hinge(masks_pred, true_mask, ignore=None)
 
             epoch_loss += loss.item()
 
@@ -112,32 +109,35 @@ def train_net(net,
             train_duration = now - train_begin
             epoch_duration = now - epoch_begin
             print("SinceTrain:{}, Since Epoch:{}".format(train_duration, epoch_duration))
-            print('{0}# Epoch - {1:.6f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}, IOU: {7:.6f}'.format(epoch_index+1,
-                                                                                                     (100*(batch_index+1.0)*batch_size)/tgs_data.train_len,
-                                                                                                     batch_index+1,
-                                                                                                     tgs_data.train_len/batch_size,
-                                                                                                     (batch_index+1)*batch_size,
-                                                                                                     tgs_data.train_len,
-                                                                                                     loss.item(), iou))
-            writer.add_scalars('loss/batch_training', {'Epoch': epoch_index+1, 'TrainLoss': loss.item(), 'IOU': iou}, config.global_step)
+            print('{0}({8})# Epoch - {1:.6f}% ({2}/{3})batch ({4:}/{5:})data - TrainLoss: {6:.6f}, IOU: {7:.6f}'.format(epochs + 1,
+                                                                                                                        (100 * (batch_index + 1.0) * batch_size) / tgs_data.train_len,
+                                                                                                                        batch_index + 1,
+                                                                                                                        tgs_data.train_len / batch_size,
+                                                                                                                        (batch_index + 1) * batch_size,
+                                                                                                                        tgs_data.train_len,
+                                                                                                                        loss.item(),
+                                                                                                                        iou, config.epoch))
+            writer.add_scalars('loss/batch_training', {'Epoch': epochs + 1, 'TrainLoss': loss.item(), 'IOU': iou}, config.global_step)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             del id, z, image, true_mask
             if gpu != "": torch.cuda.empty_cache()  # release gpu memory
-        print('{}# Epoch finished ! Loss: {}, IOU: {}'.format(epoch_index+1, epoch_loss/(batch_index+1), epoch_iou/(batch_index+1)))
+            config.epoch = config.epoch + 1
+        print('{}# Epoch finished ! Loss: {}, IOU: {}'.format(epochs + 1, epoch_loss / (batch_index + 1), epoch_iou / (batch_index + 1)))
         save_checkpoint(state_dict=net.state_dict(), optimizer_dict=optimizer.state_dict())
         # validation
-        if config.TRAIN_GPU != "": torch.cuda.empty_cache() # release gpu memory
+        if config.TRAIN_GPU != "": torch.cuda.empty_cache()  # release gpu memory
         if config.TRAIN_VALIDATION:
-            val_dice = eval_net(net, validation_loader, gpu=gpu, visualization=config.TRAIN_VISUALIZATION, writer=writer, epoch_num=epoch_index+1)
+            val_dice = eval_net(net, validation_loader, gpu=gpu, visualization=config.TRAIN_VISUALIZATION, writer=writer, epoch_num=epochs + 1)
             print('Validation Dice Coeff: {}'.format(val_dice))
-            writer.add_scalars('loss/epoch_validation', {'Validation': val_dice}, epoch_index + 1)
+            writer.add_scalars('loss/epoch_validation', {'Validation': val_dice}, epochs + 1)
         if config.TRAIN_HISTOGRAM:
             for i, (name, param) in enumerate(net.named_parameters()):
                 print("Calculating Histogram #{}".format(i))
-                writer.add_histogram(name, param.clone().cpu().data.numpy(), epoch_index+1)
+                writer.add_histogram(name, param.clone().cpu().data.numpy(), epochs + 1)
         if config.TRAIN_GPU != "": torch.cuda.empty_cache()  # release gpu memory
+
 
 def get_args():
     parser = OptionParser()
@@ -148,9 +148,11 @@ def get_args():
     (options, args) = parser.parse_args()
     return options
 
+
 def log_data(file_name, data):
-    with open(file_name+".txt", "a+") as file:
-        file.write(data+"\n")
+    with open(file_name + ".txt", "a+") as file:
+        file.write(data + "\n")
+
 
 def save_checkpoint(state_dict, optimizer_dict, interupt=False):
     tag = config.tag + "-" if config.tag != "" else ""
@@ -166,6 +168,7 @@ def save_checkpoint(state_dict, optimizer_dict, interupt=False):
     }, config.DIRECTORY_CHECKPOINT + interupt + tag + config.DIRECTORY_CP_NAME.format(config.epoch))
     print('Checkpoint: {} step, dir: {}'.format(config.global_step, config.DIRECTORY_CHECKPOINT + interupt + tag + config.DIRECTORY_CP_NAME.format(config.epoch)))
 
+
 def load_checkpoint(net, optimizer, load_path):
     if load_path and os.path.isfile(load_path):
         print("=> Loading checkpoint '{}'".format(load_path))
@@ -180,7 +183,9 @@ def load_checkpoint(net, optimizer, load_path):
         optimizer.load_state_dict(checkpoint['optimizer'])
         move_optimizer_to_cuda(optimizer)
         print("=> Loaded checkpoint 'epoch = {}' (global_step = {})".format(config.epoch, config.global_step))
-    else: print("=> Nothing loaded")
+    else:
+        print("=> Nothing loaded")
+
 
 def move_optimizer_to_cuda(optimizer):
     """
@@ -196,6 +201,7 @@ def move_optimizer_to_cuda(optimizer):
                 if torch.is_tensor(param_state[k]):
                     param_state[k] = param_state[k].cuda()
 
+
 def load_args():
     args = get_args()
     if args.tag != "":
@@ -208,6 +214,7 @@ def load_args():
         config.TRAIN_LOAD = args.load
         if config.TRAIN_CONTINUE: config.TRAIN_TAG = args.load.split("/", 3)[1]
 
+
 if __name__ == '__main__':
     load_args()
 
@@ -216,7 +223,6 @@ if __name__ == '__main__':
     ia.seed(config.TRAIN_SEED)
     torch.manual_seed(config.TRAIN_SEED)
 
-
     memory = memory_thread(1, writer, config.TRAIN_GPU)
     memory.setDaemon(True)
     memory.start()
@@ -224,18 +230,19 @@ if __name__ == '__main__':
     print("=> Loading neuronetwork...")
 
     net = UNetResNet(encoder_depth=50, num_classes=1, num_filters=32, dropout_2d=0.2,
-                 pretrained=True, is_deconv=True) #don't init weights, don't give depth
+                     pretrained=True, is_deconv=True)  # don't init weights, don't give depth
     if config.TRAIN_GPU != "": net = torch.nn.DataParallel(net, device_ids=[int(i) for i in config.TRAIN_GPU.split(",")])
 
     optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY)  # all parameter learnable
     load_checkpoint(net, optimizer, config.TRAIN_LOAD)
 
     if config.TRAIN_GPU != "":
-        os.environ["CUDA_VISIBLE_DEVICES"] = config.TRAIN_GPU #default
-        print('Using GPU: [' + config.TRAIN_GPU + ']')
+        os.environ["CUDA_VISIBLE_DEVICES"] = config.TRAIN_GPU  # default
+        print('=> Using GPU: [' + config.TRAIN_GPU + ']')
         torch.cuda.manual_seed_all(config.TRAIN_SEED)
         net.cuda()
-    else: os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    else:
+        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
     try:
         train_net(net=net,
@@ -251,15 +258,11 @@ if __name__ == '__main__':
         writer.close()
         save_checkpoint(net.state_dict(), optimizer.state_dict(), interupt=True)
         print("To Resume: python train.py --tag 'default' --load " + config.DIRECTORY_CHECKPOINT + "INTERUPT-" + config.tag + config.DIRECTORY_CP_NAME.format(config.epoch))
-        print("Or: python train.py --tag 'default' --load " + config.DIRECTORY_CHECKPOINT + config.tag + config.DIRECTORY_CP_NAME.format(config.epoch-1))
-        try: sys.exit(0)
-        except SystemExit: os._exit(0)
-
-# python train.py --epochs 5 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 0.01 --gpu "0,1" --visualization "True" --tag "test"
-# python train.py --epochs 300 --batch-size 32 --learning-rate 0.001 --dir_prefix '' --data_percent 1.00 --gpu "0,1" --visualization "True" --tag "fast-train" --load tensorboard/2018-10-07-23-40-34-439264-different-lr/checkpoints/CP21.pth
-# python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/2018-10-07-23-40-34-439264-different-lr --port=6006
-# python train.py --epochs 5 --batch-size 10 --learning-rate 0.01 --dir_prefix '' --data_percent 0.01 --gpu "0,1" --visualization "False" --tag "test" --load tensorboard/2018-10-07-23-40-34-439264-different-lr/checkpoints/CP2.pth
-
+        print("Or: python train.py --tag 'default' --load " + config.DIRECTORY_CHECKPOINT + config.tag + config.DIRECTORY_CP_NAME.format(config.epoch - 1))
+        try:
+            sys.exit(0)
+        except SystemExit:
+            os._exit(0)
 
 """
 Good Models

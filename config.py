@@ -9,7 +9,7 @@ from torch.autograd import Variable
 from torchvision.transforms import transforms
 
 MODEL_EPOCHS = 300
-MODEL_BATCH_SIZE= 16
+MODEL_BATCH_SIZE = 16
 MODEL_LEARNING_RATE = 0.0005
 MODEL_MOMENTUM = 0.9
 MODEL_WEIGHT_DEFAY = 0.0001
@@ -52,16 +52,17 @@ global_step = 0
 epoch = 0
 tag = ""
 
+
 class ImgAugTransform:
     def __init__(self):
         self.aug = iaa.Sequential([
-               iaa.Scale({"height": 224, "width": 224}),
-               iaa.Fliplr(0.5),
-               iaa.Flipud(0.5),
-               iaa.OneOf([iaa.Noop(), iaa.Add((-40, 40)), iaa.EdgeDetect(alpha=(0.0, 0.1)), iaa.Multiply((0.95, 1.05))], iaa.ContrastNormalization((0.95, 1.05))),
-               iaa.OneOf([iaa.Noop(), iaa.PiecewiseAffine(scale=(0.00, 0.02)), iaa.Affine(rotate=(-10,10)), iaa.Affine(shear=(-10, 10))]),
-               iaa.CropAndPad(percent=(-0.12, 0))
-               ], random_order=False)
+            iaa.Scale({"height": 224, "width": 224}),
+            iaa.Fliplr(0.5),
+            iaa.Flipud(0.5),
+            iaa.OneOf([iaa.Noop(), iaa.Add((-40, 40)), iaa.EdgeDetect(alpha=(0.0, 0.1)), iaa.Multiply((0.95, 1.05))], iaa.ContrastNormalization((0.95, 1.05))),
+            iaa.OneOf([iaa.Noop(), iaa.PiecewiseAffine(scale=(0.00, 0.02)), iaa.Affine(rotate=(-10, 10)), iaa.Affine(shear=(-10, 10))]),
+            iaa.CropAndPad(percent=(-0.12, 0))
+        ], random_order=False)
 
     def __call__(self, img):
         img = np.array(img)
@@ -73,23 +74,23 @@ class ImgAugTransform:
 
 
 PREDICT_TRANSFORM_IMG = transforms.Compose([
-                transforms.Resize((224, 224)),
-                transforms.ToTensor()
-            ])
+    transforms.Resize((224, 224)),
+    transforms.ToTensor()
+])
 
 PREDICT_TRANSFORM_MASK = transforms.Compose([
-                transforms.Resize((224, 224)),
-                transforms.Grayscale(3),
-                lambda x: x.convert('L').point(lambda x : 255 if x > 127.5 else 0, mode='1'),
-                transforms.ToTensor()
-            ])
+    transforms.Resize((224, 224)),
+    transforms.Grayscale(3),
+    lambda x: x.convert('L').point(lambda x: 255 if x > 127.5 else 0, mode='1'),
+    transforms.ToTensor()
+])
 
 PREDICT_TRANSFORM_BACK = transforms.Compose([
-                lambda x: (x > Variable(torch.Tensor([TRAIN_CHOSEN_THRESHOLD])).cuda()).float()*1,
-                lambda x: tensor_to_PIL(x),
-                transforms.Resize((101, 101)),
-                transforms.Grayscale(),
-            ])
+    lambda x: (x > Variable(torch.Tensor([TRAIN_CHOSEN_THRESHOLD])).cuda()).float() * 1,
+    lambda x: tensor_to_PIL(x),
+    transforms.Resize((101, 101)),
+    transforms.Grayscale(),
+])
 
 
 # TRAIN_SEQUENCE = iaa.Sequential([
@@ -129,7 +130,7 @@ PREDICT_TRANSFORM_BACK = transforms.Compose([
 # }
 def tensor_to_PIL(tensor):
     image = tensor.cpu().clone()
-    if image.size()[0] == 1: image = image.repeat(3, 1, 1) # from gray sacale to RGB
+    if image.size()[0] == 1: image = image.repeat(3, 1, 1)  # from gray sacale to RGB
     image = image.squeeze(0)
     image = transforms.ToPILImage()(image)
     return image

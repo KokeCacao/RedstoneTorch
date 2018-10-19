@@ -70,6 +70,8 @@ import config
 input: Tensor:(N, D=3, H, W)
 output: Tensor:(N, D=1, H, W) or (N, D=3, H, W) when it is black
 """
+
+
 def predict(net, image):
     if config.TRAIN_GPU: image = image.cuda()
 
@@ -82,7 +84,6 @@ def predict(net, image):
     del image
     if config.TRAIN_GPU: torch.cuda.empty_cache()
     return masks_pred
-
 
 
 def get_args():
@@ -116,6 +117,7 @@ def get_args():
                         default=0.5)
 
     return parser.parse_args()
+
 
 # def get_output_filenames(args):
 #     in_files = args.input
