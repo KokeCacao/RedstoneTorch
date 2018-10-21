@@ -3,20 +3,19 @@ import os
 from optparse import OptionParser
 
 import torch
-from torchvision.transforms import transforms
 
 import config
 import torch.utils.data as data
 import imgaug as ia
 
 from eval import eval_net, iou_score
-from unet.unet_model import UNetResNet
+from model.resunet.resunet_model import UNetResNet
 from datetime import datetime
 from tensorboardX import SummaryWriter
-from utils import lovasz_losses as L
+from utils import loss as L
 
 # dir_prefix = 'drive/My Drive/ML/Pytorch-UNet/'
-from utils.data import TGSData
+from dataset.tgs import TGSData
 from utils.memory import memory_thread
 
 

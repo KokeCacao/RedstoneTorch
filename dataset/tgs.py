@@ -80,12 +80,12 @@ class TGSData(data.Dataset):
             validation_sampler = SubsetRandomSampler(self.val_indices)
 
             return train_sampler, validation_sampler
-        else:
-            left_over = self.indices[:-(self.data_len % fold)]
-            cv_size = len(self.indices)-len(left_over) / fold
-            print("      cv_size: {}".format(cv_))
-
-            for
+        # else:
+        #     left_over = self.indices[:-(self.data_len % fold)]
+        #     cv_size = len(self.indices)-len(left_over) / fold
+        #     print("      cv_size: {}".format(cv_))
+        #
+        #     for
 
     def __getitem__(self, index):
         id = self.indices_to_id.get(index)

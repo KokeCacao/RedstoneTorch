@@ -1,8 +1,7 @@
-import torchvision
 from torch import nn
 
-from resnet import BasicBlock
-from resnet.resnet_model import _weights_init
+from model.resnet import BasicBlock
+from model.resnet import _weights_init
 import torch.nn.functional as F
 
 
