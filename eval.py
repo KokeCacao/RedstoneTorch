@@ -32,8 +32,8 @@ def eval_net(net, validation_loader, gpu, visualization, writer, epoch_num=0):
         masks_pred = net(image)
         """return: shape(N, iou)"""
         ious = iou_score(masks_pred, true_mask, threshold=0.5)
-        if config.TRAIN_THRESHOLD_TEST:
-            for threshold in config.TRAIN_TRY_THRESHOLD:
+        if config.EVAL_THRESHOLD_TEST:
+            for threshold in config.EVAL_TRY_THRESHOLD:
                 iou_temp = iou_score(masks_pred, true_mask, threshold).mean()
                 threshold_pre = thresold_dict.get(threshold)
                 if threshold_pre != None:
@@ -75,8 +75,8 @@ def eval_net(net, validation_loader, gpu, visualization, writer, epoch_num=0):
                 # plt.grid(False)
 
                 plt.subplot(325)
-                if config.TRAIN_GPU:
-                    plt.imshow(tensor_to_PIL((masks_pred[index] > Variable(torch.Tensor([config.TRAIN_CHOSEN_THRESHOLD])).cuda()).float() * 1))
+                if config.TRAIN_GPU_ARG:
+                    plt.imshow(tensor_to_PIL((masks_pred[index] > Variable(torch.Tensor([config.EVAL_CHOSEN_THRESHOLD])).cuda()).float() * 1))
                 else:
                     pass  # TODO
                 plt.title("Error: {}".format(ious[index]))

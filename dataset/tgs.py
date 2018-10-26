@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 
 import torch
+from imgaug import augmenters as iaa
 from torch import random
 from PIL import Image
 from skimage import io
@@ -31,10 +32,15 @@ class TGSData(data.Dataset):
 
         # these parameters will be init by get_sampler
         self.indices_to_id = dict()
+
+        """split"""
         self.tran_len = None
         self.val_len = None
         self.train_indices = None
         self.val_indices = None
+
+        """fold"""
+        self.folded = dict()
 
     def __len__(self):
         return self.data_len
@@ -42,50 +48,49 @@ class TGSData(data.Dataset):
     """CONFIGURATION"""
 
     def get_img_names(self):
-        return (f[:-len(self.img_suffix)].replace("images_original_", "").replace("_groundtruth_(1)_images_", "") for f
-                in os.listdir(self.load_img_dir))
-        # return (f[:].replace(self.img_suffix, "", 1) for f in os.listdir(self.img_dir))
+        return set(f[:-len(self.img_suffix)].replace("blue", "").replace("green", "").replace("red", "").replace("yellow", "") for f in os.listdir(self.load_img_dir))
 
-    def get_sampler(self, data_percent=1.0, val_percent=0.05, data_shuffle=False, train_shuffle=True, val_shuffle=False, seed=19, fold=-1):
+    def get_split_sampler(self, data_percent=1.0, val_percent=0.05):
+        self.indices_to_id = dict(zip(self.indices, self.id))
         print("     Data Size: {}".format(self.data_len))
 
-        if data_shuffle:
-            np.random.seed(seed)
-            np.random.shuffle(self.indices)
+        val_split = int(np.floor(data_percent * val_percent * self.data_len))
+        print("     Validation Size: {}".format(val_split))
+        self.val_len = val_split
+        data_split = int(np.floor(data_percent * self.data_len))
+        print("     Traning Size: {}".format(data_split - val_split))
+        self.train_len = data_split - val_split
+
+        self.val_indices = self.indices[:val_split]
+        self.train_indices = self.indices[val_split:data_split]
+
+        self.tran_len = len(self.train_indices)
+        self.val_len = len(self.val_indices)
+
+        train_sampler = SubsetRandomSampler(self.train_indices)
+        validation_sampler = SubsetRandomSampler(self.val_indices)
+
+        return train_sampler, validation_sampler
+
+    def get_fold_sampler(self, fold=-1):
         self.indices_to_id = dict(zip(self.indices, self.id))
+        print("     Data Size: {}".format(self.data_len))
 
-        if fold == -1:
-            val_split = int(np.floor(data_percent * val_percent * self.data_len))
-            print("     Validation Size: {}".format(val_split))
-            self.val_len = val_split
-            data_split = int(np.floor(data_percent * self.data_len))
-            print("     Traning Size: {}".format(data_split - val_split))
-            self.train_len = data_split - val_split
+        data = self.indices[:-(self.data_len % fold)]
+        left_over = self.indices[-(self.data_len % fold):]
+        if left_over >= 1:
+            print("WARNING: dropped {} data points".format(len(left_over)))
 
-            self.val_indices = self.indices[:val_split]
-            if val_shuffle:
-                np.random.seed(seed + 1)
-                np.random.shuffle(self.val_indices)
-                np.random.seed(seed)
-            self.train_indices = self.indices[val_split:data_split]
-            if train_shuffle:
-                np.random.seed(seed + 2)
-                np.random.shuffle(self.train_indices)
-                np.random.seed(seed)
+        cv_size = len(self.indices) - len(left_over) / fold
+        print("      Cv_size: {}".format(cv_size))
+        print("      Fold: {}".format(fold))
 
-            self.tran_len = len(self.train_indices)
-            self.val_len = len(self.val_indices)
-
-            train_sampler = SubsetRandomSampler(self.train_indices)
-            validation_sampler = SubsetRandomSampler(self.val_indices)
-
-            return train_sampler, validation_sampler
-        # else:
-        #     left_over = self.indices[:-(self.data_len % fold)]
-        #     cv_size = len(self.indices)-len(left_over) / fold
-        #     print("      cv_size: {}".format(cv_))
-        #
-        #     for
+        folded_sampler = dict()
+        for i in range(fold):
+            self.folded[i] = data[i * cv_size:(i + 1) * cv_size]
+            print("     Fold#{}_size: {}".format(i, len(self.folded[i])))
+            folded_sampler[i] = SubsetRandomSampler(self.folded[i])
+        return folded_sampler
 
     def __getitem__(self, index):
         id = self.indices_to_id.get(index)
@@ -100,16 +105,12 @@ class TGSData(data.Dataset):
         """
 
         if index in self.train_indices:
-            image_aug_transform = config.ImgAugTransform().to_deterministic()
+            image_aug_transform = TrainImgAugTransform().to_deterministic()
             TRAIN_TRANSFORM = {
                 'image': transforms.Compose([
                     image_aug_transform,
                     lambda x: PIL.Image.fromarray(x),
                     transforms.Resize((224, 224)),
-                    # transforms.RandomResizedCrop(224),
-                    # transforms.Grayscale(),
-                    # transforms.RandomHorizontalFlip(),
-                    # transforms.RandomVerticalFlip(),
                     transforms.ToTensor(),
                     # transforms.Normalize(mean = [0.456, 0.456, 0.406], std = [0.229, 0.224, 0.225])
                 ]),
@@ -117,10 +118,7 @@ class TGSData(data.Dataset):
                     image_aug_transform,
                     lambda x: PIL.Image.fromarray(x),
                     transforms.Resize((224, 224)),
-                    # transforms.CenterCrop(224),
                     transforms.Grayscale(3),
-                    # transforms.RandomHorizontalFlip(),
-                    # transforms.RandomVerticalFlip(),
                     lambda x: x.convert('L').point(lambda x: 255 if x > 127.5 else 0, mode='1'),
                     transforms.ToTensor(),
                     # transforms.Normalize(mean=[0.5, 0.5, 0.5],
@@ -137,8 +135,23 @@ class TGSData(data.Dataset):
 
             return (id, z, image, mask, transforms.ToTensor()(image_0), transforms.ToTensor()(mask_0))
         elif index in self.val_indices:
-            image = config.PREDICT_TRANSFORM_IMG(image_0)
-            mask = config.PREDICT_TRANSFORM_MASK(mask_0)
+            image_aug_transform = TrainImgAugTransform().to_deterministic()
+            PREDICT_TRANSFORM_IMG = transforms.Compose([
+                image_aug_transform,
+                transforms.Resize((224, 224)),
+                transforms.ToTensor()
+            ])
+
+            PREDICT_TRANSFORM_MASK = transforms.Compose([
+                image_aug_transform,
+                transforms.Resize((224, 224)),
+                transforms.Grayscale(3),
+                lambda x: x.convert('L').point(lambda x: 255 if x > 127.5 else 0, mode='1'),
+                transforms.ToTensor()
+            ])
+
+            image = PREDICT_TRANSFORM_IMG(image_0)
+            mask = PREDICT_TRANSFORM_MASK(mask_0)
             return (id, z, image, mask, transforms.ToTensor()(image_0), transforms.ToTensor()(mask_0))
         else:
             return None
@@ -155,3 +168,40 @@ class TGSData(data.Dataset):
 
     def get_load_z_by_id(self, id):
         return self.masks_frame.loc[id, "z"]
+
+
+class TrainImgAugTransform:
+    def __init__(self):
+        self.aug = iaa.Sequential([
+            iaa.Scale({"height": 224, "width": 224}),
+            iaa.Fliplr(0.5),
+            iaa.Flipud(0.5),
+            iaa.OneOf([iaa.Noop(), iaa.Add((-40, 40)), iaa.EdgeDetect(alpha=(0.0, 0.1)), iaa.Multiply((0.95, 1.05))], iaa.ContrastNormalization((0.95, 1.05))),
+            iaa.OneOf([iaa.Noop(), iaa.PiecewiseAffine(scale=(0.00, 0.02)), iaa.Affine(rotate=(-10, 10)), iaa.Affine(shear=(-10, 10))]),
+            iaa.CropAndPad(percent=(-0.12, 0))
+        ], random_order=False)
+
+    def __call__(self, img):
+        img = np.array(img)
+        return self.aug.augment_image(img)
+
+    def to_deterministic(self, n=None):
+        self.aug = self.aug.to_deterministic(n)
+        return self
+
+
+class TestImgAugTransform:
+    def __init__(self):
+        self.aug = iaa.Sequential([
+            iaa.Scale({"height": 224, "width": 224}),
+            iaa.Fliplr(0.5),
+            iaa.Flipud(0.5)
+        ], random_order=False)
+
+    def __call__(self, img):
+        img = np.array(img)
+        return self.aug.augment_image(img)
+
+    def to_deterministic(self, n=None):
+        self.aug = self.aug.to_deterministic(n)
+        return self

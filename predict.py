@@ -8,6 +8,7 @@ import numpy as np
 from tqdm import tqdm
 from PIL import Image
 
+import utils.encode
 from utils.encode import rle_encode
 
 if os.environ.get('DISPLAY', '') == '':
@@ -20,7 +21,7 @@ from model.resunet.resunet_model import UNetResNet
 from tensorboardX import SummaryWriter
 
 def predict(net, image):
-    if config.TRAIN_GPU: image = image.cuda()
+    if config.TRAIN_GPU_ARG: image = image.cuda()
 
     if image.mean() < config.PREDICTION_DARK_THRESHOLD:
         """WARNING: Encounter Dark Image"""
@@ -29,7 +30,7 @@ def predict(net, image):
     masks_pred = net(image)
 
     del image
-    if config.TRAIN_GPU: torch.cuda.empty_cache()
+    if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
     return masks_pred
 
 
@@ -53,7 +54,7 @@ def submit(net, writer):
             mask_pred = predict(net, img_n).squeeze(0)  # reduce N
             """if config.TRAIN_GPU: """
             masks_pred_pil = config.PREDICT_TRANSFORM_BACK(mask_pred)  # return gray scale PIL
-            masks_pred_np = np.where(np.asarray(masks_pred_pil, order="F") > config.TRAIN_CHOSEN_THRESHOLD, 1, 0)  # return tensor with (H, W) - proved
+            masks_pred_np = np.where(np.asarray(masks_pred_pil, order="F") > config.EVAL_CHOSEN_THRESHOLD, 1, 0)  # return tensor with (H, W) - proved
 
             enc = rle_encode(masks_pred_np)
             f.write('{},{}\n'.format(img_name.replace(config.DIRECTORY_SUFFIX_MASK, ""), enc))
@@ -69,11 +70,11 @@ def submit(net, writer):
                 plt.title("Result")
                 plt.grid(False)
                 plt.subplot(223)
-                plt.imshow(config.tensor_to_PIL(mask_pred))
+                plt.imshow(utils.encode.tensor_to_PIL(mask_pred))
                 plt.title("Predicted")
                 plt.grid(False)
                 plt.subplot(224)
-                plt.imshow(Image.fromarray(np.where(masks_pred_np > config.TRAIN_CHOSEN_THRESHOLD, 255, 0), mode="L"))
+                plt.imshow(Image.fromarray(np.where(masks_pred_np > config.EVAL_CHOSEN_THRESHOLD, 255, 0), mode="L"))
                 plt.title("Encoded")
                 plt.grid(False)
                 writer.add_figure(config.PREDICTION_TAG + "/" + str(img_name), F, global_step=index)
@@ -118,20 +119,18 @@ if __name__ == '__main__':
     load_args()
     writer = SummaryWriter("tensorboard/" + config.TRAIN_TAG)
     print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + config.TRAIN_TAG + " --port=6006")
-    torch.manual_seed(config.TRAIN_SEED)
     print("=> Current Directory: " + str(os.getcwd()))
     print("=> Download Model here: " + "ResUnet/" + config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + ".csv")
 
     net = UNetResNet(encoder_depth=50, num_classes=1, num_filters=32, dropout_2d=0.2,
                      pretrained=True, is_deconv=True)
-    if config.TRAIN_GPU != "": net = torch.nn.DataParallel(net, device_ids=[int(i) for i in config.TRAIN_GPU.split(",")])
+    if config.TRAIN_GPU_ARG != "": net = torch.nn.DataParallel(net, device_ids=[int(i) for i in config.TRAIN_GPU_ARG.split(",")])
 
     load_checkpoint(net, config.TRAIN_LOAD)
 
-    if config.TRAIN_GPU != "":
-        os.environ["CUDA_VISIBLE_DEVICES"] = config.TRAIN_GPU  # default
-        print('=> Using GPU: [' + config.TRAIN_GPU + ']')
-        torch.cuda.manual_seed_all(config.TRAIN_SEED)
+    if config.TRAIN_GPU_ARG != "":
+        os.environ["CUDA_VISIBLE_DEVICES"] = config.TRAIN_GPU_ARG  # default
+        print('=> Using GPU: [' + config.TRAIN_GPU_ARG + ']')
         net.cuda()
     else:
         os.environ["CUDA_VISIBLE_DEVICES"] = "0"
