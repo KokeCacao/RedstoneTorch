@@ -190,11 +190,11 @@ class SEResNeXtBottleneck(Bottleneck):
                  downsample=None, base_width=4):
         super(SEResNeXtBottleneck, self).__init__()
         width = math.floor(planes * (base_width / 64)) * groups
-        self.conv1 = nn.Conv2d(inplanes, width, kernel_size=1, bias=False,
-                               stride=1)
+        print(inplanes)
+        print(width)
+        self.conv1 = nn.Conv2d(inplanes, width, kernel_size=1, bias=False, stride=1)
         self.bn1 = nn.BatchNorm2d(width)
-        self.conv2 = nn.Conv2d(width, width, kernel_size=3, stride=stride,
-                               padding=1, groups=groups, bias=False)
+        self.conv2 = nn.Conv2d(width, width, kernel_size=3, stride=stride, padding=1, groups=groups, bias=False)
         self.bn2 = nn.BatchNorm2d(width)
         self.conv3 = nn.Conv2d(width, planes * 4, kernel_size=1, bias=False)
         self.bn3 = nn.BatchNorm2d(planes * 4)
