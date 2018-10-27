@@ -33,7 +33,7 @@ def get_args():
 def load_args():
     args = get_args()
     if args.versiontag: config.versiontag = args.versiontag
-    if args.projecttag:
+    if args.loadfile:
         config.TRAIN_RESUME = True if args.resume == "True" else False
         if config.TRAIN_RESUME:
             config.PROJECT_TAG = args.projecttag
