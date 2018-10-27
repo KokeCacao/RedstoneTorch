@@ -46,7 +46,7 @@ You can also use the following flags to train
 We strongly recommand you use some tags to make sure the program runs correctly
 ```commandline
 cd ~/RedstoneTorch
-python train.py --projecttag test --versiontag test
+python train.py --projecttag test --versiontag test --resume False
 ```
 
 ### Evaluate and Display

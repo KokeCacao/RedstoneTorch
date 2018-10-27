@@ -378,6 +378,9 @@ def initialize_pretrained_model(model, num_classes, settings):
 
 def modified_initialize_pretrained_model(model, num_classes, settings):
     state_dict = model_zoo.load_url(settings['url'])
+    del state_dict['last_linear.weight']
+    del state_dict['last_linear.bias']
+    del state_dict['last_linear']
     model.load_state_dict(state_dict, strict=False)
     model.input_space = settings['input_space']
     model.input_size = settings['input_size']
@@ -451,7 +454,7 @@ def se_resnext101_32x4d(num_classes=1000, pretrained='imagenet'):
 
 def se_resnext101_32x4d_modified(num_classes=28, pretrained='imagenet'):
     model = SENet(SEResNeXtBottleneck, [3, 4, 23, 3], groups=32, reduction=16,
-                  dropout_p=None, inplanes=64, input_3x3=False,
+                  dropout_p=0.0, inplanes=64, input_3x3=False,
                   downsample_kernel_size=1, downsample_padding=0,
                   num_classes=num_classes)
     if pretrained is not None:
