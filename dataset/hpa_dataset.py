@@ -174,7 +174,7 @@ class HPAData(data.Dataset):
 
     # TODO: Get stratified fold instead of random
 
-    def __getitem__(self, id, train = True, val = True):
+    def get(self, id, train = True, val = True):
         image_0 = self.get_load_image_by_id(id)
         labels_0 = self.get_load_label_by_id(id)
 
@@ -274,7 +274,7 @@ class HPASubsetRandomSampler(Sampler):
             self.val = val
 
     def __iter__(self):
-        return (self.indices.__getitem__(i, train=self.train, val=self.val) for i in torch.randperm(len(self.indices)))
+        return (self.indices.get(i, train=self.train, val=self.val) for i in torch.randperm(len(self.indices)))
 
     def __len__(self):
         return len(self.indices)
