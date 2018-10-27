@@ -82,5 +82,4 @@ def cuda(net):
     else:
         os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     print('=> torch.cuda.device_count()      =', torch.cuda.device_count())
-    print('')
     return net
