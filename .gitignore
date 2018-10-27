@@ -9,3 +9,4 @@ SUBMISSION*
 data/train/images/output/*
 data/train/masks/output/*
 .idea
+data/
