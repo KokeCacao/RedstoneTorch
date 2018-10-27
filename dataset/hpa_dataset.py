@@ -8,9 +8,6 @@ from torch.utils import data
 from torch.utils.data import SubsetRandomSampler
 from sklearn.preprocessing import MultiLabelBinarizer
 
-from utils.encode import get_one_hot
-
-
 #  what is pinned memory
 #       https://devblogs.nvidia.com/parallelforall/how-optimize-data-transfers-cuda-fortran/
 #

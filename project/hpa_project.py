@@ -165,7 +165,7 @@ class HPAProject:
         epoch_loss = 0
 
         for batch_index, (ids, image_0, labels_0) in enumerate(train_loader, 0):
-            ids, image, labels_0, image_for_display = self.transform(ids, image_0, labels_0, val = False, train = True)
+            ids, image, labels_0, image_for_display = (self.transform(ids, image_0, labels_0, val = False, train = True) for ids, image_0, labels_0 in zip(ids, image_0, labels_0))
 
 
             """TRAIN NET"""

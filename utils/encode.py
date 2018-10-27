@@ -44,9 +44,9 @@ def rle_encode(img):
     runs[1::2] = runs[1::2] - runs[:-1:2]
     return ' '.join(str(x) for x in runs)
 
-def get_one_hot(targets, nb_classes):
-    res = np.eye(nb_classes, dtype=np.float)[np.array(targets).reshape(-1)]
-    return res.reshape(list(targets.shape) + [nb_classes])
+# def get_one_hot(targets, nb_classes):
+#     res = np.eye(nb_classes, dtype=np.float)[np.array(targets).reshape(-1)]
+#     return res.reshape(list(targets.shape) + [nb_classes])
 
 def inverse_to_tensor(tensor):
     return [x * 255 for x in tensor.numpy()]
