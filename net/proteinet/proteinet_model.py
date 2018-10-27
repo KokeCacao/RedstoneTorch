@@ -189,6 +189,7 @@ class SEResNeXtBottleneck(Bottleneck):
     def __init__(self, inplanes, planes, groups, reduction, stride=1,
                  downsample=None, base_width=4):
         super(SEResNeXtBottleneck, self).__init__()
+        """use int so that there will no be error"""
         width = int(math.floor(planes * (base_width / 64)) * groups)
         print(inplanes)
         print(width)
@@ -380,7 +381,6 @@ def modified_initialize_pretrained_model(model, num_classes, settings):
     state_dict = model_zoo.load_url(settings['url'])
     del state_dict['last_linear.weight']
     del state_dict['last_linear.bias']
-    del state_dict['last_linear']
     model.load_state_dict(state_dict, strict=False)
     model.input_space = settings['input_space']
     model.input_size = settings['input_size']
