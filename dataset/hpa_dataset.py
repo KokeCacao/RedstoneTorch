@@ -162,9 +162,6 @@ class HPAData(data.Dataset):
         folded_val_indice = dict()
         folded_samplers = dict()
         for i in range(fold):
-            print("from")
-            print(i * cv_size)
-            print((i + 1) * cv_size)
             folded_val_indice[i] = list(set(data[i * cv_size:(i + 1) * cv_size]))
             folded_train_indice[i] = list(set(data[:]) - set(folded_val_indice[i]))
             print("     Fold#{}_train_size: {}".format(i, len(folded_train_indice[i])))

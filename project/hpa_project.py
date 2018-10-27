@@ -47,6 +47,7 @@ class HPAProject:
         self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG)
         self.folded_samplers = self.dataset.get_fold_sampler(fold=config.MODEL_FOLD)
 
+        self.run()
     def run(self):
         try:
 
