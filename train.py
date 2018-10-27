@@ -69,19 +69,6 @@ def reproduceability():
     print('=> torch.version.cuda             =', torch.version.cuda)
     print('=> torch.backends.cudnn.version() =', torch.backends.cudnn.version())
 
-
-def cuda(net):
-    if config.TRAIN_GPU_ARG:
-        os.environ["CUDA_VISIBLE_DEVICES"] = config.TRAIN_GPU_ARG  # default
-        print('=> Using GPU: [' + config.TRAIN_GPU_ARG + ']')
-        net.cuda()
-    else:
-        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-    print('=> torch.cuda.device_count()      =', torch.cuda.device_count())
-    print('')
-    return net
-
-
 if __name__ == '__main__':
     load_args()
 

@@ -15,8 +15,7 @@ from net.proteinet.proteinet_model import se_resnext101_32x4d
 
 import matplotlib as mpl
 
-from train import cuda
-from utils.load import save_checkpoint_fold, load_checkpoint_all_fold
+from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, cuda
 from utils import encode
 
 if os.environ.get('DISPLAY', '') == '':

@@ -72,3 +72,15 @@ def move_optimizer_to_cuda(optimizer):
             for k in param_state.keys():
                 if torch.is_tensor(param_state[k]):
                     param_state[k] = param_state[k].cuda()
+
+
+def cuda(net):
+    if config.TRAIN_GPU_ARG:
+        os.environ["CUDA_VISIBLE_DEVICES"] = config.TRAIN_GPU_ARG  # default
+        print('=> Using GPU: [' + config.TRAIN_GPU_ARG + ']')
+        net.cuda()
+    else:
+        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    print('=> torch.cuda.device_count()      =', torch.cuda.device_count())
+    print('')
+    return net

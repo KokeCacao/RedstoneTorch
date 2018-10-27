@@ -10,8 +10,8 @@ from dataset.tgs import TGSData
 from loss import loss as L
 from loss.iou import iou_score
 from model.resunet.resunet_model import UNetResNet
-from train import writer, save_checkpoint, load_checkpoint, cuda
-
+from train import writer, save_checkpoint, load_checkpoint
+from utils.load import cuda
 
 import matplotlib as mpl
 import numpy as np
