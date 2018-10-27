@@ -150,7 +150,7 @@ class HPAData(data.Dataset):
 
         data = self.indices[:-(self.data_len % fold)]
         left_over = self.indices[-(self.data_len % fold):]
-        cv_size = len(self.indices) - len(left_over) / fold
+        cv_size = (len(self.indices) - len(left_over)) / fold
 
         self.train_len = cv_size*(fold-1)
         self.val_len = cv_size
