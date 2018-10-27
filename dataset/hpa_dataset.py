@@ -136,9 +136,8 @@ class HPAData(data.Dataset):
         id = self.indices_to_id[id]
         image_0 = self.get_load_image_by_id(id)
         labels_0 = self.get_load_label_by_id(id)
-        print(labels_0.shape)
+        print("la:" + labels_0)
         print(image_0.shape)
-        print(id.shape)
         return (id, image_0, labels_0)
 
     """CONFIGURATION"""
@@ -162,6 +161,7 @@ class HPAData(data.Dataset):
         :return: one hot encoded label
         """
         labels = self.dataframe.loc[id, 'Target']
+        print("arr" + np.array(labels))
         return get_one_hot(np.array(labels), len(self.name_label_dict))
 
 class TrainImgAugTransform:
