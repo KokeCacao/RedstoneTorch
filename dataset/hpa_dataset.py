@@ -50,7 +50,7 @@ class HPAData(data.Dataset):
     """
     def __init__(self, csv_dir, load_img_dir, img_suffix=".png"):
         print("Reading Data...")
-        self.dataframe = pd.read_csv(csv_dir, index_col=0)
+        self.dataframe = pd.read_csv(csv_dir).set_index('Id')
         self.dataframe['Target'] = [[int(i) for i in s.split()] for s in self.dataframe['Target']]
         self.name_label_dict = {
             0: 'Nucleoplasm',
