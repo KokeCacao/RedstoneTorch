@@ -160,7 +160,7 @@ class HPAData(data.Dataset):
         :return: one hot encoded label
         """
         labels = self.dataframe.loc[id, 'Target']
-        return get_one_hot(labels, len(self.name_label_dict))
+        return get_one_hot(np.array(labels), len(self.name_label_dict))
 
 class TrainImgAugTransform:
     def __init__(self):
