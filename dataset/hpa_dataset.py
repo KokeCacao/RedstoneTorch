@@ -1,18 +1,14 @@
 import os
 
-import PIL
-import pandas as pd
-import numpy as np
-import torch
 import cv2
-
+import numpy as np
+import pandas as pd
 from imgaug import augmenters as iaa
-from PIL import Image
 from torch.utils import data
-from torch.utils.data import SubsetRandomSampler, Sampler
-from torchvision.transforms import transforms
+from torch.utils.data import SubsetRandomSampler
 
-from utils.encode import get_one_hot, inverse_to_tensor
+from utils.encode import get_one_hot
+
 
 #  what is pinned memory
 #       https://devblogs.nvidia.com/parallelforall/how-optimize-data-transfers-cuda-fortran/
@@ -167,44 +163,18 @@ class HPAData(data.Dataset):
             print("     Fold#{}_train_size: {}".format(i, len(folded_train_indice[i])))
             print("     Fold#{}_val_size: {}".format(i, len(folded_val_indice[i])))
             folded_samplers[i] = {}
-            folded_samplers[i]["train"] = HPASubsetRandomSampler(folded_train_indice[i], train=True, val=False)
-            folded_samplers[i]["val"] = HPASubsetRandomSampler(folded_val_indice[i], train=False, val=True)
+            folded_samplers[i]["train"] = SubsetRandomSampler(folded_train_indice[i])
+            folded_samplers[i]["val"] = SubsetRandomSampler(folded_val_indice[i])
 
         return folded_samplers
 
     # TODO: Get stratified fold instead of random
 
-    def get(self, id, train = True, val = True):
+    def __getitem__(self, id):
         image_0 = self.get_load_image_by_id(id)
         labels_0 = self.get_load_label_by_id(id)
 
-        if not val and train:
-            image_aug_transform = TrainImgAugTransform().to_deterministic()
-            TRAIN_TRANSFORM = {
-                'image': transforms.Compose([
-                    image_aug_transform,
-                    transforms.ToTensor(),
-                ]),
-            }
-
-            image = TRAIN_TRANSFORM['image'](image_0)
-
-            # seq_det = TRAIN_SEQUENCE.to_deterministic()
-            # image = seq_det.augment_images(np.array(image))
-            # mask = seq_det.augment_images(np.array(mask))
-
-            return (id, image, labels_0, inverse_to_tensor(image))
-        elif not train and val:
-            image_aug_transform = TrainImgAugTransform().to_deterministic()
-            PREDICT_TRANSFORM_IMG = transforms.Compose([
-                image_aug_transform,
-                transforms.ToTensor()
-            ])
-
-            image = PREDICT_TRANSFORM_IMG(image_0)
-            return (id, image, labels_0, inverse_to_tensor(image))
-        else:
-            raise RuntimeError("ERROR: Cannot be train and validation at the same time. Please use SubsetSampler provided by the dataset.")
+        return (id, image_0, labels_0)
 
     """CONFIGURATION"""
 
@@ -263,18 +233,3 @@ class TestImgAugTransform:
     def to_deterministic(self, n=None):
         self.aug = self.aug.to_deterministic(n)
         return self
-
-class HPASubsetRandomSampler(Sampler):
-
-    def __init__(self, indices, train=False, val=False):
-        self.indices = indices
-        if train == val: raise RuntimeError("ERROR val_indices=None")
-        else:
-            self.train = train
-            self.val = val
-
-    def __iter__(self):
-        return (self.indices.get(i, train=self.train, val=self.val) for i in torch.randperm(len(self.indices)))
-
-    def __len__(self):
-        return len(self.indices)

@@ -2,19 +2,22 @@ import os
 import sys
 from datetime import datetime
 
+from torchvision.transforms import transforms
+
 import tensorboardwriter
 import torch
 import numpy as np
 from torch.utils import data
 
 import config
-from dataset.hpa_dataset import HPAData
+from dataset.hpa_dataset import HPAData, TrainImgAugTransform
 
 from loss.focal import FocalLoss
 from net.proteinet.proteinet_model import se_resnext101_32x4d_modified
 
 import matplotlib as mpl
 
+from utils.encode import inverse_to_tensor
 from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, cuda
 from utils import encode
 
@@ -58,9 +61,6 @@ class HPAProject:
                                 batch_size=config.MODEL_BATCH_SIZE
                                 )
 
-
-
-
         except KeyboardInterrupt as e:
             print(e)
             self.writer.close()
@@ -70,6 +70,35 @@ class HPAProject:
                 sys.exit(0)
             except SystemExit:
                 os._exit(0)
+
+    def transform(self, ids, image_0, labels_0, val, train):
+        if not val and train:
+            image_aug_transform = TrainImgAugTransform().to_deterministic()
+            TRAIN_TRANSFORM = {
+                'image': transforms.Compose([
+                    image_aug_transform,
+                    transforms.ToTensor(),
+                ]),
+            }
+
+            image = TRAIN_TRANSFORM['image'](image_0)
+
+            # seq_det = TRAIN_SEQUENCE.to_deterministic()
+            # image = seq_det.augment_images(np.array(image))
+            # mask = seq_det.augment_images(np.array(mask))
+
+            return (ids, image, labels_0, inverse_to_tensor(image))
+        elif not train and val:
+            image_aug_transform = TrainImgAugTransform().to_deterministic()
+            PREDICT_TRANSFORM_IMG = transforms.Compose([
+                image_aug_transform,
+                transforms.ToTensor()
+            ])
+
+            image = PREDICT_TRANSFORM_IMG(image_0)
+            return (ids, image, labels_0, inverse_to_tensor(image))
+        else:
+            raise RuntimeError("ERROR: Cannot be train and validation at the same time.")
 
     def step_epoch(self,
                    nets,
@@ -135,7 +164,10 @@ class HPAProject:
 
         epoch_loss = 0
 
-        for batch_index, (ids, image, labels_0, image_for_display) in enumerate(train_loader, 0):
+        for batch_index, (ids, image_0, labels_0) in enumerate(train_loader, 0):
+            ids, image, labels_0, image_for_display = self.transform(ids, image_0, labels_0, val = False, train = True)
+
+
             """TRAIN NET"""
             config.global_steps[fold] = config.global_steps[fold] + 1
             if config.TRAIN_GPU_ARG: image = image.cuda()
@@ -210,7 +242,8 @@ class HPAEvaluation:
         for fold, net in enumerate(nets):
             fold_dict = dict()
             pred_dict = dict()
-            for batch_index, (ids, image, labels_0, image_for_display) in enumerate(validation_loader, 0):
+            for batch_index, (ids, image_0, labels_0) in enumerate(validation_loader, 0):
+                ids, image, labels_0, image_for_display = self.transform(ids, image_0, labels_0, val = True, train = False)
 
                 """CALCULATE LOSS"""
                 if config.TRAIN_GPU_ARG: image = image.cuda()
