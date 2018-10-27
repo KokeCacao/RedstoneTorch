@@ -31,6 +31,11 @@ unzip ~/RedstoneTorch/data/test.zip -d ~/RedstoneTorch/data/test
 ```
 Please use `sudo` in front of these command if the terminal says that you don't have permissions to do so
 
+However, you may not have the full permission to read doanloaded file, use
+```commandline
+sudo chmod -R a+rwx train.csv
+```
+to give yourself permission to read.
 ### Train
 You can start trainning by type command `python train.py`  
 Make sure you have everything setup  
