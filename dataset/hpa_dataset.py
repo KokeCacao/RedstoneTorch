@@ -92,48 +92,10 @@ class HPAData(data.Dataset):
 
         self.train_len = None
         self.val_len = None
-        
-        """split"""
-        self.train_indices = None
-        self.val_indices = None
+
 
     def __len__(self):
         return self.data_len
-
-
-    """
-        :param self(data_len)
-        :param data_percent
-        :param val_percent
-        
-        :var train_len
-        :var val_len
-        :var train_indices
-        :var val_indices
-        
-        :return folded_sampler
-    """
-    def get_split_sampler(self, data_percent=1.0, val_percent=0.05):
-        self.indices_to_id = dict(zip(self.indices, self.id))
-        print("     Data Size: {}".format(self.data_len))
-
-        val_split = int(np.floor(data_percent * val_percent * self.data_len))
-        print("     Validation Size: {}".format(val_split))
-        self.val_len = val_split
-        data_split = int(np.floor(data_percent * self.data_len))
-        print("     Traning Size: {}".format(data_split - val_split))
-        self.train_len = data_split - val_split
-
-        self.val_indices = self.indices[:val_split]
-        self.train_indices = self.indices[val_split:data_split]
-
-        self.train_len = len(self.train_indices)
-        self.val_len = len(self.val_indices)
-
-        train_sampler = HPASubsetRandomSampler(self.train_indices, train=True, val=False)
-        validation_sampler = HPASubsetRandomSampler(self.val_indices, train=False, val=True)
-
-        return train_sampler, validation_sampler
 
     """
         :param self(data_len)
@@ -171,6 +133,7 @@ class HPAData(data.Dataset):
     # TODO: Get stratified fold instead of random
 
     def __getitem__(self, id):
+        id = self.indices_to_id[id]
         image_0 = self.get_load_image_by_id(id)
         labels_0 = self.get_load_label_by_id(id)
 
