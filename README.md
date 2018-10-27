@@ -3,6 +3,34 @@
 ## Usage
 The folowing instructions are made so that you can use this library
 
+### Data
+The dataset is provided by Kaggle  
+However, kaggle api is not very easy to use on remote server
+
+Please use this chrome plugging to get `cookie.txt` file: [Here](https://chrome.google.com/webstore/detail/cookiestxt/njabckikapfpffapmjgojcnbfjonfjfg?hl=zh-CN)
+
+After you upload your `cookie.txt` file to your remote server, use command(provided by [CarlosSouza](https://www.kaggle.com/c/cdiscount-image-classification-challenge/discussion/39492))
+
+Please run the following command in your ~/RedstoneTorch directory
+```commandline
+cd ~/RedstoneTorch
+wget -x -c --load-cookies cookies.txt -P data -nH --cut-dirs=5 https://www.kaggle.com/c/DATASET/train.bson
+wget -x -c --load-cookies cookies.txt -P data -nH --cut-dirs=5 https://www.kaggle.com/c/DATASET/download-all
+```
+The `DATASET` can be replaced with `human-protein-atlas-image-classification`  
+The command above will create a file named `data` and put your file `download-all` in it.  
+So you need to unzip the `doanload-all`  
+To do so, run the following command
+```commandline
+unzip ~/RedstoneTorch/data/download-all -d ~/RedstoneTorch/data
+```
+and then you need to unzip the `train.zip` and `test.zip`
+```commandline
+unzip ~/RedstoneTorch/data/train.zip -d ~/RedstoneTorch/data/train
+unzip ~/RedstoneTorch/data/test.zip -d ~/RedstoneTorch/data/test
+```
+Please use `sudo` in front of these command if the terminal says that you don't have permissions to do so
+
 ### Train
 You can start trainning by type command `python train.py`  
 Make sure you have everything setup  
@@ -16,11 +44,18 @@ You can also use the following flags to train
 | --resume | resume or not  | False |  
 
 We strongly recommand you use some tags to make sure the program runs correctly
+```commandline
+cd ~/RedstoneTorch
+python train.py --projecttag test --versiontag test
+```
 
 ### Evaluate and Display
 The program use tensorboardX to display tensors  
-Use command `python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=XXX --port=6006`
-to open tensorboad's display on port `6006` of your server after you run `train.py`
+Use command
+```commandline
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=~/RedstoneTorch/model/PROJECTTAG --port=6006
+```
+to open tensorboad's display on port `6006` of your server after you run `train.py` where `PROJECTTAG` can be replaced with your project tag.
 
 ### Predict
 Use predict.py to get the sumbit datatable
@@ -49,8 +84,12 @@ Please use `pip install` to install these dependencies.
 .
 ├── config.py
 ├── data
-│   ├── tgs.zip
-│   └── training_upload.csv
+│   ├── sample_submission.csv
+│   ├── test
+│   │   └── [A LOT OF PICTURES]
+│   ├── trian.csv
+│   └── train
+│   │   └── [A LOT OF PICTURES]
 ├── dataset
 │   ├── hpa_dataset.py
 │   ├── __init__.py

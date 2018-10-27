@@ -37,7 +37,7 @@ EVAL_CHOSEN_THRESHOLD = 0.5
 DIRECTORY_PREFIX = ""
 DIRECTORY_SUFFIX_IMG = ".png"
 DIRECTORY_SUFFIX_MASK = ".png"
-DIRECTORY_IMG = "/media/koke_cacao/娱乐/data"
+DIRECTORY_IMG = DIRECTORY_PREFIX + "data/train/image/"
 DIRECTORY_MASK = DIRECTORY_PREFIX + 'data/train/masks/'  # augmentation
 
 DIRECTORY_LOAD = None
