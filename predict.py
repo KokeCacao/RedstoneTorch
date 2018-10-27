@@ -18,7 +18,7 @@ from matplotlib import pyplot as plt
 
 from optparse import OptionParser
 from model.resunet.resunet_model import UNetResNet
-from tensorboardX import SummaryWriter
+from tensorboardwriter import SummaryWriter
 
 def predict(net, image):
     if config.TRAIN_GPU_ARG: image = image.cuda()
@@ -107,28 +107,28 @@ def load_checkpoint(net, load_path):
         print("=> Nothing loaded")
 
 
-def load_args():
-    args = get_args()
-    config.TRAIN_LOAD = args.load
-    config.PREDICTION_LOAD_TAG = config.TRAIN_LOAD.replace("/", "-").replace(".pth", "-")
-    config.PREDICTION_TAG = config.TRAIN_LOAD.replace("tensorboard-", "").replace("-checkpoints-", "-").replace(".pth", "").replace("tensorboard/", "").replace("/checkpoints/", "-").replace(".pth", "")
-    if args.tag != "": config.PREDICTION_TAG = config.PREDICTION_TAG + "-" + args.tag
+# def load_args():
+#     args = get_args()
+#     config.DIRECTORY_LOAD = args.load
+#     config.PREDICTION_LOAD_TAG = config.DIRECTORY_LOAD.replace("/", "-").replace(".pth", "-")
+#     config.PREDICTION_TAG = config.DIRECTORY_LOAD.replace("tensorboard-", "").replace("-checkpoints-", "-").replace(".pth", "").replace("tensorboard/", "").replace("/checkpoints/", "-").replace(".pth", "")
+#     if args.tag: config.PREDICTION_TAG = config.PREDICTION_TAG + "-" + args.tag
 
 
 if __name__ == '__main__':
     load_args()
-    writer = SummaryWriter("tensorboard/" + config.TRAIN_TAG)
-    print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + config.TRAIN_TAG + " --port=6006")
+    writer = SummaryWriter("tensorboard/" + config.PROJECT_TAG)
+    print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + config.PROJECT_TAG + " --port=6006")
     print("=> Current Directory: " + str(os.getcwd()))
     print("=> Download Model here: " + "ResUnet/" + config.DIRECTORY_TEST + "predicted/" + config.PREDICTION_TAG + ".csv")
 
     net = UNetResNet(encoder_depth=50, num_classes=1, num_filters=32, dropout_2d=0.2,
                      pretrained=True, is_deconv=True)
-    if config.TRAIN_GPU_ARG != "": net = torch.nn.DataParallel(net, device_ids=[int(i) for i in config.TRAIN_GPU_ARG.split(",")])
+    if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=[int(i) for i in config.TRAIN_GPU_ARG.split(",")])
 
-    load_checkpoint(net, config.TRAIN_LOAD)
+    load_checkpoint(net, config.DIRECTORY_LOAD)
 
-    if config.TRAIN_GPU_ARG != "":
+    if config.TRAIN_GPU_ARG:
         os.environ["CUDA_VISIBLE_DEVICES"] = config.TRAIN_GPU_ARG  # default
         print('=> Using GPU: [' + config.TRAIN_GPU_ARG + ']')
         net.cuda()

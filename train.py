@@ -9,23 +9,12 @@ import torch
 import config
 import imgaug as ia
 
-from project.TGSProject import TGSProject
-from model.resunet.resunet_model import UNetResNet
 from datetime import datetime
 from tensorboardX import SummaryWriter
 
 # dir_prefix = 'drive/My Drive/ML/Pytorch-UNet/'
 from utils.memory import memory_thread
-
-
-def get_args():
-    parser = OptionParser()
-    parser.add_option('-c', '--load', dest='load', default=False, help='load file model')
-    parser.add_option('-t', '--tag', dest='tag', default="", help='tag for tensorboard-log')
-    # parser.add_option('-e', '--continue', dest='continu', default=False, help='continue in the same folder (but potentially break down the statistics')
-
-    (options, args) = parser.parse_args()
-    return options
+from project import hpa_project
 
 
 def log_data(file_name, data):
@@ -33,37 +22,58 @@ def log_data(file_name, data):
         file.write(data + "\n")
 
 
-def save_checkpoint(state_dict, optimizer_dict, interupt=False):
-    tag = config.tag + "-" if config.tag != "" else ""
+def save_checkpoint_fold(state_dicts, optimizer_dicts, interupt=False):
+    if interupt: print("WARNING: loading interupt models may be buggy")
+    tag = config.versiontag + "-" if config.versiontag else ""
     interupt = "INTERUPT-" if interupt else ""
     if config.TRAIN_SAVE_CHECKPOINT:
         if not os.path.exists(config.DIRECTORY_CHECKPOINT):
             os.makedirs(config.DIRECTORY_CHECKPOINT)
+    config.lastsave = interupt + tag + config.DIRECTORY_CP_NAME.format(config.epoch)
     torch.save({
         'epoch': config.epoch,
-        'global_step': config.global_step,
-        'state_dict': state_dict,
-        'optimizer': optimizer_dict,
-    }, config.DIRECTORY_CHECKPOINT + interupt + tag + config.DIRECTORY_CP_NAME.format(config.epoch))
-    print('Checkpoint: {} step, dir: {}'.format(config.global_step, config.DIRECTORY_CHECKPOINT + interupt + config.tag + config.DIRECTORY_CP_NAME.format(config.epoch)))
+        'global_steps': config.global_steps,
+        'state_dicts': state_dicts,
+        'optimizers': optimizer_dicts,
+    }, config.DIRECTORY_CHECKPOINT + config.lastsave)
+    print('Checkpoint: {} epoch; {}-{} step; dir: {}'.format(config.epoch, config.global_steps[0], config.global_steps[-1], config.DIRECTORY_CHECKPOINT + interupt + config.versiontag + config.DIRECTORY_CP_NAME.format(config.epoch)))
 
 
-def load_checkpoint(net, optimizer, load_path):
+def load_checkpoint_all_fold(nets, optimizers, load_path):
     if load_path and os.path.isfile(load_path):
         print("=> Loading checkpoint '{}'".format(load_path))
         checkpoint = torch.load(load_path)
-        if 'state_dict' not in checkpoint:
-            net.load_state_dict(checkpoint)
-            print("=> Loaded only the model")
+        if 'state_dicts' not in checkpoint:
+            print("=> Checkpoint is broken, nothing loaded")
             return
         config.epoch = checkpoint['epoch']
-        config.global_step = checkpoint['global_step']
-        net.load_state_dict(checkpoint['state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer'])
-        move_optimizer_to_cuda(optimizer)
-        print("=> Loaded checkpoint 'epoch = {}' (global_step = {})".format(config.epoch, config.global_step))
+        config.global_steps = checkpoint['global_steps']
+        for fold, (net, optimizer) in zip(nets, optimizers):
+            net.load_state_dict(checkpoint['state_dict'][fold])
+            optimizer.load_state_dict(checkpoint['optimizer'][fold])
+            move_optimizer_to_cuda(optimizer)
+            print("=> Loading checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
+        print("=> Loaded checkpoint {} epoch; {}-{} step".format(config.epoch, config.global_steps[0], config.global_steps[-1]))
     else:
-        print("=> Nothing loaded")
+        print("=> Nothing loaded because of invalid directory")
+
+
+def load_checkpoint_one_fold(net, optimizer, fold, load_path):
+    if load_path and os.path.isfile(load_path):
+        print("=> Loading checkpoint '{}'".format(load_path))
+        checkpoint = torch.load(load_path)
+        if 'state_dicts' not in checkpoint:
+            print("=> Checkpoint is broken, nothing loaded")
+            return
+        config.epoch = checkpoint['epoch']
+        config.global_steps = checkpoint['global_steps']
+        net.load_state_dict(checkpoint['state_dict'][fold])
+        optimizer.load_state_dict(checkpoint['optimizer'][fold])
+        move_optimizer_to_cuda(optimizer)
+        print("=> Loading checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
+        print("=> Loaded checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
+    else:
+        print("=> Nothing loaded because of invalid directory")
 
 
 def move_optimizer_to_cuda(optimizer):
@@ -81,19 +91,30 @@ def move_optimizer_to_cuda(optimizer):
                     param_state[k] = param_state[k].cuda()
 
 
+def get_args():
+    parser = OptionParser()
+    parser.add_option('--projecttag', dest='projecttag', default=False, help='tag you want to load')
+    parser.add_option('--versiontag', dest='versiontag', default="", help='tag for tensorboard-log')
+    parser.add_option('--loadfile', dest='loadfile', default=False, help='file you want to load')
+    parser.add_option('--resume', dest='resume', default=True, help='resume or create a new folder')
+
+    (options, args) = parser.parse_args()
+    return options
+
+
 def load_args():
     args = get_args()
-    if args.tag != "":
-        # if args.continu and args.loca != False: config.TRAIN_TAG = args.load.split("/", 2)[1]
-        # else: config.TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + args.tag
-        config.tag = args.tag
-        config.TRAIN_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + config.tag
-        config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "tensorboard/" + config.TRAIN_TAG + "/checkpoints/"
-    if args.load != None:
-        config.TRAIN_LOAD = args.load
-        if config.TRAIN_CONTINUE:
-            config.TRAIN_TAG = args.load.split("/", 3)[1]
-            config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "tensorboard/" + config.TRAIN_TAG + "/checkpoints/"
+    if args.versiontag: config.versiontag = args.versiontag
+    if args.projecttag:
+        config.TRAIN_RESUME = args.resume
+        if config.TRAIN_RESUME:
+            config.PROJECT_TAG = args.projecttag
+            config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.projecttag + "/" + args.loadfile
+            config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
+        else:
+            config.PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + config.versiontag
+            config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.projecttag + "/" + args.loadfile
+            config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
 
 
 # from ml-arsenal-public/blob/master/reproducibility.py
@@ -121,7 +142,7 @@ def reproduceability():
 
 
 def cuda(net):
-    if config.TRAIN_GPU_ARG != "":
+    if config.TRAIN_GPU_ARG:
         os.environ["CUDA_VISIBLE_DEVICES"] = config.TRAIN_GPU_ARG  # default
         print('=> Using GPU: [' + config.TRAIN_GPU_ARG + ']')
         net.cuda()
@@ -135,16 +156,16 @@ def cuda(net):
 if __name__ == '__main__':
     load_args()
 
-    writer = SummaryWriter("tensorboard/" + config.TRAIN_TAG)
-    print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + config.TRAIN_TAG + " --port=6006")
+    writer = SummaryWriter(config.DIRECTORY_CHECKPOINT)
+    print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + config.PROJECT_TAG + " --port=6006")
 
     reproduceability()
 
-    memory = memory_thread(1, writer, config.TRAIN_GPU_ARG)
+    memory = memory_thread(1, writer)
     memory.setDaemon(True)
     memory.start()
 
     print("=> Current Directory: " + str(os.getcwd()))
     print("=> Loading neuronetwork...")
 
-    TGSProject.run
+    project = hpa_project.HPAProject()

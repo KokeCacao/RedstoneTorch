@@ -1,6 +1,6 @@
 # from https://www.kaggle.com/iafoss/pretrained-resnet34-with-rgby-0-448-public-lb
 from torch import nn
-
+import torch.nn.functional as F
 
 class FocalLoss(nn.Module):
     def __init__(self, gamma=2):
@@ -19,4 +19,4 @@ class FocalLoss(nn.Module):
         invprobs = F.logsigmoid(-predict * (target * 2.0 - 1.0))
         loss = (invprobs * self.gamma).exp() * loss
 
-        return loss.sum(dim=1).mean()
+        return loss.sum(dim=1)
