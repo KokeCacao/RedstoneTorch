@@ -50,7 +50,7 @@ class HPAData(data.Dataset):
     """
     def __init__(self, csv_dir, load_img_dir, img_suffix=".png"):
         print("Reading Data...")
-        self.dataframe = pd.read_csv(csv_dir, index_col=0)
+        self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
         self.dataframe['Target'] = [[int(i) for i in s.split()] for s in self.dataframe['Target']]
         self.name_label_dict = {
             0: 'Nucleoplasm',
@@ -86,7 +86,7 @@ class HPAData(data.Dataset):
         self.load_img_dir = load_img_dir
         self.img_suffix = img_suffix
 
-        self.id = self.dataframe['Id']
+        self.id = self.dataframe.index.tolist()
         """WARNING: data length and indices depends on the length of images"""
         self.data_len = int(len(os.listdir(self.load_img_dir)) / 4)
         self.indices = list(range(self.data_len))
