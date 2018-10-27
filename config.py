@@ -41,7 +41,7 @@ DIRECTORY_IMG = DIRECTORY_PREFIX + "data/train/image/"
 DIRECTORY_MASK = DIRECTORY_PREFIX + 'data/train/masks/'  # augmentation
 
 DIRECTORY_LOAD = None
-DIRECTORY_CSV = DIRECTORY_PREFIX + 'data/train.csv'
+DIRECTORY_CSV = "../" + DIRECTORY_PREFIX + 'data/train.csv'
 DIRECTORY_CHECKPOINT = DIRECTORY_PREFIX + "tensorboard/" + PROJECT_TAG + "/checkpoints/"
 DIRECTORY_TEST = DIRECTORY_PREFIX + 'data/test/images/'
 DIRECTORY_CP_NAME = 'CP{}.pth'
