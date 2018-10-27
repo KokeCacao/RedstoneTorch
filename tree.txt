@@ -1,51 +1,3 @@
-# Redstone Torch
-
-## Usage
-The folowing instructions are made so that you can use this library
-
-### Train
-You can start trainning by type command `python train.py`  
-Make sure you have everything setup  
-You can also use the following flags to train
-
-| Flag        | Function | Default  |
-|:-------------|:-------------|:-----|
-| --projecttag | specify the project's tag | "" |
-| --versiontag | specify the version's tag | "" |
-| --loadfile | file name you want to load | None |
-| --resume | resume or not  | False |  
-
-We strongly recommand you use some tags to make sure the program runs correctly
-
-### Evaluate and Display
-The program use tensorboardX to display tensors  
-Use command `python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=XXX --port=6006`
-to open tensorboad's display on port `6006` of your server after you run `train.py`
-
-### Predict
-Use predict.py to get the sumbit datatable
-
-## Dependencies
-This package depends on
-```
-matplotlib
-pydensecrf
-numpy
-Pillow
-torch
-torchvision
-augmentor
-tensorboardX
-psutil
-tensorboard
-tensorflow
-
-```
-Please use `pip install` to install these dependencies.
-
-## Directory
-
-```
 .
 ├── config.py
 ├── data
@@ -125,4 +77,3 @@ Please use `pip install` to install these dependencies.
     └── postprocess.py
 
 16 directories, 60 files
-```

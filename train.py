@@ -117,11 +117,12 @@ def load_args():
             config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
 
 
-# from ml-arsenal-public/blob/master/reproducibility.py
-"""The main python module that is run should import random and call random.seed(n) - this is shared between all other imports of random as long as somewhere else doesn't reset the seed."""
-
-
 def reproduceability():
+    """
+        from ml-arsenal-public/blob/master/reproducibility.py
+        The main python module that is run should import random and call random.seed(n)
+        this is shared between all other imports of random as long as somewhere else doesn't reset the seed.
+    """
     print('=> Setting random seed to {}.'.format(config.TRAIN_SEED))
     print('')
     ia.seed(config.TRAIN_SEED)
@@ -157,7 +158,7 @@ if __name__ == '__main__':
     load_args()
 
     writer = SummaryWriter(config.DIRECTORY_CHECKPOINT)
-    print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=ResUnet/tensorboard/" + config.PROJECT_TAG + " --port=6006")
+    print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=MineRedstone/" + config.DIRECTORY_CHECKPOINT + " --port=6006")
 
     reproduceability()
 

@@ -30,9 +30,6 @@ class HPAProject:
         self.epoch_begin = None
         self.fold_begin = None
 
-
-
-
         self.optimizers = []
         self.nets = []
         for fold in range(config.MODEL_FOLD):
@@ -44,10 +41,7 @@ class HPAProject:
             self.nets[fold] = train.cuda(net)
         train.load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
 
-
-
         # TODO: load 10 model together, save 10 model
-
 
         self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG)
         self.folded_samplers = self.dataset.get_fold_sampler(fold=config.MODEL_FOLD)
@@ -106,8 +100,6 @@ class HPAProject:
         #             {'params': net.module.dec0.parameters(), 'lr': 1e-3},
         #             {'params': net.module.final.parameters(), 'lr': 0.0015}], lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay) # all parameter learnable
 
-
-
         epoch_evaluations = np.array([])
         for fold, (net, optimizer) in enumerate(zip(nets, optimizers)):
             fold_evaluation = self.step_fold(fold, net, optimizer, batch_size)
@@ -126,7 +118,6 @@ class HPAProject:
         """SAVE"""
         train.save_checkpoint_fold([x.state_dict() for x in nets], [x.state_dict() for x in optimizers])
 
-
         """DISPLAY"""
         tensorboardwriter.write_eval_loss(train.writer, {"EpochLoss": epoch_evaluations.mean(), "EpochSTD": epoch_evaluations.std()}, config.epoch)
         tensorboardwriter.write_loss_distribution(train.writer, epoch_evaluations.flatten(), config.epoch)
@@ -134,7 +125,6 @@ class HPAProject:
     def step_fold(self, fold, net, optimizer, batch_size):
         self.fold_begin = datetime.now()
         config.fold = fold
-
 
         train_sampler = self.folded_samplers[config.fold]["train"]
         validation_sampler = self.folded_samplers[config.fold]["val"]
@@ -297,3 +287,6 @@ class HPAEvaluation:
 
     def get_epoch_loss_across_fold(self):
         return self.fold_losses.mean()
+
+class HPAPrediction:
+    pass
