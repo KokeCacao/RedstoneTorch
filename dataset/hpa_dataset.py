@@ -159,7 +159,7 @@ class HPAData(data.Dataset):
         :param id: id
         :return: one hot encoded label
         """
-        labels = self.dataframe.loc[self.dataframe[id], 'Target']
+        labels = self.dataframe.loc[id, 'Target']
         return get_one_hot(labels, len(self.name_label_dict))
 
 class TrainImgAugTransform:
