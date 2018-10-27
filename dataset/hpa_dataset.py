@@ -6,6 +6,7 @@ import pandas as pd
 from imgaug import augmenters as iaa
 from torch.utils import data
 from torch.utils.data import SubsetRandomSampler
+from sklearn.preprocessing import MultiLabelBinarizer
 
 from utils.encode import get_one_hot
 
@@ -48,6 +49,8 @@ class HPAData(data.Dataset):
         print("Reading Data...")
         self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
         self.dataframe['Target'] = [[int(i) for i in s.split()] for s in self.dataframe['Target']]
+        self.dataframe['Target'] = MultiLabelBinarizer().fit_transform(self.dataframe['Target'])
+
         self.name_label_dict = {
             0: 'Nucleoplasm',
             1: 'Nuclear membrane',
@@ -160,9 +163,7 @@ class HPAData(data.Dataset):
         :param id: id
         :return: one hot encoded label
         """
-        labels = self.dataframe.loc[id, 'Target']
-        print("arr", np.array(labels))
-        return get_one_hot(np.array(labels), len(self.name_label_dict))
+        return self.dataframe.loc[id, 'Target']
 
 class TrainImgAugTransform:
     def __init__(self):
