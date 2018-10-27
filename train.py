@@ -24,7 +24,7 @@ def get_args():
     parser.add_option('--projecttag', dest='projecttag', default=False, help='tag you want to load')
     parser.add_option('--versiontag', dest='versiontag', default="", help='tag for tensorboard-log')
     parser.add_option('--loadfile', dest='loadfile', default=False, help='file you want to load')
-    parser.add_option('--resume', dest='resume', default=True, help='resume or create a new folder')
+    parser.add_option('--resume', dest='resume', default=False, help='resume or create a new folder')
 
     (options, args) = parser.parse_args()
     return options
@@ -34,7 +34,7 @@ def load_args():
     args = get_args()
     if args.versiontag: config.versiontag = args.versiontag
     if args.projecttag:
-        config.TRAIN_RESUME = args.resume
+        config.TRAIN_RESUME = True if args.resume == "True" else False
         if config.TRAIN_RESUME:
             config.PROJECT_TAG = args.projecttag
             config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.projecttag + "/" + args.loadfile
