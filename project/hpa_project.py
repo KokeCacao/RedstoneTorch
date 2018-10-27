@@ -37,9 +37,8 @@ class HPAProject:
             print("     Creating Fold: #{}".format(fold))
             net = se_resnext101_32x4d_modified(num_classes=28, pretrained='imagenet')
             if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
-            optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY)
-            self.optimizers.append(optimizer)  # all parameter learnable
-            cuda(net)
+
+            self.optimizers.append(torch.optim.Adam(params=net.parameters(), lr=config.MODEL_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY))  # all parameter learnable
             self.nets.append(net)
         load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
 
