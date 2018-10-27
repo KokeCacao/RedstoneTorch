@@ -151,7 +151,7 @@ class HPAData(data.Dataset):
         """
         colors = ['red', 'green', 'blue', 'yellow']
         flags = cv2.IMREAD_GRAYSCALE
-        imgs = [cv2.imread(os.path.join(self.load_img_dir, id + '_' + color + self.img_suffix), flags).astype(np.float32) / 1 for color in colors]
+        imgs = [cv2.imread(os.path.join(self.load_img_dir, id + '_' + color + self.img_suffix), flags).astype(np.uint8) for color in colors]
         return np.stack(imgs, axis=-1)
 
     def get_load_label_by_id(self, id):
