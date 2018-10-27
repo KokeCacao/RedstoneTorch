@@ -10,12 +10,12 @@ from torch.utils import data
 import config
 from dataset.hpa_dataset import HPAData
 
-import train
 from loss.focal import FocalLoss
 from net.proteinet.proteinet_model import se_resnext101_32x4d
 
 import matplotlib as mpl
 
+from train import cuda, load_checkpoint_all_fold
 from utils import encode
 
 if os.environ.get('DISPLAY', '') == '':
@@ -25,7 +25,8 @@ from matplotlib import pyplot as plt
 
 
 class HPAProject:
-    def __init__(self):
+    def __init__(self, writer):
+        self.writer = writer
         self.train_begin = None
         self.epoch_begin = None
         self.fold_begin = None
@@ -38,8 +39,8 @@ class HPAProject:
             if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
             self.optimizers[fold] = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY)  # all parameter learnable
-            self.nets[fold] = train.cuda(net)
-        train.load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
+            self.nets[fold] = cuda(net)
+        load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
 
         # TODO: load 10 model together, save 10 model
 
@@ -61,7 +62,7 @@ class HPAProject:
 
         except KeyboardInterrupt as e:
             print(e)
-            train.writer.close()
+            self.writer.close()
             print("To Resume: python train.py --versiontag 'test' --projecttag " + config.PROJECT_TAG + "--loadfile " + config.lastsave)
             print("Or: python train.py --tag 'default' --load " + config.DIRECTORY_CHECKPOINT + config.versiontag + "-" + config.DIRECTORY_CP_NAME.format(config.epoch - 1))
             try:
@@ -112,15 +113,15 @@ class HPAProject:
             best_label = self.dataset.get_load_label_by_id(best_id)
             worst_img = self.dataset.get_load_image_by_id(worst_id)
             worst_label = self.dataset.get_load_label_by_id(worst_id)
-            tensorboardwriter.write_best_img(train.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, pred=best_pred, fold=fold)
-            tensorboardwriter.write_worst_img(train.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, pred=worst_pred, fold=fold)
+            tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, pred=best_pred, fold=fold)
+            tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, pred=worst_pred, fold=fold)
 
         """SAVE"""
-        train.save_checkpoint_fold([x.state_dict() for x in nets], [x.state_dict() for x in optimizers])
+        save_checkpoint_fold([x.state_dict() for x in nets], [x.state_dict() for x in optimizers])
 
         """DISPLAY"""
-        tensorboardwriter.write_eval_loss(train.writer, {"EpochLoss": epoch_evaluations.mean(), "EpochSTD": epoch_evaluations.std()}, config.epoch)
-        tensorboardwriter.write_loss_distribution(train.writer, epoch_evaluations.flatten(), config.epoch)
+        tensorboardwriter.write_eval_loss(self.writer, {"EpochLoss": epoch_evaluations.mean(), "EpochSTD": epoch_evaluations.std()}, config.epoch)
+        tensorboardwriter.write_loss_distribution(self.writer, epoch_evaluations.flatten(), config.epoch)
 
     def step_fold(self, fold, net, optimizer, batch_size):
         self.fold_begin = datetime.now()
@@ -155,7 +156,7 @@ class HPAProject:
                             GlobalStep: {}
                             BatchIndex: {}
                         """.format(train_duration, epoch_duration, config.epoch, config.fold, config.global_steps[fold], batch_index))
-            tensorboardwriter.write_loss(train.writer, {'Epoch' + '-f' + str(config.fold): config.epoch, 'TrainLoss' + '-f' + str(config.fold): loss.item(), 'IOU' + '-f' + str(config.fold): 0}, config.global_steps[fold])
+            tensorboardwriter.write_loss(self.writer, {'Epoch' + '-f' + str(config.fold): config.epoch, 'TrainLoss' + '-f' + str(config.fold): loss.item(), 'IOU' + '-f' + str(config.fold): 0}, config.global_steps[fold])
 
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display
@@ -260,7 +261,7 @@ class HPAEvaluation:
         return (self.worst_id, self.worst_loss, self.worst_pred)
 
     def display(self, fold, ids, transfered, untransfered, label, predicted, loss):
-        tensorboardwriter.write_pr_curve(train.writer, label, predicted, config.global_steps[fold])
+        tensorboardwriter.write_pr_curve(self.writer, label, predicted, config.global_steps[fold])
         for index, input_id in enumerate(ids):
             F = plt.figure()
 
@@ -283,7 +284,7 @@ class HPAEvaluation:
             plt.imshow(encode.tensor_to_np_four_channel_drop(transfered[index]))
             plt.title("Mask_Trans; loss:{}".format(loss[index]))
             plt.grid(False)
-            tensorboardwriter.write_image(train.writer, F, config.global_steps[fold])
+            tensorboardwriter.write_image(self.writer, F, config.global_steps[fold])
 
     def get_epoch_loss_across_fold(self):
         return self.fold_losses.mean()
