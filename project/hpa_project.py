@@ -140,7 +140,7 @@ class HPAProject:
                 labels_0 = labels_0.cuda()
             predict = net(image)
             loss = FocalLoss()(predict=predict, target=labels_0)
-            epoch_loss = epoch_loss + loss.item()
+            epoch_loss = epoch_loss + loss.item().mean()
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
