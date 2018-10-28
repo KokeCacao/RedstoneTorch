@@ -135,6 +135,7 @@ class HPAData(data.Dataset):
         id = self.indices_to_id[id]
         image_0 = self.get_load_image_by_id(id)
         labels_0 = self.get_load_label_by_id(id)
+        print(labels_0)
         return (id, image_0, labels_0)
 
     """CONFIGURATION"""
@@ -203,7 +204,6 @@ def train_collate(batch):
     for id, image_0, labels_0 in batch:
         new_batch.append(transform(id, image_0, labels_0, train=True, val=False))
     batch = new_batch
-    print("DEBUG",batch[2])
 
     error_msg = "batch must contain tensors, numbers, dicts or lists; found {}"
     elem_type = type(batch[0])
