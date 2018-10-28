@@ -71,35 +71,6 @@ class HPAProject:
             except SystemExit:
                 os._exit(0)
 
-    def transform(self, ids, image_0, labels_0, val, train):
-        if not val and train:
-            image_aug_transform = TrainImgAugTransform().to_deterministic()
-            TRAIN_TRANSFORM = {
-                'image': transforms.Compose([
-                    image_aug_transform,
-                    transforms.ToTensor(),
-                ]),
-            }
-
-            image = TRAIN_TRANSFORM['image'](image_0)
-
-            # seq_det = TRAIN_SEQUENCE.to_deterministic()
-            # image = seq_det.augment_images(np.array(image))
-            # mask = seq_det.augment_images(np.array(mask))
-
-            return (ids, image, labels_0, inverse_to_tensor(image))
-        elif not train and val:
-            image_aug_transform = TrainImgAugTransform().to_deterministic()
-            PREDICT_TRANSFORM_IMG = transforms.Compose([
-                image_aug_transform,
-                transforms.ToTensor()
-            ])
-
-            image = PREDICT_TRANSFORM_IMG(image_0)
-            return (ids, image, labels_0, inverse_to_tensor(image))
-        else:
-            raise RuntimeError("ERROR: Cannot be train and validation at the same time.")
-
     def step_epoch(self,
                    nets,
                    optimizers,
@@ -165,7 +136,8 @@ class HPAProject:
         epoch_loss = 0
 
         for batch_index, (ids, image_0, labels_0) in enumerate(train_loader, 0):
-            ids, image, labels_0, image_for_display = zip(*self.transform(ids, image_0, labels_0, val = False, train = True) for ids, image_0, labels_0 in zip(ids, image_0, labels_0))
+            # _ = [self.transform(ids, image_0, labels_0, val = False, train = True) for ids, image_0, labels_0 in zip(ids, image_0, labels_0)]
+            ids, image, labels_0, image_for_display = transform_batch(ids, image_0, labels_0, val=False, train=True)
 
             # ids, image, labels_0, image_for_display = map(lambda ids,image_0,labels_0: self.transform(ids, image_0, labels_0, val = False, train = True), ids, image_0, labels_0)
 
@@ -203,7 +175,7 @@ class HPAProject:
         """.format(config.epoch, epoch_loss / (batch_index + 1)))
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
-        evaluation = HPAEvaluation()
+        evaluation = HPAEvaluation(self.writer)
         loss = evaluation.eval(net, validation_loader)
         print('Validation Dice Coeff: {}'.format(loss))
         # if config.DISPLAY_HISTOGRAM:
@@ -215,7 +187,8 @@ class HPAProject:
 
 
 class HPAEvaluation:
-    def __init__(self):
+    def __init__(self, writer):
+        self.writer = writer
         """
         loss of one fold
         self.fold_losses = [
@@ -245,7 +218,7 @@ class HPAEvaluation:
             fold_dict = dict()
             pred_dict = dict()
             for batch_index, (ids, image_0, labels_0) in enumerate(validation_loader, 0):
-                ids, image, labels_0, image_for_display = self.transform(ids, image_0, labels_0, val = True, train = False)
+                ids, image, labels_0, image_for_display = transform_batch(ids, image_0, labels_0, val=True, train=False)
 
                 """CALCULATE LOSS"""
                 if config.TRAIN_GPU_ARG: image = image.cuda()
@@ -327,3 +300,45 @@ class HPAEvaluation:
 
 class HPAPrediction:
     pass
+
+def transform(ids, image_0, labels_0, val, train):
+    if not val and train:
+        image_aug_transform = TrainImgAugTransform().to_deterministic()
+        TRAIN_TRANSFORM = {
+            'image': transforms.Compose([
+                image_aug_transform,
+                transforms.ToTensor(),
+            ]),
+        }
+
+        image = TRAIN_TRANSFORM['image'](image_0)
+
+        # seq_det = TRAIN_SEQUENCE.to_deterministic()
+        # image = seq_det.augment_images(np.array(image))
+        # mask = seq_det.augment_images(np.array(mask))
+
+        return (ids, image, labels_0, inverse_to_tensor(image))
+    elif not train and val:
+        image_aug_transform = TrainImgAugTransform().to_deterministic()
+        PREDICT_TRANSFORM_IMG = transforms.Compose([
+            image_aug_transform,
+            transforms.ToTensor()
+        ])
+
+        image = PREDICT_TRANSFORM_IMG(image_0)
+        return (ids, image, labels_0, inverse_to_tensor(image))
+    else:
+        raise RuntimeError("ERROR: Cannot be train and validation at the same time.")
+
+def transform_batch(ids, image_0, labels_0, val, train):
+    ids_l = np.array([])
+    image_l = np.array([])
+    labels_0_l = np.array([])
+    image_for_display_l = np.array([])
+    for id, img, lb, val, train in zip(ids, image_0, labels_0, val, train):
+        id, img, lb, ifd = transform(id, img, lb, val, train)
+        ids_l = np.append(ids_l, id)
+        image_l = np.append(image_l,img)
+        labels_0_l = np.append(labels_0_l,lb)
+        image_for_display_l = np.append(image_for_display_l,ifd)
+    return ids_l, torch.from_numpy(image_l), torch.from_numpy(labels_0_l), torch.from_numpy(image_for_display_l)
