@@ -335,7 +335,7 @@ def transform_batch(ids, image_0, labels_0, val, train):
     image_l = np.array([])
     labels_0_l = np.array([])
     image_for_display_l = np.array([])
-    for id, img, lb, val, train in zip(ids, image_0, labels_0, val, train):
+    for id, img, lb in zip(ids, image_0, labels_0):
         id, img, lb, ifd = transform(id, img, lb, val, train)
         ids_l = np.append(ids_l, id)
         image_l = np.append(image_l,img)
