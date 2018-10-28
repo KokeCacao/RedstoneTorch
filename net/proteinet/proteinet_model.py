@@ -76,7 +76,7 @@ pretrained_settings = {
             'input_range': [0, 1],
             'mean': [0.485, 0.456, 0.406],
             'std': [0.229, 0.224, 0.225],
-            'num_classes': 28
+            'num_classes': 1000
         }
     },
 }
@@ -453,7 +453,7 @@ def se_resnext101_32x4d(num_classes=1000, pretrained='imagenet'):
         initialize_pretrained_model(model, num_classes, settings)
     return model
 
-def se_resnext101_32x4d_modified(num_classes=28, pretrained='imagenet'):
+def se_resnext101_32x4d_modified(num_classes=1000, pretrained='imagenet'):
     model = SENet(SEResNeXtBottleneck, [3, 4, 23, 3], groups=32, reduction=16,
                   dropout_p=0.0, inplanes=64, input_3x3=False,
                   downsample_kernel_size=1, downsample_padding=0,

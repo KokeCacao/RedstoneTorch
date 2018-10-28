@@ -82,7 +82,7 @@ def move_optimizer_to_cuda(optimizer):
 def cuda(net):
     if config.TRAIN_GPU_ARG:
         os.environ["CUDA_VISIBLE_DEVICES"] = config.TRAIN_GPU_ARG  # default
-        print('=> Using GPU: [' + config.TRAIN_GPU_ARG + ']')
+        # print('=> Using GPU: [' + config.TRAIN_GPU_ARG + ']')
         net.cuda()
     else:
         os.environ["CUDA_VISIBLE_DEVICES"] = "0"
