@@ -138,6 +138,7 @@ class HPAProject:
             predict = net(image)
 
             loss = FocalLoss(gamma=5)(predict, labels_0)
+            print(loss)
             epoch_loss = epoch_loss + loss.flatten().mean()
             optimizer.zero_grad()
             loss.sum().backward()
@@ -209,7 +210,7 @@ class HPAEvaluation:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
             predict = net(image)
-            loss = FocalLoss(gamma=5)(predict=predict, target=labels_0)
+            loss = FocalLoss(gamma=5)(predict, labels_0)
             self.epoch_losses = np.concatenate((self.epoch_losses, [loss.flatten()]), axis=0)
             for id, loss_item in zip(ids, loss): fold_loss_dict[id] = loss_item
             for id, pred in zip(ids, predict): fold_pred_dict[id] = pred

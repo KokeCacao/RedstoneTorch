@@ -118,8 +118,8 @@ class HPAData(data.Dataset):
         self.train_len = cv_size * (fold - 1)
         self.val_len = cv_size
 
-        print("      CV_size: {}".format(cv_size))
-        print("      Fold: {}".format(fold))
+        print("     CV_size: {}".format(cv_size))
+        print("     Fold: {}".format(fold))
 
         folded_train_indice = dict()
         folded_val_indice = dict()
