@@ -343,4 +343,4 @@ def transform_batch(ids, image_0, labels_0, val, train):
         image_for_display_l = torch.cat((image_for_display_l,[ifd]), dim=0)
 
     print(image_l.shape)
-    return ids_l, torch.from_numpy(image_l), torch.from_numpy(labels_0_l), torch.from_numpy(image_for_display_l)
+    return ids_l, image_l, labels_0_l, image_for_display_l
