@@ -130,16 +130,13 @@ class HPAProject:
 
         train_sampler = self.folded_samplers[config.fold]["train"]
         validation_sampler = self.folded_samplers[config.fold]["val"]
-        train_loader = data.DataLoader(self.dataset, batch_size=batch_size, sampler=train_sampler, shuffle=False, num_workers=config.TRAIN_NUM_WORKER)
-        validation_loader = data.DataLoader(self.dataset, batch_size=batch_size, sampler=validation_sampler, shuffle=False, num_workers=config.TRAIN_NUM_WORKER)
+        train_loader = data.DataLoader(self.dataset, batch_size=batch_size, sampler=train_sampler, shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=default_collate)
+        validation_loader = data.DataLoader(self.dataset, batch_size=batch_size, sampler=validation_sampler, shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=default_collate)
 
         epoch_loss = 0
 
-        for batch_index, (ids, image_0, labels_0) in enumerate(train_loader, 0):
-            # _ = [self.transform(ids, image_0, labels_0, val = False, train = True) for ids, image_0, labels_0 in zip(ids, image_0, labels_0)]
-            ids, image, labels_0, image_for_display = transform_batch(ids, image_0, labels_0, val=False, train=True)
-
-            # ids, image, labels_0, image_for_display = map(lambda ids,image_0,labels_0: self.transform(ids, image_0, labels_0, val = False, train = True), ids, image_0, labels_0)
+        for batch_index, (ids, image, labels_0, image_for_display) in enumerate(train_loader, 0):
+            # ids, image, labels_0, image_for_display = transform_batch(ids, image_0, labels_0, val=False, train=True)
 
 
             """TRAIN NET"""
@@ -301,46 +298,18 @@ class HPAEvaluation:
 class HPAPrediction:
     pass
 
-def transform(ids, image_0, labels_0, val, train):
-    if not val and train:
-        image_aug_transform = TrainImgAugTransform().to_deterministic()
-        TRAIN_TRANSFORM = {
-            'image': transforms.Compose([
-                image_aug_transform,
-                transforms.ToTensor(),
-            ]),
-        }
 
-        image = TRAIN_TRANSFORM['image'](image_0)
-
-        # seq_det = TRAIN_SEQUENCE.to_deterministic()
-        # image = seq_det.augment_images(np.array(image))
-        # mask = seq_det.augment_images(np.array(mask))
-
-        return (ids, image, labels_0, inverse_to_tensor(image))
-    elif not train and val:
-        image_aug_transform = TrainImgAugTransform().to_deterministic()
-        PREDICT_TRANSFORM_IMG = transforms.Compose([
-            image_aug_transform,
-            transforms.ToTensor()
-        ])
-
-        image = PREDICT_TRANSFORM_IMG(image_0)
-        return (ids, image, labels_0, inverse_to_tensor(image))
-    else:
-        raise RuntimeError("ERROR: Cannot be train and validation at the same time.")
-
-def transform_batch(ids, image_0, labels_0, val, train):
-    ids_l = np.array([])
-    image_l = torch.Tensor([])
-    labels_0_l = np.array([])
-    image_for_display_l = torch.Tensor([])
-    for id, img, lb in zip(ids, image_0, labels_0):
-        id, img, lb, ifd = transform(id, img, lb, val, train)
-        ids_l = np.concatenate((ids_l, [id]), axis=0)
-        image_l = torch.cat((image_l,img), dim=0)
-        labels_0_l = np.concatenate((labels_0_l,[lb]), axis=0)
-        image_for_display_l = torch.cat((image_for_display_l,ifd), dim=0)
-
-    print(image_l.shape)
-    return ids_l, image_l, labels_0_l, image_for_display_l
+# def transform_batch(ids, image_0, labels_0, val, train):
+#     ids_l = np.array([])
+#     image_l = torch.Tensor([])
+#     labels_0_l = np.array([])
+#     image_for_display_l = torch.Tensor([])
+#     for id, img, lb in zip(ids, image_0, labels_0):
+#         id, img, lb, ifd = transform(id, img, lb, val, train)
+#         ids_l = np.concatenate((ids_l, [id]), axis=0)
+#         image_l = torch.cat((image_l,img), dim=0)
+#         labels_0_l = np.concatenate((labels_0_l,[lb]), axis=0)
+#         image_for_display_l = torch.cat((image_for_display_l,ifd), dim=0)
+#
+#     print(image_l.shape)
+#     return ids_l, image_l, labels_0_l, image_for_display_l

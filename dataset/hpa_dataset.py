@@ -1,11 +1,16 @@
+import collections
 import os
+import re
+
+import torch
 
 import cv2
 import numpy as np
 import pandas as pd
 from imgaug import augmenters as iaa
+from torch._six import string_classes, int_classes
 from torch.utils import data
-from torch.utils.data import SubsetRandomSampler
+from torch.utils.data import SubsetRandomSampler, Sampler
 from sklearn.preprocessing import MultiLabelBinarizer
 
 #  what is pinned memory
@@ -27,6 +32,11 @@ from sklearn.preprocessing import MultiLabelBinarizer
 ## https://www.kaggle.com/mratsim/planet-understanding-the-amazon-from-space/starting-kit-for-pytorch-deep-learning/notebook
 ## https://devhub.io/repos/pytorch-vision
 ## https://github.com/ClementPinard/FlowNetPytorch/blob/master/balancedsampler.py
+from torch.utils.data.dataloader import numpy_type_map
+from torchvision.transforms import transforms
+
+from utils.encode import inverse_to_tensor
+
 
 class HPAData(data.Dataset):
     """
@@ -125,18 +135,21 @@ class HPAData(data.Dataset):
             print("     Fold#{}_train_size: {}".format(i, len(folded_train_indice[i])))
             print("     Fold#{}_val_size: {}".format(i, len(folded_val_indice[i])))
             folded_samplers[i] = {}
-            folded_samplers[i]["train"] = SubsetRandomSampler(folded_train_indice[i])
-            folded_samplers[i]["val"] = SubsetRandomSampler(folded_val_indice[i])
+            folded_samplers[i]["train"] = TrainSubsetRandomSampler(folded_train_indice[i])
+            folded_samplers[i]["val"] = ValSubsetRandomSampler(folded_val_indice[i])
 
         return folded_samplers
 
     # TODO: Get stratified fold instead of random
 
-    def __getitem__(self, id):
+    def get(self, id, train=False, val=False):
         id = self.indices_to_id[id]
         image_0 = self.get_load_image_by_id(id)
         labels_0 = self.get_load_label_by_id(id)
-        return (id, image_0, labels_0)
+        return transform(id, image_0, labels_0, train=train, val=val)
+
+    def __getitem__(self, item):
+        raise RuntimeError("Please use def get(self, id, train=False, val=False)")
 
     """CONFIGURATION"""
 
@@ -159,6 +172,22 @@ class HPAData(data.Dataset):
         :return: one hot encoded label
         """
         return self.dataframe.loc[id, 'Target']
+
+class TrainSubsetRandomSampler(Sampler):
+    def __init__(self, indices):
+        self.indices = indices
+    def __iter__(self):
+        return (self.indices.get(i, train=True, val=False) for i in torch.randperm(len(self.indices)))
+    def __len__(self):
+        return len(self.indices)
+
+class ValSubsetRandomSampler(Sampler):
+    def __init__(self, indices):
+        self.indices = indices
+    def __iter__(self):
+        return (self.indices.get(i, train=False, val=True) for i in torch.randperm(len(self.indices)))
+    def __len__(self):
+        return len(self.indices)
 
 class TrainImgAugTransform:
     def __init__(self):
@@ -194,3 +223,66 @@ class TestImgAugTransform:
     def to_deterministic(self, n=None):
         self.aug = self.aug.to_deterministic(n)
         return self
+
+def transform(ids, image_0, labels_0, train, val):
+    if not val and train:
+        image_aug_transform = TrainImgAugTransform().to_deterministic()
+        TRAIN_TRANSFORM = {
+            'image': transforms.Compose([
+                image_aug_transform,
+                transforms.ToTensor(),
+            ]),
+        }
+
+        image = TRAIN_TRANSFORM['image'](image_0)
+
+        # seq_det = TRAIN_SEQUENCE.to_deterministic()
+        # image = seq_det.augment_images(np.array(image))
+        # mask = seq_det.augment_images(np.array(mask))
+
+        return (ids, image, labels_0, inverse_to_tensor(image))
+    elif not train and val:
+        image_aug_transform = TrainImgAugTransform().to_deterministic()
+        PREDICT_TRANSFORM_IMG = transforms.Compose([
+            image_aug_transform,
+            transforms.ToTensor()
+        ])
+
+        image = PREDICT_TRANSFORM_IMG(image_0)
+        return (ids, image, labels_0, inverse_to_tensor(image))
+    else:
+        raise RuntimeError("ERROR: Cannot be train and validation at the same time.")
+
+# def train_collate(batch):
+#     r"""Puts each data field into a tensor with outer dimension batch size"""
+#
+#     error_msg = "batch must contain tensors, numbers, dicts or lists; found {}"
+#     elem_type = type(batch[0])
+#     if isinstance(batch[0], torch.Tensor):
+#         out = None
+#         return torch.stack(batch, 0, out=out)
+#     elif elem_type.__module__ == 'numpy' and elem_type.__name__ != 'str_' \
+#             and elem_type.__name__ != 'string_':
+#         elem = batch[0]
+#         if elem_type.__name__ == 'ndarray':
+#             # array of string classes and object
+#             if re.search('[SaUO]', elem.dtype.str) is not None:
+#                 raise TypeError(error_msg.format(elem.dtype))
+#
+#             return torch.stack([torch.from_numpy(b) for b in batch], 0)
+#         if elem.shape == ():  # scalars
+#             py_type = float if elem.dtype.name.startswith('float') else int
+#             return numpy_type_map[elem.dtype.name](list(map(py_type, batch)))
+#     elif isinstance(batch[0], int_classes):
+#         return torch.LongTensor(batch)
+#     elif isinstance(batch[0], float):
+#         return torch.DoubleTensor(batch)
+#     elif isinstance(batch[0], string_classes):
+#         return batch
+#     elif isinstance(batch[0], collections.Mapping):
+#         return {key: default_collate([d[key] for d in batch]) for key in batch[0]}
+#     elif isinstance(batch[0], collections.Sequence):
+#         transposed = zip(*batch)
+#         return [default_collate(samples) for samples in transposed]
+#
+#     raise TypeError((error_msg.format(type(batch[0]))))
