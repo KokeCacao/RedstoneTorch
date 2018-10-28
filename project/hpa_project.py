@@ -148,17 +148,7 @@ class HPAProject:
             """OUTPUT"""
             train_duration = self.fold_begin - self.train_begin
             epoch_duration = self.fold_begin - self.epoch_begin
-            print("""
-                            SinceTrain: {}
-                            SinceEpoch: {}
-                            Epoch: {}
-                            Fold: {}
-                            GlobalStep: {}
-                            BatchIndex: {}
-                        """.format(train_duration, epoch_duration, config.epoch, config.fold, config.global_steps[fold], batch_index))
-            print(loss.flatten().mean())
-            print(config.epoch)
-            print(config.global_steps[fold])
+            print("""SinceTrain: {}; SinceEpoch: {}; Epoch: {}; Fold: {}; GlobalStep: {}; BatchIndex: {}/{}; Loss: {}""".format(train_duration, epoch_duration, config.epoch, config.fold, config.global_steps[fold], batch_index, len(train_sampler)/config.MODEL_BATCH_SIZE, loss.flatten().mean()))
             tensorboardwriter.write_loss(self.writer, {'Epoch' + '-f' + str(config.fold): config.epoch, 'TrainLoss' + '-f' + str(config.fold): loss.flatten().mean()}, config.global_steps[fold])
 
             """CLEAN UP"""
