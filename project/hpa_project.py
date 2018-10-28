@@ -214,6 +214,9 @@ class HPAEvaluation:
                 """CALCULATE LOSS"""
                 if config.TRAIN_GPU_ARG: image = image.cuda()
                 predict = net(image)
+                print(predict.shape)
+                print(labels_0)
+                print(labels_0.shape)
                 loss = FocalLoss()(predict=predict, target=labels_0)
                 print("DEBUG: ", loss.item().shape)
                 epoch_losses = np.concatenate((epoch_losses, np.array(loss.item()).flatten()), axis=None)
