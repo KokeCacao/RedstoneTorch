@@ -11,7 +11,7 @@ from torch.utils import data
 import config
 import tensorboardwriter
 from dataset.hpa_dataset import HPAData, train_collate, val_collate
-from loss.focal import FocalLoss
+from loss.focal import FocalLoss, FocalLoss_reduced
 from net.proteinet.proteinet_model import se_resnext101_32x4d_modified
 from utils import encode
 from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, cuda
@@ -137,7 +137,7 @@ class HPAProject:
                 labels_0 = labels_0.cuda()
             predict = net(image)
 
-            loss = FocalLoss(gamma=5)(predict, labels_0)
+            loss = FocalLoss_reduced(gamma=5)(predict, labels_0)
             print(loss)
             epoch_loss = epoch_loss + loss.flatten().mean()
             optimizer.zero_grad()
@@ -210,9 +210,9 @@ class HPAEvaluation:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
             predict = net(image)
-            loss = FocalLoss(gamma=5)(predict, labels_0)
+            loss = FocalLoss_reduced(gamma=5)(predict, labels_0)
             self.epoch_losses = np.concatenate((self.epoch_losses, [loss.flatten()]), axis=0)
-            for id, loss_item in zip(ids, loss): fold_loss_dict[id] = loss_item
+            for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
             for id, pred in zip(ids, predict): fold_pred_dict[id] = pred
 
             """EVALUATE LOSS"""

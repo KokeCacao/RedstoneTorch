@@ -60,7 +60,7 @@ class FocalLoss(nn.Module):
 class FocalLoss_reduced(nn.Module):
 
     def __init__(self, gamma=0, eps=1e-7):
-        super(FocalLoss, self).__init__()
+        super(FocalLoss_reduced, self).__init__()
         self.gamma = gamma
         self.eps = eps
 
