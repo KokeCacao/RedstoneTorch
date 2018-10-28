@@ -46,7 +46,7 @@ class HPAData(data.Dataset):
         print("Reading Data...")
         self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
         self.dataframe['Target'] = [[int(i) for i in s.split()] for s in self.dataframe['Target']]
-        self.dataframe['Target'] = MultiLabelBinarizer().fit_transform(self.dataframe['Target'])
+        self.dataframe['Target'] = [MultiLabelBinarizer().fit_transform(self.dataframe['Target'])]
 
         self.name_label_dict = {
             0: 'Nucleoplasm',
@@ -135,7 +135,6 @@ class HPAData(data.Dataset):
         id = self.indices_to_id[id]
         image_0 = self.get_load_image_by_id(id)
         labels_0 = self.get_load_label_by_id(id)
-        print(labels_0)
         return (id, image_0, labels_0)
 
     """CONFIGURATION"""
