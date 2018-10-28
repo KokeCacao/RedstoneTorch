@@ -3,6 +3,7 @@ import os
 import torch
 
 import config
+import numpy as np
 
 
 def save_checkpoint_fold(state_dicts, optimizer_dicts, interupt=False):
@@ -39,6 +40,7 @@ def load_checkpoint_all_fold(nets, optimizers, load_path):
         print("=> Loaded checkpoint {} epoch; {}-{} step".format(config.epoch, config.global_steps[0], config.global_steps[-1]))
     else:
         print("=> Nothing loaded because of invalid directory")
+        config.epoch = np.zeros(len(nets))
 
 
 def load_checkpoint_one_fold(net, optimizer, fold, load_path):
@@ -57,6 +59,7 @@ def load_checkpoint_one_fold(net, optimizer, fold, load_path):
         print("=> Loaded checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
     else:
         print("=> Nothing loaded because of invalid directory")
+        config.epoch = np.zeros(1)
 
 
 def move_optimizer_to_cuda(optimizer):
