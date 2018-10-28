@@ -33,6 +33,9 @@ from sklearn.preprocessing import MultiLabelBinarizer
 ## https://devhub.io/repos/pytorch-vision
 ## https://github.com/ClementPinard/FlowNetPytorch/blob/master/balancedsampler.py
 from torch.utils.data.dataloader import numpy_type_map, default_collate
+from torchvision.transforms import transforms
+
+from utils.encode import inverse_to_tensor
 
 
 class HPAData(data.Dataset):
@@ -205,13 +208,14 @@ class TestImgAugTransform:
 
 
 def train_collate(batch):
-    id = batch[0]
-    print("id",id)
-    image_0 = batch[1]
-    print("img0",image_0)
-    labels_0 = batch[2]
-    print("len",len(batch))
-    batch = (id, image_0, labels_0)
+
+    new_batch = []
+    for id, image_0, labels_0 in batch:
+        new_batch.append(transform(id, image_0, labels_0, train=True, val=False))
+    batch = new_batch
+
+
+
     r"""Puts each data field into a tensor with outer dimension batch size"""
 
     error_msg = "batch must contain tensors, numbers, dicts or lists; found {}"
@@ -278,3 +282,32 @@ def val_collate(batch):
         return [default_collate(samples) for samples in transposed]
 
     raise TypeError((error_msg.format(type(batch[0]))))
+
+def transform(ids, image_0, labels_0, train, val):
+    if not val and train:
+        image_aug_transform = TrainImgAugTransform().to_deterministic()
+        TRAIN_TRANSFORM = {
+            'image': transforms.Compose([
+                image_aug_transform,
+                transforms.ToTensor(),
+            ]),
+        }
+
+        image = TRAIN_TRANSFORM['image'](image_0)
+
+        # seq_det = TRAIN_SEQUENCE.to_deterministic()
+        # image = seq_det.augment_images(np.array(image))
+        # mask = seq_det.augment_images(np.array(mask))
+
+        return (ids, image, labels_0, inverse_to_tensor(image))
+    elif not train and val:
+        image_aug_transform = TrainImgAugTransform().to_deterministic()
+        PREDICT_TRANSFORM_IMG = transforms.Compose([
+            image_aug_transform,
+            transforms.ToTensor()
+        ])
+
+        image = PREDICT_TRANSFORM_IMG(image_0)
+        return (ids, image, labels_0, inverse_to_tensor(image))
+    else:
+        raise RuntimeError("ERROR: Cannot be train and validation at the same time.")
