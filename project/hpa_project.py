@@ -135,7 +135,9 @@ class HPAProject:
 
             """TRAIN NET"""
             config.global_steps[fold] = config.global_steps[fold] + 1
-            if config.TRAIN_GPU_ARG: image = image.cuda()
+            if config.TRAIN_GPU_ARG:
+                image = image.cuda()
+                labels_0 = labels_0.cuda()
             predict = net(image)
             loss = FocalLoss()(predict=predict, target=labels_0)
             epoch_loss = epoch_loss + loss.item()
@@ -211,7 +213,9 @@ class HPAEvaluation:
             for batch_index, (ids, image, labels_0, image_for_display) in enumerate(validation_loader, 0):
 
                 """CALCULATE LOSS"""
-                if config.TRAIN_GPU_ARG: image = image.cuda()
+                if config.TRAIN_GPU_ARG:
+                    image = image.cuda()
+                    labels_0 = labels_0.cuda()
                 predict = net(image)
                 loss = FocalLoss()(predict=predict, target=labels_0)
                 print("DEBUG: ", loss.item().shape)
