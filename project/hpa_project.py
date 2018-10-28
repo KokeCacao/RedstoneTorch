@@ -5,6 +5,7 @@ from datetime import datetime
 import matplotlib as mpl
 import numpy as np
 import torch
+import torch.nn.functional as F
 from torch.utils import data
 
 import config
@@ -139,7 +140,8 @@ class HPAProject:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
             predict = net(image)
-            loss = FocalLoss()(predict=predict, target=labels_0)
+
+            loss = FocalLoss(gamma=5)(predict=predict, target=labels_0)
             epoch_loss = epoch_loss + loss.flatten().mean()
             optimizer.zero_grad()
             loss.sum().backward()
@@ -210,7 +212,7 @@ class HPAEvaluation:
                     image = image.cuda()
                     labels_0 = labels_0.cuda()
                 predict = net(image)
-                loss = FocalLoss()(predict=predict, target=labels_0)
+                loss = FocalLoss(gamma=5)(predict=predict, target=labels_0)
                 epoch_losses = np.concatenate((epoch_losses, loss.flatten()), axis=None)
                 for id, loss_item in zip(ids, loss): fold_dict[id] = loss_item
                 for id, pred in zip(ids, predict): pred_dict[id] = pred
