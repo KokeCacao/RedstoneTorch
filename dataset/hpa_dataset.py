@@ -132,7 +132,7 @@ class HPAData(data.Dataset):
     # TODO: Get stratified fold instead of random
 
     def __getitem__(self, id):
-        labels_0 = float(self.get_load_label_by_id(id))
+        labels_0 = self.get_load_label_by_id(id)
         id = self.indices_to_id[id]
         image_0 = self.get_load_image_by_id(id)
         return (id, image_0, labels_0)
@@ -157,7 +157,7 @@ class HPAData(data.Dataset):
         :param id: id
         :return: one hot encoded label
         """
-        return self.one_hot_frame[id]
+        return self.one_hot_frame[id].astype(np.float32)
 
 
 class TrainImgAugTransform:
