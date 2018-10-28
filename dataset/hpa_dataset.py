@@ -204,8 +204,14 @@ class TestImgAugTransform:
 
 
 
-def train_collate(batch):
-    print(batch)
+def train_collate(id, image_0, labels_0):
+
+    print(id)
+
+    print(image_0.shape)
+
+    print(id)
+    batch = (id, image_0, labels_0)
     r"""Puts each data field into a tensor with outer dimension batch size"""
 
     error_msg = "batch must contain tensors, numbers, dicts or lists; found {}"
