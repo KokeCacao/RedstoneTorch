@@ -143,7 +143,7 @@ class HPAData(data.Dataset):
         id = self.indices_to_id[id]
         image_0 = self.get_load_image_by_id(id)
         labels_0 = self.get_load_label_by_id(id)
-        return id, image_0, labels_0
+        return (id, image_0, labels_0)
 
     """CONFIGURATION"""
 
@@ -204,13 +204,14 @@ class TestImgAugTransform:
 
 
 
-def train_collate(id, image_0, labels_0):
-
+def train_collate(batch):
+    id = batch[0]
     print(id)
-
+    image_0 = batch[1]
     print(image_0.shape)
-
+    labels_0 = batch[2]
     print(id)
+    print(len(batch))
     batch = (id, image_0, labels_0)
     r"""Puts each data field into a tensor with outer dimension batch size"""
 
