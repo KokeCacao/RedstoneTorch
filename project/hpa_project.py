@@ -332,15 +332,15 @@ def transform(ids, image_0, labels_0, val, train):
 
 def transform_batch(ids, image_0, labels_0, val, train):
     ids_l = np.array([])
-    image_l = np.array([])
+    image_l = torch.Tensor([])
     labels_0_l = np.array([])
-    image_for_display_l = np.array([])
+    image_for_display_l = torch.Tensor([])
     for id, img, lb in zip(ids, image_0, labels_0):
         id, img, lb, ifd = transform(id, img, lb, val, train)
         ids_l = np.concatenate((ids_l, [id]), axis=0)
-        image_l = np.concatenate((image_l,[img]), axis=0)
+        image_l = torch.cat((image_l,[img]), dim=0)
         labels_0_l = np.concatenate((labels_0_l,[lb]), axis=0)
-        image_for_display_l = np.concatenate((image_for_display_l,[ifd]), axis=0)
+        image_for_display_l = torch.cat((image_for_display_l,[ifd]), dim=0)
 
     print(image_l.shape)
     return ids_l, torch.from_numpy(image_l), torch.from_numpy(labels_0_l), torch.from_numpy(image_for_display_l)
