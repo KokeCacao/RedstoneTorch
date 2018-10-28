@@ -156,7 +156,10 @@ class HPAProject:
                             GlobalStep: {}
                             BatchIndex: {}
                         """.format(train_duration, epoch_duration, config.epoch, config.fold, config.global_steps[fold], batch_index))
-            tensorboardwriter.write_loss(self.writer, {'Epoch' + '-f' + str(config.fold): config.epoch, 'TrainLoss' + '-f' + str(config.fold): loss.mean(), 'IOU' + '-f' + str(config.fold): 0}, config.global_steps[fold])
+            print(loss.mean())
+            print(config.epoch)
+            print(config.global_steps[fold])
+            tensorboardwriter.write_loss(self.writer, {'Epoch' + '-f' + str(config.fold): config.epoch, 'TrainLoss' + '-f' + str(config.fold): loss.mean()}, config.global_steps[fold])
 
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display
