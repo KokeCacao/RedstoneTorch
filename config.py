@@ -23,6 +23,7 @@ TRAIN_SEED = 19
 TRAIN_SAVE_CHECKPOINT = True
 TRAIN_NUM_WORKER = 4*len(TRAIN_GPU_LIST) # idea from: https://discuss.pytorch.org/t/guidelines-for-assigning-num-workers-to-dataloader/813/5
 TRAIN_RESUME = True
+TRAIN_NUMCLASS = 28
 
 PROJECT_TAG = "test"
 PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + PROJECT_TAG
