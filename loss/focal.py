@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 class FocalLoss(nn.Module):
     def __init__(self, gamma=2):
-        super().__init__()
+        super(FocalLoss).__init__()
         self.gamma = gamma
 
     def forward(self, predict, target):
