@@ -144,7 +144,9 @@ class HPAProject:
 
             """TRAIN NET"""
             config.global_steps[fold] = config.global_steps[fold] + 1
-            if config.TRAIN_GPU_ARG: image = image.cuda()
+            if config.TRAIN_GPU_ARG:
+                image = image.cuda()
+                print("GPU")
             predict = net(image)
             loss = FocalLoss()(predict=predict, target=labels_0)
             epoch_loss = epoch_loss + loss.item()
