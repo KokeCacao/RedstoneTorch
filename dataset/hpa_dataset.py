@@ -132,9 +132,9 @@ class HPAData(data.Dataset):
     # TODO: Get stratified fold instead of random
 
     def __getitem__(self, id):
+        labels_0 = self.get_load_label_by_id(id)
         id = self.indices_to_id[id]
         image_0 = self.get_load_image_by_id(id)
-        labels_0 = self.get_load_label_by_id(id)
         return (id, image_0, labels_0)
 
     """CONFIGURATION"""
