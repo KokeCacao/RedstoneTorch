@@ -160,6 +160,7 @@ class HPAData(data.Dataset):
         :param id: id
         :return: one hot encoded label
         """
+        print(self.one_hot_frame[id])
         return np.float32(self.one_hot_frame[id])
 
 
