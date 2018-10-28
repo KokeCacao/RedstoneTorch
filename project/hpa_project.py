@@ -137,6 +137,9 @@ class HPAProject:
             config.global_steps[fold] = config.global_steps[fold] + 1
             if config.TRAIN_GPU_ARG: image = image.cuda()
             predict = net(image)
+            print(predict.shape)
+            print(labels_0)
+            print(labels_0.shape)
             loss = FocalLoss()(predict=predict, target=labels_0)
             epoch_loss = epoch_loss + loss.item()
             optimizer.zero_grad()
@@ -208,15 +211,11 @@ class HPAEvaluation:
         for fold, net in enumerate(nets):
             fold_dict = dict()
             pred_dict = dict()
-            for batch_index, (ids, image_0, labels_0) in enumerate(validation_loader, 0):
-                ids, image, labels_0, image_for_display = transform_batch(ids, image_0, labels_0, val=True, train=False)
+            for batch_index, (ids, image, labels_0, image_for_display) in enumerate(validation_loader, 0):
 
                 """CALCULATE LOSS"""
                 if config.TRAIN_GPU_ARG: image = image.cuda()
                 predict = net(image)
-                print(predict.shape)
-                print(labels_0)
-                print(labels_0.shape)
                 loss = FocalLoss()(predict=predict, target=labels_0)
                 print("DEBUG: ", loss.item().shape)
                 epoch_losses = np.concatenate((epoch_losses, np.array(loss.item()).flatten()), axis=None)
