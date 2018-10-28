@@ -107,6 +107,7 @@ class HPAData(data.Dataset):
     """
 
     def get_fold_sampler(self, fold=-1):
+        print("     Data Percent: {}".format(config.TRAIN_DATA_PERCENT))
         self.indices_to_id = dict(zip(self.indices, self.id))
         print("     Data Size: {}".format(self.data_len))
 
@@ -117,7 +118,7 @@ class HPAData(data.Dataset):
         self.train_len = cv_size * (fold - 1)
         self.val_len = cv_size
 
-        print("      Cv_size: {}".format(cv_size))
+        print("      CV_size: {}".format(cv_size))
         print("      Fold: {}".format(fold))
 
         folded_train_indice = dict()
