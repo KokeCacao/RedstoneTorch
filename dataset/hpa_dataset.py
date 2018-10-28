@@ -208,7 +208,7 @@ def train_collate(batch):
     id = batch[0]
     print(id)
     image_0 = batch[1]
-    print(image_0.shape)
+    print(image_0[0])
     labels_0 = batch[2]
     print(id)
     print(len(batch))
