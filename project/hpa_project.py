@@ -2,24 +2,18 @@ import os
 import sys
 from datetime import datetime
 
-from torchvision.transforms import transforms
-
-import tensorboardwriter
-import torch
+import matplotlib as mpl
 import numpy as np
+import torch
 from torch.utils import data
 
 import config
-from dataset.hpa_dataset import HPAData, TrainImgAugTransform, train_collate, val_collate
-
+import tensorboardwriter
+from dataset.hpa_dataset import HPAData, train_collate, val_collate
 from loss.focal import FocalLoss
 from net.proteinet.proteinet_model import se_resnext101_32x4d_modified
-
-import matplotlib as mpl
-
-from utils.encode import inverse_to_tensor
-from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, cuda
 from utils import encode
+from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, cuda
 
 if os.environ.get('DISPLAY', '') == '':
     print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')
@@ -297,19 +291,3 @@ class HPAEvaluation:
 
 class HPAPrediction:
     pass
-
-
-# def transform_batch(ids, image_0, labels_0, val, train):
-#     ids_l = np.array([])
-#     image_l = torch.Tensor([])
-#     labels_0_l = np.array([])
-#     image_for_display_l = torch.Tensor([])
-#     for id, img, lb in zip(ids, image_0, labels_0):
-#         id, img, lb, ifd = transform(id, img, lb, val, train)
-#         ids_l = np.concatenate((ids_l, [id]), axis=0)
-#         image_l = torch.cat((image_l,img), dim=0)
-#         labels_0_l = np.concatenate((labels_0_l,[lb]), axis=0)
-#         image_for_display_l = torch.cat((image_for_display_l,ifd), dim=0)
-#
-#     print(image_l.shape)
-#     return ids_l, image_l, labels_0_l, image_for_display_l

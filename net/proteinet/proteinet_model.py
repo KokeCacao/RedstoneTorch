@@ -270,7 +270,7 @@ class SENet(nn.Module):
             ]
         else:
             layer0_modules = [
-                ('conv1', nn.Conv2d(3, inplanes, kernel_size=7, stride=2,
+                ('conv1', nn.Conv2d(4, inplanes, kernel_size=7, stride=2,
                                     padding=3, bias=False)),
                 ('bn1', nn.BatchNorm2d(inplanes)),
                 ('relu1', nn.ReLU(inplace=True)),
@@ -377,9 +377,12 @@ def initialize_pretrained_model(model, num_classes, settings):
 
 def modified_initialize_pretrained_model(model, num_classes, settings):
     state_dict = model_zoo.load_url(settings['url'])
-    del state_dict['last_linear.weight']
-    del state_dict['last_linear.bias']
-    model.load_state_dict(state_dict, strict=False)
+
+    model_state = model.state_dict()
+    pretrained_state = {k: v for k, v in state_dict.items() if k in model_state and v.size() == model_state[k].size()}
+    model_state.update(pretrained_state)
+    model.load_state_dict(model_state, strict=False)
+
     model.input_space = settings['input_space']
     model.input_size = settings['input_size']
     model.input_range = settings['input_range']

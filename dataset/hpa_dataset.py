@@ -13,17 +13,6 @@ from torch.utils import data
 from torch.utils.data import SubsetRandomSampler
 from sklearn.preprocessing import MultiLabelBinarizer
 
-#  what is pinned memory
-#       https://devblogs.nvidia.com/parallelforall/how-optimize-data-transfers-cuda-fortran/
-#
-
-
-# pytorch custom data
-#       http://stackoverflow.com/questions/43441673/trying-to-load-a-custom-dataset-in-pytorch
-#       http://forums.fast.ai/t/how-do-you-use-custom-dataset-with-pytorch/2040
-#       https://discuss.pytorch.org/t/questions-about-imagefolder/774/6
-
-
 ## https://discuss.pytorch.org/t/feedback-on-pytorch-for-kaggle-competitions/2252/3
 ## https://discuss.pytorch.org/t/questions-about-imagefolder/774
 ## https://github.com/pytorch/tutorials/issues/78
@@ -52,6 +41,7 @@ class HPAData(data.Dataset):
     function. Therefore, sigmoid is also removed.
 
     """
+
     def __init__(self, csv_dir, load_img_dir, img_suffix=".png"):
         print("Reading Data...")
         self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
@@ -88,7 +78,6 @@ class HPAData(data.Dataset):
             26: 'Cytoplasmic bodies',
             27: 'Rods & rings'}
 
-
         self.load_img_dir = load_img_dir
         self.img_suffix = img_suffix
 
@@ -103,7 +92,6 @@ class HPAData(data.Dataset):
         self.train_len = None
         self.val_len = None
 
-
     def __len__(self):
         return self.data_len
 
@@ -112,6 +100,7 @@ class HPAData(data.Dataset):
         :param foldcv_size
         :return folded_sampler
     """
+
     def get_fold_sampler(self, fold=-1):
         self.indices_to_id = dict(zip(self.indices, self.id))
         print("     Data Size: {}".format(self.data_len))
@@ -120,7 +109,7 @@ class HPAData(data.Dataset):
         left_over = self.indices[-(self.data_len % fold):]
         cv_size = (len(self.indices) - len(left_over)) / fold
 
-        self.train_len = cv_size*(fold-1)
+        self.train_len = cv_size * (fold - 1)
         self.val_len = cv_size
 
         print("      Cv_size: {}".format(cv_size))
@@ -170,6 +159,7 @@ class HPAData(data.Dataset):
         """
         return self.dataframe.loc[id, 'Target']
 
+
 class TrainImgAugTransform:
     def __init__(self):
         self.aug = iaa.Sequential([
@@ -189,6 +179,7 @@ class TrainImgAugTransform:
         self.aug = self.aug.to_deterministic(n)
         return self
 
+
 class TestImgAugTransform:
     def __init__(self):
         self.aug = iaa.Sequential([
@@ -206,18 +197,13 @@ class TestImgAugTransform:
         return self
 
 
-
 def train_collate(batch):
-
+    """TRASNFORM"""
     new_batch = []
     for id, image_0, labels_0 in batch:
         new_batch.append(transform(id, image_0, labels_0, train=True, val=False))
     batch = new_batch
 
-
-
-    r"""Puts each data field into a tensor with outer dimension batch size"""
-
     error_msg = "batch must contain tensors, numbers, dicts or lists; found {}"
     elem_type = type(batch[0])
     if isinstance(batch[0], torch.Tensor):
@@ -248,9 +234,14 @@ def train_collate(batch):
         return [default_collate(samples) for samples in transposed]
 
     raise TypeError((error_msg.format(type(batch[0]))))
+
 
 def val_collate(batch):
-    r"""Puts each data field into a tensor with outer dimension batch size"""
+    """TRASNFORM"""
+    new_batch = []
+    for id, image_0, labels_0 in batch:
+        new_batch.append(transform(id, image_0, labels_0, train=False, val=True))
+    batch = new_batch
 
     error_msg = "batch must contain tensors, numbers, dicts or lists; found {}"
     elem_type = type(batch[0])
@@ -282,6 +273,7 @@ def val_collate(batch):
         return [default_collate(samples) for samples in transposed]
 
     raise TypeError((error_msg.format(type(batch[0]))))
+
 
 def transform(ids, image_0, labels_0, train, val):
     if not val and train:
@@ -294,11 +286,6 @@ def transform(ids, image_0, labels_0, train, val):
         }
 
         image = TRAIN_TRANSFORM['image'](image_0)
-
-        # seq_det = TRAIN_SEQUENCE.to_deterministic()
-        # image = seq_det.augment_images(np.array(image))
-        # mask = seq_det.augment_images(np.array(mask))
-
         return (ids, image, labels_0, inverse_to_tensor(image))
     elif not train and val:
         image_aug_transform = TrainImgAugTransform().to_deterministic()
