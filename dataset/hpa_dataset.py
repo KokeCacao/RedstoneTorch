@@ -160,7 +160,7 @@ class HPAData(data.Dataset):
         :param id: id
         :return: one hot encoded label
         """
-        return self.one_hot_frame[id].astype(np.float32)
+        return np.float32(self.one_hot_frame[id])
 
 
 class TrainImgAugTransform:
