@@ -142,7 +142,7 @@ class HPAProject:
             loss = FocalLoss()(predict=predict, target=labels_0)
             epoch_loss = epoch_loss + loss.mean()
             optimizer.zero_grad()
-            loss.backward()
+            loss.sum().backward()
             optimizer.step()
 
             """OUTPUT"""
