@@ -136,8 +136,6 @@ class HPAData(data.Dataset):
         id = self.indices_to_id[id]
         image_0 = self.get_load_image_by_id(id)
         labels_0 = self.get_load_label_by_id(id)
-        print("la:", labels_0)
-        print(image_0.shape)
         return (id, image_0, labels_0)
 
     """CONFIGURATION"""
