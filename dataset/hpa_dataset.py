@@ -46,8 +46,7 @@ class HPAData(data.Dataset):
         print("Reading Data...")
         self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
         self.dataframe['Target'] = [(int(i) for i in s.split()) for s in self.dataframe['Target']]
-        df = dict()
-        print(MultiLabelBinarizer().fit_transform(self.dataframe['Target']))
+        self.one_hot_frame = MultiLabelBinarizer().fit_transform(self.dataframe['Target'])
 
         self.name_label_dict = {
             0: 'Nucleoplasm',
@@ -158,7 +157,7 @@ class HPAData(data.Dataset):
         :param id: id
         :return: one hot encoded label
         """
-        return self.dataframe.loc[id, 'Target']
+        return self.one_hot_frame[id]
 
 
 class TrainImgAugTransform:
