@@ -206,12 +206,11 @@ class TestImgAugTransform:
 
 def train_collate(batch):
     id = batch[0]
-    print(id)
+    print("id",id)
     image_0 = batch[1]
-    print(image_0[0])
+    print("img0",image_0)
     labels_0 = batch[2]
-    print(id)
-    print(len(batch))
+    print("len",len(batch))
     batch = (id, image_0, labels_0)
     r"""Puts each data field into a tensor with outer dimension batch size"""
 
