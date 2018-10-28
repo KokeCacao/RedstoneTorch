@@ -65,9 +65,9 @@ def reproduceability():
     torch.backends.cudnn.deterministic = True  # deterministic result
     torch.backends.cudnn.enabled = True  # enable
     print('=> Setting CUDA environment...')
-    print('=> torch.__version__              =', torch.__version__)
-    print('=> torch.version.cuda             =', torch.version.cuda)
-    print('=> torch.backends.cudnn.version() =', torch.backends.cudnn.version())
+    print('     torch.__version__              = {}'.format(torch.__version__))
+    print('     torch.version.cuda             = {}'.format(torch.version.cuda))
+    print('     torch.backends.cudnn.version() = {}'.format(torch.backends.cudnn.version()))
 
 if __name__ == '__main__':
     load_args()
