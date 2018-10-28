@@ -156,7 +156,7 @@ class HPAProject:
                             GlobalStep: {}
                             BatchIndex: {}
                         """.format(train_duration, epoch_duration, config.epoch, config.fold, config.global_steps[fold], batch_index))
-            tensorboardwriter.write_loss(self.writer, {'Epoch' + '-f' + str(config.fold): config.epoch, 'TrainLoss' + '-f' + str(config.fold): loss.item(), 'IOU' + '-f' + str(config.fold): 0}, config.global_steps[fold])
+            tensorboardwriter.write_loss(self.writer, {'Epoch' + '-f' + str(config.fold): config.epoch, 'TrainLoss' + '-f' + str(config.fold): loss.mean(), 'IOU' + '-f' + str(config.fold): 0}, config.global_steps[fold])
 
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display
@@ -218,9 +218,8 @@ class HPAEvaluation:
                     labels_0 = labels_0.cuda()
                 predict = net(image)
                 loss = FocalLoss()(predict=predict, target=labels_0)
-                print("DEBUG: ", loss.item().shape)
-                epoch_losses = np.concatenate((epoch_losses, np.array(loss.item()).flatten()), axis=None)
-                for id, loss_item in zip(ids, loss.item()): fold_dict[id] = loss_item
+                epoch_losses = np.concatenate((epoch_losses, loss.flatten()), axis=None)
+                for id, loss_item in zip(ids, loss): fold_dict[id] = loss_item
                 for id, pred in zip(ids, predict): pred_dict[id] = pred
 
                 """EVALUATE LOSS"""
