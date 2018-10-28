@@ -97,14 +97,12 @@ class HPAProject:
         #             {'params': net.module.dec0.parameters(), 'lr': 1e-3},
         #             {'params': net.module.final.parameters(), 'lr': 0.0015}], lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay) # all parameter learnable
 
-        epoch_evaluations = np.array([])
+        evaluation = HPAEvaluation(self.writer)
         for fold, (net, optimizer) in enumerate(zip(nets, optimizers)):
-            fold_evaluation = self.step_fold(fold, net, optimizer, batch_size)
-            epoch_evaluations = np.concatenate((epoch_evaluations, [fold_evaluation.fold_losses]), axis=None)
+            self.step_fold(fold, net, optimizer, batch_size, evaluation)
 
-            """DISPLAY"""
-            best_id, best_loss, best_pred = fold_evaluation.best()
-            worst_id, worst_loss, worst_pred = fold_evaluation.worst()
+        """DISPLAY"""
+        for fold, (best_id, best_loss, best_pred), (worst_id, worst_loss, worst_pred) in enumerate(zip(evaluation.best(), evaluation.worst())):
             best_img = self.dataset.get_load_image_by_id(best_id)
             best_label = self.dataset.get_load_label_by_id(best_id)
             worst_img = self.dataset.get_load_image_by_id(worst_id)
@@ -116,10 +114,10 @@ class HPAProject:
         save_checkpoint_fold([x.state_dict() for x in nets], [x.state_dict() for x in optimizers])
 
         """DISPLAY"""
-        tensorboardwriter.write_eval_loss(self.writer, {"EpochLoss": epoch_evaluations.mean(), "EpochSTD": epoch_evaluations.std()}, config.epoch)
-        tensorboardwriter.write_loss_distribution(self.writer, epoch_evaluations.flatten(), config.epoch)
+        tensorboardwriter.write_eval_loss(self.writer, {"EpochLoss": evaluation.mean(), "EpochSTD": evaluation.std()}, config.epoch)
+        tensorboardwriter.write_loss_distribution(self.writer, evaluation.epoch_losses.flatten(), config.epoch)
 
-    def step_fold(self, fold, net, optimizer, batch_size):
+    def step_fold(self, fold, net, optimizer, batch_size, evaluation):
         self.fold_begin = datetime.now()
         config.fold = fold
 
@@ -131,8 +129,6 @@ class HPAProject:
         epoch_loss = 0
 
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(train_loader, 0):
-            # ids, image, labels_0, image_for_display = transform_batch(ids, image_0, labels_0, val=False, train=True)
-
 
             """TRAIN NET"""
             config.global_steps[fold] = config.global_steps[fold] + 1
@@ -163,15 +159,13 @@ class HPAProject:
         """.format(config.epoch, epoch_loss / (batch_index + 1)))
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
-        evaluation = HPAEvaluation(self.writer)
-        loss = evaluation.eval(net, validation_loader)
+        loss = evaluation.eval_fold(net, validation_loader).epoch_dict[fold].mean()
         print('Validation Dice Coeff: {}'.format(loss))
         # if config.DISPLAY_HISTOGRAM:
         #     for i, (name, param) in enumerate(net.named_parameters()):
         #         print("Calculating Histogram #{}".format(i))
         #         writer.add_histogram(name, param.clone().cpu().data.numpy(), config.epoch)
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
-        return evaluation
 
 
 class HPAEvaluation:
@@ -188,68 +182,70 @@ class HPAEvaluation:
             eval_epoch -> [... losses of one batch...]
         ]
         """
-        self.fold_losses = np.array([])
-        self.best_id = None
-        self.worst_id = None
-        self.best_loss = None
-        self.worst_loss = None
-        self.best_pred = None
-        self.worst_pred = None
+        self.epoch_losses = np.array([]) # [loss.flatten()]
+        self.epoch_dict = np.array([]) # [fold_loss_dict]
 
-    def eval(self, nets, validation_loader):
+        self.best_id = np.array([])
+        self.worst_id = np.array([])
+        self.best_loss = np.array([])
+        self.worst_loss = np.array([])
+        self.best_pred = np.array([])
+        self.worst_pred = np.array([])
 
-        """Evaluation without the densecrf with the dice coefficient"""
-        epoch_losses = np.array([])
-        epoch_dict = []  # list of fold losses with id
+    def eval_epoch(self, nets=None, validation_loaders=None):
 
-        for fold, net in enumerate(nets):
-            fold_dict = dict()
-            pred_dict = dict()
-            for batch_index, (ids, image, labels_0, image_for_display) in enumerate(validation_loader, 0):
+        if nets != None and validation_loaders != None:
+            for fold, (net, validation_loader) in enumerate(zip(nets, validation_loaders)):
+                self.eval_fold(net, validation_loader)
+        return self
 
-                """CALCULATE LOSS"""
-                if config.TRAIN_GPU_ARG:
-                    image = image.cuda()
-                    labels_0 = labels_0.cuda()
-                predict = net(image)
-                loss = FocalLoss(gamma=5)(predict=predict, target=labels_0)
-                epoch_losses = np.concatenate((epoch_losses, loss.flatten()), axis=None)
-                for id, loss_item in zip(ids, loss): fold_dict[id] = loss_item
-                for id, pred in zip(ids, predict): pred_dict[id] = pred
+    def eval_fold(self, net, validation_loader):
+        fold_loss_dict = dict()
+        fold_pred_dict = dict()
+        for batch_index, (ids, image, labels_0, image_for_display) in enumerate(validation_loader, 0):
 
-                """EVALUATE LOSS"""
-                min_loss = min(fold_dict.values())
-                min_key = min(fold_dict, key=fold_dict.get)
-                if min_loss < self.best_loss:
-                    self.best_loss = min_loss
-                    self.best_id = min_key
-                    self.best_pred = pred_dict[min_key]
-                max_loss = max(fold_dict.values())
-                max_key = max(fold_dict, key=fold_dict.get)
-                if max_loss > self.worst_loss:
-                    self.worst_loss = max_loss
-                    self.worst_id = max_key
-                    self.worst_pred = pred_dict[max_key]
+            """CALCULATE LOSS"""
+            if config.TRAIN_GPU_ARG:
+                image = image.cuda()
+                labels_0 = labels_0.cuda()
+            predict = net(image)
+            loss = FocalLoss(gamma=5)(predict=predict, target=labels_0)
+            self.epoch_losses = np.concatenate((self.epoch_losses, [loss.flatten()]), axis=0)
+            for id, loss_item in zip(ids, loss): fold_loss_dict[id] = loss_item
+            for id, pred in zip(ids, predict): fold_pred_dict[id] = pred
 
-                """DISPLAY"""
-                if config.DISPLAY_VISUALIZATION and batch_index == 0 and config.fold == 0: self.display(fold, ids, image, image_for_display, labels_0, predict, loss)
+            """EVALUATE LOSS"""
+            min_loss = min(fold_loss_dict.values())
+            min_key = min(fold_loss_dict, key=fold_loss_dict.get)
+            if min_loss < self.best_loss:
+                np.append(self.best_loss, min_loss)
+                np.append(self.best_id, min_key)
+                np.append(self.best_pred, fold_pred_dict[min_key])
+            max_loss = max(fold_loss_dict.values())
+            max_key = max(fold_loss_dict, key=fold_loss_dict.get)
+            if max_loss > self.worst_loss:
+                np.append(self.worst_loss, max_loss)
+                np.append(self.worst_id, max_key)
+                np.append(self.worst_pred, fold_pred_dict[max_key])
 
-                """CLEAN UP"""
-                del ids, image, labels_0, image_for_display
-                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-            epoch_dict = epoch_dict.append(fold_dict)
+            """DISPLAY"""
+            if config.DISPLAY_VISUALIZATION and batch_index == 0 and config.fold == 0: self.display(config.fold, ids, image, image_for_display, labels_0, predict, loss)
 
-        self.fold_losses = np.concatenate((self.fold_losses, [epoch_losses]), axis=None)
-        return epoch_losses.mean()
+            """CLEAN UP"""
+            del ids, image, labels_0, image_for_display
+            if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+        self.epoch_dict = np.concatenate((self.epoch_dict, [fold_loss_dict]), axis=0)
+        return self
+
 
     def __int__(self):
         return self.mean()
 
-    def mean(self, axis=0):
-        return self.fold_losses.mean(axis)
+    def mean(self, axis=None):
+        return self.epoch_losses.mean(axis)
 
-    def std(self, axis=0):
-        return self.fold_losses.std(axis)
+    def std(self, axis=None):
+        return self.epoch_losses.std(axis)
 
     def best(self):
         return (self.best_id, self.best_loss, self.best_pred)
@@ -282,9 +278,6 @@ class HPAEvaluation:
             plt.title("Mask_Trans; loss:{}".format(loss[index]))
             plt.grid(False)
             tensorboardwriter.write_image(self.writer, F, config.global_steps[fold])
-
-    def get_epoch_loss_across_fold(self):
-        return self.fold_losses.mean()
 
 class HPAPrediction:
     pass
