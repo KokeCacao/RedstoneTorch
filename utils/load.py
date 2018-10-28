@@ -41,6 +41,7 @@ def load_checkpoint_all_fold(nets, optimizers, load_path):
     else:
         print("=> Nothing loaded because of invalid directory")
         config.epoch = np.zeros(len(nets))
+        config.global_steps = np.zeros(len(nets))
 
 
 def load_checkpoint_one_fold(net, optimizer, fold, load_path):
@@ -60,6 +61,7 @@ def load_checkpoint_one_fold(net, optimizer, fold, load_path):
     else:
         print("=> Nothing loaded because of invalid directory")
         config.epoch = np.zeros(1)
+        config.global_steps = np.zeros(1)
 
 
 def move_optimizer_to_cuda(optimizer):
