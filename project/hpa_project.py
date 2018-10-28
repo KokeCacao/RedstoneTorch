@@ -10,7 +10,7 @@ import numpy as np
 from torch.utils import data
 
 import config
-from dataset.hpa_dataset import HPAData, TrainImgAugTransform
+from dataset.hpa_dataset import HPAData, TrainImgAugTransform, train_collate, val_collate
 
 from loss.focal import FocalLoss
 from net.proteinet.proteinet_model import se_resnext101_32x4d_modified
@@ -130,8 +130,8 @@ class HPAProject:
 
         train_sampler = self.folded_samplers[config.fold]["train"]
         validation_sampler = self.folded_samplers[config.fold]["val"]
-        train_loader = data.DataLoader(self.dataset, batch_size=batch_size, sampler=train_sampler, shuffle=False, num_workers=config.TRAIN_NUM_WORKER)
-        validation_loader = data.DataLoader(self.dataset, batch_size=batch_size, sampler=validation_sampler, shuffle=False, num_workers=config.TRAIN_NUM_WORKER)
+        train_loader = data.DataLoader(self.dataset, batch_size=batch_size, sampler=train_sampler, shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
+        validation_loader = data.DataLoader(self.dataset, batch_size=batch_size, sampler=validation_sampler, shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=val_collate)
 
         epoch_loss = 0
 
