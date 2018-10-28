@@ -47,9 +47,7 @@ class HPAData(data.Dataset):
         self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
         self.dataframe['Target'] = [(int(i) for i in s.split()) for s in self.dataframe['Target']]
         df = dict()
-        df['Target'] = MultiLabelBinarizer().fit_transform(self.dataframe['Target']).toarray()
-
-        print(list(self.dataframe['Target'][0]))
+        print(MultiLabelBinarizer().fit_transform(self.dataframe['Target']))
 
         self.name_label_dict = {
             0: 'Nucleoplasm',
