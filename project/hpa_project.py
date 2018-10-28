@@ -140,7 +140,7 @@ class HPAProject:
                 labels_0 = labels_0.cuda()
             predict = net(image)
             loss = FocalLoss()(predict=predict, target=labels_0)
-            epoch_loss = epoch_loss + loss.mean()
+            epoch_loss = epoch_loss + np.mean(loss)
             optimizer.zero_grad()
             loss.sum().backward()
             optimizer.step()
@@ -156,10 +156,10 @@ class HPAProject:
                             GlobalStep: {}
                             BatchIndex: {}
                         """.format(train_duration, epoch_duration, config.epoch, config.fold, config.global_steps[fold], batch_index))
-            print(loss.mean())
+            print(np.mean(loss))
             print(config.epoch)
             print(config.global_steps[fold])
-            tensorboardwriter.write_loss(self.writer, {'Epoch' + '-f' + str(config.fold): config.epoch, 'TrainLoss' + '-f' + str(config.fold): loss.mean()}, config.global_steps[fold])
+            tensorboardwriter.write_loss(self.writer, {'Epoch' + '-f' + str(config.fold): config.epoch, 'TrainLoss' + '-f' + str(config.fold): np.mean(loss)}, config.global_steps[fold])
 
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display
