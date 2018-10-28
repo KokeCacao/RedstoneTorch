@@ -83,10 +83,12 @@ class HPAData(data.Dataset):
         self.img_suffix = img_suffix
 
         self.id = self.dataframe.index.tolist()
-        self.id = self.id[:int(len(self.id)*config.TRAIN_DATA_PERCENT)]
+        self.id_len = int(len(self.id)*config.TRAIN_DATA_PERCENT)
+        self.id = self.id[:self.id_len]
         """WARNING: data length and indices depends on the length of images"""
-        self.data_len = int(len(os.listdir(self.load_img_dir)) / 4 * config.TRAIN_DATA_PERCENT)
-        if self.data_len != int(len(self.id)*config.TRAIN_DATA_PERCENT): raise ValueError("data length in the csv({}) is not equal to data length in the folder({})".format(int(len(self.id)*config.TRAIN_DATA_PERCENT), self.data_len))
+        self.img_len = int(len(os.listdir(self.load_img_dir)) / 4 * config.TRAIN_DATA_PERCENT)
+        self.data_len = min(self.img_len, self.id_len)
+        if self.img_len != self.id_len: raise ResourceWarning("id_len in the csv({}) is not equal to img_len in the folder({}), set data_len to {}".format(self.id_len, self.img_len, self.data_len))
         self.indices = list(range(self.data_len))
 
         # these parameters will be init by get_sampler
