@@ -54,7 +54,6 @@ class FocalLoss(nn.Module):
 
         loss = -1 * input * torch.log(logit) # cross entropy
         loss = loss * (1 - logit) ** self.gamma # focal loss
-        print(loss.shape)
         return loss.sum(dim=1)
 
 class FocalLoss_reduced(nn.Module):
@@ -71,5 +70,5 @@ class FocalLoss_reduced(nn.Module):
 
         loss = -1 * input * F.log_softmax(input, dim=-1) # cross entropy
         loss = loss * (1 - F.softmax(input, dim=-1)) ** self.gamma # focal loss
-        print(loss.shape)
+        # print(loss.shape) -> (Batch, 28)
         return loss.sum(dim=1)
