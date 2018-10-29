@@ -192,6 +192,7 @@ class HPAEvaluation:
         """
         self.epoch_losses = [] # [loss.flatten()]
         self.epoch_dict = np.array([]) # [fold_loss_dict]
+        self.f1_losses = np.array([])
 
         self.best_id = np.array([])
         self.worst_id = np.array([])
@@ -218,7 +219,7 @@ class HPAEvaluation:
             loss = (FocalLoss(gamma=5)(predict, labels_0)).detach().cpu().numpy()
             self.epoch_losses.append(loss.flatten())
             for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
-            f1 = f1_macro(predict, labels_0).mean()
+            np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
 
             """EVALUATE LOSS"""
             min_loss = min(fold_loss_dict.values())
@@ -233,8 +234,6 @@ class HPAEvaluation:
                 np.append(self.worst_id, max_key)
 
             """DISPLAY"""
-            print("""Epoch: {}; Fold: {}; GlobalStep: {}; Loss: {}; F1: {}""".format(config.epoch, config.fold, config.global_steps[config.fold], loss.flatten().mean(), f1))
-            tensorboardwriter.write_loss(self.writer, {'Epoch/' + str(config.fold): config.epoch, 'TrainLoss/' + str(config.fold): loss.flatten().mean(),  'F1Loss/' + str(config.fold): f1}, config.global_steps[fold])
             if config.DISPLAY_VISUALIZATION and batch_index == 0 and config.fold == 0: self.display(config.fold, ids, image, image_for_display, labels_0, predict, loss)
 
             """CLEAN UP"""
@@ -258,6 +257,9 @@ class HPAEvaluation:
         if axis == None: return np.array(list(itertools.chain.from_iterable(self.epoch_losses))).std()
         print("WARNING: self.epoch_losse may have different shape according to different shape of loss caused by different batch. Numpy cannot take the mean of it is baches shapes are different.")
         return np.array(self.epoch_losses).std(axis)
+
+    def f1_mean(self):
+        return self.f1_losses.mean()
 
     def best(self):
         return (self.best_id, self.best_loss)
