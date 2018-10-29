@@ -9,18 +9,25 @@ def F1_soft(preds,targs,th=0.5,d=50.0):
     score = 2.0*(preds*targs).sum(axis=0)/((preds+targs).sum(axis=0) + 1e-6)
     return score
 
-def competitionMetric(true,pred):
-    pred = K.cast(K.greater(pred, 0.5), K.floatx())
+def competitionMetric(predicted, label, threshold = 0.5, epsilon = 1e-8):
+    """
+
+    :param predicted: numpy array
+    :param label: numpy array
+    :param threshold: threshold
+    :param epsilon: small number
+    :return: scaler: (2 * precision * recall) / (precision + recall + epsilon)
+    """
+    predicted = (predicted > threshold).astype(np.float32)
 
     #f1 per feature
-    groundPositives = K.sum(true, axis=0) + K.epsilon()
-    correctPositives = K.sum(true * pred, axis=0)
-    predictedPositives = K.sum(pred, axis=0) + K.epsilon()
+    groundPositives = np.sum(label, axis=0) + epsilon
+    correctPositives = np.sum(label * predicted, axis=0)
+    predictedPositives = np.sum(predicted, axis=0) + epsilon
 
     precision = correctPositives / predictedPositives
     recall = correctPositives / groundPositives
 
-    m = (2 * precision * recall) / (precision + recall + K.epsilon())
+    m = (2 * precision * recall) / (precision + recall + epsilon)
 
-    #macro average
-    return K.mean(m)
+    return m.mean()

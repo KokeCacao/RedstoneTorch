@@ -1,3 +1,4 @@
+import itertools
 import os
 import sys
 from datetime import datetime
@@ -12,6 +13,7 @@ import config
 import tensorboardwriter
 from dataset.hpa_dataset import HPAData, train_collate, val_collate
 from gpu import gpu_profile
+from loss.f1 import competitionMetric
 from loss.focal import FocalLoss, FocalLoss_reduced
 from net.proteinet.proteinet_model import se_resnext101_32x4d_modified
 from utils import encode
@@ -148,10 +150,11 @@ class HPAProject:
             loss = loss.detach().cpu().numpy()
 
             """OUTPUT"""
+            f1 = competitionMetric(predict, labels_0)
             train_duration = self.fold_begin - self.train_begin
             epoch_duration = self.fold_begin - self.epoch_begin
-            print("""SinceTrain: {}; SinceEpoch: {}; Epoch: {}; Fold: {}; GlobalStep: {}; BatchIndex: {}/{}; Loss: {}""".format(train_duration, epoch_duration, config.epoch, config.fold, config.global_steps[fold], batch_index, len(train_sampler)/config.MODEL_BATCH_SIZE, loss.flatten().mean()))
-            tensorboardwriter.write_loss(self.writer, {'Epoch' + '/' + str(config.fold): config.epoch, 'TrainLoss' + '/' + str(config.fold): loss.flatten().mean()}, config.global_steps[fold])
+            print("""SinceTrain: {}; SinceEpoch: {}; Epoch: {}; Fold: {}; GlobalStep: {}; BatchIndex: {}/{}; Loss: {}; F1: {}""".format(train_duration, epoch_duration, config.epoch, config.fold, config.global_steps[fold], batch_index, len(train_sampler)/config.MODEL_BATCH_SIZE, loss.flatten().mean(), f1))
+            tensorboardwriter.write_loss(self.writer, {'Epoch/' + str(config.fold): config.epoch, 'TrainLoss/' + str(config.fold): loss.flatten().mean(),  'F1Loss/' + str(config.fold): f1}, config.global_steps[fold])
 
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display
@@ -241,12 +244,12 @@ class HPAEvaluation:
         return self.mean()
 
     def mean(self, axis=None):
-        if axis == None: return np.array(self.epoch_losses).flatten().mean()
+        if axis == None: return np.array(list(itertools.chain.from_iterable(self.epoch_losses))).mean()
         print("WARNING: self.epoch_losse may have different shape according to different shape of loss caused by different batch. Numpy cannot take the mean of it is baches shapes are different.")
         return np.array(self.epoch_losses).mean(axis)
 
     def std(self, axis=None):
-        if axis == None: return np.array(self.epoch_losses).flatten().std()
+        if axis == None: return np.array(list(itertools.chain.from_iterable(self.epoch_losses))).std()
         print("WARNING: self.epoch_losse may have different shape according to different shape of loss caused by different batch. Numpy cannot take the mean of it is baches shapes are different.")
         return np.array(self.epoch_losses).std(axis)
 
