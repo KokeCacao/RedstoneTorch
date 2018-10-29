@@ -136,7 +136,6 @@ class HPAProject:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
             predict = net(image)
-            print(predict)
 
             loss = FocalLoss(gamma=5)(predict, labels_0)
             epoch_loss = epoch_loss + loss.flatten().mean()

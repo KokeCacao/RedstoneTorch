@@ -49,7 +49,7 @@ def rle_encode(img):
 #     return res.reshape(list(targets.shape) + [nb_classes])
 
 def inverse_to_tensor(tensor):
-    return [x * 255 for x in tensor.numpy()]
+    return 225* tensor.numpy()
 
 
 def tensor_to_PIL(tensor):
