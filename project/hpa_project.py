@@ -161,7 +161,7 @@ class HPAProject:
         """.format(config.epoch, epoch_loss / (batch_index + 1)))
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
-        loss = evaluation.eval_fold(net, validation_loader).epoch_dict[fold].mean()
+        loss = np.array(fold.values() for fold in evaluation.eval_fold(net, validation_loader).epoch_dict).mean()
         print('Validation Dice Coeff: {}'.format(loss))
         # if config.DISPLAY_HISTOGRAM:
         #     for i, (name, param) in enumerate(net.named_parameters()):
