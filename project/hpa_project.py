@@ -115,8 +115,8 @@ class HPAProject:
         save_checkpoint_fold([x.state_dict() for x in nets], [x.state_dict() for x in optimizers])
 
         """DISPLAY"""
-        # tensorboardwriter.write_eval_loss(self.writer, {"EpochLoss": evaluation.mean(), "EpochSTD": evaluation.std()}, config.epoch)
-        # tensorboardwriter.write_loss_distribution(self.writer, evaluation.epoch_losses.flatten(), config.epoch)
+        tensorboardwriter.write_eval_loss(self.writer, {"EpochLoss": evaluation.mean(), "EpochSTD": evaluation.std()}, config.epoch)
+        tensorboardwriter.write_loss_distribution(self.writer, evaluation.epoch_losses.flatten(), config.epoch)
 
     def step_fold(self, fold, net, optimizer, batch_size, evaluation):
         self.fold_begin = datetime.now()
@@ -184,7 +184,7 @@ class HPAEvaluation:
             eval_epoch -> [... losses of one batch...]
         ]
         """
-        # self.epoch_losses = None # [loss.flatten()]
+        self.epoch_losses = None # [loss.flatten()]
         self.epoch_dict = np.array([]) # [fold_loss_dict]
 
         self.best_id = np.array([])
@@ -207,7 +207,6 @@ class HPAEvaluation:
         print("len_val = {}".format(len(validation_loader)))
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(validation_loader, 0):
             print("start batch {}".format(batch_index))
-            print("data len = {}".format(image.shape))
 
             """CALCULATE LOSS"""
             if config.TRAIN_GPU_ARG:
@@ -215,7 +214,7 @@ class HPAEvaluation:
                 labels_0 = labels_0.cuda()
             predict = net(image)
             loss = (FocalLoss(gamma=5)(predict, labels_0)).detach().cpu().numpy()
-            # self.epoch_losses = np.concatenate((self.epoch_losses, [loss.flatten()]), axis=0) if self.epoch_losses is not None else [loss.flatten()]
+            self.epoch_losses = np.concatenate((self.epoch_losses, [loss.flatten()]), axis=0) if self.epoch_losses is not None else [loss.flatten()]
             for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
             for id, pred in zip(ids, predict): fold_pred_dict[id] = pred
 
@@ -238,20 +237,22 @@ class HPAEvaluation:
 
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display
+            self.epoch_losses = None
+            self.epoch_dict = np.array([])
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
         self.epoch_dict = np.concatenate((self.epoch_dict, [fold_loss_dict]), axis=0)
         return self
 
-    #
-    # def __int__(self):
-    #     return self.mean()
 
-    # def mean(self, axis=None):
-    #     return self.epoch_losses.mean(axis)
-    #
-    # def std(self, axis=None):
-    #     return self.epoch_losses.std(axis)
+    def __int__(self):
+        return self.mean()
+
+    def mean(self, axis=None):
+        return self.epoch_losses.mean(axis)
+
+    def std(self, axis=None):
+        return self.epoch_losses.std(axis)
 
     def best(self):
         return (self.best_id, self.best_loss, self.best_pred)
