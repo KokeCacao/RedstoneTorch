@@ -77,17 +77,7 @@ if __name__ == '__main__':
     load_args()
 
     writer = SummaryWriter(config.DIRECTORY_CHECKPOINT)
-    print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=MineRedstone/" + config.DIRECTORY_CHECKPOINT + " --port=6006")
-    # export  PATH=$PATH:~/.local/lib/python2.7/site-packages
-    """
-    
-    human-protein-atlas-image-classification
-    
-    wget -x -c --load-cookies cookies.txt -P data -nH --cut-dirs=5 https://www.kaggle.com/c/chuman-protein-atlas-d, loss_item in zip(iimage-classification/download/test.bson
-    wget -x -c --load-cookies cookies.txt -P data -nH --cut-dirs=5 https://www.kaggle.com/c/human-protein-atlas-image-classification/download/train.bson
-    wget -x -c --load-cookies cookies.txt -P data -nH --cut-dirs=5 https://www.kaggle.com/c/human-protein-atlas-image-classification/download-all
-    
-    """
+    print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/" + config.DIRECTORY_CHECKPOINT + " --port=6006")
 
     reproduceability()
 
