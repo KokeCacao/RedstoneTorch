@@ -150,7 +150,7 @@ class HPAProject:
             loss = loss.detach().cpu().numpy()
 
             """OUTPUT"""
-            f1 = f1_macro(predict, labels_0)
+            f1 = f1_macro(predict, labels_0).mean()
             train_duration = self.fold_begin - self.train_begin
             epoch_duration = self.fold_begin - self.epoch_begin
             print("""SinceTrain: {}; SinceEpoch: {}; Epoch: {}; Fold: {}; GlobalStep: {}; BatchIndex: {}/{}; Loss: {}; F1: {}""".format(train_duration, epoch_duration, config.epoch, config.fold, config.global_steps[fold], batch_index, len(train_sampler)/config.MODEL_BATCH_SIZE, loss.flatten().mean(), f1))

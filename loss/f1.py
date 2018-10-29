@@ -58,7 +58,7 @@ def f1_micro(y_preds, y_true, thresh=0.5, eps=1e-20):
         if type(y_preds) is not np.ndarray: y_preds = y_preds.numpy()
     except Exception as e:
         print("The tensor is on gpu, trying to detach.")
-        try: 
+        try:
             y_preds = y_preds.cpu().numpy()
         except Exception as e:
             y_preds = y_preds.detach().cpu().numpy()
