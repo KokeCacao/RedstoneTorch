@@ -103,13 +103,13 @@ class HPAProject:
             self.step_fold(fold, net, optimizer, batch_size, evaluation)
 
         """DISPLAY"""
-        for fold, (best_id, best_loss, best_pred), (worst_id, worst_loss, worst_pred) in enumerate(zip(evaluation.best(), evaluation.worst())):
+        for fold, (best_id, best_loss), (worst_id, worst_loss) in enumerate(zip(evaluation.best(), evaluation.worst())):
             best_img = self.dataset.get_load_image_by_id(best_id)
             best_label = self.dataset.get_load_label_by_id(best_id)
             worst_img = self.dataset.get_load_image_by_id(worst_id)
             worst_label = self.dataset.get_load_label_by_id(worst_id)
-            tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, pred=best_pred, fold=fold)
-            tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, pred=worst_pred, fold=fold)
+            tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, fold=fold)
+            tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
 
         """SAVE"""
         save_checkpoint_fold([x.state_dict() for x in nets], [x.state_dict() for x in optimizers])
@@ -191,8 +191,6 @@ class HPAEvaluation:
         self.worst_id = np.array([])
         self.best_loss = np.array([])
         self.worst_loss = np.array([])
-        self.best_pred = np.array([])
-        self.worst_pred = np.array([])
 
     def eval_epoch(self, nets=None, validation_loaders=None):
 
@@ -203,7 +201,6 @@ class HPAEvaluation:
 
     def eval_fold(self, net, validation_loader):
         fold_loss_dict = dict()
-        fold_pred_dict = dict()
         print("len_val = {}".format(len(validation_loader)))
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(validation_loader, 0):
             print("start batch {}".format(batch_index))
@@ -216,7 +213,6 @@ class HPAEvaluation:
             loss = (FocalLoss(gamma=5)(predict, labels_0)).detach().cpu().numpy()
             self.epoch_losses = np.concatenate((self.epoch_losses, [loss.flatten()]), axis=0) if self.epoch_losses is not None else [loss.flatten()]
             for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
-            for id, pred in zip(ids, predict): fold_pred_dict[id] = pred
 
             """EVALUATE LOSS"""
             min_loss = min(fold_loss_dict.values())
@@ -224,24 +220,21 @@ class HPAEvaluation:
             if min_loss < self.best_loss:
                 np.append(self.best_loss, min_loss)
                 np.append(self.best_id, min_key)
-                np.append(self.best_pred, fold_pred_dict[min_key])
             max_loss = max(fold_loss_dict.values())
             max_key = max(fold_loss_dict, key=fold_loss_dict.get)
             if max_loss > self.worst_loss:
                 np.append(self.worst_loss, max_loss)
                 np.append(self.worst_id, max_key)
-                np.append(self.worst_pred, fold_pred_dict[max_key])
 
             """DISPLAY"""
             if config.DISPLAY_VISUALIZATION and batch_index == 0 and config.fold == 0: self.display(config.fold, ids, image, image_for_display, labels_0, predict, loss)
 
             """CLEAN UP"""
-            del ids, image, labels_0, image_for_display
-            self.epoch_losses = None
-            self.epoch_dict = np.array([])
+            del ids, image, labels_0, image_for_display, predict, loss
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
         self.epoch_dict = np.concatenate((self.epoch_dict, [fold_loss_dict]), axis=0)
+        if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
         return self
 
 
@@ -255,10 +248,10 @@ class HPAEvaluation:
         return self.epoch_losses.std(axis)
 
     def best(self):
-        return (self.best_id, self.best_loss, self.best_pred)
+        return (self.best_id, self.best_loss)
 
     def worst(self):
-        return (self.worst_id, self.worst_loss, self.worst_pred)
+        return (self.worst_id, self.worst_loss)
 
     def display(self, fold, ids, transfereds, untransfereds, labels, predicteds, losses):
         tensorboardwriter.write_pr_curve(self.writer, labels, predicteds, config.global_steps[fold])

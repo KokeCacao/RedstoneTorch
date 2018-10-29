@@ -21,14 +21,14 @@ def write_image(writer, F, global_step):
 def write_eval_loss(writer, loss_dict, global_step):
     writer.add_scalars('eval/loss_scalar', loss_dict, global_step)
 
-def write_best_img(writer, img, label, id, loss, pred, fold):
+def write_best_img(writer, img, label, id, loss, fold):
     F = plt.imshow(img)
-    plt.title("id: {}; label: {}; pred: {}; loss: {}".format(id, label, pred, loss))
+    plt.title("id: {}; label: {}; loss: {}".format(id, label, loss))
     plt.grid(False)
     writer.add_figure("eval/best", F, fold)
 
-def write_worst_img(writer, img, label, id, loss, pred, fold):
+def write_worst_img(writer, img, label, id, loss, fold):
     F = plt.imshow(img)
-    plt.title("id: {}; label: {}; pred: {}; loss: {}".format(id, label, pred, loss))
+    plt.title("id: {}; label: {}; loss: {}".format(id, label, loss))
     plt.grid(False)
     writer.add_figure("eval/worst", F, fold)
