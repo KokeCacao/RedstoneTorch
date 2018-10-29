@@ -12,16 +12,13 @@ def F1_soft(preds,targs,th=0.5,d=50.0):
 def competitionMetric(predicted, label, threshold = 0.5, epsilon = 1e-8):
     """
 
-    :param predicted: tensor
-    :param label: tensor
+    :param predicted: numpy array
+    :param label: numpy array
     :param threshold: threshold
     :param epsilon: small number
     :return: scaler: (2 * precision * recall) / (precision + recall + epsilon)
     """
-
     predicted = (predicted > threshold).float()
-    predicted = predicted.numpy()
-    label = label.numpy()
 
     #f1 per feature
     groundPositives = np.sum(label, axis=0) + epsilon
