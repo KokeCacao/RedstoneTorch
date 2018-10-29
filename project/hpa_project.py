@@ -150,8 +150,6 @@ class HPAProject:
             loss = loss.detach().cpu().numpy()
 
             """OUTPUT"""
-            if type(predict) is not np.ndarray: predict = predict.detach().cpu().numpy()
-            if type(labels_0) is not np.ndarray: labels_0 = labels_0.numpy()
             f1 = f1_macro(predict, labels_0)
             train_duration = self.fold_begin - self.train_begin
             epoch_duration = self.fold_begin - self.epoch_begin

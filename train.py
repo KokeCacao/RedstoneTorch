@@ -1,23 +1,20 @@
-import random
 import os
+import random
 import sys
-
-import numpy as np
+from datetime import datetime
 from optparse import OptionParser
 
-import torch
-
-import config
 import imgaug as ia
-
-from datetime import datetime
+import numpy as np
+import torch
 from tensorboardX import SummaryWriter
 
+import config
 # dir_prefix = 'drive/My Drive/ML/Pytorch-UNet/'
 from gpu import gpu_profile
-from loss.f1 import f1_macro
-from utils.memory import memory_thread
 from project import hpa_project
+from utils.memory import memory_thread
+
 
 # def log_data(file_name, data):
 #     with open(file_name + ".txt", "a+") as file:
