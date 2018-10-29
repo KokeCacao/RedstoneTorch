@@ -3,7 +3,7 @@
 import linecache
 import os
 
-import pynvml3
+import pynvml
 import torch
 
 print_tensor_sizes = True
@@ -27,9 +27,9 @@ def gpu_profile(frame, event, arg):
         try:
             # about _previous_ line (!)
             if lineno is not None:
-                pynvml3.nvmlInit()
-                handle = pynvml3.nvmlDeviceGetHandleByIndex(int(os.environ['GPU_DEBUG']))
-                meminfo = pynvml3.nvmlDeviceGetMemoryInfo(handle)
+                pynvml.nvmlInit()
+                handle = pynvml.nvmlDeviceGetHandleByIndex(int(os.environ['GPU_DEBUG']))
+                meminfo = pynvml.nvmlDeviceGetMemoryInfo(handle)
                 line = linecache.getline(filename, lineno)
                 where_str = module_name+' '+func_name+':'+str(lineno)
 
@@ -49,7 +49,7 @@ def gpu_profile(frame, event, arg):
                         for t, s, loc in last_tensor_sizes - new_tensor_sizes:
                             f.write('- {loc:<50} {str(s):<20} {str(t):<10}\n')
                         last_tensor_sizes = new_tensor_sizes
-                pynvml3.nvmlShutdown()
+                pynvml.nvmlShutdown()
 
             # save details about line _to be_ executed
             lineno = None
