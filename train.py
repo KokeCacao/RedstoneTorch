@@ -80,7 +80,7 @@ if __name__ == '__main__':
     
     human-protein-atlas-image-classification
     
-    wget -x -c --load-cookies cookies.txt -P data -nH --cut-dirs=5 https://www.kaggle.com/c/chuman-protein-atlas-image-classification/download/test.bson
+    wget -x -c --load-cookies cookies.txt -P data -nH --cut-dirs=5 https://www.kaggle.com/c/chuman-protein-atlas-d, loss_item in zip(iimage-classification/download/test.bson
     wget -x -c --load-cookies cookies.txt -P data -nH --cut-dirs=5 https://www.kaggle.com/c/human-protein-atlas-image-classification/download/train.bson
     wget -x -c --load-cookies cookies.txt -P data -nH --cut-dirs=5 https://www.kaggle.com/c/human-protein-atlas-image-classification/download-all
     
