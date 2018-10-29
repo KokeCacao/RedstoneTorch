@@ -8,7 +8,7 @@ import torch
 
 print_tensor_sizes = True
 last_tensor_sizes = set()
-gpu_profile_fn = '{datetime.datetime.now():%d-%b-%y-%H:%M:%S}-gpu_mem_prof.txt'
+gpu_profile_fn = '~/{datetime.datetime.now():%d-%b-%y-%H:%M:%S}-gpu_mem_prof.txt'
 if 'GPU_DEBUG' in os.environ:
     print('profiling gpu usage to ', gpu_profile_fn)
 
