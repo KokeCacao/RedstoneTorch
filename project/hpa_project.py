@@ -103,7 +103,7 @@ class HPAProject:
             self.step_fold(fold, net, optimizer, batch_size, evaluation)
 
         """DISPLAY"""
-        for fold, (best_id, best_loss), (worst_id, worst_loss) in enumerate(zip(evaluation.best(), evaluation.worst())):
+        for fold, (best_id, best_loss, worst_id, worst_loss) in enumerate(zip(evaluation.best(), evaluation.worst())):
             best_img = self.dataset.get_load_image_by_id(best_id)
             best_label = self.dataset.get_load_label_by_id(best_id)
             worst_img = self.dataset.get_load_image_by_id(worst_id)

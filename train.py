@@ -78,7 +78,6 @@ if __name__ == '__main__':
 
     writer = SummaryWriter(config.DIRECTORY_CHECKPOINT)
     print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=MineRedstone/" + config.DIRECTORY_CHECKPOINT + " --port=6006")
-    print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=MineRedstone/" + config.DIRECTORY_CHECKPOINT + " --port=6006")
     # export  PATH=$PATH:~/.local/lib/python2.7/site-packages
     """
     
