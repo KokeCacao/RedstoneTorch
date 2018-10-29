@@ -255,29 +255,32 @@ class HPAEvaluation:
     def worst(self):
         return (self.worst_id, self.worst_loss, self.worst_pred)
 
-    def display(self, fold, ids, transfered, untransfered, label, predicted, loss):
-        tensorboardwriter.write_pr_curve(self.writer, label, predicted, config.global_steps[fold])
-        for index, input_id in enumerate(ids):
+    def display(self, fold, ids, transfereds, untransfereds, labels, predicteds, losses):
+        tensorboardwriter.write_pr_curve(self.writer, labels, predicteds, config.global_steps[fold])
+
+        print(len(ids))
+        print(untransfereds.shape)
+        for id, transfered, untransfered, label, predicted, loss in zip(ids, transfereds, untransfereds, labels, predicteds, losses):
             F = plt.figure()
 
             plt.subplot(321)
-            plt.imshow(encode.tensor_to_np_four_channel_transarant(untransfered[index]))
+            plt.imshow(encode.tensor_to_np_four_channel_transarant(untransfered))
             plt.title("Image_Real")
             plt.grid(False)
 
             plt.subplot(322)
-            plt.imshow(encode.tensor_to_np_four_channel_transarant(transfered[index]))
+            plt.imshow(encode.tensor_to_np_four_channel_transarant(transfered))
             plt.title("Image_Trans")
             plt.grid(False)
 
             plt.subplot(323)
-            plt.imshow(encode.tensor_to_np_four_channel_drop(untransfered[index]))
-            plt.title("Mask_Real; label:{}".format(label[index]))
+            plt.imshow(encode.tensor_to_np_four_channel_drop(untransfered))
+            plt.title("Mask_Real; label:{}".format(label))
             plt.grid(False)
 
             plt.subplot(324)
-            plt.imshow(encode.tensor_to_np_four_channel_drop(transfered[index]))
-            plt.title("Mask_Trans; loss:{}".format(loss[index]))
+            plt.imshow(encode.tensor_to_np_four_channel_drop(transfered))
+            plt.title("Mask_Trans; loss:{}".format(loss))
             plt.grid(False)
             tensorboardwriter.write_image(self.writer, F, config.global_steps[fold])
 
