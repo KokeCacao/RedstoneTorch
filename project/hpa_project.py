@@ -257,9 +257,9 @@ class HPAEvaluation:
     def display(self, fold, ids, transfereds, untransfereds, labels, predicteds, losses):
         tensorboardwriter.write_pr_curve(self.writer, labels, predicteds, config.global_steps[fold])
 
-        print(len(ids))
-        print(untransfereds.shape)
-        for id, transfered, untransfered, label, predicted, loss in zip(ids, transfereds, untransfereds, labels, predicteds, losses):
+        for index, (id, transfered, untransfered, label, predicted, loss) in enumerate(zip(ids, transfereds, untransfereds, labels, predicteds, losses)):
+            if index != 0: continue
+
             F = plt.figure()
 
             plt.subplot(321)
