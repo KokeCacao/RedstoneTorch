@@ -184,7 +184,7 @@ class HPAEvaluation:
             eval_epoch -> [... losses of one batch...]
         ]
         """
-        self.epoch_losses = None # [loss.flatten()]
+        self.epoch_losses = [] # [loss.flatten()]
         self.epoch_dict = np.array([]) # [fold_loss_dict]
 
         self.best_id = np.array([])
@@ -201,17 +201,14 @@ class HPAEvaluation:
 
     def eval_fold(self, net, validation_loader):
         fold_loss_dict = dict()
-        print("len_val = {}".format(len(validation_loader)))
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(validation_loader, 0):
-            print("start batch {}".format(batch_index))
-
             """CALCULATE LOSS"""
             if config.TRAIN_GPU_ARG:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
             predict = net(image)
             loss = (FocalLoss(gamma=5)(predict, labels_0)).detach().cpu().numpy()
-            self.epoch_losses = np.stack((self.epoch_losses, [loss.flatten()]), axis=0) if self.epoch_losses is not None else [loss.flatten()]
+            self.epoch_losses.append(loss.flatten())
             for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
 
             """EVALUATE LOSS"""
@@ -242,10 +239,10 @@ class HPAEvaluation:
         return self.mean()
 
     def mean(self, axis=None):
-        return self.epoch_losses.mean(axis)
+        return np.array(self.epoch_losses).mean(axis)
 
     def std(self, axis=None):
-        return self.epoch_losses.std(axis)
+        return np.array(self.epoch_losses).std(axis)
 
     def best(self):
         return (self.best_id, self.best_loss)
