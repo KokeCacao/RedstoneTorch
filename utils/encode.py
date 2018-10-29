@@ -70,7 +70,7 @@ def tensor_to_np_four_channel_transarant(tensor):
     :param tensor: tensor with channel of (r, g, b, y), shape of (4, W, H)
     :return: transparant image with mask in tensor[1], the output will put the cannel layer the last layer
     """
-    image = tensor.cpu().clone().tonumpy()
+    image = tensor.cpu().clone().numpy()
     # red = tensor[0]
     # green = tensor[1]
     # blue = tensor[2]
@@ -85,7 +85,7 @@ def tensor_to_np_four_channel_drop(tensor):
     :param tensor: tensor with channel of (r, g, b, y), shape of (4, W, H)
     :return: drop tensor[1], the output will put the cannel layer the last layer
     """
-    image = tensor.cpu().clone().tonumpy()
+    image = tensor.cpu().clone().numpy()
     ndarray = 255 * np.array([image[0], image[2], image[3]])
     return ndarray.transpose((1, 2, 0))
 
