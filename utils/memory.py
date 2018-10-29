@@ -7,20 +7,21 @@ import torch
 import psutil
 import subprocess
 
+import config
+
 exitFlag = 0
 
 
 class memory_thread(threading.Thread):
-    def __init__(self, threadID, writer, gpu):
+    def __init__(self, threadID, writer):
         threading.Thread.__init__(self)
         self.threadID = threadID
         self.writer = writer
-        self.gpu = gpu
         self.count = 0
 
     def run(self):
         while(True):
-            if self.gpu != "":
+            if config.TRAIN_GPU_ARG:
                 torch.cuda.empty_cache()  # release gpu memory
                 map = get_gpu_memory_map()
                 for key, value in get_gpu_memory_map().items():

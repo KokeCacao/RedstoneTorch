@@ -1,53 +1,90 @@
-#
-# load.py : utils on generators / lists of ids to transform from strings to
-#           cropped images and masks
-
 import os
 
-import pandas as pd
+import torch
+
+import config
 import numpy as np
-import torchvision
-from PIL import Image
 
-from .utils import resize_and_crop, normalize, hwc_to_chw
 
-# for each id, get (id, sub-id)
-def split_ids_for_augmentation(ids, n=1):
-    """Split each id in n, creating n tuples (id, k) for each id"""
-    return ((id, i) for i in range(n) for id in ids)
+def save_checkpoint_fold(state_dicts, optimizer_dicts, interupt=False):
+    if interupt: print("WARNING: loading interupt models may be buggy")
+    tag = config.versiontag + "-" if config.versiontag else ""
+    interupt = "INTERUPT-" if interupt else ""
+    if config.TRAIN_SAVE_CHECKPOINT:
+        if not os.path.exists(config.DIRECTORY_CHECKPOINT):
+            os.makedirs(config.DIRECTORY_CHECKPOINT)
+    config.lastsave = interupt + tag + config.DIRECTORY_CP_NAME.format(config.epoch)
+    torch.save({
+        'epoch': config.epoch,
+        'global_steps': config.global_steps,
+        'state_dicts': state_dicts,
+        'optimizers': optimizer_dicts,
+    }, config.DIRECTORY_CHECKPOINT + config.lastsave)
+    print('Checkpoint: {} epoch; {}-{} step; dir: {}'.format(config.epoch, config.global_steps[0], config.global_steps[-1], config.DIRECTORY_CHECKPOINT + interupt + config.versiontag + config.DIRECTORY_CP_NAME.format(config.epoch)))
 
-# scale = resize to what percent
-def augmentation_image(ids, dir, suffix, scale):
-    """From a list of tuples, returns the correct cropped img"""
-    for id, pos in ids:
-        im = resize_and_crop(Image.open(dir + id + suffix), scale=scale)
-        # yield get_square(im, pos)
-        yield im
 
-def augmentation_depth(ids, dir):
-    """From a list of tuples, returns the correct cropped img"""
-    csv_depths = pd.read_csv(dir, index_col='id')
-    for id, pos in ids:
-        depth = csv_depths.loc[id, 'z']
-        # yield get_square(im, pos)
-        yield depth
+def load_checkpoint_all_fold(nets, optimizers, load_path):
+    if load_path and os.path.isfile(load_path):
+        print("=> Loading checkpoint '{}'".format(load_path))
+        checkpoint = torch.load(load_path)
+        if 'state_dicts' not in checkpoint:
+            print("=> Checkpoint is broken, nothing loaded")
+            return
+        config.epoch = checkpoint['epoch']
+        config.global_steps = checkpoint['global_steps']
+        for fold, (net, optimizer) in zip(nets, optimizers):
+            net.load_state_dict(checkpoint['state_dict'][fold])
+            optimizer.load_state_dict(checkpoint['optimizer'][fold])
+            move_optimizer_to_cuda(optimizer)
+            print("=> Loading checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
+        print("=> Loaded checkpoint {} epoch; {}-{} step".format(config.epoch, config.global_steps[0], config.global_steps[-1]))
+    else:
+        print("=> Nothing loaded because of invalid directory")
+        config.epoch = 0
+        config.global_steps = np.zeros(len(nets))
 
-def get_imgs_depths_and_masks(ids, dir_img, dir_depth, dir_mask, scale):
-    """Return all the couples (img, mask)"""
 
-    imgs = augmentation_image(ids, dir_img, '.png', scale)
-    # need to transform from HWC to CHW
-    imgs_switched = map(hwc_to_chw, imgs)
-    imgs_normalized = map(normalize, imgs_switched)
+def load_checkpoint_one_fold(net, optimizer, fold, load_path):
+    if load_path and os.path.isfile(load_path):
+        print("=> Loading checkpoint '{}'".format(load_path))
+        checkpoint = torch.load(load_path)
+        if 'state_dicts' not in checkpoint:
+            print("=> Checkpoint is broken, nothing loaded")
+            return
+        config.epoch = checkpoint['epoch']
+        config.global_steps = checkpoint['global_steps']
+        net.load_state_dict(checkpoint['state_dict'][fold])
+        optimizer.load_state_dict(checkpoint['optimizer'][fold])
+        move_optimizer_to_cuda(optimizer)
+        print("=> Loading checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
+        print("=> Loaded checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
+    else:
+        print("=> Nothing loaded because of invalid directory")
+        config.epoch = 0
+        config.global_steps = np.zeros(1)
 
-    depths = augmentation_depth(ids, dir_depth)
 
-    masks = augmentation_image(ids, dir_mask, '.png', scale)
-    # masks_rle_encoded = map(rle_encode, masks)
+def move_optimizer_to_cuda(optimizer):
+    """
+    Move the optimizer state to GPU, if necessary.
+    After calling, any parameter specific state in the optimizer
+    will be located on the same device as the parameter.
+    """
+    for param_group in optimizer.param_groups:
+        for param in param_group['params']:
+            # if param.is_cuda:
+            param_state = optimizer.state[param]
+            for k in param_state.keys():
+                if torch.is_tensor(param_state[k]):
+                    param_state[k] = param_state[k].cuda()
 
-    return zip(imgs_normalized, depths, masks)
 
-# def get_full_img_and_mask(id, dir_img, dir_mask):
-#     im = Image.open(dir_img + id + '.jpg')
-#     mask = Image.open(dir_mask + id + '_mask.gif')
-#     return np.array(im), np.array(mask)
+def cuda(net):
+    if config.TRAIN_GPU_ARG:
+        os.environ["CUDA_VISIBLE_DEVICES"] = config.TRAIN_GPU_ARG  # default
+        # print('=> Using GPU: [' + config.TRAIN_GPU_ARG + ']')
+        net.cuda()
+    else:
+        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    # print('=> torch.cuda.device_count()      =', torch.cuda.device_count())
+    return net

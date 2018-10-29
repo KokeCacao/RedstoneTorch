@@ -1,0 +1,79 @@
+.
+├── config.py
+├── data
+│   ├── tgs.zip
+│   └── training_upload.csv
+├── dataset
+│   ├── hpa_dataset.py
+│   ├── __init__.py
+│   └── tgs_dataset.py
+├── loss
+│   ├── dice.py
+│   ├── focal.py
+│   ├── __init__.py
+│   ├── iou.py
+│   └── loss.py
+├── model
+├── net
+│   ├── block.py
+│   ├── __init__.py
+│   ├── proteinet
+│   │   ├── __init__.py
+│   │   ├── proteinet_model.py
+│   │   └── proteinet_parts.py
+│   ├── resnet
+│   │   ├── __init__.py
+│   │   ├── resnet_extractor.py
+│   │   └── resnet_model.py
+│   ├── resunet
+│   │   ├── __init__.py
+│   │   ├── resunet_model.py
+│   │   └── resunet_parts.py
+│   ├── seinception
+│   │   ├── __init__.py
+│   │   ├── seinception_model.py
+│   │   └── seinception_parts.py
+│   ├── seresnet
+│   │   ├── __init__.py
+│   │   ├── seresnet_model.py
+│   │   └── seresnet_parts.py
+│   └── unet
+│       ├── __init__.py
+│       ├── unet_model.py
+│       └── unet_parts.py
+├── optimizer
+│   ├── __init__.py
+│   └── sgdw.py
+├── pretained_model
+│   ├── bninception.py
+│   ├── inceptionresnetv2.py
+│   ├── inceptionv4.py
+│   ├── __init__.py
+│   ├── nasnet.py
+│   ├── resnext_features
+│   │   ├── __init__.py
+│   │   ├── resnext101_32x4d_features.py
+│   │   └── resnext101_64x4d_features.py
+│   ├── resnext.py
+│   ├── senet.py
+│   ├── torchvision_models.py
+│   ├── utils.py
+│   ├── vggm.py
+│   ├── wideresnet.py
+│   └── xception.py
+├── project
+│   ├── hpa_project.py
+│   ├── __init__.py
+│   └── tgs_project.py
+├── README.md
+├── requirements.txt
+├── tensorboardwriter.py
+├── train.py
+├── tree.txt
+└── utils
+    ├── encode.py
+    ├── __init__.py
+    ├── memory.py
+    └── postprocess.py
+
+16 directories, 60 files

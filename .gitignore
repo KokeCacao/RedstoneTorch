@@ -1,11 +1,5 @@
 *.pyc
 __pycache__/
-checkpoints/
-*.pth
-*.jpg
 SUBMISSION*
-.idea/*
-.idea/workspace.xml
-data/train/images/output/*
-data/train/masks/output/*
+data/*.zip
 .idea

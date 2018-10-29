@@ -1,46 +1,175 @@
-# Pytorch-UNet
-![input and output for a random image in the test dataset](https://framapic.org/OcE8HlU6me61/KNTt8GFQzxDR.png)
+# Redstone Torch
 
+## Models
 
-Customized implementation of the [U-Net](https://arxiv.org/pdf/1505.04597.pdf) in Pytorch for Kaggle's [Carvana Image Masking Challenge](https://www.kaggle.com/c/carvana-image-masking-challenge) from a high definition image. This was used with only one output class but it can be scaled easily.
-
-This model was trained from scratch with 5000 images (no data augmentation) and scored a [dice coefficient](https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient) of 0.988423 (511 out of 735) on over 100k test images. This score is not quite good but could be improved with more training, data augmentation, fine tuning, playing with CRF post-processing, and applying more weights on the edges of the masks.
-
-The model used for the last submission is stored in the `MODEL.pth` file, if you wish to play with it. The data is available on the [Kaggle website](https://www.kaggle.com/c/carvana-image-masking-challenge/data).
 
 ## Usage
+The folowing instructions are made so that you can use this library
 
-### Prediction
+### Data
+The dataset is provided by Kaggle  
+However, kaggle api is not very easy to use on remote server
 
-You can easily test the output masks on your images via the CLI.
+Please use this chrome plugging to get `cookie.txt` file: [Here](https://chrome.google.com/webstore/detail/cookiestxt/njabckikapfpffapmjgojcnbfjonfjfg?hl=zh-CN)
 
-To see all options:
-`python predict.py -h`
+After you upload your `cookie.txt` file to your remote server, use command(provided by [CarlosSouza](https://www.kaggle.com/c/cdiscount-image-classification-challenge/discussion/39492))
 
-To predict a single image and save it:
+Please run the following command in your ~/RedstoneTorch directory
+```commandline
+cd ~/RedstoneTorch
+wget -x -c --load-cookies cookies.txt -P data -nH --cut-dirs=5 https://www.kaggle.com/c/DATASET/train.bson
+wget -x -c --load-cookies cookies.txt -P data -nH --cut-dirs=5 https://www.kaggle.com/c/DATASET/download-all
+```
+The `DATASET` can be replaced with `human-protein-atlas-image-classification`  
+The command above will create a file named `data` and put your file `download-all` in it.  
+So you need to unzip the `doanload-all`  
+To do so, run the following command
+```commandline
+unzip ~/RedstoneTorch/data/download-all -d ~/RedstoneTorch/data
+```
+and then you need to unzip the `train.zip` and `test.zip`
+```commandline
+unzip ~/RedstoneTorch/data/train.zip -d ~/RedstoneTorch/data/train
+unzip ~/RedstoneTorch/data/test.zip -d ~/RedstoneTorch/data/test
+```
+Please use `sudo` in front of these command if the terminal says that you don't have permissions to do so
 
-`python predict.py -i image.jpg -o output.jpg`
+However, you may not have the full permission to read doanloaded file, use
+```commandline
+sudo chmod -R a+rwx train.csv
+```
+to give yourself permission to read.
+### Train
+You can start trainning by type command `python train.py`  
+Make sure you have everything setup  
+You can also use the following flags to train
 
-To predict a multiple images and show them without saving them:
+| Flag        | Function | Default  |
+|:-------------|:-------------|:-----|
+| --projecttag | specify the project's tag | "" |
+| --versiontag | specify the version's tag | "" |
+| --loadfile | file name you want to load | None |
+| --resume | resume or not  | False |  
 
-`python predict.py -i image1.jpg image2.jpg --viz --no-save`
+We strongly recommand you use some tags to make sure the program runs correctly
+```commandline
+cd ~/RedstoneTorch
+python train.py --projecttag test --versiontag test --resume False
+```
 
-You can use the cpu-only version with `--cpu`.
+### Evaluate and Display
+The program use tensorboardX to display tensors  
+Use command
+```commandline
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=~/RedstoneTorch/model/PROJECTTAG --port=6006
+```
+to open tensorboad's display on port `6006` of your server after you run `train.py` where `PROJECTTAG` can be replaced with your project tag.
 
-You can specify which model file to use with `--model MODEL.pth`.
-
-### Training
-
-`python train.py -h` should get you started. A proper CLI is yet to be added.
-## Warning
-In order to process the image, it is split into two squares (a left on and a right one), and each square is passed into the net. The two square masks are then merged again to produce the final image. As a consequence, the height of the image must be strictly superior than half the width. Make sure the width is even too.
+### Predict
+Use predict.py to get the sumbit datatable
 
 ## Dependencies
-This package depends on [pydensecrf](https://github.com/lucasb-eyer/pydensecrf), available via `pip install`.
+This package depends on
+```
+matplotlib
+pydensecrf
+numpy
+Pillow
+torch
+torchvision
+augmentor
+tensorboardX
+psutil
+tensorboard
+tensorflow
 
-## Notes on memory
+```
+Please use `pip install` to install these dependencies.
 
-The model has be trained from scratch on a GTX970M 3GB.
-Predicting images of 1918*1280 takes 1.5GB of memory.
-Training takes approximately 3GB, so if you are a few MB shy of memory, consider turning off all graphical displays.
-This assumes you use bilinear up-sampling, and not transposed convolution in the model.
+## Directory
+
+```
+.
+├── config.py
+├── data
+│   ├── sample_submission.csv
+│   ├── test
+│   │   └── [A LOT OF PICTURES]
+│   ├── trian.csv
+│   └── train
+│   │   └── [A LOT OF PICTURES]
+├── dataset
+│   ├── hpa_dataset.py
+│   ├── __init__.py
+│   └── tgs_dataset.py
+├── loss
+│   ├── dice.py
+│   ├── focal.py
+│   ├── __init__.py
+│   ├── iou.py
+│   └── loss.py
+├── model
+├── net
+│   ├── block.py
+│   ├── __init__.py
+│   ├── proteinet
+│   │   ├── __init__.py
+│   │   ├── proteinet_model.py
+│   │   └── proteinet_parts.py
+│   ├── resnet
+│   │   ├── __init__.py
+│   │   ├── resnet_extractor.py
+│   │   └── resnet_model.py
+│   ├── resunet
+│   │   ├── __init__.py
+│   │   ├── resunet_model.py
+│   │   └── resunet_parts.py
+│   ├── seinception
+│   │   ├── __init__.py
+│   │   ├── seinception_model.py
+│   │   └── seinception_parts.py
+│   ├── seresnet
+│   │   ├── __init__.py
+│   │   ├── seresnet_model.py
+│   │   └── seresnet_parts.py
+│   └── unet
+│       ├── __init__.py
+│       ├── unet_model.py
+│       └── unet_parts.py
+├── optimizer
+│   ├── __init__.py
+│   └── sgdw.py
+├── pretained_model
+│   ├── bninception.py
+│   ├── inceptionresnetv2.py
+│   ├── inceptionv4.py
+│   ├── __init__.py
+│   ├── nasnet.py
+│   ├── resnext_features
+│   │   ├── __init__.py
+│   │   ├── resnext101_32x4d_features.py
+│   │   └── resnext101_64x4d_features.py
+│   ├── resnext.py
+│   ├── senet.py
+│   ├── torchvision_models.py
+│   ├── utils.py
+│   ├── vggm.py
+│   ├── wideresnet.py
+│   └── xception.py
+├── project
+│   ├── hpa_project.py
+│   ├── __init__.py
+│   └── tgs_project.py
+├── README.md
+├── requirements.txt
+├── tensorboardwriter.py
+├── train.py
+├── tree.txt
+└── utils
+    ├── encode.py
+    ├── __init__.py
+    ├── memory.py
+    └── postprocess.py
+
+16 directories, 60 files
+```
