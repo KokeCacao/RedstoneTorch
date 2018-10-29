@@ -1,4 +1,6 @@
 # Redstone Torch
+![RedstoneTorch](https://d1u5p3l4wpay3k.cloudfront.net/minecraft_gamepedia/d/da/Redstone_Torch.png)
+
 
 ## Models
 
