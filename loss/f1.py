@@ -48,9 +48,9 @@ def f1_macro(y_preds, y_true, thresh=0.5, eps=1e-20):
     preds_bin = y_preds > thresh  # binary representation from probabilities (not relevant)
     truepos = preds_bin * y_true
 
-    p = truepos.sum(axis=0) / (preds_bin.sum(axis=0) + eps)  # sum along axis=0 (classes)
+    p = truepos.sum(axis=1) / (preds_bin.sum(axis=1) + eps)  # sum along axis=0 (classes)
     # and calculate precision array
-    r = truepos.sum(axis=0) / (y_true.sum(axis=0) + eps)  # sum along axis=0 (classes)
+    r = truepos.sum(axis=1) / (y_true.sum(axis=1) + eps)  # sum along axis=0 (classes)
     #  and calculate recall array
 
     f1 = 2 * p * r / (p + r + eps)  # we calculate f1 on arrays
