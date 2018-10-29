@@ -204,6 +204,8 @@ class HPAEvaluation:
         fold_loss_dict = dict()
         fold_pred_dict = dict()
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(validation_loader, 0):
+            print("start batch {}".format(batch_index))
+            print("data len = {}".format(image.shape))
 
             """CALCULATE LOSS"""
             if config.TRAIN_GPU_ARG:
