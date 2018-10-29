@@ -30,7 +30,7 @@ def competitionMetric(predicted, label, threshold = 0.5, epsilon = 1e-8):
 
     m = (2 * precision * recall) / (precision + recall + epsilon)
 
-    return m.mean()
+    return np.array(m).mean()
 
 
 def f1_micro(y_true, y_preds, thresh=0.5, eps=1e-20):
