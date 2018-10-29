@@ -86,7 +86,7 @@ def tensor_to_np_four_channel_drop(tensor):
     :return: drop tensor[1], the output will put the cannel layer the last layer
     """
     image = tensor.cpu().clone()
-    ndarray = np.array([image[0], image[2], image[3]])*255
+    ndarray = 255 * np.array([image[0], image[2], image[3]])
     return ndarray.transpose((1, 2, 0))
 
 def ndarray_to_PIL(ndarray):
