@@ -120,7 +120,7 @@ class HPAProject:
 
         """DISPLAY"""
         tensorboardwriter.write_eval_loss(self.writer, {"EpochLoss": evaluation.mean(), "EpochSTD": evaluation.std()}, config.epoch)
-        tensorboardwriter.write_loss_distribution(self.writer, evaluation.epoch_losses.flatten(), config.epoch)
+        tensorboardwriter.write_loss_distribution(self.writer, np.array(list(itertools.chain.from_iterable(evaluation.epoch_losses))).flatten(), config.epoch)
 
     def step_fold(self, fold, net, optimizer, batch_size, evaluation):
         self.fold_begin = datetime.now()
@@ -142,15 +142,16 @@ class HPAProject:
                 labels_0 = labels_0.cuda()
             predict = net(image)
 
+            """LOSS"""
             loss = FocalLoss(gamma=5)(predict, labels_0)
             epoch_loss = epoch_loss + loss.flatten().mean()
             optimizer.zero_grad()
             loss.sum().backward()
             optimizer.step()
             loss = loss.detach().cpu().numpy()
+            f1 = f1_macro(predict, labels_0).mean()
 
             """OUTPUT"""
-            f1 = f1_macro(predict, labels_0).mean()
             train_duration = self.fold_begin - self.train_begin
             epoch_duration = self.fold_begin - self.epoch_begin
             print("""SinceTrain: {}; SinceEpoch: {}; Epoch: {}; Fold: {}; GlobalStep: {}; BatchIndex: {}/{}; Loss: {}; F1: {}""".format(train_duration, epoch_duration, config.epoch, config.fold, config.global_steps[fold], batch_index, len(train_sampler)/config.MODEL_BATCH_SIZE, loss.flatten().mean(), f1))
@@ -212,9 +213,12 @@ class HPAEvaluation:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
             predict = net(image)
+
+            """LOSS"""
             loss = (FocalLoss(gamma=5)(predict, labels_0)).detach().cpu().numpy()
             self.epoch_losses.append(loss.flatten())
             for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
+            f1 = f1_macro(predict, labels_0).mean()
 
             """EVALUATE LOSS"""
             min_loss = min(fold_loss_dict.values())
@@ -229,6 +233,8 @@ class HPAEvaluation:
                 np.append(self.worst_id, max_key)
 
             """DISPLAY"""
+            print("""Epoch: {}; Fold: {}; GlobalStep: {}; Loss: {}; F1: {}""".format(config.epoch, config.fold, config.global_steps[config.fold], loss.flatten().mean(), f1))
+            tensorboardwriter.write_loss(self.writer, {'Epoch/' + str(config.fold): config.epoch, 'TrainLoss/' + str(config.fold): loss.flatten().mean(),  'F1Loss/' + str(config.fold): f1}, config.global_steps[fold])
             if config.DISPLAY_VISUALIZATION and batch_index == 0 and config.fold == 0: self.display(config.fold, ids, image, image_for_display, labels_0, predict, loss)
 
             """CLEAN UP"""
