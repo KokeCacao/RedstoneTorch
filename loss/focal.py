@@ -1,5 +1,6 @@
 # from https://www.kaggle.com/iafoss/pretrained-resnet34-with-rgby-0-448-public-lb
 import torch
+import numpy as np
 
 from torch import nn
 import torch.nn.functional as F
@@ -88,3 +89,6 @@ class FocalLoss_reduced(nn.Module):
         loss = loss * (1 - F.softmax(input, dim=-1)) ** self.gamma # focal loss
         # print(loss.shape) -> (Batch, 28)
         return loss.sum(dim=1)
+
+def sigmoid_np(x):
+    return 1.0/(1.0 + np.exp(-x))
