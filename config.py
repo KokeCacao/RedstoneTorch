@@ -9,7 +9,7 @@ from torchvision.transforms import transforms
 from utils.encode import tensor_to_PIL
 
 MODEL_EPOCHS = 3
-MODEL_BATCH_SIZE = 16
+MODEL_BATCH_SIZE = 8
 MODEL_LEARNING_RATE = 0.0005
 MODEL_MOMENTUM = 0.9
 MODEL_WEIGHT_DEFAY = 0.0001
