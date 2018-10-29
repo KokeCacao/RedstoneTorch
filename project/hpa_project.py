@@ -241,9 +241,13 @@ class HPAEvaluation:
         return self.mean()
 
     def mean(self, axis=None):
+        if axis == None: return np.array(self.epoch_losses).flatten().mean()
+        print("WARNING: self.epoch_losse may have different shape according to different shape of loss caused by different batch. Numpy cannot take the mean of it is baches shapes are different.")
         return np.array(self.epoch_losses).mean(axis)
 
     def std(self, axis=None):
+        if axis == None: return np.array(self.epoch_losses).flatten().std()
+        print("WARNING: self.epoch_losse may have different shape according to different shape of loss caused by different batch. Numpy cannot take the mean of it is baches shapes are different.")
         return np.array(self.epoch_losses).std(axis)
 
     def best(self):
