@@ -21,9 +21,9 @@ def competitionMetric(predicted, label, threshold = 0.5, epsilon = 1e-8):
     predicted = (predicted > threshold).astype(np.float32)
 
     #f1 per feature
-    groundPositives = np.sum(label, axis=0) + epsilon
-    correctPositives = np.sum(label * predicted, axis=0)
-    predictedPositives = np.sum(predicted, axis=0) + epsilon
+    groundPositives = label.sum(axis=0) + epsilon
+    correctPositives = (label * predicted).sum(axis=0)
+    predictedPositives = predicted.sum(axis=0) + epsilon
 
     precision = correctPositives / predictedPositives
     recall = correctPositives / groundPositives
@@ -33,7 +33,7 @@ def competitionMetric(predicted, label, threshold = 0.5, epsilon = 1e-8):
     return np.array(m).mean()
 
 
-def f1_micro(y_true, y_preds, thresh=0.5, eps=1e-20):
+def f1_micro(y_preds, y_true, thresh=0.5, eps=1e-20):
     preds_bin = y_preds > thresh  # binary representation from probabilities (not relevant)
     truepos = preds_bin * y_true
 
@@ -44,7 +44,7 @@ def f1_micro(y_true, y_preds, thresh=0.5, eps=1e-20):
     return f1
 
 
-def f1_macro(y_true, y_preds, thresh=0.5, eps=1e-20):
+def f1_macro(y_preds, y_true, thresh=0.5, eps=1e-20):
     preds_bin = y_preds > thresh  # binary representation from probabilities (not relevant)
     truepos = preds_bin * y_true
 
