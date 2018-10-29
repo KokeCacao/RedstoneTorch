@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 
 def sigmoid_np(x):
@@ -19,19 +21,19 @@ def competitionMetric(predicted, label, threshold = 0.5, epsilon = 1e-8):
     :return: scaler: (2 * precision * recall) / (precision + recall + epsilon)
     """
     try:
-        print("The ideal input of loss function is numpy array, converting it.")
+        logging.debug("The ideal input of loss function is numpy array, converting it.")
         if type(predicted) is not np.ndarray: predicted = predicted.numpy()
     except Exception as e:
-        print("The tensor is on gpu, trying to detach.")
+        logging.debug("The tensor is on gpu, trying to detach.")
         try:
             predicted = predicted.cpu().numpy()
         except Exception as e:
             predicted = predicted.detach().cpu().numpy()
     try:
-        print("The ideal input of loss function is numpy array, converting it.")
+        logging.debug("The ideal input of loss function is numpy array, converting it.")
         if type(label) is not np.ndarray: label = label.numpy()
     except Exception as e:
-        print("The tensor is on gpu, trying to detach.")
+        logging.debug("The tensor is on gpu, trying to detach.")
         try:
             label = label.cpu().numpy()
         except Exception as e:
@@ -54,19 +56,19 @@ def competitionMetric(predicted, label, threshold = 0.5, epsilon = 1e-8):
 
 def f1_micro(y_preds, y_true, thresh=0.5, eps=1e-20):
     try:
-        print("The ideal input of loss function is numpy array, converting it.")
+        logging.debug("The ideal input of loss function is numpy array, converting it.")
         if type(y_preds) is not np.ndarray: y_preds = y_preds.numpy()
     except Exception as e:
-        print("The tensor is on gpu, trying to detach.")
+        logging.debug("The tensor is on gpu, trying to detach.")
         try:
             y_preds = y_preds.cpu().numpy()
         except Exception as e:
             y_preds = y_preds.detach().cpu().numpy()
     try:
-        print("The ideal input of loss function is numpy array, converting it.")
+        logging.debug("The ideal input of loss function is numpy array, converting it.")
         if type(y_true) is not np.ndarray: y_true = y_true.numpy()
     except Exception as e:
-        print("The tensor is on gpu, trying to detach.")
+        logging.debug("The tensor is on gpu, trying to detach.")
         try:
             y_true = y_true.cpu().numpy()
         except Exception as e:
@@ -84,17 +86,23 @@ def f1_micro(y_preds, y_true, thresh=0.5, eps=1e-20):
 
 def f1_macro(y_preds, y_true, thresh=0.5, eps=1e-20):
     try:
-        print("The ideal input of loss function is numpy array, converting it.")
+        logging.debug("The ideal input of loss function is numpy array, converting it.")
         if type(y_preds) is not np.ndarray: y_preds = y_preds.numpy()
     except Exception as e:
-        print("The tensor is on gpu, trying to detach.")
-        y_preds = y_preds.detach().cpu().numpy()
+        logging.debug("The tensor is on gpu, trying to detach.")
+        try:
+            y_preds = y_preds.cpu().numpy()
+        except Exception as e:
+            y_preds = y_preds.detach().cpu().numpy()
     try:
-        print("The ideal input of loss function is numpy array, converting it.")
+        logging.debug("The ideal input of loss function is numpy array, converting it.")
         if type(y_true) is not np.ndarray: y_true = y_true.numpy()
     except Exception as e:
-        print("The tensor is on gpu, trying to detach.")
-        y_true = y_true.detach().cpu().numpy()
+        logging.debug("The tensor is on gpu, trying to detach.")
+        try:
+            y_true = y_true.detach().cpu().numpy()
+        except Exception as e:
+            y_true = y_true.cpu().numpy()
 
     preds_bin = y_preds > thresh  # binary representation from probabilities (not relevant)
     truepos = preds_bin * y_true
