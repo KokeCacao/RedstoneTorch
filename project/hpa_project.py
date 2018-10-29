@@ -150,8 +150,8 @@ class HPAProject:
             loss = loss.detach().cpu().numpy()
 
             """OUTPUT"""
-            predict = predict.cpu().numpy()
-            labels_0 = predict.cpu().numpy()
+            predict = predict.detach().cpu().numpy()
+            labels_0 = predict.detach().cpu().numpy()
             f1 = competitionMetric(predict, labels_0)
             train_duration = self.fold_begin - self.train_begin
             epoch_duration = self.fold_begin - self.epoch_begin
