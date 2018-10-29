@@ -75,7 +75,7 @@ def tensor_to_np_four_channel_transarant(tensor):
     # green = tensor[1]
     # blue = tensor[2]
     # yellow = tensor[3]
-    ndarray = np.array([image[0], image[2], image[3], image[1]])*255
+    ndarray = 255 * np.array([image[0], image[2], image[3], image[1]])
     return ndarray.transpose((1, 2, 0))
 
 
