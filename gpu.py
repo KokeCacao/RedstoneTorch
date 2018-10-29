@@ -1,6 +1,5 @@
 # https://gist.github.com/MInner/8968b3b120c95d3f50b8a22a74bf66bc
 
-import datetime
 import linecache
 import os
 
@@ -9,7 +8,7 @@ import torch
 
 print_tensor_sizes = True
 last_tensor_sizes = set()
-gpu_profile_fn = f'{datetime.datetime.now():%d-%b-%y-%H:%M:%S}-gpu_mem_prof.txt'
+gpu_profile_fn = '{datetime.datetime.now():%d-%b-%y-%H:%M:%S}-gpu_mem_prof.txt'
 if 'GPU_DEBUG' in os.environ:
     print('profiling gpu usage to ', gpu_profile_fn)
 
@@ -35,9 +34,9 @@ def gpu_profile(frame, event, arg):
                 where_str = module_name+' '+func_name+':'+str(lineno)
 
                 with open(gpu_profile_fn, 'a+') as f:
-                    f.write(f"{where_str:<50}"
-                            f":{meminfo.used/1024**2:<7.1f}Mb "
-                            f"{line.rstrip()}\n")
+                    f.write("{where_str:<50}"
+                            ":{meminfo.used/1024**2:<7.1f}Mb "
+                            "{line.rstrip()}\n")
 
                     if print_tensor_sizes is True:
                         for tensor in get_tensors():
@@ -46,9 +45,9 @@ def gpu_profile(frame, event, arg):
                         new_tensor_sizes = {(type(x), tuple(x.size()), x.dbg_alloc_where)
                                             for x in get_tensors()}
                         for t, s, loc in new_tensor_sizes - last_tensor_sizes:
-                            f.write(f'+ {loc:<50} {str(s):<20} {str(t):<10}\n')
+                            f.write('+ {loc:<50} {str(s):<20} {str(t):<10}\n')
                         for t, s, loc in last_tensor_sizes - new_tensor_sizes:
-                            f.write(f'- {loc:<50} {str(s):<20} {str(t):<10}\n')
+                            f.write('- {loc:<50} {str(s):<20} {str(t):<10}\n')
                         last_tensor_sizes = new_tensor_sizes
                 pynvml3.nvmlShutdown()
 
