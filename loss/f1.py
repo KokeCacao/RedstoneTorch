@@ -18,12 +18,25 @@ def competitionMetric(predicted, label, threshold = 0.5, epsilon = 1e-8):
     :param epsilon: small number
     :return: scaler: (2 * precision * recall) / (precision + recall + epsilon)
     """
+    try:
+        print("The ideal input of loss function is numpy array, converting it.")
+        if type(predicted) is not np.ndarray: predicted = predicted.numpy()
+    except Exception as e:
+        print("The tensor is on gpu, trying to detach.")
+        predicted = predicted.detach().cpu().numpy()
+    try:
+        print("The ideal input of loss function is numpy array, converting it.")
+        if type(label) is not np.ndarray: label = label.numpy()
+    except Exception as e:
+        print("The tensor is on gpu, trying to detach.")
+        label = label.detach().cpu().numpy()
+
     predicted = (predicted > threshold).astype(np.float32)
 
     #f1 per feature
-    groundPositives = label.sum(axis=0) + epsilon
-    correctPositives = (label * predicted).sum(axis=0)
-    predictedPositives = predicted.sum(axis=0) + epsilon
+    groundPositives = label.sum(axis=1) + epsilon
+    correctPositives = (label * predicted).sum(axis=1)
+    predictedPositives = predicted.sum(axis=1) + epsilon
 
     precision = correctPositives / predictedPositives
     recall = correctPositives / groundPositives
@@ -34,6 +47,19 @@ def competitionMetric(predicted, label, threshold = 0.5, epsilon = 1e-8):
 
 
 def f1_micro(y_preds, y_true, thresh=0.5, eps=1e-20):
+    try:
+        print("The ideal input of loss function is numpy array, converting it.")
+        if type(y_preds) is not np.ndarray: y_preds = y_preds.numpy()
+    except Exception as e:
+        print("The tensor is on gpu, trying to detach.")
+        y_preds = y_preds.detach().cpu().numpy()
+    try:
+        print("The ideal input of loss function is numpy array, converting it.")
+        if type(y_true) is not np.ndarray: y_true = y_true.numpy()
+    except Exception as e:
+        print("The tensor is on gpu, trying to detach.")
+        y_true = y_true.detach().cpu().numpy()
+
     preds_bin = y_preds > thresh  # binary representation from probabilities (not relevant)
     truepos = preds_bin * y_true
 
@@ -45,12 +71,26 @@ def f1_micro(y_preds, y_true, thresh=0.5, eps=1e-20):
 
 
 def f1_macro(y_preds, y_true, thresh=0.5, eps=1e-20):
+    try:
+        print("The ideal input of loss function is numpy array, converting it.")
+        if type(y_preds) is not np.ndarray: y_preds = y_preds.numpy()
+    except Exception as e:
+        print("The tensor is on gpu, trying to detach.")
+        y_preds = y_preds.detach().cpu().numpy()
+    try:
+        print("The ideal input of loss function is numpy array, converting it.")
+        if type(y_true) is not np.ndarray: y_true = y_true.numpy()
+    except Exception as e:
+        print("The tensor is on gpu, trying to detach.")
+        y_true = y_true.detach().cpu().numpy()
+
     preds_bin = y_preds > thresh  # binary representation from probabilities (not relevant)
     truepos = preds_bin * y_true
 
-    p = truepos.sum(dim=0) / (preds_bin.sum(dim=0) + eps)  # sum along axis=0 (classes)
+    p = truepos.sum(axis=1) / (preds_bin.sum(axis=1) + eps)  # sum along axis=0 (classes)
     # and calculate precision array
-    r = truepos.sum(dim=0) / (y_true.sum(dim=0) + eps)  # sum along axis=0 (classes)
+    r = truepos.sum(axis=1) / (y_true.sum(axis=1) + eps)  # sum along axis=0 (classes)
     #  and calculate recall array
 
     f1 = 2 * p * r / (p + r + eps)  # we calculate f1 on arrays
+    return f1

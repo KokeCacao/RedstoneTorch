@@ -3,7 +3,9 @@
 import linecache
 import os
 
-import pynvml
+import config
+
+if not config.DEBUG_LAPTOP: import pynvml
 import torch
 
 print_tensor_sizes = True

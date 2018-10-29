@@ -15,6 +15,7 @@ from tensorboardX import SummaryWriter
 
 # dir_prefix = 'drive/My Drive/ML/Pytorch-UNet/'
 from gpu import gpu_profile
+from loss.f1 import f1_macro
 from utils.memory import memory_thread
 from project import hpa_project
 
@@ -73,19 +74,23 @@ def reproduceability():
     print('     torch.backends.cudnn.version() = {}'.format(torch.backends.cudnn.version()))
 
 if __name__ == '__main__':
-    if config.DEBUG_TRAISE_GPU: sys.settrace(gpu_profile)
-    load_args()
+    """
+    PLAYGROUND
+    """
+    if not config.DEBUG_TEST_CODE:
+        if config.DEBUG_TRAISE_GPU: sys.settrace(gpu_profile)
+        load_args()
 
-    writer = SummaryWriter(config.DIRECTORY_CHECKPOINT)
-    print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/" + config.DIRECTORY_CHECKPOINT + " --port=6006")
+        writer = SummaryWriter(config.DIRECTORY_CHECKPOINT)
+        print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/" + config.DIRECTORY_CHECKPOINT + " --port=6006")
 
-    reproduceability()
+        reproduceability()
 
-    memory = memory_thread(1, writer)
-    memory.setDaemon(True)
-    memory.start()
+        memory = memory_thread(1, writer)
+        memory.setDaemon(True)
+        memory.start()
 
-    print("=> Current Directory: " + str(os.getcwd()))
-    print("=> Loading neuronetwork...")
+        print("=> Current Directory: " + str(os.getcwd()))
+        print("=> Loading neuronetwork...")
 
-    project = hpa_project.HPAProject(writer)
+        project = hpa_project.HPAProject(writer)
