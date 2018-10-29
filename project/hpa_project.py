@@ -184,7 +184,7 @@ class HPAEvaluation:
             eval_epoch -> [... losses of one batch...]
         ]
         """
-        self.epoch_losses = np.array([]) # [loss.flatten()]
+        self.epoch_losses = None # [loss.flatten()]
         self.epoch_dict = np.array([]) # [fold_loss_dict]
 
         self.best_id = np.array([])
@@ -212,7 +212,7 @@ class HPAEvaluation:
                 labels_0 = labels_0.cuda()
             predict = net(image)
             loss = (FocalLoss(gamma=5)(predict, labels_0)).detach().cpu().numpy()
-            self.epoch_losses = np.concatenate((self.epoch_losses, [loss.flatten()]), axis=0)
+            self.epoch_losses = np.concatenate((self.epoch_losses, [loss.flatten()]), axis=0) if self.epoch_losses != None else [loss.flatten()]
             for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
             for id, pred in zip(ids, predict): fold_pred_dict[id] = pred
 
