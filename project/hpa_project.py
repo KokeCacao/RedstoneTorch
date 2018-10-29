@@ -103,7 +103,9 @@ class HPAProject:
             self.step_fold(fold, net, optimizer, batch_size, evaluation)
 
         """DISPLAY"""
-        for fold, ((best_id, best_loss), (worst_id, worst_loss)) in enumerate(zip(evaluation.best(), evaluation.worst())):
+        best_id, best_loss = evaluation.best()
+        worst_id, worst_loss = evaluation.worst()
+        for fold, (best_id, best_loss, worst_id, worst_loss) in enumerate(zip(best_id, best_loss, worst_id, worst_loss)):
             best_img = self.dataset.get_load_image_by_id(best_id)
             best_label = self.dataset.get_load_label_by_id(best_id)
             worst_img = self.dataset.get_load_image_by_id(worst_id)
@@ -149,7 +151,7 @@ class HPAProject:
             train_duration = self.fold_begin - self.train_begin
             epoch_duration = self.fold_begin - self.epoch_begin
             print("""SinceTrain: {}; SinceEpoch: {}; Epoch: {}; Fold: {}; GlobalStep: {}; BatchIndex: {}/{}; Loss: {}""".format(train_duration, epoch_duration, config.epoch, config.fold, config.global_steps[fold], batch_index, len(train_sampler)/config.MODEL_BATCH_SIZE, loss.flatten().mean()))
-            tensorboardwriter.write_loss(self.writer, {'Epoch' + '-f' + str(config.fold): config.epoch, 'TrainLoss' + '-f' + str(config.fold): loss.flatten().mean()}, config.global_steps[fold])
+            tensorboardwriter.write_loss(self.writer, {'Epoch' + '/' + str(config.fold): config.epoch, 'TrainLoss' + '/' + str(config.fold): loss.flatten().mean()}, config.global_steps[fold])
 
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display
