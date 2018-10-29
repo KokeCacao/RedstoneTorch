@@ -11,6 +11,7 @@ from torch.utils import data
 import config
 import tensorboardwriter
 from dataset.hpa_dataset import HPAData, train_collate, val_collate
+from gpu import gpu_profile
 from loss.focal import FocalLoss, FocalLoss_reduced
 from net.proteinet.proteinet_model import se_resnext101_32x4d_modified
 from utils import encode
@@ -237,6 +238,7 @@ class HPAEvaluation:
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+            if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
         self.epoch_dict = np.concatenate((self.epoch_dict, [fold_loss_dict]), axis=0)
         return self
 

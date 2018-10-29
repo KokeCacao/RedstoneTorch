@@ -12,6 +12,7 @@ from datetime import datetime
 from tensorboardX import SummaryWriter
 
 # dir_prefix = 'drive/My Drive/ML/Pytorch-UNet/'
+from gpu import gpu_profile
 from utils.memory import memory_thread
 from project import hpa_project
 
@@ -70,6 +71,7 @@ def reproduceability():
     print('     torch.backends.cudnn.version() = {}'.format(torch.backends.cudnn.version()))
 
 if __name__ == '__main__':
+    if config.DEBUG_TRAISE_GPU: sys.settrace(gpu_profile)
     load_args()
 
     writer = SummaryWriter(config.DIRECTORY_CHECKPOINT)
