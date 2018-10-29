@@ -138,12 +138,12 @@ class HPAProject:
             predict = net(image)
             print(predict)
 
-            loss = FocalLoss_reduced(gamma=5)(predict, labels_0)
+            loss = FocalLoss(gamma=5)(predict, labels_0)
             epoch_loss = epoch_loss + loss.flatten().mean()
             optimizer.zero_grad()
             loss.sum().backward()
             optimizer.step()
-            loss = np.array(loss)
+            loss = loss.detach().numpy()
 
             """OUTPUT"""
             train_duration = self.fold_begin - self.train_begin
@@ -211,7 +211,7 @@ class HPAEvaluation:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
             predict = net(image)
-            loss = np.array(FocalLoss_reduced(gamma=5)(predict, labels_0))
+            loss = (FocalLoss(gamma=5)(predict, labels_0)).detach().numpy()
             self.epoch_losses = np.concatenate((self.epoch_losses, [loss.flatten()]), axis=0)
             for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
             for id, pred in zip(ids, predict): fold_pred_dict[id] = pred
