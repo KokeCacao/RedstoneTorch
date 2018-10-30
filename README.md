@@ -61,7 +61,7 @@ python train.py --projecttag test1 --versiontag test1 --resume False
 
 If you want to load from previous model to continue trainning progress:
 ```commandline
-python train.py --projecttag 2018-10-30-04-07-40-043900-test --versiontag test2 --resume True --loadfile test1CP1.pth
+python train.py --projecttag 2018-10-30-04-07-40-043900-test --versiontag test2 --resume True --loadfile test1-CP1.pth
 ```
 The above information can be obtained in the command line during trainning, like this:
 ```commandline
