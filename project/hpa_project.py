@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 import config
 import tensorboardwriter
-from dataset.hpa_dataset import HPAData, train_collate, val_collate
+from dataset.hpa_dataset import HPAData, train_collate, val_collate, transform
 from gpu import gpu_profile
 from loss.f1 import competitionMetric, f1_macro
 from loss.focal import FocalLoss, FocalLoss_reduced
@@ -325,7 +325,7 @@ class HPAPrediction:
                 for index, id in enumerate(pbar):
                     pbar.set_description("Fold: {}; Id: {}".format(index, id))
                     input = self.dataset.get_load_image_by_id(id)
-                    input = torch.from_numpy(input)
+                    input = transform(ids=None, image_0=input, labels_0=None, train=False, val=False)
 
                     if config.TRAIN_GPU_ARG: input = input.cuda()
                     predict = net(input).detach().cpu().numpy()
