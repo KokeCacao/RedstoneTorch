@@ -330,8 +330,9 @@ class HPAPrediction:
                     if config.TRAIN_GPU_ARG: input = input.cuda()
                     predict = (net(input).detach().cpu().numpy() > self.threshold).astype(np.int16)
                     encoded = self.dataset.multilabel_binarizer.inverse_transform(predict)
+                    encoded = list(encoded[0])
 
 
-                    f.write('{},{}\n'.format(id, encoded))
+                    f.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
                     del id, input, predict, encoded
                     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
