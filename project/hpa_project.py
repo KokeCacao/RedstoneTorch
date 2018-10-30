@@ -297,7 +297,6 @@ class HPAEvaluation:
 
 class HPAPrediction:
     def __init__(self, writer):
-        self.writer = writer
 
         self.nets = []
         for fold in range(config.MODEL_FOLD):
