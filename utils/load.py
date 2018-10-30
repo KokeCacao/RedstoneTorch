@@ -39,7 +39,7 @@ def load_checkpoint_all_fold(nets, optimizers, load_path):
             print("=> Loading checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
         print("=> Loaded checkpoint {} epoch; {}-{} step".format(config.epoch, config.global_steps[0], config.global_steps[-1]))
     else:
-        print("=> Nothing loaded because of invalid directory")
+        print("=> Nothing loaded because of invalid directory: {}".format(load_path))
         config.epoch = 0
         config.global_steps = np.zeros(len(nets))
 
@@ -57,7 +57,7 @@ def load_checkpoint_all_fold_without_optimizers(nets, load_path):
             print("=> Loading checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
         print("=> Loaded checkpoint {} epoch; {}-{} step".format(config.epoch, config.global_steps[0], config.global_steps[-1]))
     else:
-        print("=> Nothing loaded because of invalid directory")
+        print("=> Nothing loaded because of invalid directory: {}".format(load_path))
         config.epoch = 0
         config.global_steps = np.zeros(len(nets))
 
@@ -77,7 +77,7 @@ def load_checkpoint_one_fold(net, optimizer, fold, load_path):
         print("=> Loading checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
         print("=> Loaded checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
     else:
-        print("=> Nothing loaded because of invalid directory")
+        print("=> Nothing loaded because of invalid directory: {}".format(load_path))
         config.epoch = 0
         config.global_steps = np.zeros(1)
 

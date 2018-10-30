@@ -56,9 +56,18 @@ You can also use the following flags to train
 We strongly recommand you use some tags to make sure the program runs correctly
 ```commandline
 cd ~/RedstoneTorch
-python train.py --projecttag test --versiontag test --resume False
+python train.py --projecttag test1 --versiontag test1 --resume False
 ```
 
+If you want to load from previous model to continue trainning progress:
+```commandline
+python train.py --projecttag 2018-10-30-04-07-40-043900-test --versiontag test2 --resume True --loadfile test1CP1.pth
+```
+The above information can be obtained in the command line during trainning, like this:
+```commandline
+Validation Dice Coeff: 0.0754207968712
+Checkpoint: 1 epoch; 13.0-13.0 step; dir: model/2018-10-30-04-07-40-043900-test/test1CP1.pth
+```
 ### Evaluate and Display
 The program use tensorboardX to display tensors  
 Use command
@@ -69,6 +78,9 @@ to open tensorboad's display on port `6006` of your server after you run `train.
 
 ### Predict
 Use predict.py to get the sumbit datatable
+```commandline
+python train.py --projecttag test --versiontag test --loadfile
+```
 
 ## Dependencies
 This package depends on

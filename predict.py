@@ -31,6 +31,7 @@ def load_args():
         config.PROJECT_TAG = args.projecttag
         config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.projecttag + "/" + args.loadfile
         config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
+    else: raise ValueError("You must set --loadfile directory in prediction mode")
 
 
 def reproduceability():
