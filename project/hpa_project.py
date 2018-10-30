@@ -8,6 +8,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.utils import data
+from tqdm import tqdm
 
 import config
 import tensorboardwriter
@@ -17,7 +18,7 @@ from loss.f1 import competitionMetric, f1_macro
 from loss.focal import FocalLoss, FocalLoss_reduced
 from net.proteinet.proteinet_model import se_resnext101_32x4d_modified
 from utils import encode
-from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, cuda
+from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, cuda, load_checkpoint_all_fold_without_optimizers
 
 if os.environ.get('DISPLAY', '') == '':
     print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')
@@ -42,8 +43,6 @@ class HPAProject:
             self.optimizers.append(torch.optim.Adam(params=net.parameters(), lr=config.MODEL_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY))  # all parameter learnable
             self.nets.append(cuda(net))
         load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
-
-        # TODO: load 10 model together, save 10 model
 
         self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG)
         self.folded_samplers = self.dataset.get_fold_sampler(fold=config.MODEL_FOLD)
@@ -297,4 +296,44 @@ class HPAEvaluation:
             tensorboardwriter.write_image(self.writer, F, config.global_steps[fold])
 
 class HPAPrediction:
-    pass
+    def __init__(self, writer):
+        self.writer = writer
+
+        self.nets = []
+        for fold in range(config.MODEL_FOLD):
+            print("     Creating Fold: #{}".format(fold))
+            net = se_resnext101_32x4d_modified(num_classes=config.TRAIN_NUMCLASS, pretrained='imagenet')
+            if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
+
+            self.nets.append(cuda(net))
+        load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
+
+        self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG)
+
+        self.run()
+    def run(self):
+        torch.no_grad()
+        """Used for Kaggle submission: predicts and encode all test images"""
+        for fold, net in enumerate(self.nets):
+            save_path = config.DIRECTORY_LOAD + "-" + config.PREDICTION_TAG + "-" + str(fold) + ".csv"
+
+            if os.path.exists(save_path):
+                os.remove(save_path)
+                print("WARNING: delete file '{}'".format(save_path))
+
+            with open(save_path, 'a') as f:
+                f.write('Id,Predicted\n')
+                pbar = tqdm(self.dataset.id)
+                for index, id in enumerate(pbar):
+                    pbar.set_description("Fold: {}; Id: {}".format(index, id))
+                    input = self.dataset.get_load_image_by_id(id)
+                    input = torch.from_numpy(input)
+
+                    if config.TRAIN_GPU_ARG: input = input.cuda()
+                    predict = net(input).detach().cpu().numpy()
+                    encoded = self.dataset.multilabel_binarizer.inverse_transform(predict)
+
+
+                    f.write('{},{}\n'.format(id, encoded))
+                    del id, input, predict, encoded
+                    if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()

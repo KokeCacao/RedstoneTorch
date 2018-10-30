@@ -43,6 +43,24 @@ def load_checkpoint_all_fold(nets, optimizers, load_path):
         config.epoch = 0
         config.global_steps = np.zeros(len(nets))
 
+def load_checkpoint_all_fold_without_optimizers(nets, load_path):
+    if load_path and os.path.isfile(load_path):
+        print("=> Loading checkpoint '{}'".format(load_path))
+        checkpoint = torch.load(load_path)
+        if 'state_dicts' not in checkpoint:
+            print("=> Checkpoint is broken, nothing loaded")
+            return
+        config.epoch = checkpoint['epoch']
+        config.global_steps = checkpoint['global_steps']
+        for fold, net in nets:
+            net.load_state_dict(checkpoint['state_dict'][fold])
+            print("=> Loading checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
+        print("=> Loaded checkpoint {} epoch; {}-{} step".format(config.epoch, config.global_steps[0], config.global_steps[-1]))
+    else:
+        print("=> Nothing loaded because of invalid directory")
+        config.epoch = 0
+        config.global_steps = np.zeros(len(nets))
+
 
 def load_checkpoint_one_fold(net, optimizer, fold, load_path):
     if load_path and os.path.isfile(load_path):
