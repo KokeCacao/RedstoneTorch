@@ -176,7 +176,7 @@ class TrainImgAugTransform:
             iaa.Flipud(0.5),
             iaa.OneOf([iaa.Noop(), iaa.Add((-40, 40)), iaa.EdgeDetect(alpha=(0.0, 0.1)), iaa.Multiply((0.95, 1.05))], iaa.ContrastNormalization((0.95, 1.05))),
             iaa.OneOf([iaa.Noop(), iaa.PiecewiseAffine(scale=(0.00, 0.02)), iaa.Affine(rotate=(-10, 10)), iaa.Affine(shear=(-10, 10))]),
-            iaa.CropAndPad(percent=(-0.12, 0))
+            iaa.CropAndPad(percent=(-0.12, 0)),
         ], random_order=False)
 
     def __call__(self, img):
@@ -193,7 +193,10 @@ class TestImgAugTransform:
         self.aug = iaa.Sequential([
             iaa.Scale({"height": 224, "width": 224}),
             iaa.Fliplr(0.5),
-            iaa.Flipud(0.5)
+            iaa.Flipud(0.5),
+            iaa.OneOf([iaa.Noop(), iaa.Add((-20, 20)), iaa.EdgeDetect(alpha=(0.0, 0.1)), iaa.Multiply((0.98, 1.02))], iaa.ContrastNormalization((0.99, 1.01))),
+            iaa.OneOf([iaa.Noop(), iaa.PiecewiseAffine(scale=(0.00, 0.01)), iaa.Affine(rotate=(-5, 5)), iaa.Affine(shear=(-5, 5))]),
+            iaa.CropAndPad(percent=(-0.06, 0)),
         ], random_order=False)
 
     def __call__(self, img):
