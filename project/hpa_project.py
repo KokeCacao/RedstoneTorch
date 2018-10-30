@@ -325,7 +325,7 @@ class HPAPrediction:
                 for index, id in enumerate(pbar):
                     pbar.set_description("Fold: {}; Id: {}".format(index, id))
                     input = self.dataset.get_load_image_by_id(id)
-                    input = transform(ids=None, image_0=input, labels_0=None, train=False, val=False)
+                    input = transform(ids=None, image_0=input, labels_0=None, train=False, val=False).unsqueeze(0)
 
                     if config.TRAIN_GPU_ARG: input = input.cuda()
                     predict = net(input).detach().cpu().numpy()
