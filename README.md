@@ -82,6 +82,10 @@ Use predict.py to get the submit data table
 ```commandline
 python predict.py --projecttag 2018-10-30-04-07-40-043900-test --versiontag test2 --loadfile test1-CP1.pth
 ```
+After the prediction, you probably want to download the .csv file, the directory is here:
+```commandline
+RedstoneTorch/model/2018-10-30-04-07-40-043900-test/test1-CP1.pth-test-0.csv
+```
 
 ## Dependencies
 This package depends on

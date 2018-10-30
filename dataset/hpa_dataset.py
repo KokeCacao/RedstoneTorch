@@ -43,8 +43,10 @@ class HPAData(data.Dataset):
 
     """
 
-    def __init__(self, csv_dir, load_img_dir, img_suffix=".png"):
+    def __init__(self, csv_dir, load_img_dir, img_suffix=".png", test=False):
         print("Reading Data...")
+        self.test = test
+        print("Prediction Mode Open...")
         self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
         self.dataframe['Target'] = [(int(i) for i in s.split()) for s in self.dataframe['Target']]
         self.multilabel_binarizer = MultiLabelBinarizer().fit(self.dataframe['Target'])
@@ -83,9 +85,13 @@ class HPAData(data.Dataset):
         self.load_img_dir = load_img_dir
         self.img_suffix = img_suffix
 
-        self.id = self.dataframe.index.tolist()
-        self.id_len = int(len(self.id)*config.TRAIN_DATA_PERCENT)
-        self.id = self.id[:self.id_len]
+        if not self.test:
+            self.id = self.dataframe.index.tolist()
+            self.id_len = int(len(self.id)*config.TRAIN_DATA_PERCENT)
+            self.id = self.id[:self.id_len]
+        else:
+            self.id = [x.replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(config.DIRECTORY_TEST)]
+            self.id_len = len(self.id)
         """WARNING: data length and indices depends on the length of images"""
         self.img_len = int(len(os.listdir(self.load_img_dir)) / 4 * config.TRAIN_DATA_PERCENT)
         self.data_len = min(self.img_len, self.id_len)
@@ -153,9 +159,11 @@ class HPAData(data.Dataset):
         :param id: id
         :return: nparray image of (r, g, b, y) from 0~255
         """
+        dir = self.load_img_dir
+        if self.test: dir = config.DIRECTORY_TEST
         colors = ['red', 'green', 'blue', 'yellow']
         flags = cv2.IMREAD_GRAYSCALE
-        imgs = [cv2.imread(os.path.join(self.load_img_dir, id + '_' + color + self.img_suffix), flags).astype(np.uint8) for color in colors]
+        imgs = [cv2.imread(os.path.join(dir, id + '_' + color + self.img_suffix), flags).astype(np.uint8) for color in colors]
         return np.stack(imgs, axis=-1)
 
     def get_load_label_by_id(self, id):

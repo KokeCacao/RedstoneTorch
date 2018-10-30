@@ -306,7 +306,7 @@ class HPAPrediction:
             self.nets.append(cuda(net))
         load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
 
-        self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG)
+        self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG, test=True)
 
         self.run()
     def run(self):
