@@ -285,7 +285,7 @@ def val_collate(batch):
 
 def transform(ids, image_0, labels_0, train, val):
     if ids is None and labels_0 is None and train is False and val is False: # predict.py
-        image_aug_transform = TestImgAugTransform().to_deterministic()
+        image_aug_transform = TrainImgAugTransform().to_deterministic()
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             image_aug_transform,
             transforms.ToTensor()
