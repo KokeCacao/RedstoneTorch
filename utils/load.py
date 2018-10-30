@@ -20,7 +20,7 @@ def save_checkpoint_fold(state_dicts, optimizer_dicts, interupt=False):
         'state_dicts': state_dicts,
         'optimizers': optimizer_dicts,
     }, config.DIRECTORY_CHECKPOINT + config.lastsave)
-    print('Checkpoint: {} epoch; {}-{} step; dir: {}'.format(config.epoch, config.global_steps[0], config.global_steps[-1], config.DIRECTORY_CHECKPOINT + interupt + config.versiontag + config.DIRECTORY_CP_NAME.format(config.epoch)))
+    print('Checkpoint: {} epoch; {}-{} step; dir: {}'.format(config.epoch, config.global_steps[0], config.global_steps[-1], config.DIRECTORY_CHECKPOINT + config.lastsave))
 
 
 def load_checkpoint_all_fold(nets, optimizers, load_path):

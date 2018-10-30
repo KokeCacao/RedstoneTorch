@@ -41,8 +41,6 @@ class HPAProject:
             if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
             self.optimizers.append(torch.optim.Adam(params=net.parameters(), lr=config.MODEL_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY))  # all parameter learnable
-            print(self.optimizers)
-            print(len(self.optimizers))
             self.nets.append(cuda(net))
         load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
 
@@ -64,7 +62,6 @@ class HPAProject:
             print(e)
             self.writer.close()
             print("To Resume: python train.py --versiontag 'test' --projecttag " + config.PROJECT_TAG + "--loadfile " + config.lastsave)
-            print("Or: python train.py --tag 'default' --load " + config.DIRECTORY_CHECKPOINT + config.versiontag + "-" + config.DIRECTORY_CP_NAME.format(config.epoch - 1))
             try:
                 sys.exit(0)
             except SystemExit:

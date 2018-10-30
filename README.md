@@ -66,8 +66,9 @@ python train.py --projecttag 2018-10-30-04-07-40-043900-test --versiontag test2 
 The above information can be obtained in the command line during trainning, like this:
 ```commandline
 Validation Dice Coeff: 0.0754207968712
-Checkpoint: 1 epoch; 13.0-13.0 step; dir: model/2018-10-30-04-07-40-043900-test/test1CP1.pth
+Checkpoint: 1 epoch; 13.0-13.0 step; dir: model/2018-10-30-04-07-40-043900-test/test1-CP1.pth
 ```
+(The epoch starts from #1, whereas fold start from #0. Only Epoch got saved.)
 ### Evaluate and Display
 The program use tensorboardX to display tensors  
 Use command
