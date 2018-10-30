@@ -53,7 +53,7 @@ You can also use the following flags to train
 | --loadfile | file name you want to load | None |
 | --resume | resume or not  | False |  
 
-We strongly recommand you use some tags to make sure the program runs correctly
+We strongly recommend you use some tags to make sure the program runs correctly
 ```commandline
 cd ~/RedstoneTorch
 python train.py --projecttag test1 --versiontag test1 --resume False
@@ -78,9 +78,9 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=~/Redston
 to open tensorboad's display on port `6006` of your server after you run `train.py` where `PROJECTTAG` can be replaced with your project tag.
 
 ### Predict
-Use predict.py to get the sumbit datatable
+Use predict.py to get the submit data table
 ```commandline
-python train.py --projecttag test --versiontag test --loadfile
+python predict.py --projecttag 2018-10-30-04-07-40-043900-test --versiontag test2 --loadfile test1-CP1.pth
 ```
 
 ## Dependencies
