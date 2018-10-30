@@ -295,8 +295,8 @@ class HPAEvaluation:
             tensorboardwriter.write_image(self.writer, F, config.global_steps[fold])
 
 class HPAPrediction:
-    def __init__(self, writer):
-
+    def __init__(self, writer, threshold = 0.5):
+        self.threshold = threshold
         self.nets = []
         for fold in range(config.MODEL_FOLD):
             print("     Creating Fold: #{}".format(fold))
@@ -328,7 +328,7 @@ class HPAPrediction:
                     input = transform(ids=None, image_0=input, labels_0=None, train=False, val=False).unsqueeze(0)
 
                     if config.TRAIN_GPU_ARG: input = input.cuda()
-                    predict = net(input).detach().cpu().numpy()
+                    predict = (net(input).detach().cpu().numpy() > self.threshold).astype(np.int16)
                     encoded = self.dataset.multilabel_binarizer.inverse_transform(predict)
 
 
