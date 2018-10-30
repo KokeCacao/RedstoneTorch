@@ -323,7 +323,6 @@ class HPAPrediction:
                 f.write('Id,Predicted\n')
                 pbar = tqdm(self.dataset.id)
                 for index, id in enumerate(pbar):
-                    pbar.set_description("Fold: {}; Id: {}".format(index, id))
                     input = self.dataset.get_load_image_by_id(id)
                     input = transform(ids=None, image_0=input, labels_0=None, train=False, val=False).unsqueeze(0)
 
@@ -334,5 +333,6 @@ class HPAPrediction:
 
 
                     f.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
+                    pbar.set_description("Fold: {}; Index: {}; Out: {}".format(fold, index, encoded))
                     del id, input, predict, encoded
                     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
