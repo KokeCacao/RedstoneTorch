@@ -32,7 +32,7 @@ def load_checkpoint_all_fold(nets, optimizers, load_path):
             return
         config.epoch = checkpoint['epoch']
         config.global_steps = checkpoint['global_steps']
-        for fold, (net, optimizer) in zip(nets, optimizers):
+        for fold, (net, optimizer) in enumerate(zip(nets, optimizers)):
             net.load_state_dict(checkpoint['state_dict'][fold])
             optimizer.load_state_dict(checkpoint['optimizer'][fold])
             move_optimizer_to_cuda(optimizer)
