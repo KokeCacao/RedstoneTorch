@@ -91,6 +91,7 @@ class HPAData(data.Dataset):
             self.id = self.id[:self.id_len]
         else:
             self.id = [x.replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(config.DIRECTORY_TEST)]
+            print(self.id[0])
             self.id_len = len(self.id)
         """WARNING: data length and indices depends on the length of images"""
         self.img_len = int(len(os.listdir(self.load_img_dir)) / 4 * config.TRAIN_DATA_PERCENT)
