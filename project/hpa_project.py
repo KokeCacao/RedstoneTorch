@@ -28,19 +28,26 @@ from matplotlib import pyplot as plt
 
 
 class HPAProject:
+    """"."""
 
-
+    """"TODO"""
     # TODO: Data pre processing - try normalize data mean and std (https://discuss.pytorch.org/t/normalization-in-the-mnist-example/457/18) Save as ".npy" with dtype = "uint8". Before augmentation, convert back to float32 and normalize them with dataset mean/std.
     # TODO: Ask your biology teacher about yellow channel
     # TODO: cosine (https://github.com/SeuTao/Kaggle_TGS2018_4th_solution/blob/master/loss/cyclic_lr.py)
     # TODO: try global average pooling instead of averag epooling
     # TODO: try set f1 to 0 when 0/0; (7 missing classes in LB) / (28 total classes) = 0.25, and if the organizer is interpreting 0/0 as 0
     # TODO: try to process RBY first, and then concat Green layer
+    # TODO: freeze loaded layer, check if the layers loaded correctly (ie. I want to load as much as I can)
+    # TODO: Zero padding in augmentation
+    # TODO: Yes, using SGD with cosine annealing schedule. Also used Adadelta to start training, Padam for mid training, and SGD at the end. Then I freeze parts of the model and train the other layers. My current leading model is 2.3M params. Performs great locally, but public LB is 45% lower. (https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69462#412909)
+    # TODO: Better augmentation
 
+    """"TESTINGS"""
     # TODO: test visualize your network
     # TODO: test f1 score output and curve
 
-
+    """"READINGS"""
+    # TODO: https://www.proteinatlas.org/learn/dictionary/cell/microtubule+organizing+center+3; https://www.proteinatlas.org/learn/dictionary/cell
 
 
 
@@ -55,6 +62,7 @@ class HPAProject:
         for fold in range(config.MODEL_FOLD):
             print("     Creating Fold: #{}".format(fold))
             net = se_resnext101_32x4d_modified(num_classes=config.TRAIN_NUMCLASS, pretrained='imagenet')
+            net.apply(lambda m: torch.nn.init.kaiming_normal_(m, mode='fan_in', nonlinearity='relu'))
             if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
             self.optimizers.append(torch.optim.Adam(params=net.parameters(), lr=config.MODEL_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY))  # all parameter learnable
