@@ -276,8 +276,7 @@ class HPAEvaluation:
 
             """LOSS"""
             loss = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
-            loss.detach().cpu().numpy()
-            print(loss)
+            loss = loss.detach().cpu().numpy()
             self.epoch_losses.append(loss.flatten())
             for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
             np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
