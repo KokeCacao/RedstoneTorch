@@ -101,6 +101,7 @@ class HPAData(data.Dataset):
 
         # these parameters will be init by get_sampler
         self.indices_to_id = dict()
+        self.id_to_indices = dict()
 
         self.train_len = None
         self.val_len = None
@@ -117,6 +118,7 @@ class HPAData(data.Dataset):
     def get_fold_sampler(self, fold=-1):
         print("     Data Percent: {}".format(config.TRAIN_DATA_PERCENT))
         self.indices_to_id = dict(zip(self.indices, self.id))
+        self.id_to_indices = {v: k for k, v in self.indices_to_id.items()}
         print("     Data Size: {}".format(self.data_len))
 
         data = self.indices[:-(self.data_len % fold)]
@@ -145,37 +147,38 @@ class HPAData(data.Dataset):
 
     # TODO: Get stratified fold instead of random
 
-    def __getitem__(self, id):
-        labels_0 = self.get_load_label_by_id(id)
-        id = self.indices_to_id[id]
-        image_0 = self.get_load_image_by_id(id)
-        return (id, image_0, labels_0)
+    def __getitem__(self, indice):
+        labels_0 = self.get_load_label_by_indice(indice)
+        image_0 = self.get_load_image_by_indice(indice)
+        return (indice, image_0, labels_0)
 
     """CONFIGURATION"""
 
     # obtain in https://www.kaggle.com/iafoss/pretrained-resnet34-with-rgby-0-448-public-lb
-    def get_load_image_by_id(self, id):
+    def get_load_image_by_indice(self, indice):
         """
 
-        :param id: id
+        :param indice: id
         :return: nparray image of (r, g, b, y) from 0~255
         """
+        indice = self.indices_to_id[indice]
+
         dir = self.load_img_dir
         if self.test: dir = config.DIRECTORY_TEST
         colors = ['red', 'green', 'blue', 'yellow']
         flags = cv2.IMREAD_GRAYSCALE
-        imgs = [cv2.imread(os.path.join(dir, id + '_' + color + self.img_suffix), flags).astype(np.uint8) for color in colors]
+        imgs = [cv2.imread(os.path.join(dir, indice + '_' + color + self.img_suffix), flags).astype(np.uint8) for color in colors]
         return np.stack(imgs, axis=-1)
 
-    def get_load_label_by_id(self, id):
+    def get_load_label_by_indice(self, indice):
         """
 
-        :param id: id
+        :param indice: id
         :return: one hot encoded label
         """
         # return np.float32(self.multilabel_binarizer.transform([self.dataframe['Target'][id]])[0])
         # print(np.float32(self.one_hot_frame[id]))
-        return np.float32(self.one_hot_frame[id])
+        return np.float32(self.one_hot_frame[indice])
 
 
 class TrainImgAugTransform:
