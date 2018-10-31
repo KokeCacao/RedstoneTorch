@@ -275,8 +275,8 @@ class HPAEvaluation:
             for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
             np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
 
-            predict_total = np.concatenate((predict_total, predict.detach().cpu()), axis=0)
-            label_total = np.concatenate((label_total, labels_0.cpu()), axis=0)
+            predict_total = np.concatenate((predict_total, [predict.detach().cpu()]), axis=0)
+            label_total = np.concatenate((label_total, [labels_0.cpu()]), axis=0)
 
             """EVALUATE LOSS"""
             min_loss = min(fold_loss_dict.values())
