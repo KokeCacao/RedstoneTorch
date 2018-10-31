@@ -23,11 +23,11 @@ def Focal_Loss_from_git(y_true, y_pred, alpha=0.25, gamma=2, eps=1e-7):
     y_pred += eps
 
     # Cross entropy
-    ce = -y_true * torch.log(y_pred)
+    ce = -y_true * y_pred.log()
 
     # Not necessary to multiply y_true(cause it will multiply with CE which has set unconcerned index to zero ),
     # but refer to the definition of p_t, we do it
-    weight = torch.pow(1 - y_pred, gamma) * y_true
+    weight = ((1 - y_pred) **gamma) * y_true
 
     # Now fl has a shape of [batch_size, nb_class]
     # alpha should be a step function as paper mentioned, but it doesn't matter like reason mentioned above
@@ -67,7 +67,7 @@ class FocalLossMultiLabel(nn.Module):
         self.gamma = gamma
         self.nll = nn.NLLLoss(weight=weight, reduce=False)
 
-    def forward(self, input, target):
+    def forward(self, target, input):
         loss = self.nll(input, target)
 
         inv_probs = 1 - input.exp()

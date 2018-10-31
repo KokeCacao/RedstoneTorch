@@ -193,7 +193,7 @@ class HPAProject:
             loss = Focal_Loss_from_git(labels_0, predict)
             epoch_loss = epoch_loss + loss.flatten().mean()
             optimizer.zero_grad()
-            loss.backward()
+            loss.sum().backward()
             optimizer.step()
             loss = loss.detach().cpu().numpy()
             f1 = f1_macro(predict, labels_0).mean()
