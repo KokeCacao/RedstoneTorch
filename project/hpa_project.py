@@ -176,7 +176,6 @@ class HPAProject:
         epoch_loss = 0
 
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(train_loader, 0):
-            print("lb", labels_0)
             """UPDATE LR"""
             state = optimizer.state_dict()
             state['state']['lr'] = config.TRAIN_COSINE(config.global_steps)

@@ -174,7 +174,7 @@ class HPAData(data.Dataset):
         :return: one hot encoded label
         """
         # return np.float32(self.multilabel_binarizer.transform([self.dataframe['Target'][id]])[0])
-        print(np.float32(self.one_hot_frame[id]))
+        # print(np.float32(self.one_hot_frame[id]))
         return np.float32(self.one_hot_frame[id])
 
 
