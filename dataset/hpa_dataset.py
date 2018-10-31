@@ -150,7 +150,7 @@ class HPAData(data.Dataset):
     def __getitem__(self, indice):
         labels_0 = self.get_load_label_by_indice(indice)
         image_0 = self.get_load_image_by_indice(indice)
-        return (indice, image_0, labels_0)
+        return (self.indices_to_id[indice], image_0, labels_0)
 
     """CONFIGURATION"""
 
@@ -179,6 +179,29 @@ class HPAData(data.Dataset):
         # return np.float32(self.multilabel_binarizer.transform([self.dataframe['Target'][id]])[0])
         # print(np.float32(self.one_hot_frame[id]))
         return np.float32(self.one_hot_frame[indice])
+    def get_load_image_by_id(self, id):
+        """
+
+        :param indice: id
+        :return: nparray image of (r, g, b, y) from 0~255
+        """
+
+        dir = self.load_img_dir
+        if self.test: dir = config.DIRECTORY_TEST
+        colors = ['red', 'green', 'blue', 'yellow']
+        flags = cv2.IMREAD_GRAYSCALE
+        imgs = [cv2.imread(os.path.join(dir, id + '_' + color + self.img_suffix), flags).astype(np.uint8) for color in colors]
+        return np.stack(imgs, axis=-1)
+
+    def get_load_label_by_id(self, id):
+        """
+
+        :param indice: id
+        :return: one hot encoded label
+        """
+        # return np.float32(self.multilabel_binarizer.transform([self.dataframe['Target'][id]])[0])
+        # print(np.float32(self.one_hot_frame[id]))
+        return np.float32(self.one_hot_frame[self.id_to_indices[id]])
 
 
 class TrainImgAugTransform:

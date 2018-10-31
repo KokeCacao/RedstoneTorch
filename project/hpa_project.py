@@ -131,10 +131,10 @@ class HPAProject:
         best_id, best_loss = evaluation.best()
         worst_id, worst_loss = evaluation.worst()
         for fold, (best_id, best_loss, worst_id, worst_loss) in enumerate(zip(best_id, best_loss, worst_id, worst_loss)):
-            best_img = self.dataset.get_load_image_by_indice(best_id)
-            best_label = self.dataset.get_load_label_by_indice(best_id)
-            worst_img = self.dataset.get_load_image_by_indice(worst_id)
-            worst_label = self.dataset.get_load_label_by_indice(worst_id)
+            best_img = self.dataset.get_load_image_by_id(best_id)
+            best_label = self.dataset.get_load_label_by_id(best_id)
+            worst_img = self.dataset.get_load_image_by_id(worst_id)
+            worst_label = self.dataset.get_load_label_by_id(worst_id)
             tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, fold=fold)
             tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
 
