@@ -241,10 +241,10 @@ class HPAEvaluation:
         self.epoch_dict = np.array([]) # [fold_loss_dict]
         self.f1_losses = np.array([])
 
-        self.best_id = np.array([])
-        self.worst_id = np.array([])
-        self.best_loss = np.array([])
-        self.worst_loss = np.array([])
+        self.best_id = None
+        self.worst_id = None
+        self.best_loss = None
+        self.worst_loss = None
 
         self.epoch_pred = np.array([])
         self.epoch_label = np.array([])
@@ -260,6 +260,12 @@ class HPAEvaluation:
         fold_loss_dict = dict()
         predict_total = None
         label_total = None
+
+        self.best_id = np.empty((len(validation_loader)))
+        self.worst_id = np.empty((len(validation_loader)))
+        self.best_loss = np.empty((len(validation_loader)))
+        self.worst_loss = np.empty((len(validation_loader)))
+
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(validation_loader, 0):
             """CALCULATE LOSS"""
             if config.TRAIN_GPU_ARG:
@@ -281,14 +287,14 @@ class HPAEvaluation:
             """EVALUATE LOSS"""
             min_loss = min(fold_loss_dict.values())
             min_key = min(fold_loss_dict, key=fold_loss_dict.get)
-            if min_loss < self.best_loss:
-                np.append(self.best_loss, min_loss)
-                np.append(self.best_id, min_key)
+            if min_loss < self.best_loss[batch_index]:
+                np.append(self.best_loss[batch_index], min_loss)
+                np.append(self.best_id[batch_index], min_key)
             max_loss = max(fold_loss_dict.values())
             max_key = max(fold_loss_dict, key=fold_loss_dict.get)
-            if max_loss > self.worst_loss:
-                np.append(self.worst_loss, max_loss)
-                np.append(self.worst_id, max_key)
+            if max_loss > self.worst_loss[batch_index]:
+                np.append(self.worst_loss[batch_index], max_loss)
+                np.append(self.worst_id[batch_index], max_key)
 
             """DISPLAY"""
             if config.DISPLAY_VISUALIZATION and batch_index == 0 and config.fold == 0: self.display(config.fold, ids, image, image_for_display, labels_0, predict, loss)
