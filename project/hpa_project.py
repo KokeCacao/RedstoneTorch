@@ -210,8 +210,9 @@ class HPAProject:
 
         print("""
             Epoch: {}
+            Fold: {}
             EpochLoss: {}
-        """.format(config.epoch, epoch_loss / (batch_index + 1)))
+        """.format(config.epoch, config.fold, epoch_loss / (batch_index + 1)))
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
         loss = np.array(list(fold.values() for fold in evaluation.eval_fold(net, validation_loader).epoch_dict)).mean()
