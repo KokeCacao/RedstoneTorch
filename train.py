@@ -12,6 +12,7 @@ from tensorboardX import SummaryWriter
 import config
 # dir_prefix = 'drive/My Drive/ML/Pytorch-UNet/'
 from gpu import gpu_profile
+from loss.focal import Focal_Loss_from_git
 from project import hpa_project
 from utils.memory import memory_thread
 
@@ -70,10 +71,24 @@ def reproduceability():
     print('     torch.version.cuda             = {}'.format(torch.version.cuda))
     print('     torch.backends.cudnn.version() = {}'.format(torch.backends.cudnn.version()))
 
+
 if __name__ == '__main__':
     """
     PLAYGROUND
     """
+    # tensor = torch.Tensor([
+    #     [0.1, 0.9, 0.9, 0.1],
+    #     [0.1, 0.9, 0.1, 0.1],
+    # ])
+    # label = torch.Tensor([
+    #     [0, 1, 1, 1],
+    #     [0, 1, 1, 1],
+    # ])
+    # loss = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(label, tensor)
+    # print(loss)
+
+    config.DEBUG_TEST_CODE = False
+    config.DEBUG_LAPTOP = False
     if not config.DEBUG_TEST_CODE:
         if config.DEBUG_TRAISE_GPU: sys.settrace(gpu_profile)
         load_args()

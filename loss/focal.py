@@ -28,7 +28,8 @@ class Focal_Loss_from_git(nn.Module):
 
         # To avoid divided by zero
         y_pred = y_pred + self.eps
-        print(y_pred)
+        print("pred",y_pred)
+        print("lab",y_true)
 
         # Cross entropy
         ce = -(y_true * y_pred.log())
@@ -107,7 +108,7 @@ class FocalLoss(nn.Module):
         self.gamma = gamma
         self.eps = eps
 
-    def forward(self, input, target):
+    def forward(self, target, input):
         # y = one_hot(target, input.size(-1))
         logit = F.softmax(input, dim=-1)
         logit = logit.clamp(min = self.eps, max = 1. - self.eps)
@@ -123,7 +124,7 @@ class FocalLoss_reduced(nn.Module):
         self.gamma = gamma
         self.eps = eps
 
-    def forward(self, input, target):
+    def forward(self, target, input):
         # y = one_hot(target, input.size(-1))
         # logit = F.softmax(input, dim=-1)
         # logit = logit.clamp(min = self.eps, max = 1. - self.eps)

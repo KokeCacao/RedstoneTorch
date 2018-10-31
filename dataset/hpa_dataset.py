@@ -46,7 +46,7 @@ class HPAData(data.Dataset):
     def __init__(self, csv_dir, load_img_dir, img_suffix=".png", test=False):
         print("Reading Data...")
         self.test = test
-        print("Prediction Mode Open...")
+        if self.test: print("Prediction Mode Open...")
         self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
         self.dataframe['Target'] = [(int(i) for i in s.split()) for s in self.dataframe['Target']]
         self.multilabel_binarizer = MultiLabelBinarizer().fit(self.dataframe['Target'])

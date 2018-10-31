@@ -9,8 +9,8 @@ from torchvision.transforms import transforms
 from utils.encode import tensor_to_PIL
 
 DEBUG_TRAISE_GPU = False
-DEBUG_LAPTOP = False
-DEBUG_TEST_CODE = False
+DEBUG_LAPTOP = True
+DEBUG_TEST_CODE = True
 
 MODEL_EPOCHS = 100
 MODEL_BATCH_SIZE = 16
