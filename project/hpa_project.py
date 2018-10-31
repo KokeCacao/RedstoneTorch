@@ -187,7 +187,7 @@ class HPAProject:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
             predict = net(image)
-            predict = torch.nn.Softmax()(predict)
+            predict = torch.nn.Softmax(dim=1)(predict) # TODO: dim really = 1?
 
             """LOSS"""
             loss = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)

@@ -45,8 +45,8 @@ class Focal_Loss_from_git(nn.Module):
 
         # Both reduce_sum and reduce_max are ok
         reduce_fl = fl.sum(dim=1)
-
-        return reduce_fl
+        print(reduce_fl)
+        return reduce_fl.sum()
 
 class FocalLoss0(nn.Module):
     def __init__(self, gamma=2):
