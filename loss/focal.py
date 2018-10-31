@@ -28,10 +28,12 @@ class Focal_Loss_from_git(nn.Module):
 
         # To avoid divided by zero
         y_pred = y_pred + self.eps
+        print(y_pred)
 
         # Cross entropy
         ce = -(y_true * y_pred.log())
 
+        print(ce)
         # Not necessary to multiply y_true(cause it will multiply with CE which has set unconcerned index to zero ),
         # but refer to the definition of p_t, we do it
         weight = ((1 - y_pred) **self.gamma) * y_true
@@ -45,8 +47,7 @@ class Focal_Loss_from_git(nn.Module):
 
         # Both reduce_sum and reduce_max are ok
         reduce_fl = fl.sum(dim=1)
-        print(reduce_fl)
-        return reduce_fl.sum()
+        return reduce_fl
 
 class FocalLoss0(nn.Module):
     def __init__(self, gamma=2):
