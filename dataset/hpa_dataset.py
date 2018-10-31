@@ -49,8 +49,9 @@ class HPAData(data.Dataset):
         if self.test: print("Prediction Mode Open...")
         self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
         self.dataframe['Target'] = [(int(i) for i in s.split()) for s in self.dataframe['Target']]
-        self.multilabel_binarizer = MultiLabelBinarizer().fit(self.dataframe['Target'])
-        # self.one_hot_frame = self.multilabel_binarizer.fit_transform(self.dataframe['Target'])
+        # self.multilabel_binarizer = MultiLabelBinarizer().fit(self.dataframe['Target'])
+        self.multilabel_binarizer = MultiLabelBinarizer()
+        self.one_hot_frame = self.multilabel_binarizer.fit_transform(self.dataframe['Target'])
 
         self.name_label_dict = {
             0: 'Nucleoplasm',
@@ -172,9 +173,9 @@ class HPAData(data.Dataset):
         :param id: id
         :return: one hot encoded label
         """
-        print(np.float32(self.multilabel_binarizer.transform([self.dataframe['Target'][id]])[0]))
-        return np.float32(self.multilabel_binarizer.transform([self.dataframe['Target'][id]])[0])
-        # return np.float32(self.one_hot_frame[id])
+        # return np.float32(self.multilabel_binarizer.transform([self.dataframe['Target'][id]])[0])
+        print(np.float32(self.one_hot_frame[id]))
+        return np.float32(self.one_hot_frame[id])
 
 
 class TrainImgAugTransform:
