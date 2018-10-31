@@ -5,41 +5,48 @@ import numpy as np
 from torch import nn
 import torch.nn.functional as F
 
-def Focal_Loss_from_git(y_true, y_pred, alpha=0.25, gamma=2, eps=1e-7):
-    """
-    focal loss for multi-class classification
-    fl(pt) = -alpha*(1-pt)^(gamma)*log(pt)
-    :param y_true: ground truth one-hot vector shape of [batch_size, nb_class]
-    :param y_pred: prediction after softmax shape of [batch_size, nb_class]
-    :param alpha:
-    :param gamma:
-    :return:
-    """
-    # # parameters
-    # alpha = 0.25
-    # gamma = 2
+class Focal_Loss_from_git(nn.Module):
+    def __init__(self, alpha=0.25, gamma=2, eps=1e-7):
+        super().__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.eps = eps
 
-    # To avoid divided by zero
-    y_pred += eps
+    def forward(self, y_true, y_pred):
+        """
+        focal loss for multi-class classification
+        fl(pt) = -alpha*(1-pt)^(gamma)*log(pt)
+        :param y_true: ground truth one-hot vector shape of [batch_size, nb_class]
+        :param y_pred: prediction after softmax shape of [batch_size, nb_class]
+        :param alpha:
+        :param gamma:
+        :return:
+        """
+        # # parameters
+        # alpha = 0.25
+        # gamma = 2
 
-    # Cross entropy
-    ce = -y_true * y_pred.log()
+        # To avoid divided by zero
+        y_pred = y_pred + self.eps
 
-    # Not necessary to multiply y_true(cause it will multiply with CE which has set unconcerned index to zero ),
-    # but refer to the definition of p_t, we do it
-    weight = ((1 - y_pred) **gamma) * y_true
+        # Cross entropy
+        ce = -(y_true * y_pred.log())
 
-    # Now fl has a shape of [batch_size, nb_class]
-    # alpha should be a step function as paper mentioned, but it doesn't matter like reason mentioned above
-    # (CE has set unconcerned index to zero)
-    #
-    # alpha_step = tf.where(y_true, alpha*np.ones_like(y_true), 1-alpha*np.ones_like(y_true))
-    fl = ce * weight * alpha
+        # Not necessary to multiply y_true(cause it will multiply with CE which has set unconcerned index to zero ),
+        # but refer to the definition of p_t, we do it
+        weight = ((1 - y_pred) **self.gamma) * y_true
 
-    # Both reduce_sum and reduce_max are ok
-    reduce_fl = fl.sum(dim=1)
+        # Now fl has a shape of [batch_size, nb_class]
+        # alpha should be a step function as paper mentioned, but it doesn't matter like reason mentioned above
+        # (CE has set unconcerned index to zero)
+        #
+        # alpha_step = tf.where(y_true, alpha*np.ones_like(y_true), 1-alpha*np.ones_like(y_true))
+        fl = ce * weight * self.alpha
 
-    return reduce_fl
+        # Both reduce_sum and reduce_max are ok
+        reduce_fl = fl.sum(dim=1)
+
+        return reduce_fl
 
 class FocalLoss0(nn.Module):
     def __init__(self, gamma=2):

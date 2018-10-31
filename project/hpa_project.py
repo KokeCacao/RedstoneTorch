@@ -190,10 +190,10 @@ class HPAProject:
             predict = torch.nn.Softmax()(predict)
 
             """LOSS"""
-            loss = Focal_Loss_from_git(labels_0, predict)
+            loss = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
             epoch_loss = epoch_loss + loss.flatten().mean()
             optimizer.zero_grad()
-            loss.sum().backward()
+            loss.backward()
             optimizer.step()
             loss = loss.detach().cpu().numpy()
             f1 = f1_macro(predict, labels_0).mean()
@@ -269,7 +269,8 @@ class HPAEvaluation:
             predict = torch.nn.Softmax()(predict)
 
             """LOSS"""
-            loss = Focal_Loss_from_git(labels_0, predict).detach().cpu().numpy()
+            loss = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
+            loss.detach().cpu().numpy()
             self.epoch_losses.append(loss.flatten())
             for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
             np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
