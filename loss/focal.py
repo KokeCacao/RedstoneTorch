@@ -7,7 +7,7 @@ import torch.nn.functional as F
 
 class Focal_Loss_from_git(nn.Module):
     def __init__(self, alpha=0.25, gamma=2, eps=1e-7):
-        super().__init__()
+        super(Focal_Loss_from_git, self).__init__()
         self.alpha = alpha
         self.gamma = gamma
         self.eps = eps
