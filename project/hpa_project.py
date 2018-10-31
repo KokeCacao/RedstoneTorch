@@ -246,8 +246,8 @@ class HPAEvaluation:
         self.best_loss = None
         self.worst_loss = None
 
-        self.epoch_pred = np.array([])
-        self.epoch_label = np.array([])
+        self.epoch_pred = None
+        self.epoch_label = None
 
     def eval_epoch(self, nets=None, validation_loaders=None):
 
@@ -307,8 +307,8 @@ class HPAEvaluation:
         f1 = f1_macro(predict_total, label_total).mean()
         tensorboardwriter.write_loss(self.writer, {"FoldLoss/" + str(config.fold): np.array(fold_loss_dict.values()).mean(), "FoldF1/" + str(config.fold): f1}, config.global_steps[-1])
         tensorboardwriter.write_pr_curve(self.writer, label_total, predict_total, config.global_steps[-1])
-        self.epoch_pred = np.concatenate((self.epoch_pred, predict_total), axis=0)
-        self.epoch_label = np.concatenate((self.epoch_label, label_total), axis=0)
+        self.epoch_pred = np.concatenate((self.epoch_pred, predict_total), axis=0) if self.epoch_pred is not None else predict_total
+        self.epoch_label = np.concatenate((self.epoch_label, label_total), axis=0) if self.epoch_label is not None else label_total
         del predict_total, label_total
 
         self.epoch_dict = np.concatenate((self.epoch_dict, [fold_loss_dict]), axis=0)
