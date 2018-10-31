@@ -1,12 +1,13 @@
 import itertools
 import os
+import sklearn
 import sys
 from datetime import datetime
 
 import matplotlib as mpl
 import numpy as np
 import torch
-import torch.nn.functional as F
+import pandas as pd
 from torch.utils import data
 from tqdm import tqdm
 
@@ -15,10 +16,10 @@ import tensorboardwriter
 from dataset.hpa_dataset import HPAData, train_collate, val_collate, transform
 from gpu import gpu_profile
 from loss.f1 import competitionMetric, f1_macro
-from loss.focal import FocalLoss, FocalLoss_reduced
+from loss.focal import FocalLoss, FocalLoss_reduced, Focal_Loss_from_git
 from net.proteinet.proteinet_model import se_resnext101_32x4d_modified
 from utils import encode
-from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, cuda, load_checkpoint_all_fold_without_optimizers
+from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, cuda, load_checkpoint_all_fold_without_optimizers, save_onnx
 
 if os.environ.get('DISPLAY', '') == '':
     print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')
@@ -27,6 +28,22 @@ from matplotlib import pyplot as plt
 
 
 class HPAProject:
+
+
+    # TODO: Data pre processing - try normalize data mean and std (https://discuss.pytorch.org/t/normalization-in-the-mnist-example/457/18) Save as ".npy" with dtype = "uint8". Before augmentation, convert back to float32 and normalize them with dataset mean/std.
+    # TODO: Ask your biology teacher about yellow channel
+    # TODO: cosine (https://github.com/SeuTao/Kaggle_TGS2018_4th_solution/blob/master/loss/cyclic_lr.py)
+    # TODO: try global average pooling instead of averag epooling
+    # TODO: try set f1 to 0 when 0/0; (7 missing classes in LB) / (28 total classes) = 0.25, and if the organizer is interpreting 0/0 as 0
+    # TODO: try to process RBY first, and then concat Green layer
+
+    # TODO: test visualize your network
+    # TODO: test f1 score output and curve
+
+
+
+
+
     def __init__(self, writer):
         self.writer = writer
         self.train_begin = None
@@ -113,6 +130,25 @@ class HPAProject:
             tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, fold=fold)
             tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
 
+        """LOSS"""
+        f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
+        f2 = sklearn.metrics.f1_score(evaluation.epoch_label > 0.5, evaluation.epoch_pred > 0.5, average='macro')
+        print("F1 by sklearn = ".format(f2))
+        tensorboardwriter.write_loss(self.writer, {"EpochLoss": f1}, config.epoch)
+
+        """THRESHOLD"""
+        if config.EVAL_IF_THRESHOLD_TEST:
+            best_threshold = 0.0
+            best_val = 0.0
+            pbar = tqdm(config.EVAL_TRY_THRESHOLD)
+            for threshold in pbar:
+                score = f1_macro(evaluation.epoch_pred, evaluation.epoch_label, thresh=threshold).mean()
+                if score > best_val:
+                    best_threshold = threshold
+                    best_val = score
+                pbar.set_description("Threshold: {}; F1: {}".format(threshold, score))
+            print("BestThreshold: {}, F1: {}".format(best_threshold, best_val))
+
         """SAVE"""
         save_checkpoint_fold([x.state_dict() for x in nets], [x.state_dict() for x in optimizers])
 
@@ -141,7 +177,7 @@ class HPAProject:
             predict = net(image)
 
             """LOSS"""
-            loss = FocalLoss(gamma=5)(predict, labels_0)
+            loss = Focal_Loss_from_git(labels_0, predict)
             epoch_loss = epoch_loss + loss.flatten().mean()
             optimizer.zero_grad()
             loss.sum().backward()
@@ -197,6 +233,9 @@ class HPAEvaluation:
         self.best_loss = np.array([])
         self.worst_loss = np.array([])
 
+        self.epoch_pred = np.array([])
+        self.epoch_label = np.array([])
+
     def eval_epoch(self, nets=None, validation_loaders=None):
 
         if nets != None and validation_loaders != None:
@@ -206,6 +245,8 @@ class HPAEvaluation:
 
     def eval_fold(self, net, validation_loader):
         fold_loss_dict = dict()
+        predict_total = np.array([])
+        label_total = np.array([])
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(validation_loader, 0):
             """CALCULATE LOSS"""
             if config.TRAIN_GPU_ARG:
@@ -214,10 +255,13 @@ class HPAEvaluation:
             predict = net(image)
 
             """LOSS"""
-            loss = (FocalLoss(gamma=5)(predict, labels_0)).detach().cpu().numpy()
+            loss = Focal_Loss_from_git(labels_0, predict).detach().cpu().numpy()
             self.epoch_losses.append(loss.flatten())
             for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
             np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
+
+            predict_total = np.concatenate((predict_total, predict.detach().cpu()), axis=0)
+            label_total = np.concatenate((label_total, labels_0.cpu()), axis=0)
 
             """EVALUATE LOSS"""
             min_loss = min(fold_loss_dict.values())
@@ -238,7 +282,18 @@ class HPAEvaluation:
             del ids, image, labels_0, image_for_display, predict, loss
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
+        """LOSS"""
+        f1 = f1_macro(predict_total, label_total).mean()
+        tensorboardwriter.write_loss(self.writer, {"FoldLoss/" + str(config.fold): np.array(fold_loss_dict.values()).mean(), "FoldF1/" + str(config.fold): f1}, config.global_steps[-1])
+        tensorboardwriter.write_pr_curve(self.writer, label_total, predict_total, config.global_steps[-1])
+        self.epoch_pred = np.concatenate((self.epoch_pred, predict_total), axis=0)
+        self.epoch_label = np.concatenate((self.epoch_label, label_total), axis=0)
+        del predict_total, label_total
+
         self.epoch_dict = np.concatenate((self.epoch_dict, [fold_loss_dict]), axis=0)
+        del fold_loss_dict
+
+
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
         return self
 
@@ -305,6 +360,9 @@ class HPAPrediction:
 
             self.nets.append(cuda(net))
         load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
+        if config.DISPLAY_SAVE_ONNX:
+            for net in self.nets:
+                save_onnx(net, (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD+"-"+str(net)+".onnx")
 
         self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG, test=True)
 
@@ -336,3 +394,11 @@ class HPAPrediction:
                     pbar.set_description("Fold: {}; Index: {}; Out: {}".format(fold, index, encoded))
                     del id, input, predict, encoded
                     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+
+            """ORGANIZE"""
+            f1 = pd.read_csv(config.DIRECTORY_SAMPLE_CSV)
+            f1.drop('Predicted', axis=1, inplace=True)
+            f2 = pd.read_csv(save_path)
+            f1 = f1.merge(f2, left_on='Id', right_on='Id', how='outer')
+            os.remove(save_path)
+            f1.to_csv(save_path, index=False)

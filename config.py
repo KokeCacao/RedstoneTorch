@@ -34,9 +34,10 @@ PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":
 
 DISPLAY_HISTOGRAM = False
 DISPLAY_VISUALIZATION = True
+DISPLAY_SAVE_ONNX = True
 
-EVAL_THRESHOLD_TEST = True
-EVAL_TRY_THRESHOLD = np.linspace(0.3, 0.7, 21)
+EVAL_IF_THRESHOLD_TEST = True
+EVAL_TRY_THRESHOLD = np.linspace(0.0, 1.0, 1000)
 EVAL_CHOSEN_THRESHOLD = 0.5
 
 DIRECTORY_PREFIX = ""
@@ -47,6 +48,7 @@ DIRECTORY_MASK = DIRECTORY_PREFIX + 'data/train/masks/'  # augmentation
 
 DIRECTORY_LOAD = None
 DIRECTORY_CSV = DIRECTORY_PREFIX + 'data/train.csv'
+DIRECTORY_SAMPLE_CSV = DIRECTORY_PREFIX + 'data/sample_submission.csv'
 DIRECTORY_CHECKPOINT = DIRECTORY_PREFIX + "model/" + PROJECT_TAG + "/"
 DIRECTORY_TEST = DIRECTORY_PREFIX + 'data/test/'
 DIRECTORY_CP_NAME = 'CP{}.pth'
@@ -56,6 +58,9 @@ PREDICTION_TAG = "test"
 PREDICTION_LOAD_TAG = ""
 PREDICTION_SAVE_IMG = False
 PREDICTION_DARK_THRESHOLD = 0.05
+
+AUGMENTATION_RESIZE = 224
+
 
 lastsave = None
 global_steps = []

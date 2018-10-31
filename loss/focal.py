@@ -5,41 +5,76 @@ import numpy as np
 from torch import nn
 import torch.nn.functional as F
 
-# class FocalLoss(nn.Module):
-#     def __init__(self, gamma=2):
-#         super(FocalLoss, self).__init__()
-#         self.gamma = gamma
-#
-#     def forward(self, predict, target):
-#         if not (target.size() == predict.size()):
-#             raise ValueError("Target size ({}) must be the same as input size ({})"
-#                              .format(target.size(), predict.size()))
-#
-#         max_val = (-predict).clamp(min=0)
-#         loss = predict - predict * target + max_val + ((-max_val).exp() + (-predict - max_val).exp()).log()
-#
-#         invprobs = F.logsigmoid(-predict * (target * 2.0 - 1.0))
-#         loss = (invprobs * self.gamma).exp() * loss
-#
-#         return loss.sum(dim=1)
+def Focal_Loss_from_git(y_true, y_pred, alpha=0.25, gamma=2, eps=1e-7):
+    """
+    focal loss for multi-class classification
+    fl(pt) = -alpha*(1-pt)^(gamma)*log(pt)
+    :param y_true: ground truth one-hot vector shape of [batch_size, nb_class]
+    :param y_pred: prediction after softmax shape of [batch_size, nb_class]
+    :param alpha:
+    :param gamma:
+    :return:
+    """
+    # # parameters
+    # alpha = 0.25
+    # gamma = 2
 
-# class FocalLoss(nn.Module):
-#     def __init__(self, gamma=2):
-#         super(FocalLoss, self).__init__()
-#         self.gamma = gamma
-#
-#     def forward(self, predict, target):
-#         if not (target.size() == predict.size()):
-#             raise ValueError("Target size ({}) must be the same as input size ({})"
-#                              .format(target.size(), predict.size()))
-#
-#         max_val = (-predict).clamp(min=0)
-#         loss = predict - predict * target + max_val + ((-max_val).exp() + (-predict - max_val).exp()).log()
-#
-#         invprobs = F.logsigmoid(-predict * (target * 2.0 - 1.0))
-#         loss = (invprobs * self.gamma).exp() * loss
-#
-#         return loss.sum(dim=1)
+    # To avoid divided by zero
+    y_pred += eps
+
+    # Cross entropy
+    ce = -y_true * np.log(y_pred)
+
+    # Not necessary to multiply y_true(cause it will multiply with CE which has set unconcerned index to zero ),
+    # but refer to the definition of p_t, we do it
+    weight = np.power(1 - y_pred, gamma) * y_true
+
+    # Now fl has a shape of [batch_size, nb_class]
+    # alpha should be a step function as paper mentioned, but it doesn't matter like reason mentioned above
+    # (CE has set unconcerned index to zero)
+    #
+    # alpha_step = tf.where(y_true, alpha*np.ones_like(y_true), 1-alpha*np.ones_like(y_true))
+    fl = ce * weight * alpha
+
+    # Both reduce_sum and reduce_max are ok
+    reduce_fl = fl.sum(dim=1)
+
+    return reduce_fl
+
+class FocalLoss0(nn.Module):
+    def __init__(self, gamma=2):
+        super().__init__()
+        self.gamma = gamma
+
+    def forward(self, input, target):
+        if not (target.size() == input.size()):
+            raise ValueError("Target size ({}) must be the same as input size ({})"
+                             .format(target.size(), input.size()))
+
+        max_val = (-input).clamp(min=0)
+        loss = input - input * target + max_val + \
+               ((-max_val).exp() + (-input - max_val).exp()).log()
+
+        invprobs = F.logsigmoid(-input * (target * 2.0 - 1.0))
+        loss = (invprobs * self.gamma).exp() * loss
+
+        return loss.sum(dim=1).mean()
+
+
+class FocalLossMultiLabel(nn.Module):
+    def __init__(self, gamma, weight):
+        super().__init__()
+        self.gamma = gamma
+        self.nll = nn.NLLLoss(weight=weight, reduce=False)
+
+    def forward(self, input, target):
+        loss = self.nll(input, target)
+
+        inv_probs = 1 - input.exp()
+        focal_weights = (inv_probs * target).sum(dim=1) ** self.gamma
+        loss = loss * focal_weights
+
+        return loss.mean()
 
 # class FocalLoss(nn.Module):
 #

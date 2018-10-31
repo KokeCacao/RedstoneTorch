@@ -71,7 +71,7 @@ pretrained_settings = {
     'se_resnext101_32x4d': {
         'imagenet': {
             'url': 'http://data.lip6.fr/cadene/pretrainedmodels/se_resnext101_32x4d-3b2fe3d8.pth',
-            'input_space': 'RGB',
+            'input_space': 'RGBY',
             'input_size': [4, 224, 224],
             'input_range': [0, 1],
             'mean': [0.485, 0.456, 0.406],
@@ -455,7 +455,7 @@ def se_resnext101_32x4d(num_classes=1000, pretrained='imagenet'):
 
 def se_resnext101_32x4d_modified(num_classes=1000, pretrained='imagenet'):
     model = SENet(SEResNeXtBottleneck, [3, 4, 23, 3], groups=32, reduction=16,
-                  dropout_p=0.0, inplanes=64, input_3x3=False,
+                  dropout_p=0.01, inplanes=64, input_3x3=False,
                   downsample_kernel_size=1, downsample_padding=0,
                   num_classes=num_classes)
     if pretrained is not None:

@@ -112,5 +112,17 @@ def f1_macro(y_preds, y_true, thresh=0.5, eps=1e-20):
     r = truepos.sum(axis=1) / (y_true.sum(axis=1) + eps)  # sum along axis=0 (classes)
     #  and calculate recall array
 
+
+    """Macro F1 calculates metrics for each label, 
+    and find their unweighted mean. (7 missing classes in LB) / (28 total classes) = 0.25, 
+    and if the organizer is interpreting 0/0 as 0, this explains 0.25 of the LB drop. 
+    The other 0.1 could be that public LB has more hard examples. 
+    This made me suspicious of if the public/private LB split is truly random. 
+    It is possible that private dataset has more balanced classes.
+    
+    https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69462
+    https://storage.googleapis.com/kaggle-forum-message-attachments/inbox/637434/44b045d6c4e1ddcd8ecbb9f8350f8dd1/cv-lb.png
+    """
+
     f1 = 2 * p * r / (p + r + eps)  # we calculate f1 on arrays
     return f1

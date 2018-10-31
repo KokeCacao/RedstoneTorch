@@ -179,7 +179,7 @@ class HPAData(data.Dataset):
 class TrainImgAugTransform:
     def __init__(self):
         self.aug = iaa.Sequential([
-            iaa.Scale({"height": 224, "width": 224}),
+            iaa.Scale({"height": config.AUGMENTATION_RESIZE, "width": config.AUGMENTATION_RESIZE}),
             iaa.Fliplr(0.5),
             iaa.Flipud(0.5),
             iaa.OneOf([iaa.Noop(), iaa.Add((-40, 40)), iaa.EdgeDetect(alpha=(0.0, 0.1)), iaa.Multiply((0.95, 1.05))], iaa.ContrastNormalization((0.95, 1.05))),
@@ -199,7 +199,7 @@ class TrainImgAugTransform:
 class TestImgAugTransform:
     def __init__(self):
         self.aug = iaa.Sequential([
-            iaa.Scale({"height": 224, "width": 224}),
+            iaa.Scale({"height": config.AUGMENTATION_RESIZE, "width": config.AUGMENTATION_RESIZE}),
             iaa.Fliplr(0.5),
             iaa.Flipud(0.5),
             iaa.OneOf([iaa.Noop(), iaa.Add((-20, 20)), iaa.EdgeDetect(alpha=(0.0, 0.1)), iaa.Multiply((0.98, 1.02))], iaa.ContrastNormalization((0.99, 1.01))),

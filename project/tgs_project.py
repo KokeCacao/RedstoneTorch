@@ -195,7 +195,7 @@ def eval_net(net, validation_loader, visualization, writer, epoch_num=0):
         masks_pred = net(image)
         """return: shape(N, iou)"""
         ious = iou_score(masks_pred, true_mask, threshold=0.5)
-        if config.EVAL_THRESHOLD_TEST:
+        if config.EVAL_IF_THRESHOLD_TEST:
             for threshold in config.EVAL_TRY_THRESHOLD:
                 iou_temp = iou_score(masks_pred, true_mask, threshold).mean()
                 threshold_pre = thresold_dict.get(threshold)

@@ -1,6 +1,8 @@
 import os
 
 import torch
+import torch.onnx
+from torch.autograd import Variable
 
 import config
 import numpy as np
@@ -96,6 +98,9 @@ def move_optimizer_to_cuda(optimizer):
                 if torch.is_tensor(param_state[k]):
                     param_state[k] = param_state[k].cuda()
 
+def save_onnx(cudaed_net, net_input_shape, dir, export_params=False, verbose=True):
+    dummy_input = Variable(torch.randn(net_input_shape)).cuda()
+    torch.onnx.export(cudaed_net, dummy_input, dir, export_params=export_params, verbose=verbose)
 
 def cuda(net):
     if config.TRAIN_GPU_ARG:
