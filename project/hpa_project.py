@@ -41,6 +41,7 @@ class HPAProject:
     # TODO: Zero padding in augmentation
     # TODO: Yes, using SGD with cosine annealing schedule. Also used Adadelta to start training, Padam for mid training, and SGD at the end. Then I freeze parts of the model and train the other layers. My current leading model is 2.3M params. Performs great locally, but public LB is 45% lower. (https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69462#412909)
     # TODO: Better augmentation
+    # TODO: Adjust weight init (in or out) and init dense layers
 
     """"TESTINGS"""
     # TODO: test visualize your network

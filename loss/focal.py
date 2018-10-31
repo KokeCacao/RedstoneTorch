@@ -58,7 +58,7 @@ def Focal_Loss_from_git(y_true, y_pred, alpha=0.25, gamma=2, eps=1e-7):
     fl = ce * weight * alpha
 
     # Both reduce_sum and reduce_max are ok
-    reduce_fl = fl.sum(dim=1)
+    reduce_fl = fl.sum(axis=1)
 
     return reduce_fl
 
