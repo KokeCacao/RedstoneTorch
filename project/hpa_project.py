@@ -263,8 +263,8 @@ class HPAEvaluation:
 
         self.best_id = np.empty((len(validation_loader)))
         self.worst_id = np.empty((len(validation_loader)))
-        self.best_loss = np.empty((len(validation_loader)))
-        self.worst_loss = np.empty((len(validation_loader)))
+        self.best_loss = np.ones((len(validation_loader)))
+        self.worst_loss = np.zeros((len(validation_loader)))
 
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(validation_loader, 0):
             """CALCULATE LOSS"""
@@ -272,11 +272,12 @@ class HPAEvaluation:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
             predict = net(image)
-            predict = torch.nn.Softmax()(predict)
+            predict = torch.nn.Softmax(dim=1)(predict)
 
             """LOSS"""
             loss = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
             loss.detach().cpu().numpy()
+            print(loss)
             self.epoch_losses.append(loss.flatten())
             for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
             np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
