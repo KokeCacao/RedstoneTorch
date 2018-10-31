@@ -176,6 +176,10 @@ class HPAProject:
         epoch_loss = 0
 
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(train_loader, 0):
+            """UPDATE LR"""
+            state = optimizer.state_dict()
+            state['state']['lr'] = config.TRAIN_COSINE(config.global_steps)
+            optimizer.load_state_dict(state)
 
             """TRAIN NET"""
             config.global_steps[fold] = config.global_steps[fold] + 1
@@ -183,6 +187,7 @@ class HPAProject:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
             predict = net(image)
+            predict = torch.nn.Softmax(predict)
 
             """LOSS"""
             loss = Focal_Loss_from_git(labels_0, predict)
@@ -261,6 +266,7 @@ class HPAEvaluation:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
             predict = net(image)
+            predict = torch.nn.Softmax(predict)
 
             """LOSS"""
             loss = Focal_Loss_from_git(labels_0, predict).detach().cpu().numpy()
