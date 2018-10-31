@@ -1,6 +1,4 @@
 # from https://www.kaggle.com/iafoss/pretrained-resnet34-with-rgby-0-448-public-lb
-import logging
-
 import torch
 import numpy as np
 
@@ -21,34 +19,15 @@ def Focal_Loss_from_git(y_true, y_pred, alpha=0.25, gamma=2, eps=1e-7):
     # alpha = 0.25
     # gamma = 2
 
-    try:
-        logging.debug("The ideal input of loss function is numpy array, converting it.")
-        if type(y_pred) is not np.ndarray: y_pred = y_pred.numpy()
-    except Exception as e:
-        logging.debug("The tensor is on gpu, trying to detach.")
-        try:
-            y_pred = y_pred.cpu().numpy()
-        except Exception as e:
-            y_pred = y_pred.detach().cpu().numpy()
-    try:
-        logging.debug("The ideal input of loss function is numpy array, converting it.")
-        if type(y_true) is not np.ndarray: y_true = y_true.numpy()
-    except Exception as e:
-        logging.debug("The tensor is on gpu, trying to detach.")
-        try:
-            y_true = y_true.detach().cpu().numpy()
-        except Exception as e:
-            y_true = y_true.cpu().numpy()
-
     # To avoid divided by zero
     y_pred += eps
 
     # Cross entropy
-    ce = -y_true * np.log(y_pred)
+    ce = -y_true * torch.log(y_pred)
 
     # Not necessary to multiply y_true(cause it will multiply with CE which has set unconcerned index to zero ),
     # but refer to the definition of p_t, we do it
-    weight = np.power(1 - y_pred, gamma) * y_true
+    weight = torch.pow(1 - y_pred, gamma) * y_true
 
     # Now fl has a shape of [batch_size, nb_class]
     # alpha should be a step function as paper mentioned, but it doesn't matter like reason mentioned above
@@ -58,7 +37,7 @@ def Focal_Loss_from_git(y_true, y_pred, alpha=0.25, gamma=2, eps=1e-7):
     fl = ce * weight * alpha
 
     # Both reduce_sum and reduce_max are ok
-    reduce_fl = fl.sum(axis=1)
+    reduce_fl = fl.sum(dim=1)
 
     return reduce_fl
 
