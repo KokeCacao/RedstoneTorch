@@ -165,8 +165,9 @@ class HPAProject:
         save_checkpoint_fold([x.state_dict() for x in nets], [x.state_dict() for x in optimizers])
 
         """DISPLAY"""
-        tensorboardwriter.write_eval_loss(self.writer, {"EpochLoss": evaluation.mean(), "EpochSTD": evaluation.std()}, config.epoch)
-        tensorboardwriter.write_loss_distribution(self.writer, np.array(list(itertools.chain.from_iterable(evaluation.epoch_losses))).flatten(), config.epoch)
+        if config.DISPLAY_HISTOGRAM:
+            tensorboardwriter.write_eval_loss(self.writer, {"EpochLoss": evaluation.mean(), "EpochSTD": evaluation.std()}, config.epoch)
+            tensorboardwriter.write_loss_distribution(self.writer, np.array(list(itertools.chain.from_iterable(evaluation.epoch_losses))).flatten(), config.epoch)
 
     def step_fold(self, fold, net, optimizer, batch_size, evaluation):
         self.fold_begin = datetime.now()
@@ -241,7 +242,8 @@ class HPAEvaluation:
             eval_epoch -> [... losses of one batch...]
         ]
         """
-        self.epoch_losses = []  # [loss.flatten()]
+        if config.DISPLAY_HISTOGRAM: self.epoch_losses = []  # [loss.flatten()]
+        self.mean_losses = []
         # self.epoch_dict = np.array([]) # [fold_loss_dict]
         self.f1_losses = np.array([])
 
@@ -283,7 +285,7 @@ class HPAEvaluation:
             loss = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
             loss = loss.detach().cpu().numpy()
             pbar.set_description("FocalLoss: {}".format(loss.mean()))
-            self.epoch_losses.append(loss.flatten())
+            if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(loss.flatten())
             for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
             np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
 
@@ -310,7 +312,7 @@ class HPAEvaluation:
         """LOSS"""
         f1 = f1_macro(predict_total, label_total).mean()
         tensorboardwriter.write_eval_loss(self.writer, {"FoldLoss/" + str(config.fold): np.array(fold_loss_dict.values()).mean(), "FoldF1/" + str(config.fold): f1}, config.global_steps[-1])
-        tensorboardwriter.write_pr_curve(self.writer, label_total, predict_total, config.global_steps[-1])
+        tensorboardwriter.write_pr_curve(self.writer, label_total, predict_total, config.global_steps[-1], config.fold)
         self.epoch_pred = np.concatenate((self.epoch_pred, predict_total), axis=0) if self.epoch_pred is not None else predict_total
         self.epoch_label = np.concatenate((self.epoch_label, label_total), axis=0) if self.epoch_label is not None else label_total
         del predict_total, label_total
@@ -318,15 +320,18 @@ class HPAEvaluation:
         # self.epoch_dict = np.concatenate((self.epoch_dict, [fold_loss_dict]), axis=0)
 
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-        return np.array(fold_loss_dict.values()).mean()
+        mean_loss = np.array(fold_loss_dict.values()).mean()
+        self.mean_losses.append(mean_loss)
+        return mean_loss
 
     def __int__(self):
         return self.mean()
 
     def mean(self, axis=None):
-        if axis == None: return np.array(list(itertools.chain.from_iterable(self.epoch_losses))).mean()
-        print("WARNING: self.epoch_losse may have different shape according to different shape of loss caused by different batch. Numpy cannot take the mean of it is baches shapes are different.")
-        return np.array(self.epoch_losses).mean(axis)
+        # if axis == None: return np.array(list(itertools.chain.from_iterable(self.epoch_losses))).mean()
+        # print("WARNING: self.epoch_losse may have different shape according to different shape of loss caused by different batch. Numpy cannot take the mean of it is baches shapes are different.")
+        # return np.array(self.epoch_losses).mean(axis)
+        return np.array(self.mean_losses).mean()
 
     def std(self, axis=None):
         if axis == None: return np.array(list(itertools.chain.from_iterable(self.epoch_losses))).std()

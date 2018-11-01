@@ -12,8 +12,8 @@ def write_loss(writer, loss_dict, global_step):
 def write_loss_distribution(writer, loss_list, global_step):
     writer.add_histogram("eval/loss_distribution", loss_list, global_step)
 
-def write_pr_curve(writer, label, predicted, global_step):
-    writer.add_pr_curve("eval/pr_curve", label, predicted, global_step)
+def write_pr_curve(writer, label, predicted, global_step, fold):
+    writer.add_pr_curve("eval/pr_curve/" + str(fold), label, predicted, global_step)
 
 def write_image(writer, F, global_step):
     writer.add_figure("eval/image", F, global_step)
