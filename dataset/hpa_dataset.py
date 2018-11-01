@@ -185,11 +185,13 @@ class HPAData(data.Dataset):
         :param indice: id
         :return: nparray image of (r, g, b, y) from 0~255
         """
-
+        print("idd",id)
         dir = self.load_img_dir
         if self.test: dir = config.DIRECTORY_TEST
         colors = ['red', 'green', 'blue', 'yellow']
         flags = cv2.IMREAD_GRAYSCALE
+        imgs = cv2.imread(os.path.join(dir, id + '_' + 'red' + self.img_suffix), flags)
+        imgs = [cv2.imread(os.path.join(dir, id + '_' + color + self.img_suffix), flags) for color in colors]
         imgs = [cv2.imread(os.path.join(dir, id + '_' + color + self.img_suffix), flags).astype(np.uint8) for color in colors]
         return np.stack(imgs, axis=-1)
 
