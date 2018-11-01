@@ -197,12 +197,12 @@ class HPAProject:
             loss.sum().backward()
             optimizer.step()
             loss = loss.detach().cpu().numpy()
-            f1 = f1_macro(predict, labels_0).mean()
+            # f1 = f1_macro(predict, labels_0).mean()
 
             """OUTPUT"""
             train_duration = self.fold_begin - self.train_begin
-            pbar.set_description("SinceTrain: {}; Epoch: {}; Fold: {}; GlobalStep: {}; BatchIndex: {}/{}; Loss: {}; F1: {}".format(train_duration, config.epoch, config.fold, config.global_steps[fold], batch_index, len(train_sampler)/config.MODEL_BATCH_SIZE, loss.flatten().mean(), f1))
-            tensorboardwriter.write_loss(self.writer, {'Epoch/' + str(config.fold): config.epoch, 'TrainLoss/' + str(config.fold): loss.flatten().mean(),  'F1Loss/' + str(config.fold): f1}, config.global_steps[fold])
+            pbar.set_description("Since: {}; Epoch: {}; Fold: {}; Step: {}; Batch: {}/{}; Loss: {:.4f}".format(train_duration, config.epoch, config.fold, config.global_steps[fold], batch_index, len(train_sampler)/config.MODEL_BATCH_SIZE, loss.flatten().mean()))
+            tensorboardwriter.write_loss(self.writer, {'Epoch/' + str(config.fold): config.epoch, 'TrainLoss/' + str(config.fold): loss.flatten().mean()}, config.global_steps[fold])
 
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display
@@ -289,9 +289,7 @@ class HPAEvaluation:
 
             """EVALUATE LOSS"""
             min_loss = min(fold_loss_dict.values())
-            print("min-loss = ", min_loss)
             min_key = min(fold_loss_dict, key=fold_loss_dict.get)
-            print("min-key = ", min_key)
             np.append(self.best_loss, min_loss)
             np.append(self.best_id, min_key)
             max_loss = max(fold_loss_dict.values())
@@ -308,7 +306,7 @@ class HPAEvaluation:
             if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
         """LOSS"""
         f1 = f1_macro(predict_total, label_total).mean()
-        tensorboardwriter.write_loss(self.writer, {"FoldLoss/" + str(config.fold): np.array(fold_loss_dict.values()).mean(), "FoldF1/" + str(config.fold): f1}, config.global_steps[-1])
+        tensorboardwriter.write_eval_loss(self.writer, {"FoldLoss/" + str(config.fold): np.array(fold_loss_dict.values()).mean(), "FoldF1/" + str(config.fold): f1}, config.global_steps[-1])
         tensorboardwriter.write_pr_curve(self.writer, label_total, predict_total, config.global_steps[-1])
         self.epoch_pred = np.concatenate((self.epoch_pred, predict_total), axis=0) if self.epoch_pred is not None else predict_total
         self.epoch_label = np.concatenate((self.epoch_label, label_total), axis=0) if self.epoch_label is not None else label_total
