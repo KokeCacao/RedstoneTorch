@@ -348,7 +348,7 @@ class HPAEvaluation:
         return (self.worst_id, self.worst_loss)
 
     def display(self, fold, ids, transfereds, untransfereds, labels, predicteds, losses):
-        tensorboardwriter.write_pr_curve(self.writer, labels, predicteds, config.global_steps[fold])
+        # tensorboardwriter.write_pr_curve(self.writer, labels, predicteds, config.global_steps[fold], fold)
 
         for index, (id, transfered, untransfered, label, predicted, loss) in enumerate(zip(ids, transfereds, untransfereds, labels, predicteds, losses)):
             if index != 0: continue
