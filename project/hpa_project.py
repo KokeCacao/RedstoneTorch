@@ -175,7 +175,8 @@ class HPAProject:
 
         epoch_loss = 0
 
-        for batch_index, (ids, image, labels_0, image_for_display) in enumerate(train_loader, 0):
+        pbar = tqdm(train_loader)
+        for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
             """UPDATE LR"""
             state = optimizer.state_dict()
             state['state']['lr'] = config.TRAIN_COSINE(config.global_steps)
@@ -201,7 +202,7 @@ class HPAProject:
             """OUTPUT"""
             train_duration = self.fold_begin - self.train_begin
             epoch_duration = self.fold_begin - self.epoch_begin
-            print("""SinceTrain: {}; SinceEpoch: {}; Epoch: {}; Fold: {}; GlobalStep: {}; BatchIndex: {}/{}; Loss: {}; F1: {}""".format(train_duration, epoch_duration, config.epoch, config.fold, config.global_steps[fold], batch_index, len(train_sampler)/config.MODEL_BATCH_SIZE, loss.flatten().mean(), f1))
+            pbar.set_description("SinceTrain: {}; SinceEpoch: {}; Epoch: {}; Fold: {}; GlobalStep: {}; BatchIndex: {}/{}; Loss: {}; F1: {}".format(train_duration, epoch_duration, config.epoch, config.fold, config.global_steps[fold], batch_index, len(train_sampler)/config.MODEL_BATCH_SIZE, loss.flatten().mean(), f1))
             tensorboardwriter.write_loss(self.writer, {'Epoch/' + str(config.fold): config.epoch, 'TrainLoss/' + str(config.fold): loss.flatten().mean(),  'F1Loss/' + str(config.fold): f1}, config.global_steps[fold])
 
             """CLEAN UP"""
@@ -267,7 +268,8 @@ class HPAEvaluation:
         self.best_loss = np.array([])
         self.worst_loss = np.array([])
 
-        for batch_index, (ids, image, labels_0, image_for_display) in enumerate(validation_loader, 0):
+        pbar = tqdm(validation_loader)
+        for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
             """CALCULATE LOSS"""
             if config.TRAIN_GPU_ARG:
                 image = image.cuda()
@@ -278,6 +280,7 @@ class HPAEvaluation:
             """LOSS"""
             loss = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
             loss = loss.detach().cpu().numpy()
+            pbar.set_description("FocalLoss: {}".format(loss.mean()))
             self.epoch_losses.append(loss.flatten())
             for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
             np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
