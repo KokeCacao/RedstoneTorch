@@ -63,6 +63,8 @@ if __name__ == '__main__':
     """
     PLAYGROUND
     """
+    config.DEBUG_TEST_CODE = False
+    config.DEBUG_LAPTOP = False
     if not config.DEBUG_TEST_CODE:
         if config.DEBUG_TRAISE_GPU: sys.settrace(gpu_profile)
         load_args()

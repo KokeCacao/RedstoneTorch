@@ -81,6 +81,7 @@ to open tensorboad's display on port `6006` of your server after you run `train.
 Use predict.py to get the submit data table
 ```commandline
 python predict.py --projecttag 2018-10-30-04-07-40-043900-test --versiontag test2 --loadfile test1-CP1.pth
+
 ```
 After the prediction, you probably want to download the .csv file, the directory is here:
 ```commandline
