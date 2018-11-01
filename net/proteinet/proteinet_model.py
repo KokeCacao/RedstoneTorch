@@ -388,6 +388,10 @@ def modified_initialize_pretrained_model(model, num_classes, settings):
 
     model_state = model.state_dict()
     pretrained_state = {k: v for k, v in state_dict.items() if k in model_state and v.size() == model_state[k].size()}
+    print("start")
+    for k, v in pretrained_state.items():
+        print(k)
+    print("end")
     # print("Pretrained State: {}".format(pretrained_state))
     model_state.update(pretrained_state)
     model.load_state_dict(model_state, strict=False)
