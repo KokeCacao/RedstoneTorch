@@ -66,7 +66,9 @@ class HPAProject:
             if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
             self.optimizers.append(torch.optim.Adam(params=net.parameters(), lr=config.MODEL_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY))  # all parameter learnable
-            self.nets.append(cuda(net))
+            net = cuda(net)
+            self.nets.append(net)
+            if fold is 1 and config.DISPLAY_SAVE_ONNX: save_onnx(net, (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD+"-"+str(net)+".onnx")
         load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
 
         self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG)
