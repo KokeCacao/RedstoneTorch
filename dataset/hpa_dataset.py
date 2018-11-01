@@ -185,7 +185,6 @@ class HPAData(data.Dataset):
         :param indice: id
         :return: nparray image of (r, g, b, y) from 0~255
         """
-        print("idd",id)
         dir = self.load_img_dir
         if self.test: dir = config.DIRECTORY_TEST
         colors = ['red', 'green', 'blue', 'yellow']
