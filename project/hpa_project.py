@@ -403,7 +403,7 @@ class HPAPrediction:
                 f.write('Id,Predicted\n')
                 pbar = tqdm(self.dataset.id)
                 for index, id in enumerate(pbar):
-                    input = self.dataset.get_load_image_by_indice(id)
+                    input = self.dataset.get_load_image_by_id(id)
                     input = transform(ids=None, image_0=input, labels_0=None, train=False, val=False).unsqueeze(0)
 
                     if config.TRAIN_GPU_ARG: input = input.cuda()
