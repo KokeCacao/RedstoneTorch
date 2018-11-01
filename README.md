@@ -194,7 +194,7 @@ Please use `pip install` to install these dependencies.
 16 directories, 60 files
 ```
 
-## Model
+## Network Model
 ```
 module.layer0.conv1.weight
 module.layer0.bn1.weight

@@ -205,7 +205,7 @@ class HPAProject:
 
             """OUTPUT"""
             train_duration = self.fold_begin - self.train_begin
-            pbar.set_description("Since: {}; Epoch: {}; Fold: {}; Step: {}; Batch: {}/{}; Loss: {:.4f}".format(train_duration, config.epoch, config.fold, config.global_steps[fold], batch_index, len(train_sampler)/config.MODEL_BATCH_SIZE, loss.flatten().mean()))
+            pbar.set_description("Epoch:{} Fold:{} Step:{} Batch:{}/{} Loss:{:.4f}".format(config.epoch, config.fold, config.global_steps[fold], batch_index, len(train_sampler)/config.MODEL_BATCH_SIZE, loss.flatten().mean()))
             tensorboardwriter.write_loss(self.writer, {'Epoch/' + str(config.fold): config.epoch, 'TrainLoss/' + str(config.fold): loss.flatten().mean()}, config.global_steps[fold])
 
             """CLEAN UP"""
