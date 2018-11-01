@@ -68,9 +68,9 @@ class HPAProject:
             self.optimizers.append(torch.optim.Adam(params=net.parameters(), lr=config.MODEL_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY))  # all parameter learnable
             net = cuda(net)
             self.nets.append(net)
-            if fold == 0 and config.DISPLAY_SAVE_ONNX:
-                print("save onnx")
-                save_onnx(net, (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), "~/RedstoneTorch/test.onnx")
+            for name, param in net.parameters():
+                if param.requires_grad:
+                    print (name)
         load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
 
         self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG)
