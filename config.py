@@ -35,7 +35,7 @@ PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":
 
 DISPLAY_HISTOGRAM = False
 DISPLAY_VISUALIZATION = True
-DISPLAY_SAVE_ONNX = False
+DISPLAY_SAVE_ONNX = True
 
 EVAL_IF_THRESHOLD_TEST = True
 EVAL_TRY_THRESHOLD = np.linspace(0.0, 1.0, 1000)
