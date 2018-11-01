@@ -1,6 +1,5 @@
 import itertools
 import os
-import sklearn
 import sys
 from datetime import datetime
 
@@ -8,6 +7,7 @@ import matplotlib as mpl
 import numpy as np
 import torch
 import pandas as pd
+from sklearn import metrics
 from torch.utils import data
 from tqdm import tqdm
 
@@ -140,7 +140,7 @@ class HPAProject:
 
         """LOSS"""
         f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
-        f2 = sklearn.metrics.f1_score(evaluation.epoch_label > 0.5, evaluation.epoch_pred > 0.5, average='macro')
+        f2 = metrics.f1_score(evaluation.epoch_label > 0.5, evaluation.epoch_pred > 0.5, average='macro') # sklearn does not automatically import matrics.
         print("F1 by sklearn = ".format(f2))
         tensorboardwriter.write_loss(self.writer, {"EpochLoss": f1}, config.epoch)
 
@@ -201,8 +201,7 @@ class HPAProject:
 
             """OUTPUT"""
             train_duration = self.fold_begin - self.train_begin
-            epoch_duration = self.fold_begin - self.epoch_begin
-            pbar.set_description("SinceTrain: {}; SinceEpoch: {}; Epoch: {}; Fold: {}; GlobalStep: {}; BatchIndex: {}/{}; Loss: {}; F1: {}".format(train_duration, epoch_duration, config.epoch, config.fold, config.global_steps[fold], batch_index, len(train_sampler)/config.MODEL_BATCH_SIZE, loss.flatten().mean(), f1))
+            pbar.set_description("SinceTrain: {}; Epoch: {}; Fold: {}; GlobalStep: {}; BatchIndex: {}/{}; Loss: {}; F1: {}".format(train_duration, config.epoch, config.fold, config.global_steps[fold], batch_index, len(train_sampler)/config.MODEL_BATCH_SIZE, loss.flatten().mean(), f1))
             tensorboardwriter.write_loss(self.writer, {'Epoch/' + str(config.fold): config.epoch, 'TrainLoss/' + str(config.fold): loss.flatten().mean(),  'F1Loss/' + str(config.fold): f1}, config.global_steps[fold])
 
             """CLEAN UP"""
