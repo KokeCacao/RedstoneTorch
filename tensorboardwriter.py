@@ -21,6 +21,9 @@ def write_image(writer, F, global_step):
 def write_eval_loss(writer, loss_dict, global_step):
     writer.add_scalars('eval/loss_scalar', loss_dict, global_step)
 
+def write_epoch_loss(writer, loss_dict, epoch):
+    writer.add_scalars('eval/loss_epoch', loss_dict, epoch)
+
 def write_best_img(writer, img, label, id, loss, fold):
     F = plt.imshow(img)
     plt.title("id: {}; label: {}; loss: {}".format(id, label, loss))

@@ -48,9 +48,8 @@ class HPAProject:
     # TODO: test f1 score output and curve
 
     """"READINGS"""
+
     # TODO: https://www.proteinatlas.org/learn/dictionary/cell/microtubule+organizing+center+3; https://www.proteinatlas.org/learn/dictionary/cell
-
-
 
     def __init__(self, writer):
         self.writer = writer
@@ -77,6 +76,7 @@ class HPAProject:
         self.folded_samplers = self.dataset.get_fold_sampler(fold=config.MODEL_FOLD)
 
         self.run()
+
     def run(self):
         try:
 
@@ -144,9 +144,9 @@ class HPAProject:
 
         """LOSS"""
         f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
-        f2 = metrics.f1_score(evaluation.epoch_label > 0.5, evaluation.epoch_pred > 0.5, average='macro') # sklearn does not automatically import matrics.
+        f2 = metrics.f1_score(evaluation.epoch_label > 0.5, evaluation.epoch_pred > 0.5, average='macro')  # sklearn does not automatically import matrics.
         print("F1 by sklearn = ".format(f2))
-        tensorboardwriter.write_loss(self.writer, {"EpochLoss": f1}, config.epoch)
+        tensorboardwriter.write_epoch_loss(self.writer, {"EpochLoss": f1}, config.epoch)
 
         """THRESHOLD"""
         if config.EVAL_IF_THRESHOLD_TEST:
@@ -183,7 +183,7 @@ class HPAProject:
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
             """UPDATE LR"""
             state = optimizer.state_dict()
-            state['state']['lr'] = config.TRAIN_COSINE(config.global_steps)
+            state['state']['lr'] = config.TRAIN_COSINE(config.global_steps[fold])
             optimizer.load_state_dict(state)
 
             """TRAIN NET"""
@@ -192,7 +192,7 @@ class HPAProject:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
             predict = net(image)
-            predict = torch.nn.Softmax(dim=1)(predict) # TODO: dim really = 1?
+            predict = torch.nn.Softmax(dim=1)(predict)  # TODO: dim really = 1?
 
             """LOSS"""
             loss = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
@@ -204,8 +204,7 @@ class HPAProject:
             # f1 = f1_macro(predict, labels_0).mean()
 
             """OUTPUT"""
-            train_duration = self.fold_begin - self.train_begin
-            pbar.set_description("Epoch:{} Fold:{} Step:{} Batch:{}/{} Loss:{:.4f}".format(config.epoch, config.fold, config.global_steps[fold], batch_index, len(train_sampler)/config.MODEL_BATCH_SIZE, loss.flatten().mean()))
+            pbar.set_description("Epoch:{} Fold:{} Step:{} Batch:{}/{} Loss:{:.4f}".format(config.epoch, config.fold, config.global_steps[fold], batch_index, len(train_sampler) / config.MODEL_BATCH_SIZE, loss.flatten().mean()))
             tensorboardwriter.write_loss(self.writer, {'Epoch/' + str(config.fold): config.epoch, 'TrainLoss/' + str(config.fold): loss.flatten().mean()}, config.global_steps[fold])
 
             """CLEAN UP"""
@@ -219,7 +218,7 @@ class HPAProject:
         """.format(config.epoch, config.fold, epoch_loss / (batch_index + 1)))
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
-        loss = np.array(list(fold.values() for fold in evaluation.eval_fold(net, validation_loader).epoch_dict)).mean()
+        loss = evaluation.eval_fold(net, validation_loader)
         print('Validation Dice Coeff: {}'.format(loss))
         # if config.DISPLAY_HISTOGRAM:
         #     for i, (name, param) in enumerate(net.named_parameters()):
@@ -242,8 +241,8 @@ class HPAEvaluation:
             eval_epoch -> [... losses of one batch...]
         ]
         """
-        self.epoch_losses = [] # [loss.flatten()]
-        self.epoch_dict = np.array([]) # [fold_loss_dict]
+        self.epoch_losses = []  # [loss.flatten()]
+        # self.epoch_dict = np.array([]) # [fold_loss_dict]
         self.f1_losses = np.array([])
 
         self.best_id = None
@@ -316,13 +315,10 @@ class HPAEvaluation:
         self.epoch_label = np.concatenate((self.epoch_label, label_total), axis=0) if self.epoch_label is not None else label_total
         del predict_total, label_total
 
-        self.epoch_dict = np.concatenate((self.epoch_dict, [fold_loss_dict]), axis=0)
-        del fold_loss_dict
-
+        # self.epoch_dict = np.concatenate((self.epoch_dict, [fold_loss_dict]), axis=0)
 
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-        return self
-
+        return np.array(fold_loss_dict.values()).mean()
 
     def __int__(self):
         return self.mean()
@@ -375,8 +371,9 @@ class HPAEvaluation:
             plt.grid(False)
             tensorboardwriter.write_image(self.writer, F, config.global_steps[fold])
 
+
 class HPAPrediction:
-    def __init__(self, writer, threshold = 0.5):
+    def __init__(self, writer, threshold=0.5):
         self.threshold = threshold
         self.nets = []
         for fold in range(config.MODEL_FOLD):
@@ -388,11 +385,12 @@ class HPAPrediction:
         load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
         if config.DISPLAY_SAVE_ONNX:
             for net in self.nets:
-                save_onnx(net, (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD+"-"+str(net)+".onnx")
+                save_onnx(net, (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + "-" + str(net) + ".onnx")
 
         self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG, test=True)
 
         self.run()
+
     def run(self):
         torch.no_grad()
         """Used for Kaggle submission: predicts and encode all test images"""
@@ -414,7 +412,6 @@ class HPAPrediction:
                     predict = (net(input).detach().cpu().numpy() > self.threshold).astype(np.int16)
                     encoded = self.dataset.multilabel_binarizer.inverse_transform(predict)
                     encoded = list(encoded[0])
-
 
                     f.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
                     pbar.set_description("Fold: {}; Index: {}; Out: {}".format(fold, index, encoded))
