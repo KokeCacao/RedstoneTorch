@@ -144,6 +144,8 @@ class HPAProject:
 
         """LOSS"""
         f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
+        print(evaluation.epoch_label > 0.5)
+        print(evaluation.epoch_pred>0.5)
         f2 = metrics.f1_score(evaluation.epoch_label > 0.5, evaluation.epoch_pred > 0.5, average='macro')  # sklearn does not automatically import matrics.
         print("F1 by sklearn = ".format(f2))
         tensorboardwriter.write_epoch_loss(self.writer, {"EpochLoss": f1}, config.epoch)
