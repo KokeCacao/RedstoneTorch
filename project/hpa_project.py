@@ -60,16 +60,19 @@ class HPAProject:
         self.optimizers = []
         self.nets = []
         for fold in range(config.MODEL_FOLD):
-            print("     Creating Fold: #{}".format(fold))
-            net = se_resnext101_32x4d_modified(num_classes=config.TRAIN_NUMCLASS, pretrained='imagenet')
-            if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
+            if fold + 1 > config.MODEL_TRAIN_FOLD:
+                print("     Junping Fold: #{}".format(fold))
+            else:
+                print("     Creating Fold: #{}".format(fold))
+                net = se_resnext101_32x4d_modified(num_classes=config.TRAIN_NUMCLASS, pretrained='imagenet')
+                if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
-            self.optimizers.append(torch.optim.Adam(params=net.parameters(), lr=config.MODEL_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY))  # all parameter learnable
-            net = cuda(net)
-            self.nets.append(net)
-            # for name, param in net.named_parameters():
-            #     if param.requires_grad:
-            #         print (name)
+                self.optimizers.append(torch.optim.Adam(params=net.parameters(), lr=config.MODEL_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY))  # all parameter learnable
+                net = cuda(net)
+                self.nets.append(net)
+                # for name, param in net.named_parameters():
+                #     if param.requires_grad:
+                #         print (name)
         load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
 
         self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG)
@@ -202,7 +205,10 @@ class HPAProject:
             optimizer.zero_grad()
             loss.sum().backward()
             optimizer.step()
+
+            """DETATCH"""
             loss = loss.detach().cpu().numpy()
+            labels_0 = labels_0.cpu().numpy()
             # f1 = f1_macro(predict, labels_0).mean()
 
             """OUTPUT"""
@@ -211,6 +217,7 @@ class HPAProject:
 
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display
+            del predict, loss
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
 
         print("""
@@ -226,6 +233,7 @@ class HPAProject:
         #     for i, (name, param) in enumerate(net.named_parameters()):
         #         print("Calculating Histogram #{}".format(i))
         #         writer.add_histogram(name, param.clone().cpu().data.numpy(), config.epoch)
+        del pbar
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
 
 
@@ -284,14 +292,18 @@ class HPAEvaluation:
 
             """LOSS"""
             loss = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
+            np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
+
+            """DETATCH"""
             loss = loss.detach().cpu().numpy()
+            labels_0 = labels_0.cpu().numpy()
+
+            """PRINT"""
             pbar.set_description("FocalLoss: {}".format(loss.mean()))
             if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(loss.flatten())
             for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
-            np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
-
             predict_total = np.concatenate((predict_total, predict.detach().cpu().numpy()), axis=0) if predict_total is not None else predict.detach().cpu().numpy()
-            label_total = np.concatenate((label_total, labels_0.cpu().numpy()), axis=0) if label_total is not None else labels_0.cpu().numpy()
+            label_total = np.concatenate((label_total, labels_0), axis=0) if label_total is not None else labels_0
 
             """EVALUATE LOSS"""
             min_loss = min(fold_loss_dict.values())
@@ -304,10 +316,11 @@ class HPAEvaluation:
             np.append(self.worst_id, max_key)
 
             """DISPLAY"""
-            if config.DISPLAY_VISUALIZATION and batch_index == 0 and config.fold == 0: self.display(config.fold, ids, image, image_for_display, labels_0, predict, loss)
+            if config.DISPLAY_VISUALIZATION and batch_index < 5: self.display(config.fold, ids, image, image_for_display, labels_0, predict, loss)
 
             """CLEAN UP"""
-            del ids, image, labels_0, image_for_display, predict, loss
+            del ids, image, labels_0, image_for_display
+            del predict, loss
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
         """LOSS"""
