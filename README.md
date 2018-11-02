@@ -56,7 +56,7 @@ You can also use the following flags to train
 We strongly recommend you use some tags to make sure the program runs correctly
 ```commandline
 cd ~/RedstoneTorch
-python train.py --projecttag test1 --versiontag test1 --resume False
+python train.py --projecttag base --versiontag base1 --resume False
 ```
 
 If you want to load from previous model to continue trainning progress:
