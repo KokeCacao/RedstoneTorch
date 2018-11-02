@@ -3,7 +3,10 @@
 
 
 ## Models
+```commandline
+python train.py --projecttag base --versiontag base1 --resume False //memory leak 8827 at step 1.3k, from 4788
 
+```
 
 ## Usage
 The folowing instructions are made so that you can use this library
@@ -56,7 +59,7 @@ You can also use the following flags to train
 We strongly recommend you use some tags to make sure the program runs correctly
 ```commandline
 cd ~/RedstoneTorch
-python train.py --projecttag base --versiontag base1 --resume False
+python train.py --projecttag mem --versiontag mem1 --resume False
 ```
 
 If you want to load from previous model to continue trainning progress:
