@@ -36,15 +36,21 @@ def load_args():
     args = get_args()
     if args.versiontag: config.versiontag = args.versiontag
     if args.projecttag: config.PROJECT_TAG = args.projecttag
+    config.TRAIN_RESUME = True if args.resume == "True" else False
+
     if args.loadfile:
-        config.TRAIN_RESUME = True if args.resume == "True" else False
         if config.TRAIN_RESUME:
             config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.projecttag + "/" + args.loadfile
             config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
         else:
-            config.PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + config.versiontag
+            config.PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + config.versiontag # change default project tag
             config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.projecttag + "/" + args.loadfile
             config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
+    else:
+        config.DIRECTORY_LOAD = None
+        config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
+
+
 
 
 def reproduceability():
