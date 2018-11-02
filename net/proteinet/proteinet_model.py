@@ -321,7 +321,7 @@ class SENet(nn.Module):
         # self.avg_pool = nn.AvgPool2d(7, stride=1)
         self.glob_pool = nn.AdaptiveAvgPool2d(7)
         self.dropout = nn.Dropout(dropout_p) if dropout_p is not None else None
-        self.last_linear = nn.Linear(512 * block.expansion, num_classes)
+        self.out_linear = nn.Linear(512 * block.expansion, num_classes)
 
         """WEIGHT INIT"""
         for m in self.modules():
@@ -364,7 +364,7 @@ class SENet(nn.Module):
         if self.dropout is not None:
             x = self.dropout(x)
         x = x.view(x.size(0), -1)
-        x = self.last_linear(x)
+        x = self.out_linear(x)
         return x
 
     def forward(self, x):
