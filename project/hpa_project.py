@@ -333,6 +333,7 @@ class HPAEvaluation:
             np.append(self.worst_id, max_key)
 
             """DISPLAY"""
+            tensorboardwriter.write_memory(self.writer, "eval")
             if config.DISPLAY_VISUALIZATION and batch_index < 5: self.display(config.fold, ids, image, image_for_display, labels_0, predict, loss)
 
             """CLEAN UP"""

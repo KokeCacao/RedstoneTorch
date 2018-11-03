@@ -29,10 +29,14 @@ def write_memory(writer, arg):
         torch.cuda.empty_cache()  # release gpu memory
         sum = 0
         for key, value in get_gpu_memory_map().items():
-            writer.add_scalars('memory/GPU', {"GPU-{}-{}".format(str(key), arg): value}, t)
+            writer.add_scalars('stats/GPU-Memory', {"GPU-{}-{}".format(str(key), arg): value}, t)
             sum = sum + value
-        writer.add_scalars('memory/GPU', {"GPU-Sum-{}".format(arg): sum}, t)
-    writer.add_scalars('memory/CPU', {"CPU-Sum-{}".format(arg): psutil.cpu_percent()}, t)
+        writer.add_scalars('stats/GPU-Memory', {"GPU-Sum-{}".format(arg): sum}, t)
+    writer.add_scalars('stats/CPU-Usage', {"CPU-Sum-{}".format(arg): psutil.cpu_percent()}, t)
+
+    mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')  # e.g. 4015976448
+    mem_gib = mem_bytes / (1024. ** 3)
+    writer.add_scalars('stats/CPU-Memory', {"CPU-Sum-{}".format(arg): mem_gib}, t)
     # if psutil.virtual_memory() != None: self.writer.add_scalars('memory/Physical', {"Physical_Mem Usage": psutil.virtual_memory()}, self.count)
 
 def get_gpu_memory_map():

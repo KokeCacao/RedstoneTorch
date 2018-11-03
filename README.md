@@ -33,7 +33,7 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 //CPU memory leak, GPU fine
 =
 python train.py --projecttag mem4 --versiontag mem4 --resume False
-python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-03-18-58-57-766148-mem4/ --port=6006
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-03-19-02-40-014830-mem4/ --port=6006
 //open extraneous things, clean-up loss.detach(), clean cache() outside of the epoch(), del more things
 //add f1
 
@@ -120,6 +120,16 @@ python predict.py --projecttag 2018-10-30-04-07-40-043900-test --versiontag test
 After the prediction, you probably want to download the .csv file, the directory is here:
 ```commandline
 RedstoneTorch/model/2018-10-30-04-07-40-043900-test/test1-CP1.pth-test-0.csv
+```
+## GCP Monitor and Logging
+```commandline
+# To install the Stackdriver monitoring agent:
+$ curl -sSO https://dl.google.com/cloudagents/install-monitoring-agent.sh
+$ sudo bash install-monitoring-agent.sh
+
+# To install the Stackdriver logging agent:
+$ curl -sSO https://dl.google.com/cloudagents/install-logging-agent.sh
+$ sudo bash install-logging-agent.sh
 ```
 
 ## Dependencies
