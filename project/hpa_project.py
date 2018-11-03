@@ -1,6 +1,7 @@
 import itertools
 import os
 import sys
+import time
 from datetime import datetime
 
 import matplotlib as mpl
@@ -16,7 +17,7 @@ import config
 import tensorboardwriter
 from dataset.hpa_dataset import HPAData, train_collate, val_collate, transform
 from gpu import gpu_profile
-from loss.f1 import competitionMetric, f1_macro
+from loss.f1 import competitionMetric, f1_macro, Differenciable_F1
 from loss.focal import FocalLoss, FocalLoss_reduced, Focal_Loss_from_git
 from net.proteinet.proteinet_model import se_resnext101_32x4d_modified
 from utils import encode
@@ -90,8 +91,10 @@ class HPAProject:
                                 optimizers=self.optimizers,
                                 batch_size=config.MODEL_BATCH_SIZE
                                 )
-                # """SAVE"""
-                # save_checkpoint_fold([x.state_dict() for x in self.nets], [x.state_dict() for x in self.optimizers])
+                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                """SAVE"""
+                save_checkpoint_fold([x.state_dict() for x in self.nets], [x.state_dict() for x in self.optimizers])
+            if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
         except KeyboardInterrupt as e:
             print(e)
@@ -132,50 +135,50 @@ class HPAProject:
         #             {'params': net.module.dec0.parameters(), 'lr': 1e-3},
         #             {'params': net.module.final.parameters(), 'lr': 0.0015}], lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay) # all parameter learnable
 
-
+        evaluation = HPAEvaluation(self.writer)
         for fold, (net, optimizer) in enumerate(zip(nets, optimizers)):
-            evaluation = HPAEvaluation(self.writer)
             self.step_fold(fold, net, optimizer, batch_size, evaluation)
+            if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
-        # """DISPLAY"""
-        # best_id, best_loss = evaluation.best()
-        # worst_id, worst_loss = evaluation.worst()
-        # for fold, (best_id, best_loss, worst_id, worst_loss) in enumerate(zip(best_id, best_loss, worst_id, worst_loss)):
-        #     best_img = self.dataset.get_load_image_by_id(best_id)
-        #     best_label = self.dataset.get_load_label_by_id(best_id)
-        #     worst_img = self.dataset.get_load_image_by_id(worst_id)
-        #     worst_label = self.dataset.get_load_label_by_id(worst_id)
-        #     tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, fold=fold)
-        #     tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
-        #
-        # """LOSS"""
-        # f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
-        # f2 = metrics.f1_score((evaluation.epoch_label > 0.5).astype(np.int16), (evaluation.epoch_pred > 0.5).astype(np.int16), average='macro')  # sklearn does not automatically import matrics.
-        # print("F1 by sklearn = ".format(f2))
-        # tensorboardwriter.write_epoch_loss(self.writer, {"EpochLoss": f1}, config.epoch)
-        # tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
-        #
-        # """THRESHOLD"""
-        # if config.EVAL_IF_THRESHOLD_TEST:
-        #     best_threshold = 0.0
-        #     best_val = 0.0
-        #     pbar = tqdm(config.EVAL_TRY_THRESHOLD)
-        #     for threshold in pbar:
-        #         score = f1_macro(evaluation.epoch_pred, evaluation.epoch_label, thresh=threshold).mean()
-        #         tensorboardwriter.write_threshold(self.writer, {"Fold/{}".format(config.fold): score}, threshold)
-        #         if score > best_val:
-        #             best_threshold = threshold
-        #             best_val = score
-        #         pbar.set_description("Threshold: {}; F1: {}".format(threshold, score))
-        #     print("BestThreshold: {}, F1: {}".format(best_threshold, best_val))
-        #
-        # """DISPLAY"""
-        # if config.DISPLAY_HISTOGRAM:
-        #     tensorboardwriter.write_eval_loss(self.writer, {"EpochLoss": evaluation.mean(), "EpochSTD": evaluation.std()}, config.epoch)
-        #     tensorboardwriter.write_loss_distribution(self.writer, np.array(list(itertools.chain.from_iterable(evaluation.epoch_losses))).flatten(), config.epoch)
-        #
-        # """CLEAN UP"""
-        # del evaluation
+        """DISPLAY"""
+        best_id, best_loss = evaluation.best()
+        worst_id, worst_loss = evaluation.worst()
+        for fold, (best_id, best_loss, worst_id, worst_loss) in enumerate(zip(best_id, best_loss, worst_id, worst_loss)):
+            best_img = self.dataset.get_load_image_by_id(best_id)
+            best_label = self.dataset.get_load_label_by_id(best_id)
+            worst_img = self.dataset.get_load_image_by_id(worst_id)
+            worst_label = self.dataset.get_load_label_by_id(worst_id)
+            tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, fold=fold)
+            tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
+
+        """LOSS"""
+        f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
+        f2 = metrics.f1_score((evaluation.epoch_label > 0.5).astype(np.int16), (evaluation.epoch_pred > 0.5).astype(np.int16), average='macro')  # sklearn does not automatically import matrics.
+        print("F1 by sklearn = ".format(f2))
+        tensorboardwriter.write_epoch_loss(self.writer, {"EpochLoss": f1}, config.epoch)
+        tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
+
+        """THRESHOLD"""
+        if config.EVAL_IF_THRESHOLD_TEST:
+            best_threshold = 0.0
+            best_val = 0.0
+            pbar = tqdm(config.EVAL_TRY_THRESHOLD)
+            for threshold in pbar:
+                score = f1_macro(evaluation.epoch_pred, evaluation.epoch_label, thresh=threshold).mean()
+                tensorboardwriter.write_threshold(self.writer, {"Fold/{}".format(config.fold): score}, threshold)
+                if score > best_val:
+                    best_threshold = threshold
+                    best_val = score
+                pbar.set_description("Threshold: {}; F1: {}".format(threshold, score))
+            print("BestThreshold: {}, F1: {}".format(best_threshold, best_val))
+
+        """DISPLAY"""
+        if config.DISPLAY_HISTOGRAM:
+            tensorboardwriter.write_eval_loss(self.writer, {"EpochLoss": evaluation.mean(), "EpochSTD": evaluation.std()}, config.epoch)
+            tensorboardwriter.write_loss_distribution(self.writer, np.array(list(itertools.chain.from_iterable(evaluation.epoch_losses))).flatten(), config.epoch)
+
+        """CLEAN UP"""
+        del evaluation
 
     def step_fold(self, fold, net, optimizer, batch_size, evaluation):
         config.fold = fold
@@ -186,6 +189,7 @@ class HPAProject:
         validation_loader = data.DataLoader(self.dataset, batch_size=batch_size, sampler=validation_sampler, shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=val_collate)
 
         epoch_loss = 0
+        epoch_f1 = 0
 
         pbar = tqdm(train_loader)
         train_len = len(train_loader)
@@ -204,18 +208,25 @@ class HPAProject:
 
             """LOSS"""
             loss = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
-            epoch_loss = epoch_loss + loss.flatten().mean()
+            f1 = Differenciable_F1()(labels_0, predict)
+            """BACKPROP"""
             optimizer.zero_grad()
             loss.sum().backward()
             optimizer.step()
 
             """DETATCH"""
             loss = loss.detach().cpu().numpy()
+            f1 = f1.detach().cpu().numpy()
             labels_0 = labels_0.cpu().numpy()
+
+            """SUM"""
+            epoch_loss = epoch_loss + loss.mean()
+            epoch_f1 = epoch_f1 + f1.mean()
             # f1 = f1_macro(predict, labels_0).mean()
 
             """OUTPUT"""
-            pbar.set_description("Epoch:{} Fold:{} Step:{} Batch:{}/{} Loss:{:.4f}".format(config.epoch, config.fold, config.global_steps[fold], batch_index, len(train_sampler) / config.MODEL_BATCH_SIZE, loss.flatten().mean()))
+            tensorboardwriter.write_memory(self.writer, "train")
+            pbar.set_description("Epoch:{} Fold:{} Step:{} Batch:{}/{} Loss:{:.4f}".format(config.epoch, config.fold, int(config.global_steps[fold]), batch_index, len(train_sampler) / config.MODEL_BATCH_SIZE, loss.flatten().mean()))
             tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch, 'TrainLoss/{}'.format(config.fold): loss.flatten().mean()}, config.global_steps[fold])
 
             """CLEAN UP"""
@@ -224,15 +235,14 @@ class HPAProject:
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
         del pbar
 
+        val_loss, val_f1 = evaluation.eval_fold(net, validation_loader)
+        train_loss = epoch_loss / train_len
         print("""
-            Epoch: {}
-            Fold: {}
-            EpochLoss: {}
-        """.format(config.epoch, config.fold, epoch_loss / train_len))
-        if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+            Epoch: {}, Fold: {}
+            TrainLoss: {}, TrainF1: 
+            ValidLoss: {}, ValidF1: {}
+        """.format(config.epoch, config.fold, train_loss, val_loss, val_f1))
 
-        loss = evaluation.eval_fold(net, validation_loader)
-        print('Validation Dice Coeff: {}'.format(loss))
         # if config.DISPLAY_HISTOGRAM:
         #     for i, (name, param) in enumerate(net.named_parameters()):
         #         print("Calculating Histogram #{}".format(i))
@@ -294,15 +304,20 @@ class HPAEvaluation:
 
             """LOSS"""
             loss = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
-            np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
+            f1 = Differenciable_F1()(labels_0, predict)
 
             """DETATCH"""
             loss = loss.detach().cpu().numpy()
+            f1 = f1.detach().cpu().numpy()
             labels_0 = labels_0.cpu().numpy()
+
+            """SUM"""
+            # np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
+            np.append(self.f1_losses, f1.mean())
 
             """PRINT"""
             predict = F.softmax(predict, dim=1)
-            pbar.set_description("FocalLoss: {}".format(loss.mean()))
+            pbar.set_description("FocalLoss:{} F1:{}".format(loss.mean(), f1.mean()))
             if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(loss.flatten())
             for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
             predict_total = np.concatenate((predict_total, predict.detach().cpu().numpy()), axis=0) if predict_total is not None else predict.detach().cpu().numpy()
@@ -339,7 +354,7 @@ class HPAEvaluation:
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
         mean_loss = np.array(fold_loss_dict.values()).mean()
         self.mean_losses.append(mean_loss)
-        return mean_loss
+        return mean_loss, f1
 
     def __int__(self):
         return self.mean()

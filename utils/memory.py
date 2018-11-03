@@ -1,11 +1,11 @@
 import os
 import sys
 import threading
-import time
 
 import torch
 import psutil
 import subprocess
+import time
 
 import config
 
@@ -17,18 +17,23 @@ class memory_thread(threading.Thread):
         threading.Thread.__init__(self)
         self.threadID = threadID
         self.writer = writer
-        self.count = 0
 
     def run(self):
         while(True):
-            if config.TRAIN_GPU_ARG:
-                torch.cuda.empty_cache()  # release gpu memory
-                for key, value in get_gpu_memory_map().items():
-                    self.writer.add_scalars('memory/GPU', {"GPU-" + str(key): value}, self.count)
-            self.writer.add_scalars('memory/CPU', {"CPU Usage": psutil.cpu_percent()}, self.count)
-            # if psutil.virtual_memory() != None: self.writer.add_scalars('memory/Physical', {"Physical_Mem Usage": psutil.virtual_memory()}, self.count)
-            self.count = self.count + 1
+            write_memory(self.writer, "thread")
             time.sleep(1)
+
+def write_memory(writer, arg):
+    t = int(time.time())
+    if config.TRAIN_GPU_ARG:
+        torch.cuda.empty_cache()  # release gpu memory
+        sum = 0
+        for key, value in get_gpu_memory_map().items():
+            writer.add_scalars('memory/GPU', {"GPU-{}-{}".format(str(key), arg): value}, t)
+            sum = sum + value
+        writer.add_scalars('memory/GPU', {"GPU-Sum-{}".format(arg): sum}, t)
+    writer.add_scalars('memory/CPU', {"CPU-Sum-{}".format(arg): psutil.cpu_percent()}, t)
+    # if psutil.virtual_memory() != None: self.writer.add_scalars('memory/Physical', {"Physical_Mem Usage": psutil.virtual_memory()}, self.count)
 
 def get_gpu_memory_map():
     """Get the current gpu usage.

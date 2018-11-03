@@ -25,7 +25,7 @@ from torch.utils.data.dataloader import numpy_type_map, default_collate
 from torchvision.transforms import transforms
 
 import config
-from utils.encode import inverse_to_tensor
+from utils.encode import to_numpy
 
 
 class HPAData(data.Dataset):
@@ -341,7 +341,7 @@ def transform(ids, image_0, labels_0, train, val):
         }
 
         image = TRAIN_TRANSFORM['image'](image_0)
-        return (ids, image, labels_0, inverse_to_tensor(image))
+        return (ids, image, labels_0, to_numpy(image))
     elif not train and val:
         image_aug_transform = TestImgAugTransform().to_deterministic()
         PREDICT_TRANSFORM_IMG = transforms.Compose([
@@ -350,6 +350,6 @@ def transform(ids, image_0, labels_0, train, val):
         ])
 
         image = PREDICT_TRANSFORM_IMG(image_0)
-        return (ids, image, labels_0, inverse_to_tensor(image))
+        return (ids, image, labels_0, to_numpy(image))
     else:
         raise RuntimeError("ERROR: Cannot be train and validation at the same time.")

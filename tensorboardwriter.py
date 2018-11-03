@@ -1,5 +1,6 @@
 import os
 import matplotlib as mpl
+from utils.memory import write_memory
 
 if os.environ.get('DISPLAY', '') == '':
     print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')

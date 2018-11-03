@@ -48,7 +48,7 @@ def rle_encode(img):
 #     res = np.eye(nb_classes, dtype=np.float)[np.array(targets).reshape(-1)]
 #     return res.reshape(list(targets.shape) + [nb_classes])
 
-def inverse_to_tensor(tensor):
+def to_numpy(tensor):
     return 225* tensor.numpy()
 
 
@@ -96,7 +96,7 @@ def tensor_to_np_three_channel_with_green(tensor):
     :return: drop tensor[1], the output will put the cannel layer the last layer
     """
     image = tensor.cpu().clone().numpy()
-    ndarray = 255 * np.array([np.clip(image[0] + 0.5*image[3], 0, 1), np.clip(image[1] + 0.5*image[3], 0, 1), image[2]])
+    ndarray = 255 * np.array([0.5*image[0] + 0.25*image[3], 0.5*image[1] + 0.25*image[3], 0.5*image[2]])
     return ndarray.transpose((1, 2, 0))
 
 def tensor_to_np_three_channel_without_green(tensor):
@@ -106,7 +106,7 @@ def tensor_to_np_three_channel_without_green(tensor):
     :return: drop tensor[1], the output will put the cannel layer the last layer
     """
     image = tensor.cpu().clone().numpy()
-    ndarray = 255 * np.array([np.clip(image[0] + 0.5*image[3], 0, 225), 0.5*image[3], image[2]])
+    ndarray = 255 * np.array([0.5*image[0] + 0.25*image[3], 0.25*image[3], 0.5*image[2]])
     return ndarray.transpose((1, 2, 0))
 
 def ndarray_to_PIL(ndarray):

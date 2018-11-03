@@ -25,8 +25,15 @@ python train.py --projecttag mem2 --versiontag mem2 --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-03-02-21-55-372744-mem2/ --port=6006
 python predict.py --projecttag 2018-11-03-02-21-55-372744-mem2 --versiontag mem2-pred --loadfile mem2-CP2.pth
 //10 fold 2 train, put evaluation back, but save model using self.net and self.optimizers
+//memory leak around 7G min stable, 2nd epoch
 =
 python train.py --projecttag mem3 --versiontag mem3 --resume False
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-03-14-14-20-075060-mem3/ --port=6006  
+//No memory leak at epoch 3 after delete all extraneous things. memory around 2.5G
+=
+python train.py --projecttag mem4 --versiontag mem4 --resume False
+//open extraneous things, clean-up loss.detach(), clean cache() outside of the epoch()
+//add f1
 
 ```
 
