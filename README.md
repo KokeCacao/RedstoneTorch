@@ -33,7 +33,7 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 //CPU memory leak, GPU fine
 =
 python train.py --projecttag mem4 --versiontag mem4 --resume False
-python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-03-18-56-06-516005-mem4/ --port=6006
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-03-18-58-57-766148-mem4/ --port=6006
 //open extraneous things, clean-up loss.detach(), clean cache() outside of the epoch(), del more things
 //add f1
 

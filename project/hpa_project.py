@@ -223,7 +223,7 @@ class HPAProject:
 
             """OUTPUT"""
             tensorboardwriter.write_memory(self.writer, "train")
-            pbar.set_description("Epoch:{} Fold:{} Step:{} Batch:{}/{} Loss:{:.4f}".format(config.epoch, config.fold, int(config.global_steps[fold]), batch_index, len(train_sampler) / config.MODEL_BATCH_SIZE, loss.flatten().mean()))
+            pbar.set_description("Epoch:{} Fold:{} Step:{} Batch:{}/{} Loss:{:.4f}".format(config.epoch, config.fold, int(config.global_steps[fold]), batch_index, train_len / config.MODEL_BATCH_SIZE, loss.flatten().mean()))
             tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch, 'TrainLoss/{}'.format(config.fold): loss.flatten().mean()}, config.global_steps[fold])
 
             """CLEAN UP"""
