@@ -86,6 +86,7 @@ class SEModule(nn.Module):
 
     def __init__(self, channels, reduction):
         super(SEModule, self).__init__()
+        # change self.avg_pool = nn.AdaptiveAvgPool2d(1) to avg pooling
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.fc1 = nn.Conv2d(channels, channels // reduction, kernel_size=1,
                              padding=0)
@@ -277,7 +278,7 @@ class SENet(nn.Module):
             ]
         # To preserve compatibility with Caffe weights `ceil_mode=True`
         # is used instead of `padding=1`.
-        layer0_modules.append(('pool', nn.MaxPool2d(3, stride=2, ceil_mode=False, padding=1)))
+        layer0_modules.append(('pool', nn.MaxPool2d(3, stride=2, ceil_mode=True)))
         self.layer0 = nn.Sequential(OrderedDict(layer0_modules))
         self.layer1 = self._make_layer(
             block,
@@ -318,7 +319,8 @@ class SENet(nn.Module):
             downsample_kernel_size=downsample_kernel_size,
             downsample_padding=downsample_padding
         )
-        self.avg_pool = nn.AvgPool2d(7, stride=1)
+        # self.avg_pool = nn.AvgPool2d(7, stride=1)
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.dropout = nn.Dropout(dropout_p) if dropout_p is not None else None
         self.last_linear = nn.Linear(512 * block.expansion, num_classes)
 

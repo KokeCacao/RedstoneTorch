@@ -34,23 +34,25 @@ class HPAProject:
     # TODO: Data pre processing - try normalize data mean and std (https://discuss.pytorch.org/t/normalization-in-the-mnist-example/457/18) Save as ".npy" with dtype = "uint8". Before augmentation, convert back to float32 and normalize them with dataset mean/std.
     # TODO: Ask your biology teacher about yellow channel
     # TODO: cosine (https://github.com/SeuTao/Kaggle_TGS2018_4th_solution/blob/master/loss/cyclic_lr.py) change to AdamW
-    # TODO: try global average pooling instead of averag epooling
     # TODO: try set f1 to 0 when 0/0; (7 missing classes in LB) / (28 total classes) = 0.25, and if the organizer is interpreting 0/0 as 0
     # TODO: try to process RBY first, and then concat Green layer
-    # TODO: freeze loaded layer, check if the layers loaded correctly (ie. I want to load as much as I can)
     # TODO: Zero padding in augmentation
     # TODO: Yes, using SGD with cosine annealing schedule. Also used Adadelta to start training, Padam for mid training, and SGD at the end. Then I freeze parts of the model and train the other layers. My current leading model is 2.3M params. Performs great locally, but public LB is 45% lower. (https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69462#412909)
     # TODO: Better augmentation
     # TODO: Adjust weight init (in or out) and init dense layers
 
     """"TESTINGS"""
-    # TODO: test visualize your network
     # TODO: fix display image (color and tag)
     # TODO: fix memory leak and memory display
 
     """"READINGS"""
-
     # TODO: https://www.proteinatlas.org/learn/dictionary/cell/microtubule+organizing+center+3; https://www.proteinatlas.org/learn/dictionary/cell
+
+    """GIVE UP"""
+    # TODO: test visualize your network
+    # TODO: freeze loaded layer, check if the layers loaded correctly (ie. I want to load as much as I can)
+
+    """FINISHED"""
 
     def __init__(self, writer):
         self.writer = writer
@@ -86,8 +88,8 @@ class HPAProject:
                                 optimizers=self.optimizers,
                                 batch_size=config.MODEL_BATCH_SIZE
                                 )
-                """SAVE"""
-                save_checkpoint_fold([x.state_dict() for x in self.nets], [x.state_dict() for x in self.optimizers])
+                # """SAVE"""
+                # save_checkpoint_fold([x.state_dict() for x in self.nets], [x.state_dict() for x in self.optimizers])
 
         except KeyboardInterrupt as e:
             print(e)
@@ -128,49 +130,50 @@ class HPAProject:
         #             {'params': net.module.dec0.parameters(), 'lr': 1e-3},
         #             {'params': net.module.final.parameters(), 'lr': 0.0015}], lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay) # all parameter learnable
 
-        evaluation = HPAEvaluation(self.writer)
+
         for fold, (net, optimizer) in enumerate(zip(nets, optimizers)):
+            evaluation = HPAEvaluation(self.writer)
             self.step_fold(fold, net, optimizer, batch_size, evaluation)
 
-        """DISPLAY"""
-        best_id, best_loss = evaluation.best()
-        worst_id, worst_loss = evaluation.worst()
-        for fold, (best_id, best_loss, worst_id, worst_loss) in enumerate(zip(best_id, best_loss, worst_id, worst_loss)):
-            best_img = self.dataset.get_load_image_by_id(best_id)
-            best_label = self.dataset.get_load_label_by_id(best_id)
-            worst_img = self.dataset.get_load_image_by_id(worst_id)
-            worst_label = self.dataset.get_load_label_by_id(worst_id)
-            tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, fold=fold)
-            tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
-
-        """LOSS"""
-        f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
-        f2 = metrics.f1_score((evaluation.epoch_label > 0.5).astype(np.int16), (evaluation.epoch_pred > 0.5).astype(np.int16), average='macro')  # sklearn does not automatically import matrics.
-        print("F1 by sklearn = ".format(f2))
-        tensorboardwriter.write_epoch_loss(self.writer, {"EpochLoss": f1}, config.epoch)
-        tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
-
-        """THRESHOLD"""
-        if config.EVAL_IF_THRESHOLD_TEST:
-            best_threshold = 0.0
-            best_val = 0.0
-            pbar = tqdm(config.EVAL_TRY_THRESHOLD)
-            for threshold in pbar:
-                score = f1_macro(evaluation.epoch_pred, evaluation.epoch_label, thresh=threshold).mean()
-                tensorboardwriter.write_threshold(self.writer, {"Fold/{}".format(config.fold): score}, threshold)
-                if score > best_val:
-                    best_threshold = threshold
-                    best_val = score
-                pbar.set_description("Threshold: {}; F1: {}".format(threshold, score))
-            print("BestThreshold: {}, F1: {}".format(best_threshold, best_val))
-
-        """DISPLAY"""
-        if config.DISPLAY_HISTOGRAM:
-            tensorboardwriter.write_eval_loss(self.writer, {"EpochLoss": evaluation.mean(), "EpochSTD": evaluation.std()}, config.epoch)
-            tensorboardwriter.write_loss_distribution(self.writer, np.array(list(itertools.chain.from_iterable(evaluation.epoch_losses))).flatten(), config.epoch)
-
-        """CLEAN UP"""
-        del evaluation
+        # """DISPLAY"""
+        # best_id, best_loss = evaluation.best()
+        # worst_id, worst_loss = evaluation.worst()
+        # for fold, (best_id, best_loss, worst_id, worst_loss) in enumerate(zip(best_id, best_loss, worst_id, worst_loss)):
+        #     best_img = self.dataset.get_load_image_by_id(best_id)
+        #     best_label = self.dataset.get_load_label_by_id(best_id)
+        #     worst_img = self.dataset.get_load_image_by_id(worst_id)
+        #     worst_label = self.dataset.get_load_label_by_id(worst_id)
+        #     tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, fold=fold)
+        #     tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
+        #
+        # """LOSS"""
+        # f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
+        # f2 = metrics.f1_score((evaluation.epoch_label > 0.5).astype(np.int16), (evaluation.epoch_pred > 0.5).astype(np.int16), average='macro')  # sklearn does not automatically import matrics.
+        # print("F1 by sklearn = ".format(f2))
+        # tensorboardwriter.write_epoch_loss(self.writer, {"EpochLoss": f1}, config.epoch)
+        # tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
+        #
+        # """THRESHOLD"""
+        # if config.EVAL_IF_THRESHOLD_TEST:
+        #     best_threshold = 0.0
+        #     best_val = 0.0
+        #     pbar = tqdm(config.EVAL_TRY_THRESHOLD)
+        #     for threshold in pbar:
+        #         score = f1_macro(evaluation.epoch_pred, evaluation.epoch_label, thresh=threshold).mean()
+        #         tensorboardwriter.write_threshold(self.writer, {"Fold/{}".format(config.fold): score}, threshold)
+        #         if score > best_val:
+        #             best_threshold = threshold
+        #             best_val = score
+        #         pbar.set_description("Threshold: {}; F1: {}".format(threshold, score))
+        #     print("BestThreshold: {}, F1: {}".format(best_threshold, best_val))
+        #
+        # """DISPLAY"""
+        # if config.DISPLAY_HISTOGRAM:
+        #     tensorboardwriter.write_eval_loss(self.writer, {"EpochLoss": evaluation.mean(), "EpochSTD": evaluation.std()}, config.epoch)
+        #     tensorboardwriter.write_loss_distribution(self.writer, np.array(list(itertools.chain.from_iterable(evaluation.epoch_losses))).flatten(), config.epoch)
+        #
+        # """CLEAN UP"""
+        # del evaluation
 
     def step_fold(self, fold, net, optimizer, batch_size, evaluation):
         config.fold = fold
