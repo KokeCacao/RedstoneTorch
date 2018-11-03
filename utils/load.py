@@ -99,8 +99,10 @@ def move_optimizer_to_cuda(optimizer):
                     param_state[k] = param_state[k].cuda()
 
 def save_onnx(cudaed_net, net_input_shape, dir, export_params=False, verbose=True):
+    print("=> Start Saving ONNX file...")
     dummy_input = Variable(torch.randn(net_input_shape)).cuda()
     torch.onnx.export(cudaed_net, dummy_input, dir, export_params=export_params, verbose=verbose)
+    print("=> Saving ONNX file correctly!")
 
 def cuda(net):
     if config.TRAIN_GPU_ARG:
