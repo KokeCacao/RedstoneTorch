@@ -16,7 +16,10 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 //3 epoch, loss=0.5556
 python train.py --projecttag mem --versiontag mem1 --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-03-01-10-04-699788-mem/ --port=6006
-//10 fold 10 train
+//10 fold 10 train, put evaluation inside with each fold instead of epoch
+//still memory leak between folds, but leak back when epoch
+python train.py --projecttag mem2 --versiontag mem2 --resume False
+//10 fold 2 train, put evaluation back, but save model using self.net and self.optimizers
 
 ```
 
