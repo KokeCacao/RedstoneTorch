@@ -3,9 +3,17 @@
 
 
 ## Models
-```commandline
-python train.py --projecttag base --versiontag base1 --resume False //memory leak 8827 at step 1.3k, from 4788
-python train.py --projecttag mem --versiontag mem1 --resume False //memory leak from 8285 at step 1.4k, 6577
+```text
+python train.py --projecttag base --versiontag base1 --resume False
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-02-20-23-22-547213-test/ --port=6006
+//memory leak 8827 at step 1.3k from 4788
+//10 fold 10 train
+//BAD MODEL
+python train.py --projecttag mem --versiontag mem1 --resume False
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-02-20-23-22-547213-test/ --port=6006
+//memory leak from 8285 at step 1.4k, 6577
+//10 fold 1 train
+//3 epoch, loss=0.5556
 
 ```
 

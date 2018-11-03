@@ -33,7 +33,7 @@ class HPAProject:
     """"TODO"""
     # TODO: Data pre processing - try normalize data mean and std (https://discuss.pytorch.org/t/normalization-in-the-mnist-example/457/18) Save as ".npy" with dtype = "uint8". Before augmentation, convert back to float32 and normalize them with dataset mean/std.
     # TODO: Ask your biology teacher about yellow channel
-    # TODO: cosine (https://github.com/SeuTao/Kaggle_TGS2018_4th_solution/blob/master/loss/cyclic_lr.py)
+    # TODO: cosine (https://github.com/SeuTao/Kaggle_TGS2018_4th_solution/blob/master/loss/cyclic_lr.py) change to AdamW
     # TODO: try global average pooling instead of averag epooling
     # TODO: try set f1 to 0 when 0/0; (7 missing classes in LB) / (28 total classes) = 0.25, and if the organizer is interpreting 0/0 as 0
     # TODO: try to process RBY first, and then concat Green layer
@@ -53,9 +53,6 @@ class HPAProject:
 
     def __init__(self, writer):
         self.writer = writer
-        self.train_begin = None
-        self.epoch_begin = None
-        self.fold_begin = None
 
         self.optimizers = []
         self.nets = []
@@ -83,8 +80,6 @@ class HPAProject:
 
     def run(self):
         try:
-
-            self.train_begin = datetime.now()
             for epoch in range(config.MODEL_EPOCHS):
                 self.step_epoch(nets=self.nets,
                                 optimizers=self.optimizers,
@@ -105,7 +100,6 @@ class HPAProject:
                    optimizers,
                    batch_size
                    ):
-        # self.epoch_begin = datetime.now()
         config.epoch = config.epoch + 1
 
         # optimizer = optim.SGD(net.parameters(),
@@ -180,7 +174,6 @@ class HPAProject:
 
 
     def step_fold(self, fold, net, optimizer, batch_size, evaluation):
-        self.fold_begin = datetime.now()
         config.fold = fold
 
         train_sampler = self.folded_samplers[config.fold]["train"]
@@ -225,6 +218,7 @@ class HPAProject:
             del ids, image, labels_0, image_for_display
             del predict, loss
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
+        del pbar
 
         print("""
             Epoch: {}
@@ -239,7 +233,6 @@ class HPAProject:
         #     for i, (name, param) in enumerate(net.named_parameters()):
         #         print("Calculating Histogram #{}".format(i))
         #         writer.add_histogram(name, param.clone().cpu().data.numpy(), config.epoch)
-        del pbar
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
 
 
@@ -402,11 +395,14 @@ class HPAPrediction:
         self.threshold = threshold
         self.nets = []
         for fold in range(config.MODEL_FOLD):
-            print("     Creating Fold: #{}".format(fold))
-            net = se_resnext101_32x4d_modified(num_classes=config.TRAIN_NUMCLASS, pretrained='imagenet')
-            if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
+            if fold + 1 > config.MODEL_TRAIN_FOLD:
+                print("     Junping Fold: #{}".format(fold))
+            else:
+                print("     Creating Fold: #{}".format(fold))
+                net = se_resnext101_32x4d_modified(num_classes=config.TRAIN_NUMCLASS, pretrained='imagenet')
+                if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
-            self.nets.append(cuda(net))
+                self.nets.append(cuda(net))
         load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
         if config.DISPLAY_SAVE_ONNX:
             save_onnx(self.nets[0], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
