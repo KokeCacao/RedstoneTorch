@@ -399,9 +399,11 @@ class HPAPrediction:
             else:
                 print("     Creating Fold: #{}".format(fold))
                 net = se_resnext101_32x4d_modified(num_classes=config.TRAIN_NUMCLASS, pretrained='imagenet')
-                if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
+                """ONNX"""
                 if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(net, (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
+
+                if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
                 self.nets.append(cuda(net))
         load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
             # for index, net in enumerate(self.nets):
