@@ -155,6 +155,7 @@ class HPAProject:
                 pbar = tqdm(config.EVAL_TRY_THRESHOLD)
                 for threshold in pbar:
                     score = f1_macro(evaluation.epoch_pred, evaluation.epoch_label, thresh=threshold).mean()
+                    tensorboardwriter.write_threshold(self.writer, {"Fold/{}".format(fold): score}, threshold)
                     if score > best_val:
                         best_threshold = threshold
                         best_val = score
@@ -212,7 +213,7 @@ class HPAProject:
 
             """OUTPUT"""
             pbar.set_description("Epoch:{} Fold:{} Step:{} Batch:{}/{} Loss:{:.4f}".format(config.epoch, config.fold, config.global_steps[fold], batch_index, len(train_sampler) / config.MODEL_BATCH_SIZE, loss.flatten().mean()))
-            tensorboardwriter.write_loss(self.writer, {'Epoch/' + str(config.fold): config.epoch, 'TrainLoss/' + str(config.fold): loss.flatten().mean()}, config.global_steps[fold])
+            tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch, 'TrainLoss/{}'.format(config.fold): loss.flatten().mean()}, config.global_steps[fold])
 
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display
@@ -324,7 +325,7 @@ class HPAEvaluation:
             if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
         """LOSS"""
         f1 = f1_macro(predict_total, label_total).mean()
-        tensorboardwriter.write_eval_loss(self.writer, {"FoldLoss/" + str(config.fold): np.array(fold_loss_dict.values()).mean(), "FoldF1/" + str(config.fold): f1}, config.global_steps[-1])
+        tensorboardwriter.write_eval_loss(self.writer, {"FoldLoss/{}".format(config.fold): np.array(fold_loss_dict.values()).mean(), "FoldF1/{}".format(config.fold): f1}, config.global_steps[-1])
         tensorboardwriter.write_pr_curve(self.writer, label_total, predict_total, config.global_steps[-1], config.fold)
         self.epoch_pred = np.concatenate((self.epoch_pred, predict_total), axis=0) if self.epoch_pred is not None else predict_total
         self.epoch_label = np.concatenate((self.epoch_label, label_total), axis=0) if self.epoch_label is not None else label_total

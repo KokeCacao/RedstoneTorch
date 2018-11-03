@@ -15,7 +15,7 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 //10 fold 1 train
 //3 epoch, loss=0.5556
 python train.py --projecttag mem --versiontag mem1 --resume False
-python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/mem/ --port=6006
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-03-01-10-04-699788-mem/ --port=6006
 //10 fold 10 train
 
 ```

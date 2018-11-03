@@ -9,6 +9,9 @@ from matplotlib import pyplot as plt
 def write_loss(writer, loss_dict, global_step):
     writer.add_scalars('train/loss_scalar', loss_dict, global_step)
 
+def write_threshold(writer, fold_value_dict, threshold):
+    writer.add_scalars('train/threshold_distribution', fold_value_dict, threshold)
+
 def write_loss_distribution(writer, loss_list, global_step):
     writer.add_histogram("eval/loss_distribution", loss_list, global_step)
 
