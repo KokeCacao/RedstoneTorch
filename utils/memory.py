@@ -23,7 +23,6 @@ class memory_thread(threading.Thread):
         while(True):
             if config.TRAIN_GPU_ARG:
                 torch.cuda.empty_cache()  # release gpu memory
-                map = get_gpu_memory_map()
                 for key, value in get_gpu_memory_map().items():
                     self.writer.add_scalars('memory/GPU', {"GPU-" + str(key): value}, self.count)
             self.writer.add_scalars('memory/CPU', {"CPU Usage": psutil.cpu_percent()}, self.count)
@@ -46,7 +45,7 @@ def get_gpu_memory_map():
             [
                 'nvidia-smi', '--query-gpu=memory.used',
                 '--format=csv,nounits,noheader'
-            ])
+            ]) #nvidia-smi --query-gpu=memory.used --format=csv,nounits,noheader
         # Convert lines into a dictionary
         gpu_memory = [int(x) for x in result.strip().split('\n')]
         result = dict(zip(range(len(gpu_memory)), gpu_memory))

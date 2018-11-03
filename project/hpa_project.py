@@ -105,7 +105,7 @@ class HPAProject:
                    optimizers,
                    batch_size
                    ):
-        self.epoch_begin = datetime.now()
+        # self.epoch_begin = datetime.now()
         config.epoch = config.epoch + 1
 
         # optimizer = optim.SGD(net.parameters(),
@@ -131,48 +131,53 @@ class HPAProject:
         #             {'params': net.module.dec0.parameters(), 'lr': 1e-3},
         #             {'params': net.module.final.parameters(), 'lr': 0.0015}], lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay) # all parameter learnable
 
-        evaluation = HPAEvaluation(self.writer)
+
         for fold, (net, optimizer) in enumerate(zip(nets, optimizers)):
+            evaluation = HPAEvaluation(self.writer)
             self.step_fold(fold, net, optimizer, batch_size, evaluation)
 
-        """DISPLAY"""
-        best_id, best_loss = evaluation.best()
-        worst_id, worst_loss = evaluation.worst()
-        for fold, (best_id, best_loss, worst_id, worst_loss) in enumerate(zip(best_id, best_loss, worst_id, worst_loss)):
-            best_img = self.dataset.get_load_image_by_id(best_id)
-            best_label = self.dataset.get_load_label_by_id(best_id)
-            worst_img = self.dataset.get_load_image_by_id(worst_id)
-            worst_label = self.dataset.get_load_label_by_id(worst_id)
-            tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, fold=fold)
-            tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
+            """DISPLAY"""
+            best_id, best_loss = evaluation.best()
+            worst_id, worst_loss = evaluation.worst()
+            for fold, (best_id, best_loss, worst_id, worst_loss) in enumerate(zip(best_id, best_loss, worst_id, worst_loss)):
+                best_img = self.dataset.get_load_image_by_id(best_id)
+                best_label = self.dataset.get_load_label_by_id(best_id)
+                worst_img = self.dataset.get_load_image_by_id(worst_id)
+                worst_label = self.dataset.get_load_label_by_id(worst_id)
+                tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, fold=fold)
+                tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
 
-        """LOSS"""
-        f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
-        f2 = metrics.f1_score((evaluation.epoch_label > 0.5).astype(np.int16), (evaluation.epoch_pred > 0.5).astype(np.int16), average='macro')  # sklearn does not automatically import matrics.
-        print("F1 by sklearn = ".format(f2))
-        tensorboardwriter.write_epoch_loss(self.writer, {"EpochLoss": f1}, config.epoch)
-        tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
+            """LOSS"""
+            f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
+            f2 = metrics.f1_score((evaluation.epoch_label > 0.5).astype(np.int16), (evaluation.epoch_pred > 0.5).astype(np.int16), average='macro')  # sklearn does not automatically import matrics.
+            print("F1 by sklearn = ".format(f2))
+            tensorboardwriter.write_epoch_loss(self.writer, {"EpochLoss": f1}, config.epoch)
+            tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
 
-        """THRESHOLD"""
-        if config.EVAL_IF_THRESHOLD_TEST:
-            best_threshold = 0.0
-            best_val = 0.0
-            pbar = tqdm(config.EVAL_TRY_THRESHOLD)
-            for threshold in pbar:
-                score = f1_macro(evaluation.epoch_pred, evaluation.epoch_label, thresh=threshold).mean()
-                if score > best_val:
-                    best_threshold = threshold
-                    best_val = score
-                pbar.set_description("Threshold: {}; F1: {}".format(threshold, score))
-            print("BestThreshold: {}, F1: {}".format(best_threshold, best_val))
+            """THRESHOLD"""
+            if config.EVAL_IF_THRESHOLD_TEST:
+                best_threshold = 0.0
+                best_val = 0.0
+                pbar = tqdm(config.EVAL_TRY_THRESHOLD)
+                for threshold in pbar:
+                    score = f1_macro(evaluation.epoch_pred, evaluation.epoch_label, thresh=threshold).mean()
+                    if score > best_val:
+                        best_threshold = threshold
+                        best_val = score
+                    pbar.set_description("Threshold: {}; F1: {}".format(threshold, score))
+                print("BestThreshold: {}, F1: {}".format(best_threshold, best_val))
+
+            """DISPLAY"""
+            if config.DISPLAY_HISTOGRAM:
+                tensorboardwriter.write_eval_loss(self.writer, {"EpochLoss": evaluation.mean(), "EpochSTD": evaluation.std()}, config.epoch)
+                tensorboardwriter.write_loss_distribution(self.writer, np.array(list(itertools.chain.from_iterable(evaluation.epoch_losses))).flatten(), config.epoch)
+
+            """CLEAN UP"""
+            del evaluation
 
         """SAVE"""
         save_checkpoint_fold([x.state_dict() for x in nets], [x.state_dict() for x in optimizers])
 
-        """DISPLAY"""
-        if config.DISPLAY_HISTOGRAM:
-            tensorboardwriter.write_eval_loss(self.writer, {"EpochLoss": evaluation.mean(), "EpochSTD": evaluation.std()}, config.epoch)
-            tensorboardwriter.write_loss_distribution(self.writer, np.array(list(itertools.chain.from_iterable(evaluation.epoch_losses))).flatten(), config.epoch)
 
     def step_fold(self, fold, net, optimizer, batch_size, evaluation):
         self.fold_begin = datetime.now()
@@ -389,7 +394,7 @@ class HPAEvaluation:
             plt.imshow(encode.tensor_to_np_four_channel_drop(transfered))
             plt.title("Mask_Trans; loss:{}".format(loss))
             plt.grid(False)
-            tensorboardwriter.write_image(self.writer, F, config.global_steps[fold])
+            tensorboardwriter.write_image(self.writer, str(fold) + "-" + str(id), F, config.global_steps[fold])
 
 
 class HPAPrediction:

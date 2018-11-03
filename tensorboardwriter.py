@@ -18,8 +18,8 @@ def write_pred_distribution(writer, pred_list, global_step):
 def write_pr_curve(writer, label, predicted, global_step, fold):
     writer.add_pr_curve("eval/pr_curve/" + str(fold), label, predicted, global_step)
 
-def write_image(writer, F, global_step):
-    writer.add_figure("eval/image", F, global_step)
+def write_image(writer, msg, F, global_step):
+    writer.add_figure("eval/image/" + msg, F, global_step)
 
 def write_eval_loss(writer, loss_dict, global_step):
     writer.add_scalars('eval/loss_scalar', loss_dict, global_step)

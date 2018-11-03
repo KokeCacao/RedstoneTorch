@@ -5,6 +5,7 @@
 ## Models
 ```commandline
 python train.py --projecttag base --versiontag base1 --resume False //memory leak 8827 at step 1.3k, from 4788
+python train.py --projecttag mem --versiontag mem1 --resume False //memory leak from 8285 at step 1.4k, 6577
 
 ```
 
