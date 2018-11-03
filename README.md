@@ -14,6 +14,9 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 //memory leak from 8285 at step 1.4k, 6577
 //10 fold 1 train
 //3 epoch, loss=0.5556
+python train.py --projecttag mem --versiontag mem1 --resume False
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/mem/ --port=6006
+//10 fold 10 train
 
 ```
 
