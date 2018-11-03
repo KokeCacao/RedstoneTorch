@@ -101,6 +101,9 @@ def move_optimizer_to_cuda(optimizer):
 
 def save_onnx(cudaed_net, net_input_shape, dir, export_params=False, verbose=True):
     print("=> Start Saving ONNX file...")
+    if os.path.exists(dir):
+        os.remove(dir)
+        print("WARNING: delete .onnx file '{}'".format(dir))
 
     # Standard ImageNet input - 3 channels, 224x224,
     # values don't matter as we care about network structure.
@@ -112,8 +115,12 @@ def save_onnx(cudaed_net, net_input_shape, dir, export_params=False, verbose=Tru
     torch.onnx.export(model, dummy_input, dir)
     print("=> try good")
 
-    dummy_input = Variable(torch.randn(net_input_shape)).cuda()
-    torch.onnx.export(cudaed_net, dummy_input, dir, export_params=export_params, verbose=verbose)
+    if os.path.exists(dir):
+        os.remove(dir)
+        print("WARNING: delete .onnx file '{}'".format(dir))
+
+    dummy_input = Variable(torch.randn(net_input_shape))
+    torch.onnx.export(cudaed_net.cpu(), dummy_input, dir, export_params=export_params, verbose=verbose)
     print("=> Saving ONNX file correctly!")
 
 def cuda(net):
