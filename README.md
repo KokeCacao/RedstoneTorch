@@ -30,10 +30,11 @@ python predict.py --projecttag 2018-11-03-02-21-55-372744-mem2 --versiontag mem2
 python train.py --projecttag mem3 --versiontag mem3 --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-03-14-14-20-075060-mem3/ --port=6006  
 //No memory leak at epoch 3 after delete all extraneous things. memory around 2.5G
+//CPU memory leak, GPU fine
 =
-python train.py --projecttag mem4 --versiontag mem4 --resume False (at machine 2)
-python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-03-18-36-35-688519-mem4/ --port=6006
-//open extraneous things, clean-up loss.detach(), clean cache() outside of the epoch()
+python train.py --projecttag mem4 --versiontag mem4 --resume False
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-03-18-56-06-516005-mem4/ --port=6006
+//open extraneous things, clean-up loss.detach(), clean cache() outside of the epoch(), del more things
 //add f1
 
 ```
