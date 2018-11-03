@@ -9,19 +9,24 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 //memory leak 8827 at step 1.3k from 4788
 //10 fold 10 train
 //BAD MODEL
+=
 python train.py --projecttag mem --versiontag mem1 --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-02-20-23-22-547213-test/ --port=6006
 //memory leak from 8285 at step 1.4k, 6577
 //10 fold 1 train
 //3 epoch, loss=0.5556
+=
 python train.py --projecttag mem --versiontag mem1 --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-03-01-10-04-699788-mem/ --port=6006
 //10 fold 10 train, put evaluation inside with each fold instead of epoch
 //still memory leak between folds, but leak back when epoch
+=
 python train.py --projecttag mem2 --versiontag mem2 --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-03-02-21-55-372744-mem2/ --port=6006
 python predict.py --projecttag 2018-11-03-02-21-55-372744-mem2 --versiontag mem2-pred --loadfile mem2-CP2.pth
 //10 fold 2 train, put evaluation back, but save model using self.net and self.optimizers
+=
+python train.py --projecttag mem3 --versiontag mem3 --resume False
 
 ```
 

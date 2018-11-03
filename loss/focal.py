@@ -26,6 +26,9 @@ class Focal_Loss_from_git(nn.Module):
         # alpha = 0.25
         # gamma = 2
 
+        # softmax layer
+        y_pred = F.softmax(y_pred, dim=1) # TODO: dim really = 1?
+
         # To avoid divided by zero
         y_pred = y_pred + self.eps
 

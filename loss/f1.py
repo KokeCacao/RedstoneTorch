@@ -1,6 +1,10 @@
 import logging
+import torch
 
 import numpy as np
+from torch import nn
+import torch.nn.functional as F
+
 
 def sigmoid_np(x):
     return 1.0/(1.0 + np.exp(-x))
@@ -126,3 +130,21 @@ def f1_macro(y_preds, y_true, thresh=0.5, eps=1e-20):
 
     f1 = 2 * p * r / (p + r + eps)  # we calculate f1 on arrays
     return f1
+
+class Differenciable_F1(nn.Module):
+    def differenciable_f1_loss(self, eps=1e-6, beta=1):
+        self.eps = eps
+        self.beta = beta
+
+    def forward(self, labels, logits):
+        batch_size = logits.size()[0]
+        p = F.sigmoid(logits)
+        l = labels
+        num_pos = torch.sum(p, 1) + self.eps
+        num_pos_hat = torch.sum(l, 1) + self.eps
+        tp = torch.sum(l * p, 1)
+        precise = tp / num_pos
+        recall = tp / num_pos_hat
+        fs = (1 + self.beta * self.beta) * precise * recall / (self.beta * self.beta * precise + recall + self.eps)
+        loss = fs.sum() / batch_size
+        return (1 - loss)

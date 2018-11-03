@@ -9,6 +9,7 @@ import torch
 import pandas as pd
 from sklearn import metrics
 from torch.utils import data
+import torch.nn.functional as F
 from tqdm import tqdm
 
 import config
@@ -40,6 +41,7 @@ class HPAProject:
     # TODO: Yes, using SGD with cosine annealing schedule. Also used Adadelta to start training, Padam for mid training, and SGD at the end. Then I freeze parts of the model and train the other layers. My current leading model is 2.3M params. Performs great locally, but public LB is 45% lower. (https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69462#412909)
     # TODO: Better augmentation
     # TODO: Adjust weight init (in or out) and init dense layers
+    # TODO: I tried focal loss + soft F1 and focal loss - log(soft F1). Initially the convergence is faster, but later on I ended up with about the same result. Though, I didn't train the model for a long time, just ~6 hours.
 
     """"TESTINGS"""
     # TODO: fix display image (color and tag)
@@ -186,6 +188,7 @@ class HPAProject:
         epoch_loss = 0
 
         pbar = tqdm(train_loader)
+        train_len = len(train_loader)
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
             """UPDATE LR"""
             state = optimizer.state_dict()
@@ -198,7 +201,6 @@ class HPAProject:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
             predict = net(image)
-            predict = torch.nn.Softmax(dim=1)(predict)  # TODO: dim really = 1?
 
             """LOSS"""
             loss = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
@@ -226,7 +228,7 @@ class HPAProject:
             Epoch: {}
             Fold: {}
             EpochLoss: {}
-        """.format(config.epoch, config.fold, epoch_loss / (batch_index + 1)))
+        """.format(config.epoch, config.fold, epoch_loss / train_len))
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
         loss = evaluation.eval_fold(net, validation_loader)
@@ -289,7 +291,6 @@ class HPAEvaluation:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
             predict = net(image)
-            predict = torch.nn.Softmax(dim=1)(predict)
 
             """LOSS"""
             loss = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
@@ -300,6 +301,7 @@ class HPAEvaluation:
             labels_0 = labels_0.cpu().numpy()
 
             """PRINT"""
+            predict = F.softmax(predict, dim=1)
             pbar.set_description("FocalLoss: {}".format(loss.mean()))
             if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(loss.flatten())
             for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
@@ -434,7 +436,9 @@ class HPAPrediction:
                     input = transform(ids=None, image_0=input, labels_0=None, train=False, val=False).unsqueeze(0)
 
                     if config.TRAIN_GPU_ARG: input = input.cuda()
-                    predict = (net(input).detach().cpu().numpy() > self.threshold).astype(np.int16)
+                    predict = net(input)
+                    predict = F.softmax(predict, dim=1)
+                    predict = (predict.detach().cpu().numpy() > self.threshold).astype(np.int16)
                     encoded = self.dataset.multilabel_binarizer.inverse_transform(predict)
                     encoded = list(encoded[0])
 
