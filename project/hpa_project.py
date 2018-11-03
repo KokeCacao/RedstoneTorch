@@ -45,7 +45,8 @@ class HPAProject:
 
     """"TESTINGS"""
     # TODO: test visualize your network
-    # TODO: test f1 score output and curve
+    # TODO: fix display image (color and tag)
+    # TODO: fix memory leak and memory display
 
     """"READINGS"""
 
