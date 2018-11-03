@@ -183,16 +183,13 @@ class HPAProject:
     def step_fold(self, fold, net, optimizer, batch_size, evaluation):
         config.fold = fold
 
-        train_sampler = self.folded_samplers[config.fold]["train"]
-        validation_sampler = self.folded_samplers[config.fold]["val"]
-        train_loader = data.DataLoader(self.dataset, batch_size=batch_size, sampler=train_sampler, shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
-        validation_loader = data.DataLoader(self.dataset, batch_size=batch_size, sampler=validation_sampler, shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=val_collate)
-
         epoch_loss = 0
         epoch_f1 = 0
 
+        train_loader = data.DataLoader(self.dataset, batch_size=batch_size, sampler=self.folded_samplers[config.fold]["train"], shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
         pbar = tqdm(train_loader)
         train_len = len(train_loader)
+
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
             """UPDATE LR"""
             state = optimizer.state_dict()
@@ -233,15 +230,17 @@ class HPAProject:
             del ids, image, labels_0, image_for_display
             del predict, loss
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
-        del pbar
+        del train_loader, pbar
 
-        val_loss, val_f1 = evaluation.eval_fold(net, validation_loader)
+        val_loss, val_f1 = evaluation.eval_fold(net, data.DataLoader(self.dataset, batch_size=batch_size, sampler=self.folded_samplers[config.fold]["val"], shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=val_collate))
         train_loss = epoch_loss / train_len
         print("""
             Epoch: {}, Fold: {}
             TrainLoss: {}, TrainF1: 
             ValidLoss: {}, ValidF1: {}
         """.format(config.epoch, config.fold, train_loss, val_loss, val_f1))
+
+        del train_loss
 
         # if config.DISPLAY_HISTOGRAM:
         #     for i, (name, param) in enumerate(net.named_parameters()):
@@ -341,6 +340,7 @@ class HPAEvaluation:
             del predict, loss
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
+        del pbar
         """LOSS"""
         f1 = f1_macro(predict_total, label_total).mean()
         tensorboardwriter.write_eval_loss(self.writer, {"FoldLoss/{}".format(config.fold): np.array(fold_loss_dict.values()).mean(), "FoldF1/{}".format(config.fold): f1}, config.global_steps[-1])
@@ -353,7 +353,9 @@ class HPAEvaluation:
 
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
         mean_loss = np.array(fold_loss_dict.values()).mean()
+        del fold_loss_dict
         self.mean_losses.append(mean_loss)
+        if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
         return mean_loss, f1
 
     def __int__(self):

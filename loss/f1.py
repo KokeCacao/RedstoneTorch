@@ -132,7 +132,7 @@ def f1_macro(y_preds, y_true, thresh=0.5, eps=1e-20):
     return f1
 
 class Differenciable_F1(nn.Module):
-    def differenciable_f1_loss(self, eps=1e-6, beta=1):
+    def __init__(self, eps=1e-6, beta=1):
         self.eps = eps
         self.beta = beta
 
