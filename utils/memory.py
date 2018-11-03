@@ -24,7 +24,7 @@ class memory_thread(threading.Thread):
             time.sleep(1)
 
 def write_memory(writer, arg):
-    t = int(time.time())
+    t = int(time.time()-config.start_time)
     if config.TRAIN_GPU_ARG:
         torch.cuda.empty_cache()  # release gpu memory
         sum = 0
@@ -35,8 +35,8 @@ def write_memory(writer, arg):
     writer.add_scalars('stats/CPU-Usage', {"CPU-Sum-{}".format(arg): psutil.cpu_percent()}, t)
 
     mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')  # e.g. 4015976448
-    mem_gib = mem_bytes / (1024. ** 3)
-    writer.add_scalars('stats/CPU-Memory', {"CPU-Sum-{}".format(arg): mem_gib}, t)
+    # mem_gib = mem_bytes / (1024. ** 3)
+    writer.add_scalars('stats/CPU-Memory', {"CPU-Sum-{}".format(arg): mem_bytes}, t)
     # if psutil.virtual_memory() != None: self.writer.add_scalars('memory/Physical', {"Physical_Mem Usage": psutil.virtual_memory()}, self.count)
 
 def get_gpu_memory_map():

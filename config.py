@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 
 from datetime import datetime
@@ -63,7 +65,7 @@ PREDICTION_DARK_THRESHOLD = 0.05
 
 AUGMENTATION_RESIZE = 224
 
-
+start_time = time.time()
 lastsave = None
 global_steps = []
 epoch = 0

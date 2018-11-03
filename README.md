@@ -36,6 +36,10 @@ python train.py --projecttag mem4 --versiontag mem4 --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-03-19-02-40-014830-mem4/ --port=6006
 //open extraneous things, clean-up loss.detach(), clean cache() outside of the epoch(), del more things
 //add f1
+//no GPU leak during training, but increasing GPU usage after eval
+=
+python train.py --projecttag mem5 --versiontag mem5 --resume False (on machine 2)
+//add CPU memory monitor and evil monitor
 
 ```
 
