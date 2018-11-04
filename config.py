@@ -15,7 +15,7 @@ DEBUG_LAPTOP = True
 DEBUG_TEST_CODE = True
 
 MODEL_EPOCHS = 100
-MODEL_BATCH_SIZE = 16
+MODEL_BATCH_SIZE = 32
 MODEL_LEARNING_RATE = 0.001
 MODEL_MOMENTUM = 0.9
 MODEL_WEIGHT_DEFAY = 0.0001
@@ -31,8 +31,8 @@ TRAIN_SAVE_CHECKPOINT = True
 TRAIN_NUM_WORKER = 4*len(TRAIN_GPU_LIST) # idea from: https://discuss.pytorch.org/t/guidelines-for-assigning-num-workers-to-dataloader/813/5
 TRAIN_RESUME = True
 TRAIN_NUMCLASS = 28
-TRAIN_COSINE = lambda global_step: (0.05/2)*(np.cos(np.pi*(np.mod(global_step-1,10000)/(10000)))+1) #y=(0.01/2)*(cos(pi*(mod(x-1,10000)/(10000)))+1)
-TRAIN_TRY_LR = True
+TRAIN_COSINE = lambda global_step: (5/2)*(np.cos(np.pi*(np.mod(global_step-1,10000)/(10000)))+1) #y=(0.01/2)*(cos(pi*(mod(x-1,10000)/(10000)))+1)
+TRAIN_TRY_LR = False
 TRAIN_TRY_LR_FORMULA = lambda x: x/(8*np.mod(-x-1, 600)+0.1)-0.000207*x # y=x/(8*\operatorname{mod}(-x-1,600)+0.1)-0.000207*x
 
 PROJECT_TAG = "test"

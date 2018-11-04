@@ -43,6 +43,12 @@ python train.py --projecttag mem5 --versiontag mem5 --resume False (on machine 2
 =
 python train.py --projecttag lr1 --versiontag lr1 --resume False (on machine 2)
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-04-03-22-36-637908-lr1/ --port=6006
+//okay, but not significant lambda x: x/(100*np.mod(-x-1, 600))-0.000006*x
+=
+python train.py --projecttag lr2 --versiontag lr2 --resume False (on machine 2)
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-04-03-55-40-334831-lr2/ --port=6006
+//lambda x: x/(8*np.mod(-x-1, 600)+0.1)-0.000207*x
+//ln=2 is fine actually, adjust batch to 32
 
 ```
 
