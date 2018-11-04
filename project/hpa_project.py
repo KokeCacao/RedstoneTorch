@@ -65,7 +65,7 @@ class HPAProject:
     e.g.
     say for class-A: public LB = 0.01, then F1 for class A = 28*0.01
     and for class-B: public LB = 0.02, then F1 for class B = 28*0.02,
-    then for class-A and B , i should public LB = ( (280.01) + (280.02) + 0 + …0 )/28
+    then for class-A and B , i should public LB = ( (280.01) + (280.02) + 0 + 0 )/28
     """
 
     """FINISHED"""

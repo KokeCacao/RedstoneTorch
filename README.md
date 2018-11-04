@@ -40,6 +40,8 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 =
 python train.py --projecttag mem5 --versiontag mem5 --resume False (on machine 2)
 //add CPU memory monitor and evil monitor
+=
+python train.py --projecttag lr1 --versiontag lr1 --resume False (on machine 2)
 
 ```
 
