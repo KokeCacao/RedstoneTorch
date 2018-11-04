@@ -239,7 +239,7 @@ class HPAProject:
 
             """DISPLAY"""
             tensorboardwriter.write_memory(self.writer, "train")
-            pbar.set_description("Epoch-Fold:{}-{} Step:{} Focal:{:.4f} F1:{:.4f} lr:{.8e}".format(config.epoch, config.fold, int(config.global_steps[fold]), loss.mean(), f1.mean(), config.TRAIN_COSINE(config.global_steps[fold])))
+            pbar.set_description("Epoch-Fold:{}-{} Step:{} Focal:{:.4f} F1:{:.4f} lr:{:.8E}".format(config.epoch, config.fold, int(config.global_steps[fold]), loss.mean(), f1.mean(), config.TRAIN_COSINE(config.global_steps[fold])))
             tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch, 'TrainLoss/{}'.format(config.fold): loss.mean()}, config.global_steps[fold])
 
             """CLEAN UP"""
