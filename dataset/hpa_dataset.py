@@ -138,10 +138,10 @@ class HPAData(data.Dataset):
             folded_val_indice[i] = list(set(data[i * cv_size:(i + 1) * cv_size]))
             folded_train_indice[i] = list(set(data[:]) - set(folded_val_indice[i]))
             print("     Fold#{}_train_size: {}".format(i, len(folded_train_indice[i])))
-            print("     Fold#{}_val_size: {}".format(i, len(folded_val_indice[i])))
+            print("     Fold#{}_val_size: {} + {}".format(i, len(folded_val_indice[i]), len(left_over)))
             folded_samplers[i] = {}
             folded_samplers[i]["train"] = SubsetRandomSampler(folded_train_indice[i])
-            folded_samplers[i]["val"] = SubsetRandomSampler(folded_val_indice[i])
+            folded_samplers[i]["val"] = SubsetRandomSampler(folded_val_indice[i] + left_over)
 
         return folded_samplers
 

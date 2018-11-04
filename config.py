@@ -31,7 +31,9 @@ TRAIN_SAVE_CHECKPOINT = True
 TRAIN_NUM_WORKER = 4*len(TRAIN_GPU_LIST) # idea from: https://discuss.pytorch.org/t/guidelines-for-assigning-num-workers-to-dataloader/813/5
 TRAIN_RESUME = True
 TRAIN_NUMCLASS = 28
-TRAIN_COSINE = lambda global_step: (0.01/2)*(np.cos(np.pi*(np.mod(global_step-1,10000)/(10000)))+1)
+TRAIN_COSINE = lambda global_step: (0.05/2)*(np.cos(np.pi*(np.mod(global_step-1,10000)/(10000)))+1) #y=(0.01/2)*(cos(pi*(mod(x-1,10000)/(10000)))+1)
+TRAIN_TRY_LR = False
+TRAIN_TRY_LR_FORMULA = lambda x: x/(100*np.mod(-x-1, 600))-0.000006*x #y=\frac{x}{100\operatorname{mod}(-x-1,\ 1500)}-0.000006x
 
 PROJECT_TAG = "test"
 PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + PROJECT_TAG

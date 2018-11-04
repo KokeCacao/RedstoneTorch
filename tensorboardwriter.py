@@ -13,20 +13,20 @@ def write_loss(writer, loss_dict, global_step):
 def write_threshold(writer, fold_value_dict, threshold):
     writer.add_scalars('train/threshold_distribution', fold_value_dict, threshold)
 
-def write_loss_distribution(writer, loss_list, global_step):
-    writer.add_histogram("eval/loss_distribution", loss_list, global_step)
+def write_loss_distribution(writer, loss_list, epoch):
+    writer.add_histogram("eval/loss_distribution", loss_list, epoch)
 
-def write_pred_distribution(writer, pred_list, global_step):
-    writer.add_histogram("eval/pred_distribution", pred_list, global_step)
+def write_pred_distribution(writer, pred_list, epoch):
+    writer.add_histogram("eval/pred_distribution", pred_list, epoch)
 
-def write_pr_curve(writer, label, predicted, global_step, fold):
-    writer.add_pr_curve("eval/pr_curve/" + str(fold), label, predicted, global_step)
+def write_pr_curve(writer, label, predicted, epoch, fold):
+    writer.add_pr_curve("eval/pr_curve/{}".format(fold), label, predicted, epoch)
 
-def write_image(writer, msg, F, global_step):
-    writer.add_figure("eval/image/" + msg, F, global_step)
+def write_image(writer, msg, F, epoch):
+    writer.add_figure("eval/image/" + msg, F, epoch)
 
-def write_eval_loss(writer, loss_dict, global_step):
-    writer.add_scalars('eval/loss_scalar', loss_dict, global_step)
+def write_eval_loss(writer, loss_dict, epoch):
+    writer.add_scalars('eval/loss_scalar', loss_dict, epoch)
 
 def write_epoch_loss(writer, loss_dict, epoch):
     writer.add_scalars('eval/loss_epoch', loss_dict, epoch)

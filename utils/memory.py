@@ -34,10 +34,9 @@ def write_memory(writer, arg):
         writer.add_scalars('stats/GPU-Memory', {"GPU-Sum-{}".format(arg): sum}, t)
     writer.add_scalars('stats/CPU-Usage', {"CPU-Sum-{}".format(arg): psutil.cpu_percent()}, t)
 
-    mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')  # e.g. 4015976448
-    # mem_gib = mem_bytes / (1024. ** 3)
-    writer.add_scalars('stats/CPU-Memory', {"CPU-Sum-{}".format(arg): mem_bytes}, t)
-    # if psutil.virtual_memory() != None: self.writer.add_scalars('memory/Physical', {"Physical_Mem Usage": psutil.virtual_memory()}, self.count)
+    cpu_mem = psutil.virtual_memory()[3]
+    # svmem(total=7708737536, available=324640768, percent=95.8, used=6051205120, free=206708736, active=6001467392, inactive=1033494528, buffers=36335616, cached=1414488064, shared=1066295296, slab=170074112)
+    writer.add_scalars('stats/CPU-Memory', {"CPU-Sum-{}".format(arg): cpu_mem}, t)
 
 def get_gpu_memory_map():
     """Get the current gpu usage.

@@ -105,9 +105,9 @@ if __name__ == '__main__':
 
         reproduceability()
 
-        memory = memory_thread(1, writer)
-        memory.setDaemon(True)
-        memory.start()
+        # memory = memory_thread(1, writer)
+        # memory.setDaemon(True)
+        # memory.start()
 
         print("=> Current Directory: " + str(os.getcwd()))
         print("=> Loading neuronetwork...")

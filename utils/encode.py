@@ -75,7 +75,7 @@ def tensor_to_np_four_channel_transarant(tensor):
     # green = tensor[1]
     # blue = tensor[2]
     # yellow = tensor[3]
-    ndarray = 255 * np.array([image[0], image[2], image[3], image[1]])
+    ndarray = 1.0 * np.array([image[0], image[2], image[3], image[1]])
     return ndarray.transpose((1, 2, 0))
 
 
@@ -86,7 +86,7 @@ def tensor_to_np_four_channel_drop(tensor):
     :return: drop tensor[1], the output will put the cannel layer the last layer
     """
     image = tensor.cpu().clone().numpy()
-    ndarray = 255 * np.array([image[0], image[2], image[3]])
+    ndarray = 1.0 * np.array([image[0], image[2], image[3]])
     return ndarray.transpose((1, 2, 0))
 
 def tensor_to_np_three_channel_with_green(tensor):
@@ -96,7 +96,7 @@ def tensor_to_np_three_channel_with_green(tensor):
     :return: drop tensor[1], the output will put the cannel layer the last layer
     """
     image = tensor.cpu().clone().numpy()
-    ndarray = 255 * np.array([0.5*image[0] + 0.25*image[3], 0.5*image[1] + 0.25*image[3], 0.5*image[2]])
+    ndarray = 1.0 * np.array([0.5*image[0] + 0.25*image[3], 0.5*image[1] + 0.25*image[3], 0.5*image[2]])
     return ndarray.transpose((1, 2, 0))
 
 def tensor_to_np_three_channel_without_green(tensor):
@@ -106,7 +106,7 @@ def tensor_to_np_three_channel_without_green(tensor):
     :return: drop tensor[1], the output will put the cannel layer the last layer
     """
     image = tensor.cpu().clone().numpy()
-    ndarray = 255 * np.array([0.5*image[0] + 0.25*image[3], 0.25*image[3], 0.5*image[2]])
+    ndarray = 1.0 * np.array([0.5*image[0] + 0.25*image[3], 0.25*image[3], 0.5*image[2]])
     return ndarray.transpose((1, 2, 0))
 
 def ndarray_to_PIL(ndarray):

@@ -43,6 +43,7 @@ class HPAProject:
     # TODO: Better augmentation
     # TODO: Adjust weight init (in or out) and init dense layers
     # TODO: I tried focal loss + soft F1 and focal loss - log(soft F1). Initially the convergence is faster, but later on I ended up with about the same result. Though, I didn't train the model for a long time, just ~6 hours.
+    # TODO: load faster, try not to transform test, try adding CPU
 
     """"TESTINGS"""
     # TODO: fix display image (color and tag)
@@ -54,6 +55,18 @@ class HPAProject:
     """GIVE UP"""
     # TODO: test visualize your network
     # TODO: freeze loaded layer, check if the layers loaded correctly (ie. I want to load as much as I can)
+
+    """LB PROBING
+    you can actually verify the correct metric by probing the LB.
+    submit "prediction= a single class A" for all images
+    submit "prediction= a single class B" for all images
+    submit "prediction= 2 classes A and B" for all images
+    if the F1 is averaged over the class, you can derived 3. from 1.,2.
+    e.g.
+    say for class-A: public LB = 0.01, then F1 for class A = 28*0.01
+    and for class-B: public LB = 0.02, then F1 for class B = 28*0.02,
+    then for class-A and B , i should public LB = ( (280.01) + (280.02) + 0 + …0 )/28
+    """
 
     """FINISHED"""
 
@@ -165,7 +178,7 @@ class HPAProject:
             pbar = tqdm(config.EVAL_TRY_THRESHOLD)
             for threshold in pbar:
                 score = f1_macro(evaluation.epoch_pred, evaluation.epoch_label, thresh=threshold).mean()
-                tensorboardwriter.write_threshold(self.writer, {"Fold/{}".format(config.fold): score}, threshold)
+                tensorboardwriter.write_threshold(self.writer, {"Fold/{}".format(config.fold): score}, threshold*1000.0)
                 if score > best_val:
                     best_threshold = threshold
                     best_val = score
@@ -193,7 +206,10 @@ class HPAProject:
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
             """UPDATE LR"""
             state = optimizer.state_dict()
-            state['state']['lr'] = config.TRAIN_COSINE(config.global_steps[fold])
+            if config.TRAIN_TRY_LR:
+                state['state']['lr'] = config.TRAIN_COSINE(config.global_steps[fold])
+            else:
+                state['state']['lr'] = config.TRAIN_COSINE(config.global_steps[fold])
             optimizer.load_state_dict(state)
 
             """TRAIN NET"""
@@ -221,10 +237,10 @@ class HPAProject:
             epoch_f1 = epoch_f1 + f1.mean()
             # f1 = f1_macro(predict, labels_0).mean()
 
-            """OUTPUT"""
+            """DISPLAY"""
             tensorboardwriter.write_memory(self.writer, "train")
-            pbar.set_description("Epoch:{} Fold:{} Step:{} Batch:{}/{} Loss:{:.4f}".format(config.epoch, config.fold, int(config.global_steps[fold]), batch_index, train_len / config.MODEL_BATCH_SIZE, loss.flatten().mean()))
-            tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch, 'TrainLoss/{}'.format(config.fold): loss.flatten().mean()}, config.global_steps[fold])
+            pbar.set_description("Epoch-Fold:{}-{} Step:{} Focal:{:.4f} F1:{:.4f}".format(config.epoch, config.fold, int(config.global_steps[fold]), loss.mean(), f1.mean()))
+            tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch, 'TrainLoss/{}'.format(config.fold): loss.mean()}, config.global_steps[fold])
 
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display
@@ -316,7 +332,7 @@ class HPAEvaluation:
 
             """PRINT"""
             predict = F.softmax(predict, dim=1)
-            pbar.set_description("FocalLoss:{} F1:{}".format(loss.mean(), f1.mean()))
+            pbar.set_description("Focal:{} F1:{}".format(loss.mean(), f1.mean()))
             if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(loss.flatten())
             for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
             predict_total = np.concatenate((predict_total, predict.detach().cpu().numpy()), axis=0) if predict_total is not None else predict.detach().cpu().numpy()
@@ -333,7 +349,7 @@ class HPAEvaluation:
             np.append(self.worst_id, max_key)
 
             """DISPLAY"""
-            tensorboardwriter.write_memory(self.writer, "eval")
+            tensorboardwriter.write_memory(self.writer, "train")
             if config.DISPLAY_VISUALIZATION and batch_index < 5: self.display(config.fold, ids, image, image_for_display, labels_0, predict, loss)
 
             """CLEAN UP"""
@@ -344,8 +360,8 @@ class HPAEvaluation:
         del pbar
         """LOSS"""
         f1 = f1_macro(predict_total, label_total).mean()
-        tensorboardwriter.write_eval_loss(self.writer, {"FoldLoss/{}".format(config.fold): np.array(fold_loss_dict.values()).mean(), "FoldF1/{}".format(config.fold): f1}, config.global_steps[-1])
-        tensorboardwriter.write_pr_curve(self.writer, label_total, predict_total, config.global_steps[-1], config.fold)
+        tensorboardwriter.write_eval_loss(self.writer, {"FoldLoss/{}".format(config.fold): np.array(fold_loss_dict.values()).mean(), "FoldF1/{}".format(config.fold): f1}, config.epoch)
+        tensorboardwriter.write_pr_curve(self.writer, label_total, predict_total, config.epoch, config.fold)
         self.epoch_pred = np.concatenate((self.epoch_pred, predict_total), axis=0) if self.epoch_pred is not None else predict_total
         self.epoch_label = np.concatenate((self.epoch_label, label_total), axis=0) if self.epoch_label is not None else label_total
         del predict_total, label_total
@@ -401,7 +417,7 @@ class HPAEvaluation:
             plt.grid(False)
 
             plt.subplot(323)
-            plt.imshow(encode.tensor_to_np_three_channel_with_green(untransfered))
+            plt.imshow(encode.tensor_to_np_three_channel_with_green(untransfered), norm=mpl.colors.NoNorm(vmin=0, vmax=255, clip=True))
             plt.title("Mask_Real; label:{}".format(label))
             plt.grid(False)
 
@@ -409,7 +425,7 @@ class HPAEvaluation:
             plt.imshow(encode.tensor_to_np_three_channel_with_green(transfered))
             plt.title("Mask_Trans; loss:{}".format(loss))
             plt.grid(False)
-            tensorboardwriter.write_image(self.writer, str(fold) + "-" + str(id), F, config.global_steps[fold])
+            tensorboardwriter.write_image(self.writer, "{}-{}".format(fold, id), F, config.epoch)
 
 
 class HPAPrediction:
