@@ -32,7 +32,7 @@ TRAIN_NUM_WORKER = 4*len(TRAIN_GPU_LIST) # idea from: https://discuss.pytorch.or
 TRAIN_RESUME = True
 TRAIN_NUMCLASS = 28
 TRAIN_COSINE = lambda global_step: (0.05/2)*(np.cos(np.pi*(np.mod(global_step-1,10000)/(10000)))+1) #y=(0.01/2)*(cos(pi*(mod(x-1,10000)/(10000)))+1)
-TRAIN_TRY_LR = False
+TRAIN_TRY_LR = True
 TRAIN_TRY_LR_FORMULA = lambda x: x/(100*np.mod(-x-1, 600))-0.000006*x #y=\frac{x}{100\operatorname{mod}(-x-1,\ 1500)}-0.000006x
 
 PROJECT_TAG = "test"
