@@ -42,8 +42,7 @@ python train.py --projecttag mem5 --versiontag mem5 --resume False (on machine 2
 //add CPU memory monitor and evil monitor
 =
 python train.py --projecttag lr1 --versiontag lr1 --resume False (on machine 2)
-python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-04-03-20-43-803600-lr1/ --port=6006
-
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-04-03-22-36-637908-lr1/ --port=6006
 
 ```
 

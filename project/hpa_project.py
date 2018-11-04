@@ -206,10 +206,7 @@ class HPAProject:
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
             """UPDATE LR"""
             state = optimizer.state_dict()
-            if config.TRAIN_TRY_LR:
-                state['state']['lr'] = config.TRAIN_TRY_LR_FORMULA(config.global_steps[fold])
-            else:
-                state['state']['lr'] = config.TRAIN_COSINE(config.global_steps[fold])
+            state['state']['lr'] = config.TRAIN_TRY_LR_FORMULA(config.global_steps[fold]) if config.TRAIN_TRY_LR else config.TRAIN_COSINE(config.global_steps[fold])
             optimizer.load_state_dict(state)
 
             """TRAIN NET"""
@@ -239,7 +236,7 @@ class HPAProject:
 
             """DISPLAY"""
             tensorboardwriter.write_memory(self.writer, "train")
-            pbar.set_description("Epoch-Fold:{}-{} Step:{} Focal:{:.4f} F1:{:.4f} lr:{:.8E}".format(config.epoch, config.fold, int(config.global_steps[fold]), loss.mean(), f1.mean(), config.TRAIN_COSINE(config.global_steps[fold])))
+            pbar.set_description("Epoch-Fold:{}-{} Step:{} Focal:{:.4f} F1:{:.4f} lr:{:.8E}".format(config.epoch, config.fold, int(config.global_steps[fold]), loss.mean(), f1.mean(), state['state']['lr']))
             tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch, 'TrainLoss/{}'.format(config.fold): loss.mean()}, config.global_steps[fold])
 
             """CLEAN UP"""
