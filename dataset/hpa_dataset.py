@@ -99,8 +99,7 @@ class HPAData(data.Dataset):
             if len(self.dataframe.index.tolist()) != len(set(self.dataframe.index.tolist())): print("WARNING: len(self.dataframe.index.tolist()) != len(set(self.dataframe.index.tolist()))")
         else:
             """TEST MODE"""
-            self.id = [set([x.replace(config.DIRECTORY_SUFFIX_IMG, "").replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(config.DIRECTORY_TEST)])]
-            self.id = [(set(self.id) - set(self.dataframe.index.tolist()))]
+            self.id = [set([x.replace(config.DIRECTORY_SUFFIX_IMG, "").replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(config.DIRECTORY_TEST)]) - set(self.dataframe.index.tolist())]
             self.id_len = len(self.id)
 
             """TEST DUPLICATED"""
