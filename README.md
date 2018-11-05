@@ -95,6 +95,15 @@ However, you may not have the full permission to read doanloaded file, use
 sudo chmod -R a+rwx train.csv
 ```
 to give yourself permission to read.
+### Preprocess
+By using this command
+```commandline
+python preprocess.py
+```
+You can preprocess the data.
+ - You can calculate the mean and standard deviation of train and test data
+ - The image will transformed to .npy so that it load faster
+
 ### Train
 You can start trainning by type command `python train.py`  
 Make sure you have everything setup  
