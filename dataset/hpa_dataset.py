@@ -94,7 +94,7 @@ class HPAData(data.Dataset):
             self.id = self.id[:self.id_len]
         else:
             """TEST MODE"""
-            self.id = [set([x.replace(config.DIRECTORY_SUFFIX_IMG, "").replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(config.DIRECTORY_TEST)]) - set(self.dataframe.index.tolist())]
+            self.id = list(set([x.replace(config.DIRECTORY_SUFFIX_IMG, "").replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(config.DIRECTORY_TEST)]) - set(self.dataframe.index.tolist()))
             self.id_len = len(self.id)
 
         """WARNING: data length and indices depends on the length of images"""
