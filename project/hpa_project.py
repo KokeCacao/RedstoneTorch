@@ -512,8 +512,8 @@ class HPAPreprocess:
         for id in pbar:
 
             img = dataset.get_load_image_by_id(id)
-            print(img.shape)
-            img_mean = torch.stack(transforms.ToTensor()(img.mean(1).mean(1)))
+            # print(img.shape) # (512, 512, 4)
+            img_mean = torch.stack(transforms.ToTensor()(img.mean(0).mean(0)))
             sum = sum + img_mean
 
             pbar.set_description("Transform to .npy: {}, Sum: {}".format(id, img_mean))
@@ -522,8 +522,7 @@ class HPAPreprocess:
         mean = sum/length
         for id in pbar:
             img = dataset.get_load_image_by_id(id)
-            print(img.shape)
-            img_mean = torch.stack(transforms.ToTensor()(img.mean(1).mean(1)))
+            img_mean = torch.stack(transforms.ToTensor()(img.mean(0).mean(0)))
             img_variance = (img_mean - mean)**2
             sum_variance = sum_variance + img_variance
 
