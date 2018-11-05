@@ -511,8 +511,8 @@ class HPAPreprocess:
         sum_variance = [0, 0, 0, 0]
         for id in pbar:
 
-            print(img.shape)
             img = dataset.get_load_image_by_id(id)
+            print(img.shape)
             img_mean = torch.stack(transforms.ToTensor()(img.mean(1).mean(1)))
             sum = sum + img_mean
 
