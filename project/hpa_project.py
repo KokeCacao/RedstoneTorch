@@ -510,10 +510,9 @@ class HPAPreprocess:
         sum = [0, 0, 0, 0]
         sum_variance = [0, 0, 0, 0]
         for id in pbar:
-
-            img = dataset.get_load_image_by_id(id).astype(np.float32)
+            img = dataset.get_load_image_by_id(id).astype(np.uint8)
             # print(img.shape) # (512, 512, 4)
-            img_mean = np.stack((img.mean(0).mean(0).astype(np.uint8))/255.)
+            img_mean = np.stack((img.astype(np.float32).mean(0).mean(0))/255.)
             sum = sum + img_mean
 
             pbar.set_description("{} Sum:[{:.2f},{:.2f},{:.2f},{:.2f}]".format(id, img_mean[0], img_mean[1], img_mean[2], img_mean[3]))
@@ -521,8 +520,8 @@ class HPAPreprocess:
             np.save(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy", img)
         mean = sum/length
         for id in pbar:
-            img = dataset.get_load_image_by_id(id).astype(np.float32)
-            img_mean = np.stack((img.mean(0).mean(0))/255.)
+            img = dataset.get_load_image_by_id(id).astype(np.uint8)
+            img_mean = np.stack((img.astype(np.float32).mean(0).mean(0))/255.)
             img_variance = (img_mean - mean)**2
             sum_variance = sum_variance + img_variance
 
