@@ -94,7 +94,11 @@ class HPAData(data.Dataset):
             self.id = self.id[:self.id_len]
         else:
             self.id = [x.replace(config.DIRECTORY_SUFFIX_IMG, "").replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(config.DIRECTORY_TEST)]
-            if len(self.id) != len(set(self.id)): print("WARNING: len(self.id) != len(set(self.id))")
+            if len(self.id) != len(set(self.id)):
+                print("WARNING: len(self.id)({}) != len(set(self.id))({})".format(len(self.id), len(set(self.id))))
+                duplicated = set([x for x in self.id if self.id.count(x) > 1])
+                print("Duplicated {} items".format(len(duplicated)))
+                print(np.array(duplicated))
             if len(self.dataframe.index.tolist()) != len(set(self.dataframe.index.tolist())): print("WARNING: len(self.dataframe.index.tolist()) != len(set(self.dataframe.index.tolist()))")
             self.id = list(set(self.id) - set(self.dataframe.index.tolist()))
             self.id_len = len(self.id)
