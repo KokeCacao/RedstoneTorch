@@ -229,8 +229,8 @@ class HPAProject:
             optimizer.step()
 
             """DETATCH"""
-            focal.detach().cpu().numpy().mean()
-            f1 = f1.detach().cpu().numpy().mean()
+            focal.detach().cpu().numpy().mean().astype(np.float32)
+            f1 = f1.detach().cpu().numpy().mean().astype(np.float32)
             loss = loss.detach().cpu().numpy().mean()
             labels_0 = labels_0.cpu().numpy()
 

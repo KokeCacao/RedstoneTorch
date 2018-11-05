@@ -58,7 +58,7 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 //Epoch: 8, Fold: 0 TrainLoss: 0.468069558797 ValidLoss: 0.453331559896, ValidF1: 0.190886673186
 =
 python train.py --projecttag normal1 --versiontag normal1 --resume False
-//normalize data, use both loss(f1, focal)
+//normalize data, use both loss(f1, focal), lr=0.1
 //lambda global_step: (0.1/2)*(np.cos(np.pi*(np.mod(global_step-1,10000)/(10000)))+1)
 
 
