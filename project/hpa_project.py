@@ -44,6 +44,10 @@ class HPAProject:
     # TODO: Adjust weight init (in or out) and init dense layers
     # TODO: I tried focal loss + soft F1 and focal loss - log(soft F1). Initially the convergence is faster, but later on I ended up with about the same result. Though, I didn't train the model for a long time, just ~6 hours.
     # TODO: load faster, try not to transform test, try adding CPU
+    # TODO: mixup https://arxiv.org/pdf/1710.09412.pdf
+    # TODO: attention Residual Attention Network for Image Classification - Fei Wang, cvpr 2017 https://arxiv.org/abs/1704.06904 https://www.youtube.com/watch?v=Deq1BGTHIPA, https://blog.csdn.net/wspba/article/details/73727469
+    # TODO: train on 1028*1028 image
+    # TODO: visualization: https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/70173
 
     """"TESTINGS"""
     # TODO: fix display image (color and tag)
@@ -489,13 +493,19 @@ class HPAPrediction:
 
 class HPAPreprocess:
     def __init__(self):
-        mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=".png", test=False, load_preprocessed_dir=None))
+        # mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=".png", test=False, load_preprocessed_dir=None))
         print("""
         Train Data:
             Mean = {}
             STD  = {}
             STD1 = {}
         """.format(mean, std, std1))
+        """
+        Train Data:
+            Mean = [0.0804419  0.05262986 0.05474701 0.08270896]
+            STD  = [0.0025557  0.0023054  0.0012995  0.00293925]
+            STD1 = [0.00255578 0.00230547 0.00129955 0.00293934]
+        """
         mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=".png", test=True, load_preprocessed_dir=None))
         print("""
         Test Data:
@@ -519,6 +529,9 @@ class HPAPreprocess:
 
             np.save(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy", img)
         mean = sum/length
+        print("     Mean = {}".format(mean))
+
+        pbar = tqdm(dataset.id)
         for id in pbar:
             img = dataset.get_load_image_by_id(id).astype(np.uint8)
             img_mean = np.stack((img.astype(np.float32).mean(0).mean(0))/255.)
@@ -528,6 +541,8 @@ class HPAPreprocess:
             pbar.set_description("{} Var:[{:.2f},{:.2f},{:.2f},{:.2f}]".format(id, img_variance[0], img_variance[1], img_variance[2], img_variance[3]))
         std = sum_variance/length
         std1 = sum_variance/(length-1)
+        print("     STD  = {}".format(std))
+        print("     STD1 = {}".format(std1))
         return mean, std, std1
 
 

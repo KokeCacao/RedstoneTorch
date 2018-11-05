@@ -93,6 +93,7 @@ class HPAData(data.Dataset):
             self.id = self.id[:self.id_len]
         else:
             self.id = [x.replace(config.DIRECTORY_SUFFIX_IMG, "").replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(config.DIRECTORY_TEST)]
+            self.id = list(set(self.id) - set(self.dataframe.index.tolist()))
             self.id_len = len(self.id)
         """WARNING: data length and indices depends on the length of images"""
         self.img_len = int(len(os.listdir(self.load_img_dir)) / 4 * config.TRAIN_DATA_PERCENT)
@@ -370,13 +371,20 @@ def transform(ids, image_0, labels_0, train, val):
             Normalize(mean=[0.05908022413399168, 0.04532851916280794, 0.040652325092460015, 0.05923425759572161], std=[]),
         ])
         return PREDICT_TRANSFORM_IMG(image_0)
+
+    """
+    Train Data:
+            Mean = [0.0804419  0.05262986 0.05474701 0.08270896]
+            STD  = [0.0025557  0.0023054  0.0012995  0.00293925]
+            STD1 = [0.00255578 0.00230547 0.00129955 0.00293934]
+    """
     if not val and train:
         image_aug_transform = TrainImgAugTransform().to_deterministic()
         TRAIN_TRANSFORM = {
             'image': transforms.Compose([
                 image_aug_transform,
                 transforms.ToTensor(),
-                Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[]),
+                Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[0.00255578, 0.00230547, 0.00129955, 0.00293934]),
             ]),
         }
 
@@ -387,7 +395,7 @@ def transform(ids, image_0, labels_0, train, val):
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             image_aug_transform,
             transforms.ToTensor(),
-            Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[]),
+            Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[0.00255578, 0.00230547, 0.00129955, 0.00293934]),
         ])
 
         image = PREDICT_TRANSFORM_IMG(image_0)
