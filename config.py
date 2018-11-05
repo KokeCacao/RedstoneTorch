@@ -34,6 +34,7 @@ TRAIN_NUMCLASS = 28
 TRAIN_COSINE = lambda global_step: (5/2)*(np.cos(np.pi*(np.mod(global_step-1,10000)/(10000)))+1) #y=(0.01/2)*(cos(pi*(mod(x-1,10000)/(10000)))+1)
 TRAIN_TRY_LR = False
 TRAIN_TRY_LR_FORMULA = lambda x: x/(8*np.mod(-x-1, 600)+0.1)-0.000207*x # y=x/(8*\operatorname{mod}(-x-1,600)+0.1)-0.000207*x
+TRAIN_LOAD_FROM_PREPROCESSED = True
 
 PROJECT_TAG = "test"
 PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + PROJECT_TAG
@@ -49,9 +50,10 @@ EVAL_CHOSEN_THRESHOLD = 0.5
 DIRECTORY_PREFIX = ""
 DIRECTORY_SUFFIX_IMG = ".png"
 DIRECTORY_SUFFIX_MASK = ".png"
+DIRECTORY_PREPROCESSED_SUFFIX_IMG = ".npy"
 DIRECTORY_IMG = DIRECTORY_PREFIX + "data/train/"
 DIRECTORY_MASK = DIRECTORY_PREFIX + 'data/train/masks/'  # augmentation
-
+DIRECTORY_PREPROCESSED_IMG = DIRECTORY_PREFIX + "preprocessed/train/"
 DIRECTORY_LOAD = None
 DIRECTORY_CSV = DIRECTORY_PREFIX + 'data/train.csv'
 DIRECTORY_SAMPLE_CSV = DIRECTORY_PREFIX + 'data/sample_submission.csv'

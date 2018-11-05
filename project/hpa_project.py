@@ -1,8 +1,6 @@
 import itertools
 import os
 import sys
-import time
-from datetime import datetime
 
 import matplotlib as mpl
 import numpy as np
@@ -11,14 +9,16 @@ import pandas as pd
 from sklearn import metrics
 from torch.utils import data
 import torch.nn.functional as F
+from torchvision import datasets, transforms
 from tqdm import tqdm
+from PIL import Image
 
 import config
 import tensorboardwriter
 from dataset.hpa_dataset import HPAData, train_collate, val_collate, transform
 from gpu import gpu_profile
-from loss.f1 import competitionMetric, f1_macro, Differenciable_F1
-from loss.focal import FocalLoss, FocalLoss_reduced, Focal_Loss_from_git
+from loss.f1 import f1_macro, Differenciable_F1
+from loss.focal import Focal_Loss_from_git
 from net.proteinet.proteinet_model import se_resnext101_32x4d_modified
 from utils import encode
 from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, cuda, load_checkpoint_all_fold_without_optimizers, save_onnx
@@ -51,6 +51,7 @@ class HPAProject:
 
     """"READINGS"""
     # TODO: https://www.proteinatlas.org/learn/dictionary/cell/microtubule+organizing+center+3; https://www.proteinatlas.org/learn/dictionary/cell
+    # TODO: For model34 , a signle fold with 7 cycle may cost 6~7h (about 66s/epoch on 1 1080ti).
 
     """GIVE UP"""
     # TODO: test visualize your network
@@ -92,7 +93,7 @@ class HPAProject:
         load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[0], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
-        self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG)
+        self.dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix = config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_preprocessed_dir=config.DIRECTORY_PREPROCESSED_IMG)
         self.folded_samplers = self.dataset.get_fold_sampler(fold=config.MODEL_FOLD)
 
         self.run()
@@ -205,9 +206,7 @@ class HPAProject:
 
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
             """UPDATE LR"""
-            state = optimizer.state_dict()
-            state['state']['lr'] = config.TRAIN_TRY_LR_FORMULA(config.global_steps[fold]) if config.TRAIN_TRY_LR else config.TRAIN_COSINE(config.global_steps[fold])
-            optimizer.load_state_dict(state)
+            optimizer.state['lr'] = config.TRAIN_TRY_LR_FORMULA(config.global_steps[fold]) if config.TRAIN_TRY_LR else config.TRAIN_COSINE(config.global_steps[fold])
 
             """TRAIN NET"""
             config.global_steps[fold] = config.global_steps[fold] + 1
@@ -217,16 +216,18 @@ class HPAProject:
             predict = net(image)
 
             """LOSS"""
-            loss = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
+            focal = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
             f1 = Differenciable_F1()(labels_0, predict)
+            loss = focal.sum() + f1
             """BACKPROP"""
             optimizer.zero_grad()
-            loss.sum().backward()
+            loss.backward()
             optimizer.step()
 
             """DETATCH"""
-            loss = loss.detach().cpu().numpy()
-            f1 = f1.detach().cpu().numpy()
+            focal.detach().cpu().numpy().mean()
+            f1 = f1.detach().cpu().numpy().mean()
+            loss = loss.detach().cpu().numpy().mean()
             labels_0 = labels_0.cpu().numpy()
 
             """SUM"""
@@ -236,12 +237,12 @@ class HPAProject:
 
             """DISPLAY"""
             tensorboardwriter.write_memory(self.writer, "train")
-            pbar.set_description("Epoch-Fold:{}-{} Step:{} Focal:{:.4f} F1:{:.4f} lr:{:.8E}".format(config.epoch, config.fold, int(config.global_steps[fold]), loss.mean(), f1.mean(), state['state']['lr']))
-            tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch, 'TrainLoss/{}'.format(config.fold): loss.mean()}, config.global_steps[fold])
+            pbar.set_description("(E{}-F{}) Step:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} loss{:.2}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.state['lr'], loss))
+            tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch, 'Loss/{}'.format(config.fold): loss, 'F1/{}'.format(config.fold): f1, 'Focal/{}'.format(config.fold): focal}, config.global_steps[fold])
 
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display
-            del predict, loss
+            del predict, loss, focal, f1
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
         del train_loader, pbar
 
@@ -485,3 +486,50 @@ class HPAPrediction:
             f1 = f1.merge(f2, left_on='Id', right_on='Id', how='outer')
             os.remove(save_path)
             f1.to_csv(save_path, index=False)
+
+class HPAPreprocess:
+    def __init__(self):
+        mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=".png", test=False, load_preprocessed_dir=None))
+        print("""
+        Train Data:
+            Mean = {}
+            STD  = {}
+            STD1 = {}
+        """.format(mean, std, std1))
+        mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=".png", test=True, load_preprocessed_dir=None))
+        print("""
+        Test Data:
+            Mean = {}
+            STD  = {}
+            STD1 = {}
+        """.format(mean, std, std1))
+
+    def run(self, dataset):
+        pbar = tqdm(dataset.id)
+        length = len(pbar)
+        sum = [0, 0, 0, 0]
+        sum_variance = [0, 0, 0, 0]
+        for id in pbar:
+
+            img = dataset.get_load_image_by_id(id)
+            img_mean = torch.stack(transforms.ToTensor()(img.mean(1).mean(1).mean(1)))
+            sum = sum + img_mean
+
+            pbar.set_description("Transform to .npy: {}, Sum: {}".format(id, img_mean))
+
+            np.save(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy", img)
+        mean = sum/length
+        for id in pbar:
+            img = dataset.get_load_image_by_id(id)
+            img_mean = torch.stack(transforms.ToTensor()(img.mean(1).mean(1).mean(1)))
+            img_variance = (img_mean - mean)**2
+            sum_variance = sum_variance + img_variance
+
+            pbar.set_description("Transform to .npy: {}, Var: {}".format(id, img_variance))
+        std = sum_variance/length
+        std1 = sum_variance/(length-1)
+        return mean, std, std1
+
+
+
+

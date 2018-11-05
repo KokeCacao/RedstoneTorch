@@ -111,3 +111,8 @@ def tensor_to_np_three_channel_without_green(tensor):
 
 def ndarray_to_PIL(ndarray):
     return Image.fromarray(ndarray.astype('uint8'), 'RGB')
+
+def save_as_npy(from_dir, to_dir):
+    img = Image.open(from_dir)
+    data = np.array(img, dtype='uint8')
+    np.save(to_dir, data)

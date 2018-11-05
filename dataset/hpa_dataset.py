@@ -22,7 +22,7 @@ from sklearn.preprocessing import MultiLabelBinarizer
 ## https://devhub.io/repos/pytorch-vision
 ## https://github.com/ClementPinard/FlowNetPytorch/blob/master/balancedsampler.py
 from torch.utils.data.dataloader import numpy_type_map, default_collate
-from torchvision.transforms import transforms
+from torchvision.transforms import transforms, Normalize
 
 import config
 from utils.encode import to_numpy
@@ -43,7 +43,7 @@ class HPAData(data.Dataset):
 
     """
 
-    def __init__(self, csv_dir, load_img_dir, img_suffix=".png", test=False):
+    def __init__(self, csv_dir, load_img_dir=None, img_suffix=".png", test=False, load_preprocessed_dir=None):
         print("Reading Data...")
         self.test = test
         if self.test: print("Prediction Mode Open...")
@@ -84,6 +84,7 @@ class HPAData(data.Dataset):
             27: 'Rods & rings'}
 
         self.load_img_dir = load_img_dir
+        self.load_preprocessed_dir = load_preprocessed_dir
         self.img_suffix = img_suffix
 
         if not self.test:
@@ -161,13 +162,16 @@ class HPAData(data.Dataset):
         :param indice: id
         :return: nparray image of (r, g, b, y) from 0~255
         """
-        indice = self.indices_to_id[indice]
+        id = self.indices_to_id[indice]
+        if config.TRAIN_LOAD_FROM_PREPROCESSED and self.load_preprocessed_dir:
+            dir = self.load_preprocessed_dir
+            return np.load(os.path.join(dir, id + self.img_suffix))
 
         dir = self.load_img_dir
         if self.test: dir = config.DIRECTORY_TEST
         colors = ['red', 'green', 'blue', 'yellow']
         flags = cv2.IMREAD_GRAYSCALE
-        imgs = [cv2.imread(os.path.join(dir, indice + '_' + color + self.img_suffix), flags).astype(np.uint8) for color in colors]
+        imgs = [cv2.imread(os.path.join(dir, id + '_' + color + self.img_suffix), flags).astype(np.uint8) for color in colors]
         return np.stack(imgs, axis=-1)
 
     def get_load_label_by_indice(self, indice):
@@ -185,12 +189,14 @@ class HPAData(data.Dataset):
         :param indice: id
         :return: nparray image of (r, g, b, y) from 0~255
         """
+        if config.TRAIN_LOAD_FROM_PREPROCESSED and self.load_preprocessed_dir:
+            dir = self.load_preprocessed_dir
+            return np.load(os.path.join(dir, id + self.img_suffix))
+
         dir = self.load_img_dir
         if self.test: dir = config.DIRECTORY_TEST
         colors = ['red', 'green', 'blue', 'yellow']
         flags = cv2.IMREAD_GRAYSCALE
-        imgs = cv2.imread(os.path.join(dir, id + '_' + 'red' + self.img_suffix), flags)
-        imgs = [cv2.imread(os.path.join(dir, id + '_' + color + self.img_suffix), flags) for color in colors]
         imgs = [cv2.imread(os.path.join(dir, id + '_' + color + self.img_suffix), flags).astype(np.uint8) for color in colors]
         return np.stack(imgs, axis=-1)
 
@@ -324,11 +330,44 @@ def val_collate(batch):
 
 
 def transform(ids, image_0, labels_0, train, val):
+    """
+
+    :param ids:
+    :param image_0:
+    :param labels_0:
+    :param train:
+    :param val:
+    :return:
+    """
+
+    """ https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69462
+    Hi lafoss, 
+    just out of interest: How did you calculate these values? I am asking because I did the same a couple of days ago, on the original 512x512 images and got slightly different results, i.e.:
+    Means for train image data (originals)
+    
+    Red average: 0.080441904331346
+    Green average: 0.05262986230955176
+    Blue average: 0.05474700710311806
+    Yellow average: 0.08270895676048498
+    
+    Means for test image data (originals)
+    
+    Red average: 0.05908022413399168
+    Green average: 0.04532851916280794
+    Blue average: 0.040652325092460015
+    Yellow average: 0.05923425759572161
+    
+    Did you resize the images before checking the means? 
+    As I say, just out of interest, 
+    cheers and thanks, 
+    Wolfgang
+    """
     if ids is None and labels_0 is None and train is False and val is False: # predict.py
         image_aug_transform = TestImgAugTransform().to_deterministic()
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             image_aug_transform,
             transforms.ToTensor(),
+            Normalize(mean=[0.05908022413399168, 0.04532851916280794, 0.040652325092460015, 0.05923425759572161], std=[]),
         ])
         return PREDICT_TRANSFORM_IMG(image_0)
     if not val and train:
@@ -337,6 +376,7 @@ def transform(ids, image_0, labels_0, train, val):
             'image': transforms.Compose([
                 image_aug_transform,
                 transforms.ToTensor(),
+                Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[]),
             ]),
         }
 
@@ -347,6 +387,7 @@ def transform(ids, image_0, labels_0, train, val):
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             image_aug_transform,
             transforms.ToTensor(),
+            Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[]),
         ])
 
         image = PREDICT_TRANSFORM_IMG(image_0)

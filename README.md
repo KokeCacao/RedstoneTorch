@@ -37,6 +37,8 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 //open extraneous things, clean-up loss.detach(), clean cache() outside of the epoch(), del more things
 //add f1
 //no GPU leak during training, but increasing GPU usage after eval
+//Epoch: 10, Fold: 0 TrainLoss: 0.47 ValidLoss: 0.469516485929, ValidF1: 0.179454994182
+//To Resume: python train.py --versiontag 'test' --projecttag 2018-11-04-04-19-26-236033-lr3--loadfile lr3-CP7.pth
 =
 python train.py --projecttag mem5 --versiontag mem5 --resume False (on machine 2)
 //add CPU memory monitor and evil monitor
@@ -48,7 +50,12 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 python train.py --projecttag lr2 --versiontag lr2 --resume False (on machine 2)
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-04-03-55-40-334831-lr2/ --port=6006
 //lambda x: x/(8*np.mod(-x-1, 600)+0.1)-0.000207*x
-//ln=2 is fine actually, adjust batch to 32
+//ln=2 is fine actually
+=
+python train.py --projecttag lr3 --versiontag lr3 --resume False (on machine 2)
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-04-04-19-26-236033-lr3/ --port=6006
+//adjust batch to 32, start from lr=5
+//Epoch: 8, Fold: 0 TrainLoss: 0.468069558797 ValidLoss: 0.453331559896, ValidF1: 0.190886673186
 
 ```
 
