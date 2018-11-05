@@ -100,7 +100,7 @@ class HPAData(data.Dataset):
         else:
             """TEST MODE"""
             self.id = [set([x.replace(config.DIRECTORY_SUFFIX_IMG, "").replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(config.DIRECTORY_TEST)])]
-            self.id = list(set(self.id) - set(self.dataframe.index.tolist()))
+            self.id = [(set(self.id) - set(self.dataframe.index.tolist()))]
             self.id_len = len(self.id)
 
             """TEST DUPLICATED"""
@@ -110,7 +110,7 @@ class HPAData(data.Dataset):
                 # print("Duplicated {} items".format(len(duplicated)))
                 # print(np.array(duplicated))
             if len(self.dataframe.index.tolist()) != len(set(self.dataframe.index.tolist())): print("WARNING: len(self.dataframe.index.tolist()) != len(set(self.dataframe.index.tolist()))")
-        
+
         """WARNING: data length and indices depends on the length of images"""
         self.img_len = int(len(os.listdir(self.load_img_dir)) / 4 * config.TRAIN_DATA_PERCENT)
         self.data_len = min(self.img_len, self.id_len)
