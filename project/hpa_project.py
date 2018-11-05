@@ -494,12 +494,12 @@ class HPAPrediction:
 class HPAPreprocess:
     def __init__(self):
         # mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=".png", test=False, load_preprocessed_dir=None))
-        print("""
-        Train Data:
-            Mean = {}
-            STD  = {}
-            STD1 = {}
-        """.format(mean, std, std1))
+        # print("""
+        # Train Data:
+        #     Mean = {}
+        #     STD  = {}
+        #     STD1 = {}
+        # """.format(mean, std, std1))
         """
         Train Data:
             Mean = [0.0804419  0.05262986 0.05474701 0.08270896]
