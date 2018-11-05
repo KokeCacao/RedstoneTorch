@@ -343,34 +343,12 @@ def transform(ids, image_0, labels_0, train, val):
     :return:
     """
 
-    """ https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69462
-    Hi lafoss, 
-    just out of interest: How did you calculate these values? I am asking because I did the same a couple of days ago, on the original 512x512 images and got slightly different results, i.e.:
-    Means for train image data (originals)
-    
-    Red average: 0.080441904331346
-    Green average: 0.05262986230955176
-    Blue average: 0.05474700710311806
-    Yellow average: 0.08270895676048498
-    
-    Means for test image data (originals)
-    
-    Red average: 0.05908022413399168
-    Green average: 0.04532851916280794
-    Blue average: 0.040652325092460015
-    Yellow average: 0.05923425759572161
-    
-    Did you resize the images before checking the means? 
-    As I say, just out of interest, 
-    cheers and thanks, 
-    Wolfgang
-    """
     if ids is None and labels_0 is None and train is False and val is False: # predict.py
         image_aug_transform = TestImgAugTransform().to_deterministic()
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             image_aug_transform,
             transforms.ToTensor(),
-            Normalize(mean=[0.05908022413399168, 0.04532851916280794, 0.040652325092460015, 0.05923425759572161], std=[]),
+            Normalize(mean=[0.05908022413399168, 0.04532851916280794, 0.040652325092460015, 0.05923425759572161], std=[0.00235381, 0.00204037, 0.00137833, 0.00246516]),
         ])
         return PREDICT_TRANSFORM_IMG(image_0)
 

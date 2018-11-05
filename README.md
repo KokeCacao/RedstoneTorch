@@ -56,6 +56,11 @@ python train.py --projecttag lr3 --versiontag lr3 --resume False (on machine 2)
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-04-04-19-26-236033-lr3/ --port=6006
 //adjust batch to 32, start from lr=5
 //Epoch: 8, Fold: 0 TrainLoss: 0.468069558797 ValidLoss: 0.453331559896, ValidF1: 0.190886673186
+=
+python train.py --projecttag normal1 --versiontag normal1 --resume False
+//normalize data, use both loss(f1, focal)
+//lambda global_step: (0.1/2)*(np.cos(np.pi*(np.mod(global_step-1,10000)/(10000)))+1)
+
 
 ```
 

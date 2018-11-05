@@ -493,13 +493,13 @@ class HPAPrediction:
 
 class HPAPreprocess:
     def __init__(self):
-        # mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=".png", test=False, load_preprocessed_dir=None))
-        # print("""
-        # Train Data:
-        #     Mean = {}
-        #     STD  = {}
-        #     STD1 = {}
-        # """.format(mean, std, std1))
+        mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=".png", test=False, load_preprocessed_dir=None))
+        print("""
+        Train Data:
+            Mean = {}
+            STD  = {}
+            STD1 = {}
+        """.format(mean, std, std1))
         """
         Train Data:
             Mean = [0.0804419  0.05262986 0.05474701 0.08270896]
@@ -513,6 +513,36 @@ class HPAPreprocess:
             STD  = {}
             STD1 = {}
         """.format(mean, std, std1))
+        """
+        Test Data:
+            Mean = [0.05908022 0.04532852 0.04065233 0.05923426]
+            STD  = [0.00235361 0.0020402  0.00137821 0.00246495]
+            STD1 = [0.00235381 0.00204037 0.00137833 0.00246516]
+        """
+
+
+        """ https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69462
+        Hi lafoss, 
+        just out of interest: How did you calculate these values? I am asking because I did the same a couple of days ago, on the original 512x512 images and got slightly different results, i.e.:
+        Means for train image data (originals)
+
+        Red average: 0.080441904331346
+        Green average: 0.05262986230955176
+        Blue average: 0.05474700710311806
+        Yellow average: 0.08270895676048498
+
+        Means for test image data (originals)
+
+        Red average: 0.05908022413399168
+        Green average: 0.04532851916280794
+        Blue average: 0.040652325092460015
+        Yellow average: 0.05923425759572161
+
+        Did you resize the images before checking the means? 
+        As I say, just out of interest, 
+        cheers and thanks, 
+        Wolfgang
+        """
 
     def run(self, dataset):
         pbar = tqdm(dataset.id)
