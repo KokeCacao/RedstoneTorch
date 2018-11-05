@@ -229,8 +229,8 @@ class HPAProject:
             optimizer.step()
 
             """DETATCH"""
-            focal.detach().cpu().numpy().mean().astype(np.float32)
-            f1 = f1.detach().cpu().numpy().mean().astype(np.float32)
+            focal.detach().cpu().numpy().mean()
+            f1 = f1.detach().cpu().numpy().mean()
             loss = loss.detach().cpu().numpy().mean()
             labels_0 = labels_0.cpu().numpy()
 
@@ -241,7 +241,7 @@ class HPAProject:
 
             """DISPLAY"""
             tensorboardwriter.write_memory(self.writer, "train")
-            pbar.set_description("(E{}-F{}) Step:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} loss{:.2}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.state['lr'], loss))
+            pbar.set_description("(E{}-F{}) Step:{} Focal:{:4.4} F1:{:4.4} lr:{:.4E} loss{:.2}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.state['lr'], loss))
             tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch, 'Loss/{}'.format(config.fold): loss, 'F1/{}'.format(config.fold): f1, 'Focal/{}'.format(config.fold): focal}, config.global_steps[fold])
 
             """CLEAN UP"""
