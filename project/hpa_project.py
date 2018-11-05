@@ -516,7 +516,7 @@ class HPAPreprocess:
             img_mean = np.stack((img.mean(0).mean(0).astype(np.uint8))/255)
             sum = sum + img_mean
 
-            pbar.set_description("Transform to .npy: {}, Sum: {}".format(id, img_mean))
+            pbar.set_description("{}, Sum: {}".format(id, img_mean))
 
             np.save(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy", img)
         mean = sum/length
@@ -526,7 +526,7 @@ class HPAPreprocess:
             img_variance = (img_mean - mean)**2
             sum_variance = sum_variance + img_variance
 
-            pbar.set_description("Transform to .npy: {}, Var: {}".format(id, img_variance))
+            pbar.set_description("{}, Var: {}".format(id, img_variance))
         std = sum_variance/length
         std1 = sum_variance/(length-1)
         return mean, std, std1
