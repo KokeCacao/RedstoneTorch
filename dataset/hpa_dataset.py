@@ -89,10 +89,13 @@ class HPAData(data.Dataset):
 
         if not self.test:
             self.id = self.dataframe.index.tolist()
+            if len(self.id) != len(set(self.id)): print("WARNING: len(self.id) != len(set(self.id))")
             self.id_len = int(len(self.id)*config.TRAIN_DATA_PERCENT)
             self.id = self.id[:self.id_len]
         else:
             self.id = [x.replace(config.DIRECTORY_SUFFIX_IMG, "").replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(config.DIRECTORY_TEST)]
+            if len(self.id) != len(set(self.id)): print("WARNING: len(self.id) != len(set(self.id))")
+            if len(self.dataframe.index.tolist()) != len(set(self.dataframe.index.tolist())): print("WARNING: len(self.dataframe.index.tolist()) != len(set(self.dataframe.index.tolist()))")
             self.id = list(set(self.id) - set(self.dataframe.index.tolist()))
             self.id_len = len(self.id)
         """WARNING: data length and indices depends on the length of images"""
