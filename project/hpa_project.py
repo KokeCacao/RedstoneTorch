@@ -156,7 +156,7 @@ class HPAProject:
         #             {'params': net.module.dec0.parameters(), 'lr': 1e-3},
         #             {'params': net.module.final.parameters(), 'lr': 0.0015}], lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay) # all parameter learnable
 
-        evaluation = HPAEvaluation(self.writer)
+        evaluation = HPAEvaluation(self.writer, self.dataset.multilabel_binarizer)
         for fold, (net, optimizer) in enumerate(zip(nets, optimizers)):
             self.step_fold(fold, net, optimizer, batch_size, evaluation)
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
@@ -192,6 +192,7 @@ class HPAProject:
                     best_val = score
                 pbar.set_description("Threshold: {}; F1: {}".format(threshold, score))
             print("BestThreshold: {}, F1: {}".format(best_threshold, best_val))
+            tensorboardwriter.write_best_threshold(self.writer, best_threshold, best_val, config.epoch)
 
         """DISPLAY"""
         if config.DISPLAY_HISTOGRAM:
@@ -271,8 +272,9 @@ class HPAProject:
 
 
 class HPAEvaluation:
-    def __init__(self, writer):
+    def __init__(self, writer, binarlizer):
         self.writer = writer
+        self.binarlizer = binarlizer
         """
         loss of one fold
         self.fold_losses = [
@@ -408,6 +410,7 @@ class HPAEvaluation:
 
         for index, (id, transfered, untransfered, label, predicted, loss) in enumerate(zip(ids, transfereds, untransfereds, labels, predicteds, losses)):
             if index != 0: continue
+            label = self.binarlizer.inverse_transform(label)
 
             F = plt.figure()
 
@@ -422,7 +425,7 @@ class HPAEvaluation:
             plt.grid(False)
 
             plt.subplot(323)
-            plt.imshow(encode.tensor_to_np_three_channel_with_green(untransfered), norm=mpl.colors.NoNorm(vmin=0, vmax=255, clip=True))
+            plt.imshow(encode.tensor_to_np_three_channel_with_green(untransfered), norm=mpl.colors.NoNorm(vmin=0, vmax=1, clip=True))
             plt.title("Mask_Real; label:{}".format(label))
             plt.grid(False)
 
@@ -482,7 +485,7 @@ class HPAPrediction:
                     encoded = list(encoded[0])
 
                     f.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
-                    pbar.set_description("Fold: {}; Out: {}".format(fold, encoded))
+                    pbar.set_description("Fold: {}; Id: {}; Out: {}".format(fold, id, encoded))
                     del id, input, predict, encoded
                     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
@@ -493,6 +496,7 @@ class HPAPrediction:
             f1 = f1.merge(f2, left_on='Id', right_on='Id', how='outer')
             os.remove(save_path)
             f1.to_csv(save_path, index=False)
+
 
 class HPAPreprocess:
     def __init__(self):

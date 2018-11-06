@@ -13,6 +13,9 @@ def write_loss(writer, loss_dict, global_step):
 def write_threshold(writer, fold_value_dict, threshold):
     writer.add_scalars('train/threshold_distribution', fold_value_dict, threshold)
 
+def write_best_threshold(writer, threshold, f1, epoch):
+    writer.add_scalars('train/best_threshold', {"Threshold":threshold, "F1": f1}, epoch)
+
 def write_loss_distribution(writer, loss_list, epoch):
     writer.add_histogram("eval/loss_distribution", loss_list, epoch)
 

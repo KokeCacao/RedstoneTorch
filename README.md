@@ -40,7 +40,7 @@ python predict.py --projecttag 2018-11-03-19-02-40-014830-mem4 --versiontag mem4
 //no GPU leak during training, but increasing GPU usage after eval
 //Epoch: 10*4, Fold: 0 TrainLoss: 0.47 ValidLoss: 0.469516485929, ValidF1: 0.179454994182
 //To Resume: python train.py --versiontag 'test' --projecttag 2018-11-04-04-19-26-236033-lr3--loadfile lr3-CP7.pth
-//This model is good but it take 15h to get to focal loss 0.5.
+//This model is good but it take 15h to get to focal loss 0.5. I guess that is was too small the lr
 =
 python train.py --projecttag mem5 --versiontag mem5 --resume False (on machine 2)
 //add CPU memory monitor and evil monitor
@@ -60,6 +60,8 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 //Epoch: 8*4, Fold: 0 TrainLoss: 0.468069558797 ValidLoss: 0.453331559896, ValidF1: 0.190886673186
 =
 python train.py --projecttag normal1 --versiontag normal1 --resume False
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-05-22-05-03-738974-normal1/ --port=6006
+python train.py --projecttag 2018-11-05-22-05-03-738974-normal1 --versiontag normal2 --resume True --loadfile normal1-CP1.pth
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-05-22-05-03-738974-normal1/ --port=6006
 //normalize data, use both loss(f1, focal), lr=0.1
 //lambda global_step: (0.1/2)*(np.cos(np.pi*(np.mod(global_step-1,10000)/(10000)))+1)
