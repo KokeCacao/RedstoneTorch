@@ -500,7 +500,7 @@ class HPAPrediction:
 
 class HPAPreprocess:
     def __init__(self, calculate=False):
-        self.calculate = calculate
+        self.calculate = calculate # 6item/s when turn off calculation, 6item/s when turn on, 85item/s when loaded in memory (80 save + 85to_np = 6 load)
         if not os.path.exists(config.DIRECTORY_PREPROCESSED_IMG):
             os.makedirs(config.DIRECTORY_PREPROCESSED_IMG)
         mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=".png", test=False, load_preprocessed_dir=None))
@@ -561,6 +561,9 @@ class HPAPreprocess:
         sum_variance = [0, 0, 0, 0]
         mean = [0, 0, 0, 0]
         for id in pbar:
+            if os.path.exists(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy") and not self.calculate:
+                pbar.set_description("Pass: {}".format(id))
+                continue
             img = dataset.get_load_image_by_id(id).astype(np.uint8)
             # print(img.shape) # (512, 512, 4)
             if self.calculate:
@@ -568,7 +571,7 @@ class HPAPreprocess:
                 sum = sum + img_mean
                 pbar.set_description("{} Sum:[{:.2f},{:.2f},{:.2f},{:.2f}]".format(id, img_mean[0], img_mean[1], img_mean[2], img_mean[3]))
 
-            np.save(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy", img)
+            if not os.path.exists(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy"): np.save(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy", img)
         if self.calculate:
             mean = sum/length
             print("     Mean = {}".format(mean))
