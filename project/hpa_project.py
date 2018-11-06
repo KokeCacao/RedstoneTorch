@@ -453,7 +453,7 @@ class HPAPrediction:
             # for index, net in enumerate(self.nets):
             #     save_onnx(net, (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + "-" + str(index) + ".onnx")
 
-        self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG, img_suffix=".npy", test=True, load_preprocessed_dir=None)
+        self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG, img_suffix=".png", test=True, load_preprocessed_dir=None)
 
         self.run()
 
