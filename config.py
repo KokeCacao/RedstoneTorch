@@ -1,13 +1,11 @@
+import socket
 import time
-
 import numpy as np
+import torch
 
 from datetime import datetime
-
-import torch
 from torch.autograd import Variable
 from torchvision.transforms import transforms
-
 from utils.encode import tensor_to_PIL
 
 DEBUG_TRAISE_GPU = False
@@ -22,18 +20,22 @@ MODEL_WEIGHT_DEFAY = 0.0001
 MODEL_FOLD = 10
 MODEL_TRAIN_FOLD = 2
 
-TRAIN_GPU_ARG = "0,1"
+TRAIN_GPU_DICT = {
+    "ml-k80-3": "0,1",
+    "ml-k80-4": "0",
+}
+TRAIN_GPU_ARG = TRAIN_GPU_DICT[socket.gethostname()]
 TRAIN_GPU_LIST = [int(i) for i in TRAIN_GPU_ARG.split(",")]
 TRAIN_VAL_PERCENT = 0.05
 TRAIN_DATA_PERCENT = 1.0
 TRAIN_SEED = 19
 TRAIN_SAVE_CHECKPOINT = True
-TRAIN_NUM_WORKER = 4*len(TRAIN_GPU_LIST) # idea from: https://discuss.pytorch.org/t/guidelines-for-assigning-num-workers-to-dataloader/813/5
+TRAIN_NUM_WORKER = 4 * len(TRAIN_GPU_LIST)  # idea from: https://discuss.pytorch.org/t/guidelines-for-assigning-num-workers-to-dataloader/813/5
 TRAIN_RESUME = True
 TRAIN_NUMCLASS = 28
-TRAIN_COSINE = lambda global_step: (0.1/2)*(np.cos(np.pi*(np.mod(global_step,874*200/32)/(874*200/32)))+1) #y=(0.01/2)*(cos(pi*(mod(x-1,10000)/(10000)))+1)
+TRAIN_COSINE = lambda global_step: (0.1 / 2) * (np.cos(np.pi * (np.mod(global_step, 874 * 200 / 32) / (874 * 200 / 32))) + 1)  # y=(0.01/2)*(cos(pi*(mod(x-1,10000)/(10000)))+1)
 TRAIN_TRY_LR = False
-TRAIN_TRY_LR_FORMULA = lambda x: x/(8*np.mod(-x-1, 600)+0.1)-0.000207*x # y=x/(8*\operatorname{mod}(-x-1,600)+0.1)-0.000207*x
+TRAIN_TRY_LR_FORMULA = lambda x: x / (8 * np.mod(-x - 1, 600) + 0.1) - 0.000207 * x  # y=x/(8*\operatorname{mod}(-x-1,600)+0.1)-0.000207*x
 TRAIN_LOAD_FROM_PREPROCESSED = True
 
 PROJECT_TAG = "test"
