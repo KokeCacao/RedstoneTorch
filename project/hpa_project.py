@@ -499,7 +499,8 @@ class HPAPrediction:
 
 
 class HPAPreprocess:
-    def __init__(self):
+    def __init__(self, calculate=False):
+        self.calculate = calculate
         if not os.path.exists(config.DIRECTORY_PREPROCESSED_IMG):
             os.makedirs(config.DIRECTORY_PREPROCESSED_IMG)
         mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=".png", test=False, load_preprocessed_dir=None))
@@ -558,31 +559,34 @@ class HPAPreprocess:
         length = len(pbar)
         sum = [0, 0, 0, 0]
         sum_variance = [0, 0, 0, 0]
+        mean = [0, 0, 0, 0]
         for id in pbar:
             img = dataset.get_load_image_by_id(id).astype(np.uint8)
             # print(img.shape) # (512, 512, 4)
-            img_mean = np.stack((img.astype(np.float32).mean(0).mean(0))/255.)
-            sum = sum + img_mean
-
-            pbar.set_description("{} Sum:[{:.2f},{:.2f},{:.2f},{:.2f}]".format(id, img_mean[0], img_mean[1], img_mean[2], img_mean[3]))
+            if self.calculate:
+                img_mean = np.stack((img.astype(np.float32).mean(0).mean(0))/255.)
+                sum = sum + img_mean
+                pbar.set_description("{} Sum:[{:.2f},{:.2f},{:.2f},{:.2f}]".format(id, img_mean[0], img_mean[1], img_mean[2], img_mean[3]))
 
             np.save(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy", img)
-        mean = sum/length
-        print("     Mean = {}".format(mean))
+        if self.calculate:
+            mean = sum/length
+            print("     Mean = {}".format(mean))
+        if self.calculate:
+            pbar = tqdm(dataset.id)
+            for id in pbar:
+                img = dataset.get_load_image_by_id(id).astype(np.uint8)
+                img_mean = np.stack((img.astype(np.float32).mean(0).mean(0))/255.)
+                img_variance = (img_mean - mean)**2
+                sum_variance = sum_variance + img_variance
 
-        pbar = tqdm(dataset.id)
-        for id in pbar:
-            img = dataset.get_load_image_by_id(id).astype(np.uint8)
-            img_mean = np.stack((img.astype(np.float32).mean(0).mean(0))/255.)
-            img_variance = (img_mean - mean)**2
-            sum_variance = sum_variance + img_variance
-
-            pbar.set_description("{} Var:[{:.2f},{:.2f},{:.2f},{:.2f}]".format(id, img_variance[0], img_variance[1], img_variance[2], img_variance[3]))
-        std = sum_variance/length
-        std1 = sum_variance/(length-1)
-        print("     STD  = {}".format(std))
-        print("     STD1 = {}".format(std1))
-        return mean, std, std1
+                pbar.set_description("{} Var:[{:.2f},{:.2f},{:.2f},{:.2f}]".format(id, img_variance[0], img_variance[1], img_variance[2], img_variance[3]))
+            std = sum_variance/length
+            std1 = sum_variance/(length-1)
+            print("     STD  = {}".format(std))
+            print("     STD1 = {}".format(std1))
+            return mean, std, std1
+        return 0, 0, 0
 
 
 
