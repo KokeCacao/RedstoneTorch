@@ -434,8 +434,8 @@ class HPAEvaluation:
 
 
 class HPAPrediction:
-    def __init__(self, writer, threshold=0.5):
-        self.threshold = threshold
+    def __init__(self, writer):
+        self.threshold = config.EVAL_CHOSEN_THRESHOLD
         self.nets = []
         for fold in range(config.MODEL_FOLD):
             if fold + 1 > config.MODEL_TRAIN_FOLD:
@@ -482,7 +482,7 @@ class HPAPrediction:
                     encoded = list(encoded[0])
 
                     f.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
-                    pbar.set_description("Fold: {}; Index: {}; Out: {}".format(fold, index, encoded))
+                    pbar.set_description("Fold: {}; Out: {}".format(fold, encoded))
                     del id, input, predict, encoded
                     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
