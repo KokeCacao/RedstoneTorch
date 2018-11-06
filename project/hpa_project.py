@@ -48,6 +48,8 @@ class HPAProject:
     # TODO: attention Residual Attention Network for Image Classification - Fei Wang, cvpr 2017 https://arxiv.org/abs/1704.06904 https://www.youtube.com/watch?v=Deq1BGTHIPA, https://blog.csdn.net/wspba/article/details/73727469
     # TODO: train on 1028*1028 image
     # TODO: visualization: https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/70173
+    # TODO: try a better GPI
+    # TODO: train using predicted label
 
     """"TESTINGS"""
     # TODO: fix display image (color and tag)
@@ -56,6 +58,7 @@ class HPAProject:
     """"READINGS"""
     # TODO: https://www.proteinatlas.org/learn/dictionary/cell/microtubule+organizing+center+3; https://www.proteinatlas.org/learn/dictionary/cell
     # TODO: For model34 , a signle fold with 7 cycle may cost 6~7h (about 66s/epoch on 1 1080ti).
+    # TODO: read wechat Alexander Liao's comment
 
     """GIVE UP"""
     # TODO: test visualize your network
@@ -241,7 +244,7 @@ class HPAProject:
 
             """DISPLAY"""
             tensorboardwriter.write_memory(self.writer, "train")
-            pbar.set_description("(E{}-F{}) Step:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} loss{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.state['lr'], loss))
+            pbar.set_description("(E{}-F{}) Step:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} loss:{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.state['lr'], loss))
             tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch, 'Loss/{}'.format(config.fold): loss, 'F1/{}'.format(config.fold): f1, 'Focal/{}'.format(config.fold): focal}, config.global_steps[fold])
 
             """CLEAN UP"""

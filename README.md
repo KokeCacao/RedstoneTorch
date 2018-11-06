@@ -14,7 +14,7 @@ python train.py --projecttag mem --versiontag mem1 --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-02-20-23-22-547213-test/ --port=6006
 //memory leak from 8285 at step 1.4k, 6577
 //10 fold 1 train
-//3 epoch, loss=0.5556
+//3*4 epoch, loss=0.5556
 =
 python train.py --projecttag mem --versiontag mem1 --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-03-01-10-04-699788-mem/ --port=6006
@@ -25,20 +25,22 @@ python train.py --projecttag mem2 --versiontag mem2 --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-03-02-21-55-372744-mem2/ --port=6006
 python predict.py --projecttag 2018-11-03-02-21-55-372744-mem2 --versiontag mem2-pred --loadfile mem2-CP2.pth
 //10 fold 2 train, put evaluation back, but save model using self.net and self.optimizers
-//memory leak around 7G min stable, 2nd epoch
+//memory leak around 7G min stable, 2nd*4 epoch
 =
 python train.py --projecttag mem3 --versiontag mem3 --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-03-14-14-20-075060-mem3/ --port=6006  
-//No memory leak at epoch 3 after delete all extraneous things. memory around 2.5G
+//No memory leak at epoch 3*4 after delete all extraneous things. memory around 2.5G
 //CPU memory leak, GPU fine
 =
 python train.py --projecttag mem4 --versiontag mem4 --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-03-19-02-40-014830-mem4/ --port=6006
+python predict.py --projecttag 2018-11-03-19-02-40-014830-mem4 --versiontag mem4 --loadfile mem4-CP9.pth
 //open extraneous things, clean-up loss.detach(), clean cache() outside of the epoch(), del more things
 //add f1
 //no GPU leak during training, but increasing GPU usage after eval
-//Epoch: 10, Fold: 0 TrainLoss: 0.47 ValidLoss: 0.469516485929, ValidF1: 0.179454994182
+//Epoch: 10*4, Fold: 0 TrainLoss: 0.47 ValidLoss: 0.469516485929, ValidF1: 0.179454994182
 //To Resume: python train.py --versiontag 'test' --projecttag 2018-11-04-04-19-26-236033-lr3--loadfile lr3-CP7.pth
+//This model is good but it take 15h to get to focal loss 0.5.
 =
 python train.py --projecttag mem5 --versiontag mem5 --resume False (on machine 2)
 //add CPU memory monitor and evil monitor
@@ -55,11 +57,13 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 python train.py --projecttag lr3 --versiontag lr3 --resume False (on machine 2)
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-04-04-19-26-236033-lr3/ --port=6006
 //adjust batch to 32, start from lr=5
-//Epoch: 8, Fold: 0 TrainLoss: 0.468069558797 ValidLoss: 0.453331559896, ValidF1: 0.190886673186
+//Epoch: 8*4, Fold: 0 TrainLoss: 0.468069558797 ValidLoss: 0.453331559896, ValidF1: 0.190886673186
 =
 python train.py --projecttag normal1 --versiontag normal1 --resume False
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-05-22-05-03-738974-normal1/ --port=6006
 //normalize data, use both loss(f1, focal), lr=0.1
 //lambda global_step: (0.1/2)*(np.cos(np.pi*(np.mod(global_step-1,10000)/(10000)))+1)
+//loading speed = 2.46s/it in 32 batch (compare to 1.10s in 16 batch)
 
 
 ```
