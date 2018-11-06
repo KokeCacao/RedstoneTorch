@@ -500,6 +500,8 @@ class HPAPrediction:
 
 class HPAPreprocess:
     def __init__(self):
+        if not os.path.exists(config.DIRECTORY_PREPROCESSED_IMG):
+            os.makedirs(config.DIRECTORY_PREPROCESSED_IMG)
         mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=".png", test=False, load_preprocessed_dir=None))
         print("""
         Train Data:
