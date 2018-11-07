@@ -8,7 +8,7 @@ python train.py --projecttag base --versiontag base1 --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-02-20-23-22-547213-test/ --port=6006
 //memory leak 8827 at step 1.3k from 4788
 //10 fold 10 train
-//BAD MODEL
+//BAD MODEL(droped)
 =
 python train.py --projecttag mem --versiontag mem1 --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-02-20-23-22-547213-test/ --port=6006
@@ -66,6 +66,9 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 //normalize data, use both loss(f1, focal), lr=0.1
 //lambda global_step: (0.1/2)*(np.cos(np.pi*(np.mod(global_step-1,10000)/(10000)))+1)
 //loading speed = 2.46s/it in 32 batch (compare to 1.10s in 16 batch)
+//8740k step, 0.6344BestF1, 0.43-45eval-focal, 0.20-21evalF1, 0.2083epochloss, 0.57-58trainF1, 0.44-45trainFocal
+=
+python train.py --projecttag gpu1 --versiontag gpu1 --resume False (on machine 2)
 
 
 ```

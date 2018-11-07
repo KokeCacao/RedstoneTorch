@@ -32,6 +32,17 @@ from matplotlib import pyplot as plt
 class HPAProject:
     """"."""
 
+    """URGENT"""
+    # TODO: Yes, using SGD with cosine annealing schedule. Also used Adadelta to start training, Padam for mid training, and SGD at the end. Then I freeze parts of the model and train the other layers. My current leading model is 2.3M params. Performs great locally, but public LB is 45% lower. (https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69462#412909)
+    # TODO: FIx tensorboardwriter.write_eval_loss(self.writer, {"EvalFocalMean": evaluation.mean(), "EvalFocalSTD": evaluation.std()}, config.epoch)
+    # TODO: fix image display or augmentation
+    # TODO: adjust lr
+    # TODO: LB probing for threshold adjust
+    # TODO: My top model on 512x512x3 is similar to gap net. It is a convnet encoder + one gap at the end + dense layers + sigmoid. I've trained it for hundreds of epochs at least. (https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69955)
+    # TODO: Compare BCE and focal
+    # TODO: focal loss with gamma=2
+    # TODO: put image in SSD
+
     """"TODO"""
     # TODO: Data pre processing - try normalize data mean and std (https://discuss.pytorch.org/t/normalization-in-the-mnist-example/457/18) Save as ".npy" with dtype = "uint8". Before augmentation, convert back to float32 and normalize them with dataset mean/std.
     # TODO: Ask your biology teacher about yellow channel
@@ -39,7 +50,6 @@ class HPAProject:
     # TODO: try set f1 to 0 when 0/0; (7 missing classes in LB) / (28 total classes) = 0.25, and if the organizer is interpreting 0/0 as 0
     # TODO: try to process RBY first, and then concat Green layer
     # TODO: Zero padding in augmentation
-    # TODO: Yes, using SGD with cosine annealing schedule. Also used Adadelta to start training, Padam for mid training, and SGD at the end. Then I freeze parts of the model and train the other layers. My current leading model is 2.3M params. Performs great locally, but public LB is 45% lower. (https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69462#412909)
     # TODO: Better augmentation
     # TODO: Adjust weight init (in or out) and init dense layers
     # TODO: I tried focal loss + soft F1 and focal loss - log(soft F1). Initially the convergence is faster, but later on I ended up with about the same result. Though, I didn't train the model for a long time, just ~6 hours.
@@ -50,6 +60,7 @@ class HPAProject:
     # TODO: visualization: https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/70173
     # TODO: try a better GPI
     # TODO: train using predicted label
+    # TODO: Distribute Train and Validation by label
 
     """"TESTINGS"""
     # TODO: fix display image (color and tag)
@@ -176,7 +187,7 @@ class HPAProject:
         f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
         f2 = metrics.f1_score((evaluation.epoch_label > 0.5).astype(np.int16), (evaluation.epoch_pred > 0.5).astype(np.int16), average='macro')  # sklearn does not automatically import matrics.
         print("F1 by sklearn = ".format(f2))
-        tensorboardwriter.write_epoch_loss(self.writer, {"EpochLoss": f1}, config.epoch)
+        tensorboardwriter.write_epoch_loss(self.writer, {"EvalF1": f1}, config.epoch)
         tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
 
         """THRESHOLD"""
@@ -194,9 +205,9 @@ class HPAProject:
             print("BestThreshold: {}, F1: {}".format(best_threshold, best_val))
             tensorboardwriter.write_best_threshold(self.writer, best_threshold, best_val, config.epoch)
 
-        """DISPLAY"""
+        """HISTOGRAM"""
         if config.DISPLAY_HISTOGRAM:
-            tensorboardwriter.write_eval_loss(self.writer, {"EpochLoss": evaluation.mean(), "EpochSTD": evaluation.std()}, config.epoch)
+            tensorboardwriter.write_eval_loss(self.writer, {"EvalFocalMean": evaluation.mean(), "EvalFocalSTD": evaluation.std()}, config.epoch)
             tensorboardwriter.write_loss_distribution(self.writer, np.array(list(itertools.chain.from_iterable(evaluation.epoch_losses))).flatten(), config.epoch)
 
         """CLEAN UP"""
@@ -325,11 +336,11 @@ class HPAEvaluation:
             predict = net(image)
 
             """LOSS"""
-            loss = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
+            focal = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
             f1 = Differenciable_F1()(labels_0, predict)
 
             """DETATCH"""
-            loss = loss.detach().cpu().numpy()
+            focal = focal.detach().cpu().numpy()
             f1 = f1.detach().cpu().numpy()
             labels_0 = labels_0.cpu().numpy()
 
@@ -339,9 +350,9 @@ class HPAEvaluation:
 
             """PRINT"""
             predict = F.softmax(predict, dim=1)
-            pbar.set_description("Focal:{} F1:{}".format(loss.mean(), f1.mean()))
-            if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(loss.flatten())
-            for id, loss_item in zip(ids, loss.flatten()): fold_loss_dict[id] = loss_item
+            pbar.set_description("Focal:{} F1:{}".format(focal.mean(), f1.mean()))
+            if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(focal.flatten())
+            for id, loss_item in zip(ids, focal.flatten()): fold_loss_dict[id] = loss_item
             predict_total = np.concatenate((predict_total, predict.detach().cpu().numpy()), axis=0) if predict_total is not None else predict.detach().cpu().numpy()
             label_total = np.concatenate((label_total, labels_0), axis=0) if label_total is not None else labels_0
 
@@ -357,11 +368,11 @@ class HPAEvaluation:
 
             """DISPLAY"""
             tensorboardwriter.write_memory(self.writer, "train")
-            if config.DISPLAY_VISUALIZATION and batch_index < 5: self.display(config.fold, ids, image, image_for_display, labels_0, predict, loss)
+            if config.DISPLAY_VISUALIZATION and batch_index < 5: self.display(config.fold, ids, image, image_for_display, labels_0, predict, focal)
 
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display
-            del predict, loss
+            del predict, focal
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
         del pbar
