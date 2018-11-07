@@ -104,7 +104,7 @@ class HPAProject:
         self.nets = []
         for fold in range(config.MODEL_FOLD):
             if fold not in config.MODEL_TRAIN_FOLD:
-                print("     Junping Fold: #{}".format(fold))
+                print("     Jumping Fold: #{}".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))
                 net = se_resnext101_32x4d_modified(num_classes=config.TRAIN_NUMCLASS, pretrained='imagenet')
@@ -234,6 +234,7 @@ class HPAProject:
 
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
             """UPDATE LR"""
+            if config.global_steps[fold] == 2 * 46808 / 32 -1: print("Perfect Place to Stop")
             optimizer.state['lr'] = config.TRAIN_TRY_LR_FORMULA(config.global_steps[fold]) if config.TRAIN_TRY_LR else config.TRAIN_COSINE(config.global_steps[fold])
 
             """TRAIN NET"""
@@ -245,9 +246,9 @@ class HPAProject:
 
             """LOSS"""
             focal = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
-            f1 = Differenciable_F1()(labels_0, predict)
+            f1 = Differenciable_F1(beta=1)(labels_0, predict)
             weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(F.sigmoid(predict), labels_0)
-            loss = focal.sum() + f1
+            loss = focal.sum() + f1 + weighted_bce
             """BACKPROP"""
             optimizer.zero_grad()
             loss.backward()
@@ -348,7 +349,7 @@ class HPAEvaluation:
 
             """LOSS"""
             focal = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
-            f1 = Differenciable_F1()(labels_0, predict)
+            f1 = Differenciable_F1(beta=1)(labels_0, predict)
 
             """DETATCH"""
             focal = focal.detach().cpu().numpy()
@@ -356,13 +357,13 @@ class HPAEvaluation:
             labels_0 = labels_0.cpu().numpy()
             image = image.cpu().numpy()
             image_for_display = image_for_display.numpy()
+            predict = F.softmax(predict, dim=1)
 
             """SUM"""
             # np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
             np.append(self.f1_losses, f1.mean())
 
             """PRINT"""
-            predict = F.softmax(predict, dim=1)
             pbar.set_description("Focal:{} F1:{}".format(focal.mean(), f1.mean()))
             if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(focal.flatten())
             for id, loss_item in zip(ids, focal.flatten()): fold_loss_dict[id] = loss_item
@@ -391,7 +392,7 @@ class HPAEvaluation:
         del pbar
         """LOSS"""
         f1 = f1_macro(predict_total, label_total).mean()
-        tensorboardwriter.write_eval_loss(self.writer, {"FoldLoss/{}".format(config.fold): np.array(fold_loss_dict.values()).mean(), "FoldF1/{}".format(config.fold): f1}, config.epoch)
+        tensorboardwriter.write_eval_loss(self.writer, {"FoldFocal/{}".format(config.fold): np.array(fold_loss_dict.values()).mean(), "FoldF1/{}".format(config.fold): f1}, config.epoch)
         tensorboardwriter.write_pr_curve(self.writer, label_total, predict_total, config.epoch, config.fold)
         self.epoch_pred = np.concatenate((self.epoch_pred, predict_total), axis=0) if self.epoch_pred is not None else predict_total
         self.epoch_label = np.concatenate((self.epoch_label, label_total), axis=0) if self.epoch_label is not None else label_total
@@ -434,14 +435,16 @@ class HPAEvaluation:
 
         for index, (id, transfered, untransfered, label, predicted, loss) in enumerate(zip(ids, transfereds, untransfereds, labels, predicteds, losses)):
             if index != 0: continue
+
             label = self.binarlizer.inverse_transform(np.expand_dims(np.array(label).astype(np.byte), axis=0))[0]
+            predict = self.binarlizer.inverse_transform(predicteds[0] > 0)
 
             F = plt.figure()
 
             plt.subplot(321)
             # print(encode.tensor_to_np_three_channel_without_green(untransfered))
             plt.imshow(encode.tensor_to_np_three_channel_without_green(untransfered), vmin=0, vmax=255)
-            plt.title("Image_Real")
+            plt.title("Image_Real; pred:{}".format(predict))
             plt.grid(False)
 
             plt.subplot(322)
@@ -456,7 +459,7 @@ class HPAEvaluation:
 
             plt.subplot(324)
             plt.imshow(encode.tensor_to_np_three_channel_with_green(transfered), vmin=0, vmax=1)
-            plt.title("Mask_Trans; loss:{}".format(loss))
+            plt.title("Mask_Trans; f1:{}".format(loss))
             plt.grid(False)
             tensorboardwriter.write_image(self.writer, "{}-{}".format(fold, id), F, config.epoch)
 

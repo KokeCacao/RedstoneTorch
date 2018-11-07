@@ -62,7 +62,7 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 python train.py --projecttag normal1 --versiontag normal1 --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-05-22-05-03-738974-normal1/ --port=6006
 python train.py --projecttag 2018-11-05-22-05-03-738974-normal1 --versiontag normal2 --resume True --loadfile normal1-CP1.pth
-python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-05-22-05-03-738974-normal1/ --port=6006
+    python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-05-22-05-03-738974-normal1/ --port=6006
 //normalize data, use both loss(f1, focal), lr=0.1
 //lambda global_step: (0.1/2)*(np.cos(np.pi*(np.mod(global_step-1,10000)/(10000)))+1)
 //loading speed = 2.46s/it in 32 batch (compare to 1.10s in 16 batch)
@@ -82,6 +82,13 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 =
 python train.py --projecttag tune3 --versiontag tune3 --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-07-07-22-33-042252-tune3/ --port=6006
+=
+python train.py --projecttag tune4 --versiontag tune4 --resume False
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-07-13-02-42-175714-tune4/ --port=6006
+python predict.py --projecttag 2018-11-07-13-02-42-175714-tune4 --versiontag tune4 --loadfile tune4-CP11.pth
+=
+python train.py --projecttag 2018-11-07-13-02-42-175714-tune4 --versiontag tune5 --resume True --loadfile tune4-CP17.pth
+//switch to beta=1, +weighted_bce
 
 ```
 

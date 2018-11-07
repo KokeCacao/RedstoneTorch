@@ -93,7 +93,7 @@ def tensor_to_np_three_channel_with_green(image):
     :param tensor: tensor with channel of (r, g, b, y), shape of (4, W, H)
     :return: drop tensor[1], the output will put the cannel layer the last layer
     """
-    ndarray = 1.0 * np.array([0.5*image[0] + 0.25*image[3], 0.5*image[1] + 0.25*image[3], 0.5*image[2]])
+    ndarray = 1.25 * np.array([0.5*image[0] + 0.25*image[3], 0.5*image[1] + 0.25*image[3], 0.5*image[2]])
     return ndarray.transpose((1, 2, 0))
 
 def tensor_to_np_three_channel_without_green(image):
@@ -102,7 +102,7 @@ def tensor_to_np_three_channel_without_green(image):
     :param tensor: tensor with channel of (r, g, b, y), shape of (4, W, H)
     :return: drop tensor[1], the output will put the cannel layer the last layer
     """
-    ndarray = 1.0 * np.array([0.5*image[0] + 0.25*image[3], 0.25*image[3], 0.5*image[2]])
+    ndarray = 1.25 * np.array([0.5*image[0] + 0.25*image[3], 0.25*image[3], 0.5*image[2]])
     return ndarray.transpose((1, 2, 0))
 
 def ndarray_to_PIL(ndarray):
