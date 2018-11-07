@@ -64,13 +64,12 @@ def tensor_to_PIL(tensor):
     image = transforms.ToPILImage()(image)
     return image
 
-def tensor_to_np_four_channel_transarant(tensor):
+def tensor_to_np_four_channel_transarant(image):
     """
 
     :param tensor: tensor with channel of (r, g, b, y), shape of (4, W, H)
     :return: transparant image with mask in tensor[1], the output will put the cannel layer the last layer
     """
-    image = tensor.cpu().clone().numpy()
     # red = tensor[0]
     # green = tensor[1]
     # blue = tensor[2]
@@ -79,33 +78,30 @@ def tensor_to_np_four_channel_transarant(tensor):
     return ndarray.transpose((1, 2, 0))
 
 
-def tensor_to_np_four_channel_drop(tensor):
+def tensor_to_np_four_channel_drop(image):
     """
 
     :param tensor: tensor with channel of (r, g, b, y), shape of (4, W, H)
     :return: drop tensor[1], the output will put the cannel layer the last layer
     """
-    image = tensor.cpu().clone().numpy()
     ndarray = 1.0 * np.array([image[0], image[2], image[3]])
     return ndarray.transpose((1, 2, 0))
 
-def tensor_to_np_three_channel_with_green(tensor):
+def tensor_to_np_three_channel_with_green(image):
     """
 
     :param tensor: tensor with channel of (r, g, b, y), shape of (4, W, H)
     :return: drop tensor[1], the output will put the cannel layer the last layer
     """
-    image = tensor.cpu().clone().numpy()
     ndarray = 1.0 * np.array([0.5*image[0] + 0.25*image[3], 0.5*image[1] + 0.25*image[3], 0.5*image[2]])
     return ndarray.transpose((1, 2, 0))
 
-def tensor_to_np_three_channel_without_green(tensor):
+def tensor_to_np_three_channel_without_green(image):
     """
 
     :param tensor: tensor with channel of (r, g, b, y), shape of (4, W, H)
     :return: drop tensor[1], the output will put the cannel layer the last layer
     """
-    image = tensor.cpu().clone().numpy()
     ndarray = 1.0 * np.array([0.5*image[0] + 0.25*image[3], 0.25*image[3], 0.5*image[2]])
     return ndarray.transpose((1, 2, 0))
 

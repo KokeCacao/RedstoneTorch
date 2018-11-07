@@ -340,6 +340,7 @@ class HPAEvaluation:
 
         pbar = tqdm(validation_loader)
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+            print(image)
             """CALCULATE LOSS"""
             if config.TRAIN_GPU_ARG:
                 image = image.cuda()
@@ -380,7 +381,6 @@ class HPAEvaluation:
 
             """DISPLAY"""
             tensorboardwriter.write_memory(self.writer, "train")
-            print(image)
             if config.DISPLAY_VISUALIZATION and batch_index < 5: self.display(config.fold, ids, image, image_for_display, labels_0, predict, focal)
 
             """CLEAN UP"""
