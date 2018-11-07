@@ -432,8 +432,8 @@ class HPAEvaluation:
 
         for index, (id, transfered, untransfered, label, predicted, loss) in enumerate(zip(ids, transfereds, untransfereds, labels, predicteds, losses)):
             if index != 0: continue
-            print(label)
-            label = self.binarlizer.inverse_transform(label)
+            print(np.array(label).astype(np.byte))
+            label = self.binarlizer.inverse_transform(np.array(label).astype(np.byte))
 
             F = plt.figure()
 
