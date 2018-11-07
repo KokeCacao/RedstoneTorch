@@ -358,7 +358,7 @@ class HPAEvaluation:
             labels_0 = labels_0.cpu().numpy()
             image = image.cpu().numpy()
             image_for_display = image_for_display.numpy()
-            predict = F.softmax(predict, dim=1)
+            predict = F.softmax(predict, dim=1).numpy()
 
             """SUM"""
             # np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
