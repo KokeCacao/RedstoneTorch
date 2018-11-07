@@ -230,7 +230,7 @@ class HPAProject:
 
         train_loader = data.DataLoader(self.dataset, batch_size=batch_size, sampler=self.folded_samplers[config.fold]["train"], shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
         pbar = tqdm(train_loader)
-        train_len = len(train_loader)
+        train_len = len(train_loader) + 1e-10
 
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
             """UPDATE LR"""
