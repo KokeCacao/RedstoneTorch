@@ -11,6 +11,7 @@ from utils.encode import tensor_to_PIL
 DEBUG_TRAISE_GPU = False
 DEBUG_LAPTOP = True
 DEBUG_TEST_CODE = True
+DEBUG_AUTO_SHUTDOWN = True
 
 MODEL_EPOCHS = 100
 MODEL_BATCH_SIZE = 32

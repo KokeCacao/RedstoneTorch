@@ -260,6 +260,7 @@ class HPAProject:
             weighted_bce = weighted_bce.detach().cpu().numpy().mean()
             loss = loss.detach().cpu().numpy().mean()
             labels_0 = labels_0.cpu().numpy()
+            # predict = predict.detach().cpu().numpy()
 
             """SUM"""
             epoch_loss = epoch_loss + loss.mean()
@@ -358,7 +359,7 @@ class HPAEvaluation:
             labels_0 = labels_0.cpu().numpy()
             image = image.cpu().numpy()
             image_for_display = image_for_display.numpy()
-            predict = F.softmax(predict, dim=1).numpy()
+            predict = F.softmax(predict, dim=1).detach().cpu().numpy()
 
             """SUM"""
             # np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
@@ -368,7 +369,7 @@ class HPAEvaluation:
             pbar.set_description("Focal:{} F1:{}".format(focal.mean(), f1.mean()))
             if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(focal.flatten())
             for id, loss_item in zip(ids, focal.flatten()): fold_loss_dict[id] = loss_item
-            predict_total = np.concatenate((predict_total, predict.detach().cpu().numpy()), axis=0) if predict_total is not None else predict.detach().cpu().numpy()
+            predict_total = np.concatenate((predict_total, predict), axis=0) if predict_total is not None else predict
             label_total = np.concatenate((label_total, labels_0), axis=0) if label_total is not None else labels_0
 
             """EVALUATE LOSS"""

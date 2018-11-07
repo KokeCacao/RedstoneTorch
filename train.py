@@ -111,5 +111,10 @@ if __name__ == '__main__':
 
         print("=> Current Directory: " + str(os.getcwd()))
         print("=> Loading neuronetwork...")
-
-        project = hpa_project.HPAProject(writer)
+        try:
+            project = hpa_project.HPAProject(writer)
+        except Exception as e:
+            print(e)
+            with open('Exception.txt', 'a+') as f:
+                f.write(e)
+            os.system("sudo shutdown -P +30")
