@@ -279,11 +279,12 @@ class HPAProject:
 
         val_loss, val_f1 = evaluation.eval_fold(net, data.DataLoader(self.dataset, batch_size=batch_size, sampler=self.folded_samplers[config.fold]["val"], shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=val_collate))
         train_loss = epoch_loss / train_len
+        epoch_f1 = epoch_f1 / train_len
         print("""
             Epoch: {}, Fold: {}
-            TrainLoss: {}, TrainF1: 
+            TrainLoss: {}, TrainF1: {}
             ValidLoss: {}, ValidF1: {}
-        """.format(config.epoch, config.fold, train_loss, val_loss, val_f1))
+        """.format(config.epoch, config.fold, train_loss, epoch_f1, val_loss, val_f1))
 
         del train_loss
 
