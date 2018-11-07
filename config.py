@@ -21,7 +21,7 @@ MODEL_FOLD = 10
 MODEL_TRAIN_FOLD = [0]
 
 TRAIN_GPU_DICT = {
-    "ml-k80-3": "0,1",
+    "ml-k80-3": "0",
     "ml-k80-4": "0",
 }
 TRAIN_GPU_ARG = TRAIN_GPU_DICT[socket.gethostname()]
