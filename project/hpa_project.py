@@ -103,7 +103,7 @@ class HPAProject:
         self.optimizers = []
         self.nets = []
         for fold in range(config.MODEL_FOLD):
-            if fold in config.MODEL_TRAIN_FOLD:
+            if fold not in config.MODEL_TRAIN_FOLD:
                 print("     Junping Fold: #{}".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))
@@ -246,7 +246,7 @@ class HPAProject:
             """LOSS"""
             focal = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
             f1 = Differenciable_F1()(labels_0, predict)
-            weighted_bce = BCELoss(weight=[1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228])
+            weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228]))
             loss = focal.sum() + f1 + weighted_bce.sum()
             """BACKPROP"""
             optimizer.zero_grad()
@@ -463,7 +463,7 @@ class HPAPrediction:
         self.threshold = config.EVAL_CHOSEN_THRESHOLD
         self.nets = []
         for fold in range(config.MODEL_FOLD):
-            if fold in config.MODEL_TRAIN_FOLD:
+            if fold not in config.MODEL_TRAIN_FOLD:
                 print("     Junping Fold: #{}".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))
