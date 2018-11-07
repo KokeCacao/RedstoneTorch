@@ -78,7 +78,10 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 =
 python train.py --projecttag tune2 --versiontag tune2 --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-07-07-14-32-212121-tune2/ --port=6006
-//log bce
+//log bce, remove bce, maybe at the end of trianing
+=
+python train.py --projecttag tune3 --versiontag tune3 --resume False
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-07-07-22-33-042252-tune3/ --port=6006
 
 ```
 
