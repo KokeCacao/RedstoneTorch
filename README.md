@@ -88,6 +88,7 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 python predict.py --projecttag 2018-11-07-13-02-42-175714-tune4 --versiontag tune4 --loadfile tune4-CP11.pth
 =
 python train.py --projecttag 2018-11-07-13-02-42-175714-tune4 --versiontag tune5 --resume True --loadfile tune4-CP17.pth
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-07-13-02-42-175714-tune4/ --port=6006
 //switch to beta=1, +weighted_bce
 //Epoch: 17, Fold: 0
             TrainLoss: 14.8867569101, TrainF1:

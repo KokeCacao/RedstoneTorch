@@ -438,7 +438,7 @@ class HPAEvaluation:
             if index != 0: continue
 
             label = self.binarlizer.inverse_transform(np.expand_dims(np.array(label).astype(np.byte), axis=0))[0]
-            predict = self.binarlizer.inverse_transform(predicteds[0] > 0)
+            predict = self.binarlizer.inverse_transform(np.expand_dims((predicteds[0] > 0).astype(np.byte), axis=0))
 
             F = plt.figure()
 
