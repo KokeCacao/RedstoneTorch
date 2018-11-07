@@ -437,6 +437,7 @@ class HPAEvaluation:
             F = plt.figure()
 
             plt.subplot(321)
+            print(encode.tensor_to_np_three_channel_without_green(untransfered))
             plt.imshow(encode.tensor_to_np_three_channel_without_green(untransfered), vmin=0, vmax=255)
             plt.title("Image_Real")
             plt.grid(False)
