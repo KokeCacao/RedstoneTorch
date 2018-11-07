@@ -75,7 +75,9 @@ python train.py --projecttag tune1 --versiontag tune1 --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-07-06-51-09-190794-tune1/ --port=6006
 //switch to only one fold, change to Adadelta, adjust lr=2 * 46808 / 32, start lr=1.0, add weighted_bce
 //F1 goes up, not good
+=
 python train.py --projecttag tune2 --versiontag tune2 --resume False
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-07-07-14-32-212121-tune2/ --port=6006
 //log bce
 
 ```
