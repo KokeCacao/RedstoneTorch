@@ -340,7 +340,6 @@ class HPAEvaluation:
 
         pbar = tqdm(validation_loader)
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
-            print(image)
             """CALCULATE LOSS"""
             if config.TRAIN_GPU_ARG:
                 image = image.cuda()
@@ -356,6 +355,7 @@ class HPAEvaluation:
             f1 = f1.detach().cpu().numpy()
             labels_0 = labels_0.cpu().numpy()
             image = image.cpu().numpy()
+            image_for_display = image_for_display.numpy()
 
             """SUM"""
             # np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
