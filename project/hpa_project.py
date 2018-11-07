@@ -7,6 +7,7 @@ import numpy as np
 import torch
 import pandas as pd
 from sklearn import metrics
+from torch.nn import BCELoss
 from torch.utils import data
 import torch.nn.functional as F
 from torchvision import datasets, transforms
@@ -33,15 +34,15 @@ class HPAProject:
     """"."""
 
     """URGENT"""
-    # TODO: Yes, using SGD with cosine annealing schedule. Also used Adadelta to start training, Padam for mid training, and SGD at the end. Then I freeze parts of the model and train the other layers. My current leading model is 2.3M params. Performs great locally, but public LB is 45% lower. (https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69462#412909)
+    # TODO: (https://zhuanlan.zhihu.com/p/22252270)Yes, using SGD with cosine annealing schedule. Also used Adadelta to start training, Padam for mid training, and SGD at the end. Then I freeze parts of the model and train the other layers. My current leading model is 2.3M params. Performs great locally, but public LB is 45% lower. (https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69462#412909)
     # TODO: FIx tensorboardwriter.write_eval_loss(self.writer, {"EvalFocalMean": evaluation.mean(), "EvalFocalSTD": evaluation.std()}, config.epoch)
     # TODO: fix image display or augmentation
-    # TODO: adjust lr
+    # TODO: adjust lr  set base lr to 1/3 or 1/4 of max lr.
     # TODO: LB probing for threshold adjust
     # TODO: My top model on 512x512x3 is similar to gap net. It is a convnet encoder + one gap at the end + dense layers + sigmoid. I've trained it for hundreds of epochs at least. (https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69955)
     # TODO: Compare BCE and focal
     # TODO: focal loss with gamma=2
-    # TODO: put image in SSD
+    # TODO: put image in SSD: https://cloud.google.com/compute/docs/disks/add-persistent-disk#create_disk
 
     """"TODO"""
     # TODO: Data pre processing - try normalize data mean and std (https://discuss.pytorch.org/t/normalization-in-the-mnist-example/457/18) Save as ".npy" with dtype = "uint8". Before augmentation, convert back to float32 and normalize them with dataset mean/std.
@@ -70,6 +71,7 @@ class HPAProject:
     # TODO: https://www.proteinatlas.org/learn/dictionary/cell/microtubule+organizing+center+3; https://www.proteinatlas.org/learn/dictionary/cell
     # TODO: For model34 , a signle fold with 7 cycle may cost 6~7h (about 66s/epoch on 1 1080ti).
     # TODO: read wechat Alexander Liao's comment
+    # TODO: your upvote list
 
     """GIVE UP"""
     # TODO: test visualize your network
@@ -87,6 +89,12 @@ class HPAProject:
     then for class-A and B , i should public LB = ( (280.01) + (280.02) + 0 + 0 )/28
     """
 
+    """Note"""
+    # Increase Batch size tend to overfit
+    # SGD is great, no overfit, but slow
+    # increase batch size by a, -> increase lr by a
+    # adjust dropout not overfit (first layer)
+
     """FINISHED"""
 
     def __init__(self, writer):
@@ -95,14 +103,15 @@ class HPAProject:
         self.optimizers = []
         self.nets = []
         for fold in range(config.MODEL_FOLD):
-            if fold + 1 > config.MODEL_TRAIN_FOLD:
+            if fold in config.MODEL_TRAIN_FOLD:
                 print("     Junping Fold: #{}".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))
                 net = se_resnext101_32x4d_modified(num_classes=config.TRAIN_NUMCLASS, pretrained='imagenet')
                 if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
-                self.optimizers.append(torch.optim.Adam(params=net.parameters(), lr=config.MODEL_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY))  # all parameter learnable
+                # self.optimizers.append(torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY))
+                self.optimizers.append(torch.optim.Adadelta(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DEFAY))
                 net = cuda(net)
                 self.nets.append(net)
                 # for name, param in net.named_parameters():
@@ -237,7 +246,8 @@ class HPAProject:
             """LOSS"""
             focal = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
             f1 = Differenciable_F1()(labels_0, predict)
-            loss = focal.sum() + f1
+            weighted_bce = BCELoss(weight=[1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228])
+            loss = focal.sum() + f1 + weighted_bce.sum()
             """BACKPROP"""
             optimizer.zero_grad()
             loss.backward()
@@ -246,6 +256,7 @@ class HPAProject:
             """DETATCH"""
             focal = focal.detach().cpu().numpy().mean()
             f1 = f1.detach().cpu().numpy().mean()
+            weighted_bce = weighted_bce.detach().cpu().numpy().mean()
             loss = loss.detach().cpu().numpy().mean()
             labels_0 = labels_0.cpu().numpy()
 
@@ -256,7 +267,7 @@ class HPAProject:
 
             """DISPLAY"""
             tensorboardwriter.write_memory(self.writer, "train")
-            pbar.set_description("(E{}-F{}) Step:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} loss:{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.state['lr'], loss))
+            pbar.set_description("(E{}-F{}) Step:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.state['lr'], weighted_bce))
             tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch, 'Loss/{}'.format(config.fold): loss, 'F1/{}'.format(config.fold): f1, 'Focal/{}'.format(config.fold): focal}, config.global_steps[fold])
 
             """CLEAN UP"""
@@ -452,7 +463,7 @@ class HPAPrediction:
         self.threshold = config.EVAL_CHOSEN_THRESHOLD
         self.nets = []
         for fold in range(config.MODEL_FOLD):
-            if fold + 1 > config.MODEL_TRAIN_FOLD:
+            if fold in config.MODEL_TRAIN_FOLD:
                 print("     Junping Fold: #{}".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))

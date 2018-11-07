@@ -14,11 +14,11 @@ DEBUG_TEST_CODE = True
 
 MODEL_EPOCHS = 100
 MODEL_BATCH_SIZE = 32
-MODEL_LEARNING_RATE = 0.001
+MODEL_INIT_LEARNING_RATE = 1.0
 MODEL_MOMENTUM = 0.9
 MODEL_WEIGHT_DEFAY = 0.0001
 MODEL_FOLD = 10
-MODEL_TRAIN_FOLD = 2
+MODEL_TRAIN_FOLD = [0]
 
 TRAIN_GPU_DICT = {
     "ml-k80-3": "0,1",
@@ -33,7 +33,7 @@ TRAIN_SAVE_CHECKPOINT = True
 TRAIN_NUM_WORKER = 4 * len(TRAIN_GPU_LIST)  # idea from: https://discuss.pytorch.org/t/guidelines-for-assigning-num-workers-to-dataloader/813/5
 TRAIN_RESUME = True
 TRAIN_NUMCLASS = 28
-TRAIN_COSINE = lambda global_step: (0.1 / 2) * (np.cos(np.pi * (np.mod(global_step, 874 * 200 / 32) / (874 * 200 / 32))) + 1)  # y=(0.01/2)*(cos(pi*(mod(x-1,10000)/(10000)))+1)
+TRAIN_COSINE = lambda global_step: (0.1 / 2) * (np.cos(np.pi * (np.mod(global_step, 2 * 46808 / 32) / (2 * 46808 / 32))) + 1)  # y=(0.01/2)*(cos(pi*(mod(x-1,10000)/(10000)))+1)
 TRAIN_TRY_LR = False
 TRAIN_TRY_LR_FORMULA = lambda x: x / (8 * np.mod(-x - 1, 600) + 0.1) - 0.000207 * x  # y=x/(8*\operatorname{mod}(-x-1,600)+0.1)-0.000207*x
 TRAIN_LOAD_FROM_PREPROCESSED = True

@@ -69,6 +69,10 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 //8740k step, 0.6344BestF1, 0.43-45eval-focal, 0.20-21evalF1, 0.2083epochloss, 0.57-58trainF1, 0.44-45trainFocal
 =
 python train.py --projecttag gpu1 --versiontag gpu1 --resume False (on machine 2)
+//around 0.7s per batch of 32
+=
+python train.py --projecttag tune1 --versiontag tune1 --resume False
+//switch to only one fold, change to Adadelta, adjust lr=2 * 46808 / 32, start lr=1.0, add weighted_bce
 
 
 ```
