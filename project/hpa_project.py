@@ -354,6 +354,7 @@ class HPAEvaluation:
             focal = focal.detach().cpu().numpy()
             f1 = f1.detach().cpu().numpy()
             labels_0 = labels_0.cpu().numpy()
+            image = image.cpu().numpy()
 
             """SUM"""
             # np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
@@ -379,6 +380,7 @@ class HPAEvaluation:
 
             """DISPLAY"""
             tensorboardwriter.write_memory(self.writer, "train")
+            print(image)
             if config.DISPLAY_VISUALIZATION and batch_index < 5: self.display(config.fold, ids, image, image_for_display, labels_0, predict, focal)
 
             """CLEAN UP"""
