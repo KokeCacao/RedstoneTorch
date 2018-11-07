@@ -417,7 +417,7 @@ def transform(ids, image_0, labels_0, train, val):
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             image_aug_transform,
             transforms.ToTensor(),
-            Normalize(mean=[0.05908022413399168, 0.04532851916280794, 0.040652325092460015, 0.05923425759572161], std=[0.00235381, 0.00204037, 0.00137833, 0.00246516]),
+            # Normalize(mean=[0.05908022413399168, 0.04532851916280794, 0.040652325092460015, 0.05923425759572161], std=[0.00235381, 0.00204037, 0.00137833, 0.00246516]),
         ])
         return PREDICT_TRANSFORM_IMG(image_0)
 
@@ -433,7 +433,7 @@ def transform(ids, image_0, labels_0, train, val):
             'image': transforms.Compose([
                 image_aug_transform,
                 transforms.ToTensor(),
-                Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[0.00255578, 0.00230547, 0.00129955, 0.00293934]),
+                # Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[0.00255578, 0.00230547, 0.00129955, 0.00293934]),
             ]),
         }
 
@@ -444,7 +444,7 @@ def transform(ids, image_0, labels_0, train, val):
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             image_aug_transform,
             transforms.ToTensor(),
-            Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[0.00255578, 0.00230547, 0.00129955, 0.00293934]),
+            # Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[0.00255578, 0.00230547, 0.00129955, 0.00293934]),
         ])
 
         image = PREDICT_TRANSFORM_IMG(image_0)
