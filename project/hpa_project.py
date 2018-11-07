@@ -437,22 +437,22 @@ class HPAEvaluation:
             F = plt.figure()
 
             plt.subplot(321)
-            plt.imshow(encode.tensor_to_np_three_channel_without_green(untransfered), norm=mpl.colors.NoNorm(vmin=0, vmax=1, clip=True))
+            plt.imshow(encode.tensor_to_np_three_channel_without_green(untransfered), norm=mpl.colors.NoNorm(vmin=0, vmax=255, clip=True))
             plt.title("Image_Real")
             plt.grid(False)
 
             plt.subplot(322)
-            plt.imshow(encode.tensor_to_np_three_channel_without_green(transfered), norm=mpl.colors.NoNorm(vmin=0, vmax=1, clip=True))
+            plt.imshow(encode.tensor_to_np_three_channel_without_green(transfered), norm=mpl.colors.NoNorm(vmin=0, vmax=255, clip=True))
             plt.title("Image_Trans")
             plt.grid(False)
 
             plt.subplot(323)
-            plt.imshow(encode.tensor_to_np_three_channel_with_green(untransfered), norm=mpl.colors.NoNorm(vmin=0, vmax=1, clip=True))
+            plt.imshow(encode.tensor_to_np_three_channel_with_green(untransfered), norm=mpl.colors.NoNorm(vmin=0, vmax=255, clip=True))
             plt.title("Mask_Real; label:{}".format(label))
             plt.grid(False)
 
             plt.subplot(324)
-            plt.imshow(encode.tensor_to_np_three_channel_with_green(transfered), norm=mpl.colors.NoNorm(vmin=0, vmax=1, clip=True))
+            plt.imshow(encode.tensor_to_np_three_channel_with_green(transfered), norm=mpl.colors.NoNorm(vmin=0, vmax=255, clip=True))
             plt.title("Mask_Trans; loss:{}".format(loss))
             plt.grid(False)
             tensorboardwriter.write_image(self.writer, "{}-{}".format(fold, id), F, config.epoch)
