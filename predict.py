@@ -68,14 +68,13 @@ if __name__ == '__main__':
         if config.DEBUG_TRAISE_GPU: sys.settrace(gpu_profile)
         load_args()
 
-        # if config.PREDICTION_WRITER:
-        #     writer = SummaryWriter(config.DIRECTORY_CHECKPOINT)
-        #     memory = memory_thread(1, writer)
-        #     memory.setDaemon(True)
-        #     memory.start()
-        # else: writer = None
-        #
-        # print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/" + config.DIRECTORY_CHECKPOINT + " --port=6006")
+        if config.PREDICTION_WRITER:
+            writer = SummaryWriter(config.DIRECTORY_CHECKPOINT)
+            print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/" + config.DIRECTORY_CHECKPOINT + " --port=6006")
+            memory = memory_thread(1, writer)
+            memory.setDaemon(True)
+            memory.start()
+        else: writer = None
 
         reproduceability()
 
