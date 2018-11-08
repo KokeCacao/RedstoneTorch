@@ -115,12 +115,12 @@ if __name__ == '__main__':
         try:
             project = hpa_project.HPAProject(writer)
         except Exception as e:
-            print(e)
-            with open('Exception.txt', 'a+') as f:
-                f.write(str(e))
+            # with open('Exception.txt', 'a+') as f:
+            #     f.write(str(e))
             if isinstance(e, KeyboardInterrupt):
                 os.system("sudo shutdown -P +30")
                 print("""
                 WARNING: THE SYSTEM WILL SHUTDOWN
                 Use command: sudo shutdown -c
                 """)
+            raise e
