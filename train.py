@@ -26,6 +26,7 @@ def get_args():
     parser.add_option('--projecttag', dest='projecttag', default=False, help='tag you want to load')
     parser.add_option('--versiontag', dest='versiontag', default="", help='tag for tensorboard-log')
     parser.add_option('--loadfile', dest='loadfile', default=False, help='file you want to load')
+    parser.add_option('--loaddir', dest='loaddir', default=False, help='file you want to load')
     parser.add_option('--resume', dest='resume', default=False, help='resume or create a new folder')
 
     (options, args) = parser.parse_args()
@@ -40,11 +41,11 @@ def load_args():
 
     if args.loadfile:
         if config.TRAIN_RESUME:
-            config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.projecttag + "/" + args.loadfile
-            config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
+            config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/" + args.loadfile
+            config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/"
         else:
             config.PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + config.PROJECT_TAG
-            config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.projecttag + "/" + args.loadfile
+            config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/" + args.loadfile
             config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
     else:
         config.PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + config.PROJECT_TAG

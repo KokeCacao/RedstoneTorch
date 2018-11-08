@@ -99,7 +99,7 @@ python train.py --projecttag 2018-11-07-13-02-42-175714-tune4 --versiontag tune6
 //try only with f1 loss
 //focal up a lot, weighted bce down a lot, bce up little, f1 down little (from start)
 //nothing happened (from CP23)
-python train.py --projecttag 2018-11-07-13-02-42-175714-tune5 --versiontag tune6 --resume True --loadfile tune6-CP2.pth
+python train.py --projecttag 2018-11-07-13-02-42-175714-tune4 --versiontag tune6 --resume False --loadfile tune6-CP2.pth
 //only focal now
 ```
 
