@@ -43,6 +43,12 @@ class HPAProject:
     # TODO: Compare BCE and focal
     # TODO: focal loss with gamma=2
     # TODO: put image in SSD: https://cloud.google.com/compute/docs/disks/add-persistent-disk#create_disk
+    # TODO: make sure all lose input are correct
+    # TODO: remove 6f062840-bba9-11e8-b2ba-ac1f6b6435d0 from dataset since channel shifted
+
+    """SCHEDULE"""
+    # TODO: train without tta before submit
+    # TODO: train with small constant lr before submit
 
     """"TODO"""
     # TODO: Data pre processing - try normalize data mean and std (https://discuss.pytorch.org/t/normalization-in-the-mnist-example/457/18) Save as ".npy" with dtype = "uint8". Before augmentation, convert back to float32 and normalize them with dataset mean/std.
@@ -195,7 +201,7 @@ class HPAProject:
         """LOSS"""
         f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
         f2 = metrics.f1_score((evaluation.epoch_label > 0.5).astype(np.int16), (evaluation.epoch_pred > 0.5).astype(np.int16), average='macro')  # sklearn does not automatically import matrics.
-        print("F1 by sklearn = ".format(f2))
+        print("F1 by sklearn = {}".format(f2))
         tensorboardwriter.write_epoch_loss(self.writer, {"EvalF1": f1}, config.epoch)
         tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
 
@@ -247,8 +253,9 @@ class HPAProject:
             """LOSS"""
             focal = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
             f1 = Differenciable_F1(beta=1)(labels_0, predict)
+            bce = BCELoss()(F.sigmoid(predict), labels_0)
             weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(F.sigmoid(predict), labels_0)
-            loss = focal.sum() + f1 + weighted_bce
+            loss = f1
             """BACKPROP"""
             optimizer.zero_grad()
             loss.backward()
@@ -257,6 +264,7 @@ class HPAProject:
             """DETATCH"""
             focal = focal.detach().cpu().numpy().mean()
             f1 = f1.detach().cpu().numpy().mean()
+            bce = bce.detach().cpu().numpy().mean()
             weighted_bce = weighted_bce.detach().cpu().numpy().mean()
             loss = loss.detach().cpu().numpy().mean()
             labels_0 = labels_0.cpu().numpy()
@@ -269,8 +277,8 @@ class HPAProject:
 
             """DISPLAY"""
             tensorboardwriter.write_memory(self.writer, "train")
-            pbar.set_description("(E{}-F{}) Step:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.state['lr'], weighted_bce))
-            tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch, 'Loss/{}'.format(config.fold): loss, 'F1/{}'.format(config.fold): f1, 'Focal/{}'.format(config.fold): focal, 'BCE/{}'.format(config.fold): weighted_bce}, config.global_steps[fold])
+            pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}|".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.state['lr'], weighted_bce, bce))
+            tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch, 'LearningRate/{}'.format(config.fold): optimizer.state['lr'], 'Loss/{}'.format(config.fold): loss, 'F1/{}'.format(config.fold): f1, 'Focal/{}'.format(config.fold): focal, 'WeightedBCE/{}'.format(config.fold): weighted_bce, 'BCE/{}'.format(config.fold): bce}, config.global_steps[fold])
 
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display

@@ -93,6 +93,10 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 //Epoch: 17, Fold: 0
             TrainLoss: 14.8867569101, TrainF1:
             ValidLoss: 0.457575827837, ValidF1: 0.210946713931
+//don't use beta=2, it is evil
+=
+python train.py --projecttag 2018-11-07-13-02-42-175714-tune4 --versiontag tune6 --resume True --loadfile tune4-CP23.pth
+//try only with f1 loss
 
 ```
 
