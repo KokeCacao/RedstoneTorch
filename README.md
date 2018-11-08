@@ -104,6 +104,12 @@ python train.py --projecttag tune5 --versiontag tune6 --resume False --loadfile 
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-08-03-24-12-983709-tune5/ --port=6006
 python train.py --projecttag tune5 --loaddir 2018-11-08-03-24-12-983709-tune5 --versiontag tune7 --resume True --loadfile tune6-CP2.pth
 //only focal now, add precision recall graph
+python train.py --projecttag tune5 --loaddir 2018-11-08-03-24-12-983709-tune5 --versiontag tune8 --resume True --loadfile tune7-CP5.pth
+//now add f1 (focall loss is bad when you just init the train)
+=
+python train.py --projecttag tune6 --versiontag one --resume False
+// train on bce and f1
+
 ```
 
 ## Usage

@@ -255,7 +255,7 @@ class HPAProject:
             f1, precise, recall = Differenciable_F1(beta=1)(labels_0, predict)
             bce = BCELoss()(F.sigmoid(predict), labels_0)
             weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(F.sigmoid(predict), labels_0)
-            loss = focal.sum() + f1
+            loss = f1 + bce.sum()
             """BACKPROP"""
             optimizer.zero_grad()
             loss.backward()
@@ -451,7 +451,7 @@ class HPAEvaluation:
             if index != 0: continue
 
             label = self.binarlizer.inverse_transform(np.expand_dims(np.array(label).astype(np.byte), axis=0))[0]
-            predict = self.binarlizer.inverse_transform(np.expand_dims((predicteds[0] > 0).astype(np.byte), axis=0))
+            predict = self.binarlizer.inverse_transform(np.expand_dims((predicteds[0] > 0.5).astype(np.byte), axis=0))
 
             F = plt.figure()
 
