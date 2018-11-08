@@ -99,7 +99,9 @@ python train.py --projecttag 2018-11-07-13-02-42-175714-tune4 --versiontag tune6
 //try only with f1 loss
 //focal up a lot, weighted bce down a lot, bce up little, f1 down little (from start)
 //nothing happened (from CP23)
+=
 python train.py --projecttag tune5 --versiontag tune6 --resume False --loadfile tune5-CP18.pth --loaddir 2018-11-07-13-02-42-175714-tune4
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-08-03-24-12-983709-tune5/ --port=6006
 //only focal now
 ```
 

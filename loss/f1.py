@@ -148,4 +148,4 @@ class Differenciable_F1(nn.Module):
         recall = tp / num_pos_hat
         fs = (1 + self.beta * self.beta) * precise * recall / (self.beta * self.beta * precise + recall + self.eps)
         loss = fs.sum() / batch_size
-        return (1 - loss)
+        return (1 - loss), precise, recall

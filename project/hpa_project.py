@@ -252,7 +252,7 @@ class HPAProject:
 
             """LOSS"""
             focal = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
-            f1 = Differenciable_F1(beta=1)(labels_0, predict)
+            f1, precise, recall = Differenciable_F1(beta=1)(labels_0, predict)
             bce = BCELoss()(F.sigmoid(predict), labels_0)
             weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(F.sigmoid(predict), labels_0)
             loss = focal.sum()
@@ -264,6 +264,8 @@ class HPAProject:
             """DETATCH"""
             focal = focal.detach().cpu().numpy().mean()
             f1 = f1.detach().cpu().numpy().mean()
+            precise = precise.detach().cpu().numpy().mean()
+            recall = recall.detach().cpu().numpy().mean()
             bce = bce.detach().cpu().numpy().mean()
             weighted_bce = weighted_bce.detach().cpu().numpy().mean()
             loss = loss.detach().cpu().numpy().mean()
@@ -278,7 +280,7 @@ class HPAProject:
             """DISPLAY"""
             tensorboardwriter.write_memory(self.writer, "train")
             pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}|".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.state['lr'], weighted_bce, bce))
-            tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch, 'LearningRate/{}'.format(config.fold): optimizer.state['lr'], 'Loss/{}'.format(config.fold): loss, 'F1/{}'.format(config.fold): f1, 'Focal/{}'.format(config.fold): focal, 'WeightedBCE/{}'.format(config.fold): weighted_bce, 'BCE/{}'.format(config.fold): bce}, config.global_steps[fold])
+            tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch, 'LearningRate/{}'.format(config.fold): optimizer.state['lr'], 'Loss/{}'.format(config.fold): loss, 'F1/{}'.format(config.fold): f1, 'Focal/{}'.format(config.fold): focal, 'WeightedBCE/{}'.format(config.fold): weighted_bce, 'BCE/{}'.format(config.fold): bce, 'Precision/{}'.format(config.fold): precise, 'Recall/{}'.format(config.fold): recall}, config.global_steps[fold])
 
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display
@@ -359,7 +361,7 @@ class HPAEvaluation:
 
             """LOSS"""
             focal = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
-            f1 = Differenciable_F1(beta=1)(labels_0, predict)
+            f1, precise, recall = Differenciable_F1(beta=1)(labels_0, predict)
 
             """DETATCH"""
             focal = focal.detach().cpu().numpy()
