@@ -117,7 +117,7 @@ if __name__ == '__main__':
         except Exception as e:
             print(e)
             with open('Exception.txt', 'a+') as f:
-                f.write(e)
+                f.write(str(e))
             if isinstance(e, KeyboardInterrupt):
                 os.system("sudo shutdown -P +30")
                 print("""
