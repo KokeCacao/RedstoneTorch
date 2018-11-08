@@ -95,9 +95,12 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
             ValidLoss: 0.457575827837, ValidF1: 0.210946713931
 //don't use beta=2, it is evil
 =
-python train.py --projecttag 2018-11-07-13-02-42-175714-tune4 --versiontag tune6 --resume True --loadfile tune4-CP23.pth
+python train.py --projecttag 2018-11-07-13-02-42-175714-tune4 --versiontag tune6 --resume True --loadfile tune5-CP23.pth
 //try only with f1 loss
-
+//focal up a lot, weighted bce down a lot, bce up little, f1 down little (from start)
+//nothing happened (from CP23)
+python train.py --projecttag 2018-11-07-13-02-42-175714-tune5 --versiontag tune6 --resume True --loadfile tune6-CP2.pth
+//only focal now
 ```
 
 ## Usage
