@@ -366,6 +366,8 @@ class HPAEvaluation:
             """DETATCH"""
             focal = focal.detach().cpu().numpy()
             f1 = f1.detach().cpu().numpy()
+            # precise = precise.detach().cpu().numpy().mean()
+            # recall = recall.detach().cpu().numpy().mean()
             labels_0 = labels_0.cpu().numpy()
             image = image.cpu().numpy()
             image_for_display = image_for_display.numpy()

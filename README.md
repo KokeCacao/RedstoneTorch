@@ -102,7 +102,8 @@ python train.py --projecttag 2018-11-07-13-02-42-175714-tune4 --versiontag tune6
 =
 python train.py --projecttag tune5 --versiontag tune6 --resume False --loadfile tune5-CP18.pth --loaddir 2018-11-07-13-02-42-175714-tune4
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-08-03-24-12-983709-tune5/ --port=6006
-//only focal now
+python train.py --projecttag tune5 --loaddir 2018-11-08-03-24-12-983709-tune5 --versiontag tune7 --resume True --loadfile tune6-CP2.pth
+//only focal now, add precision recall graph
 ```
 
 ## Usage
