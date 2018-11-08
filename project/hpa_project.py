@@ -200,9 +200,9 @@ class HPAProject:
 
         """LOSS"""
         f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
-        f2 = metrics.f1_score((evaluation.epoch_label > 0.5).astype(np.int16), (evaluation.epoch_pred > 0.5).astype(np.int16), average='macro')  # sklearn does not automatically import matrics.
-        print("F1 by sklearn = {}".format(f2))
-        tensorboardwriter.write_epoch_loss(self.writer, {"EvalF1": f1}, config.epoch)
+        f1_2 = metrics.f1_score((evaluation.epoch_label > 0.5).astype(np.int16), (evaluation.epoch_pred > 0.5).astype(np.int16), average='macro')  # sklearn does not automatically import matrics.
+        print("F1 by sklearn = {}".format(f1_2))
+        tensorboardwriter.write_epoch_loss(self.writer, {"EvalF1": f1, "Sklearn": f1_2}, config.epoch)
         tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
 
         """THRESHOLD"""
@@ -362,12 +362,16 @@ class HPAEvaluation:
             """LOSS"""
             focal = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
             f1, precise, recall = Differenciable_F1(beta=1)(labels_0, predict)
+            bce = BCELoss()(F.sigmoid(predict), labels_0)
+            # weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(F.sigmoid(predict), labels_0)
+            # loss = f1 + bce.sum()
 
             """DETATCH"""
             focal = focal.detach().cpu().numpy()
             f1 = f1.detach().cpu().numpy()
             # precise = precise.detach().cpu().numpy().mean()
             # recall = recall.detach().cpu().numpy().mean()
+            # loss = loss.detach().cpu().numpy()
             labels_0 = labels_0.cpu().numpy()
             image = image.cpu().numpy()
             image_for_display = image_for_display.numpy()
@@ -480,7 +484,7 @@ class HPAEvaluation:
 
 class HPAPrediction:
     def __init__(self, writer):
-        self.threshold = config.EVAL_CHOSEN_THRESHOLD
+        self.thresholds = config.PREDICTION_CHOSEN_THRESHOLD
         self.nets = []
         for fold in range(config.MODEL_FOLD):
             if fold not in config.MODEL_TRAIN_FOLD:
@@ -506,30 +510,31 @@ class HPAPrediction:
         torch.no_grad()
         """Used for Kaggle submission: predicts and encode all test images"""
         for fold, net in enumerate(self.nets):
-            save_path = config.DIRECTORY_LOAD + "-" + config.PREDICTION_TAG + "-" + str(fold) + ".csv"
+            for threshold in self.thresholds:
+                save_path = "{}-{}-F{}-T{}.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
 
-            if os.path.exists(save_path):
-                os.remove(save_path)
-                print("WARNING: delete file '{}'".format(save_path))
+                if os.path.exists(save_path):
+                    os.remove(save_path)
+                    print("WARNING: delete file '{}'".format(save_path))
 
-            with open(save_path, 'a') as f:
-                f.write('Id,Predicted\n')
-                pbar = tqdm(self.dataset.id)
-                for index, id in enumerate(pbar):
-                    input = self.dataset.get_load_image_by_id(id)
-                    input = transform(ids=None, image_0=input, labels_0=None, train=False, val=False).unsqueeze(0)
+                with open(save_path, 'a') as f:
+                    f.write('Id,Predicted\n')
+                    pbar = tqdm(self.dataset.id)
+                    for index, id in enumerate(pbar):
+                        input = self.dataset.get_load_image_by_id(id)
+                        input = transform(ids=None, image_0=input, labels_0=None, train=False, val=False).unsqueeze(0)
 
-                    if config.TRAIN_GPU_ARG: input = input.cuda()
-                    predict = net(input)
-                    predict = F.softmax(predict, dim=1)
-                    predict = (predict.detach().cpu().numpy() > self.threshold).astype(np.int16)
-                    encoded = self.dataset.multilabel_binarizer.inverse_transform(predict)
-                    encoded = list(encoded[0])
+                        if config.TRAIN_GPU_ARG: input = input.cuda()
+                        predict = net(input)
+                        predict = F.softmax(predict, dim=1)
+                        predict = (predict.detach().cpu().numpy() > threshold).astype(np.int16)
+                        encoded = self.dataset.multilabel_binarizer.inverse_transform(predict)
+                        encoded = list(encoded[0])
 
-                    f.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
-                    pbar.set_description("Fold: {}; Id: {}; Out: {}".format(fold, id, encoded))
-                    del id, input, predict, encoded
-                    if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                        f.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
+                        pbar.set_description("Fold: {}; Id: {}; Out: {}".format(fold, id, encoded))
+                        del id, input, predict, encoded
+                        if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
             """ORGANIZE"""
             f1 = pd.read_csv(config.DIRECTORY_SAMPLE_CSV)

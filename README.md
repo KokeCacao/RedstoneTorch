@@ -111,9 +111,11 @@ python train.py --projecttag tune5 --loaddir 2018-11-08-03-24-12-983709-tune5 --
             ValidLoss: 0.449503481388, ValidF1: 0.226643079329 Thres:0.1837, 0.6439F1
 F1 by sklearn = 0.196469649036
 python predict.py --loaddir 2018-11-08-03-24-12-983709-tune5 --versiontag f1andsomefocal --loadfile tune8-CP22.pth
+RedstoneTorch/model/2018-11-08-03-24-12-983709-tune5/tune8-CP22.pth-f1andsomefocal-0.csv
 =
 python train.py --projecttag tune6 --versiontag one --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-08-13-18-39-289369-tune6/ --port=6006
+python predict.py --loaddir 2018-11-08-13-18-39-289369-tune6 --versiontag bcef1-1 --loadfile one-CP18.pth
 // train on bce and f1
 
 ```

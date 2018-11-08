@@ -48,7 +48,6 @@ DISPLAY_SAVE_ONNX = False
 
 EVAL_IF_THRESHOLD_TEST = True
 EVAL_TRY_THRESHOLD = np.linspace(0.0, 1.0, 1000)
-EVAL_CHOSEN_THRESHOLD = 0.1837
 
 DIRECTORY_PREFIX = ""
 DIRECTORY_SUFFIX_IMG = ".png"
@@ -69,6 +68,7 @@ PREDICTION_TAG = "test"
 PREDICTION_LOAD_TAG = ""
 PREDICTION_SAVE_IMG = True
 PREDICTION_DARK_THRESHOLD = 0.05
+PREDICTION_CHOSEN_THRESHOLD = [0.01602, 0.5, 0.048]
 
 AUGMENTATION_RESIZE = 224
 
@@ -79,9 +79,9 @@ epoch = 0
 fold = 0
 versiontag = ""
 
-PREDICT_TRANSFORM_BACK = transforms.Compose([
-    lambda x: (x > Variable(torch.Tensor([EVAL_CHOSEN_THRESHOLD])).cuda()).float() * 1,
-    lambda x: tensor_to_PIL(x),
-    transforms.Resize((101, 101)),
-    transforms.Grayscale(),
-])
+# PREDICT_TRANSFORM_BACK = transforms.Compose([
+#     lambda x: (x > Variable(torch.Tensor([PREDICTION_CHOSEN_THRESHOLD])).cuda()).float() * 1,
+#     lambda x: tensor_to_PIL(x),
+#     transforms.Resize((101, 101)),
+#     transforms.Grayscale(),
+# ])

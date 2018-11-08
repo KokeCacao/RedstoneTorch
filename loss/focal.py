@@ -6,6 +6,7 @@ from torch import nn
 import torch.nn.functional as F
 
 class Focal_Loss_from_git(nn.Module):
+    # https://xmfbit.github.io/2017/08/14/focal-loss-paper/
     def __init__(self, alpha=0.25, gamma=2, eps=1e-7):
         super(Focal_Loss_from_git, self).__init__()
         self.alpha = alpha
