@@ -185,6 +185,7 @@ class HPAProject:
         evaluation = HPAEvaluation(self.writer, self.dataset.multilabel_binarizer)
         for fold, (net, optimizer) in enumerate(zip(nets, optimizers)):
             self.step_fold(fold, net, optimizer, batch_size, evaluation)
+            if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             val_loss, val_f1 = evaluation.eval_fold(net, data.DataLoader(self.dataset, batch_size=batch_size, sampler=self.folded_samplers[config.fold]["val"], shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=val_collate))
             print("""
                 ValidLoss: {}, ValidF1: {}
