@@ -121,6 +121,9 @@ RedstoneTorch/model/2018-11-08-13-18-39-289369-tune6/one-CP18.pth-bcef1-1-F0-T0.
 python train.py --projecttag tune6 --versiontag two --resume True --loadfile one-CP25.pth --loaddir 2018-11-08-13-18-39-289369-tune6
 // adjust down lr by a factor of 10, adjust batch size by 2(32->64)
 // focal loss seem to need a bigger batch size, I will see how the loss fluctuate to decide whether to add focal or not
+python predict.py --loaddir 2018-11-08-13-18-39-289369-tune6 --versiontag bcef1-2 --loadfile two-CP44.pth
+python train.py --projecttag tune6 --versiontag three --resume True --loadfile two-CP46.pth --loaddir 2018-11-08-13-18-39-289369-tune6
+//train +with focal
 
 ```
 
