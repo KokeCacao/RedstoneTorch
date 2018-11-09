@@ -372,8 +372,9 @@ class HPAEvaluation:
             """DETATCH"""
             focal = focal.detach().cpu().numpy()
             f1 = f1.detach().cpu().numpy()
-            # precise = precise.detach().cpu().numpy().mean()
-            # recall = recall.detach().cpu().numpy().mean()
+            precise = precise.detach().cpu().numpy().mean()
+            recall = recall.detach().cpu().numpy().mean()
+            bce = bce.detach().cpu().numpy().mean()
             # loss = loss.detach().cpu().numpy()
             labels_0 = labels_0.cpu().numpy()
             image = image.cpu().numpy()
@@ -403,7 +404,7 @@ class HPAEvaluation:
 
             """DISPLAY"""
             tensorboardwriter.write_memory(self.writer, "train")
-            if config.DISPLAY_VISUALIZATION and batch_index < 5: self.display(config.fold, ids, image, image_for_display, labels_0, predict, focal)
+            if config.DISPLAY_VISUALIZATION and batch_index < 5*32/config.MODEL_BATCH_SIZE: self.display(config.fold, ids, image, image_for_display, labels_0, predict, focal)
 
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display
