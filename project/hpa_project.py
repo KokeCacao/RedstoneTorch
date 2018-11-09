@@ -536,13 +536,13 @@ class HPAPrediction:
                         del id, input, predict, encoded
                         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
-            """ORGANIZE"""
-            f1 = pd.read_csv(config.DIRECTORY_SAMPLE_CSV)
-            f1.drop('Predicted', axis=1, inplace=True)
-            f2 = pd.read_csv(save_path)
-            f1 = f1.merge(f2, left_on='Id', right_on='Id', how='outer')
-            os.remove(save_path)
-            f1.to_csv(save_path, index=False)
+                """ORGANIZE"""
+                f1 = pd.read_csv(config.DIRECTORY_SAMPLE_CSV)
+                f1.drop('Predicted', axis=1, inplace=True)
+                f2 = pd.read_csv(save_path)
+                f1 = f1.merge(f2, left_on='Id', right_on='Id', how='outer')
+                os.remove(save_path)
+                f1.to_csv(save_path, index=False)
 
 
 class HPAPreprocess:

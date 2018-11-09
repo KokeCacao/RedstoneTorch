@@ -116,7 +116,11 @@ RedstoneTorch/model/2018-11-08-03-24-12-983709-tune5/tune8-CP22.pth-f1andsomefoc
 python train.py --projecttag tune6 --versiontag one --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-08-13-18-39-289369-tune6/ --port=6006
 python predict.py --loaddir 2018-11-08-13-18-39-289369-tune6 --versiontag bcef1-1 --loadfile one-CP18.pth
+RedstoneTorch/model/2018-11-08-13-18-39-289369-tune6/one-CP18.pth-bcef1-1-F0-T0.01602.csv
 // train on bce and f1
+python predict.py --loaddir 2018-11-08-13-18-39-289369-tune6 --versiontag bcef1-2 --loadfile one-CP25.pth
+// adjust down lr by a factor of 10, adjust batch size by 2(32->64)
+// focal loss seem to need a bigger batch size, I will see how the loss fluctuate to decide whether to add focal or not
 
 ```
 
