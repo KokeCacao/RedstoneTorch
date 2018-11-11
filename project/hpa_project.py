@@ -133,6 +133,7 @@ class HPAProject:
 
         self.dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix = config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_preprocessed_dir=config.DIRECTORY_PREPROCESSED_IMG)
         self.folded_samplers = self.dataset.get_stratified_samplers(fold=config.MODEL_FOLD)
+        print (self.folded_samplers[0])
 
         self.run()
 
