@@ -232,9 +232,9 @@ class HPAData(data.Dataset):
            folded_samplers[i] = {}
            # folded_samplers[i]['train'] = SubsetRandomSampler(X[train_index]) #y[train_index]
            # folded_samplers[i]['val'] = SubsetRandomSampler(X[test_index]) #
-           a = int(X[train_index].shape[0]/config.MODEL_BATCH_SIZE)
+           a = X[train_index].shape[0]/config.MODEL_BATCH_SIZE
            b = 1-config.MODEL_BATCH_SIZE/X[train_index].shape[0]
-           c = MultilabelStratifiedShuffleSplit(a, test_size=b, random_state=None).split(X[train_index], y[train_index])
+           c = MultilabelStratifiedShuffleSplit(int(a), test_size=b, random_state=None).split(X[train_index], y[train_index])
            folded_samplers[i]['train'] = iter(c[0])
            folded_samplers[i]['val'] = SubsetRandomSampler(X[test_index]) #y[test_index]
         return folded_samplers
