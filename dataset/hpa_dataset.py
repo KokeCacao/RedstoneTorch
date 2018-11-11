@@ -229,13 +229,13 @@ class HPAData(data.Dataset):
         folded_samplers = dict()
         for i, (train_index, test_index) in enumerate(mskf.split(X, y)):
            print("TRAIN:", train_index, "TEST:", test_index)
-           folded_samplers[i] = dict()
            x_t = np.array([X[i] for i in train_index])
            y_t = np.array([y[i] for i in train_index])
            x_e = np.array([X[i] for i in test_index])
            y_e = np.array([y[i] for i in test_index])
            print(i)
            s = SubsetRandomSampler(x_t)
+           folded_samplers[i] = dict()
            folded_samplers[i]["train"] = s
 
            # a = int(len(x_t)/config.MODEL_BATCH_SIZE)
