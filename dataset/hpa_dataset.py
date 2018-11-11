@@ -237,7 +237,7 @@ class HPAData(data.Dataset):
            x_e = np.array((X[i] for i in test_index))
            y_e = np.array((y[i] for i in test_index))
 
-           a = int(x_t.shape[0]/config.MODEL_BATCH_SIZE)
+           a = int(len(x_t)/config.MODEL_BATCH_SIZE)
            b = 1-config.MODEL_BATCH_SIZE/x_t.shape[0]
            c = MultilabelStratifiedShuffleSplit(int(a), test_size=b, random_state=None).split(x_t, np.array((y[i] for i in y_t)))
            folded_samplers[i]['train'] = iter(c[0])
