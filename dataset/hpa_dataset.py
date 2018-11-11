@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 import pandas as pd
 from imgaug import augmenters as iaa
+from iterstrat.ml_stratifiers import MultilabelStratifiedKFold, MultilabelStratifiedShuffleSplit
 from torch._six import string_classes, int_classes
 from torch.utils import data
 from torch.utils.data import SubsetRandomSampler
@@ -151,6 +152,13 @@ class HPAData(data.Dataset):
         27 -> 0 -> 0
         """
         """[12885, 1254, 3621, 1561, 1858, 2513, 1008, 2822, 53, 45, 28, 1093, 688, 537, 1066, 21, 530, 210, 902, 1482, 172, 3777, 802, 2965, 322, 8228, 328, 11]"""
+        """[1.03670507e-01, 1.00894696e-02, 2.91339470e-02, 1.25595391e-02,
+       1.49491504e-02, 2.02191684e-02, 8.11019567e-03, 2.27053296e-02,
+       4.26428939e-04, 3.62062307e-04, 2.25283213e-04, 8.79409114e-03,
+       5.53553038e-03, 4.32061020e-03, 8.57685376e-03, 1.68962410e-04,
+       4.26428939e-03, 1.68962410e-03, 7.25733780e-03, 1.19239186e-02,
+       1.38388260e-03, 3.03890963e-02, 6.45275489e-03, 2.38558831e-02,
+       2.59075695e-03, 6.62010814e-02, 2.63903193e-03, 8.85041195e-05]"""
 
         """
         0     12885
@@ -199,34 +207,45 @@ class HPAData(data.Dataset):
         if self.img_len != self.id_len and not self.test: raise ResourceWarning("id_len in the csv({}) is not equal to img_len in the folder({}), set data_len to {}".format(self.id_len, self.img_len, self.data_len))
         self.indices = list(range(self.data_len))
 
-        # these parameters will be init by get_sampler
         self.indices_to_id = dict()
         self.id_to_indices = dict()
-
-        self.train_len = None
-        self.val_len = None
+        print("     Data Percent: {}".format(config.TRAIN_DATA_PERCENT))
+        self.indices_to_id = dict(zip(self.indices, self.id))
+        self.id_to_indices = {v: k for k, v in self.indices_to_id.items()}
+        print("     Data Size: {}".format(self.data_len))
 
     def __len__(self):
         return self.data_len
 
+    def get_stratified_samplers(self, fold=-1):
+        """
+        :param fold: fold number
+        :return: dictionary[fold]["train" or "val"]
+        """
+        X = self.indices
+        y = self.one_hot_frame
+
+        mskf = MultilabelStratifiedKFold(n_splits=fold, random_state=None)
+        folded_samplers = dict()
+        for i, (train_index, test_index) in enumerate(mskf.split(X, y)):
+           print("TRAIN:", train_index, "TEST:", test_index)
+           folded_samplers[i] = {}
+           # folded_samplers[i]['train'] = SubsetRandomSampler(X[train_index]) #y[train_index]
+           # folded_samplers[i]['val'] = SubsetRandomSampler(X[test_index]) #
+           folded_samplers[i]['train'] = iter(MultilabelStratifiedShuffleSplit(int(len(X[train_index])/config.MODEL_BATCH_SIZE), test_size=1-config.MODEL_BATCH_SIZE/len(X[train_index]), random_state=None).split(X[train_index], y[train_index])[0])
+           folded_samplers[i]['val'] = SubsetRandomSampler(X[test_index]) #y[test_index]
+        return folded_samplers
     """
         :param self(data_len)
         :param foldcv_size
         :return folded_sampler
     """
 
-    def get_fold_sampler(self, fold=-1):
-        print("     Data Percent: {}".format(config.TRAIN_DATA_PERCENT))
-        self.indices_to_id = dict(zip(self.indices, self.id))
-        self.id_to_indices = {v: k for k, v in self.indices_to_id.items()}
-        print("     Data Size: {}".format(self.data_len))
+    def get_fold_samplers(self, fold=-1):
 
         data = self.indices[:-(self.data_len % fold)]
         left_over = self.indices[-(self.data_len % fold):]
         cv_size = (len(self.indices) - len(left_over)) / fold
-
-        self.train_len = cv_size * (fold - 1)
-        self.val_len = cv_size
 
         print("     CV_size: {}".format(cv_size))
         print("     Fold: {}".format(fold))
@@ -244,8 +263,6 @@ class HPAData(data.Dataset):
             folded_samplers[i]["val"] = SubsetRandomSampler(folded_val_indice[i] + left_over)
 
         return folded_samplers
-
-    # TODO: Get stratified fold instead of random
 
     def __getitem__(self, indice):
         labels_0 = self.get_load_label_by_indice(indice)
@@ -444,7 +461,8 @@ def transform(ids, image_0, labels_0, train, val):
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             image_aug_transform,
             transforms.ToTensor(),
-            Normalize(mean=[0.05908022413399168, 0.04532851916280794, 0.040652325092460015, 0.05923425759572161], std=[1, 1, 1, 1]),
+            # Normalize(mean=[0.05908022413399168, 0.04532851916280794, 0.040652325092460015, 0.05923425759572161], std=[1, 1, 1, 1]),
+            Normalize(mean=[0.07459783,  0.05063238,  0.05089102,  0.07628681], std=[1, 1, 1, 1]),
         ])
         return PREDICT_TRANSFORM_IMG(image_0)
 
@@ -460,7 +478,8 @@ def transform(ids, image_0, labels_0, train, val):
             'image': transforms.Compose([
                 image_aug_transform,
                 transforms.ToTensor(),
-                Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[1, 1, 1, 1]),
+                # Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[1, 1, 1, 1]),
+                Normalize(mean=[0.07459783,  0.05063238,  0.05089102,  0.07628681], std=[1, 1, 1, 1]),
             ]),
         }
 
@@ -471,7 +490,8 @@ def transform(ids, image_0, labels_0, train, val):
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             image_aug_transform,
             transforms.ToTensor(),
-            Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[1, 1, 1, 1]),
+            # Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[1, 1, 1, 1]),
+            Normalize(mean=[0.07459783,  0.05063238,  0.05089102,  0.07628681], std=[1, 1, 1, 1]),
         ])
 
         image = PREDICT_TRANSFORM_IMG(image_0)

@@ -34,28 +34,21 @@ class HPAProject:
     """"."""
 
     """URGENT"""
-    # TODO: normalize data using all data
-    # TODO: normalize and stratisfy training data into folds
     # TODO: stratisfy and weight batch
     # TODO: visualize prediction and train of each class
     # TODO: (https://zhuanlan.zhihu.com/p/22252270)Yes, using SGD with cosine annealing schedule. Also used Adadelta to start training, Padam for mid training, and SGD at the end. Then I freeze parts of the model and train the other layers. My current leading model is 2.3M params. Performs great locally, but public LB is 45% lower. (https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69462#412909)
-    # TODO: FIx tensorboardwriter.write_eval_loss(self.writer, {"EvalFocalMean": evaluation.mean(), "EvalFocalSTD": evaluation.std()}, config.epoch)
-    # TODO: fix image display or augmentation
     # TODO: adjust lr  set base lr to 1/3 or 1/4 of max lr.
     # TODO: LB probing for threshold adjust
     # TODO: My top model on 512x512x3 is similar to gap net. It is a convnet encoder + one gap at the end + dense layers + sigmoid. I've trained it for hundreds of epochs at least. (https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69955)
-    # TODO: Compare BCE and focal
-    # TODO: focal loss with gamma=2
-    # TODO: put image in SSD: https://cloud.google.com/compute/docs/disks/add-persistent-disk#create_disk
     # TODO: make sure all lose input are correct
     # TODO: remove 6f062840-bba9-11e8-b2ba-ac1f6b6435d0 from dataset since channel shifted
 
     """SCHEDULE"""
     # TODO: train without tta before submit
     # TODO: train with small constant lr before submit
+    # TODO: LB probing threshold is better or fold best threshold is better? test it in CV and !
 
     """"TODO"""
-    # TODO: Data pre processing - try normalize data mean and std (https://discuss.pytorch.org/t/normalization-in-the-mnist-example/457/18) Save as ".npy" with dtype = "uint8". Before augmentation, convert back to float32 and normalize them with dataset mean/std.
     # TODO: Ask your biology teacher about yellow channel
     # TODO: cosine (https://github.com/SeuTao/Kaggle_TGS2018_4th_solution/blob/master/loss/cyclic_lr.py) change to AdamW
     # TODO: try set f1 to 0 when 0/0; (7 missing classes in LB) / (28 total classes) = 0.25, and if the organizer is interpreting 0/0 as 0
@@ -69,7 +62,7 @@ class HPAProject:
     # TODO: attention Residual Attention Network for Image Classification - Fei Wang, cvpr 2017 https://arxiv.org/abs/1704.06904 https://www.youtube.com/watch?v=Deq1BGTHIPA, https://blog.csdn.net/wspba/article/details/73727469
     # TODO: train on 1028*1028 image
     # TODO: visualization: https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/70173
-    # TODO: try a better GPI
+    # TODO: try a better GPU
     # TODO: train using predicted label
     # TODO: Distribute Train and Validation by label
 
@@ -84,6 +77,7 @@ class HPAProject:
     # TODO: your upvote list
 
     """GIVE UP"""
+    # TODO: put image in SSD: https://cloud.google.com/compute/docs/disks/add-persistent-disk#create_disk
     # TODO: test visualize your network
     # TODO: freeze loaded layer, check if the layers loaded correctly (ie. I want to load as much as I can)
 
@@ -106,6 +100,13 @@ class HPAProject:
     # adjust dropout not overfit (first layer)
 
     """FINISHED"""
+
+    # TODO: fix image display or augmentation
+    # TODO: normalize and stratisfy training data into folds
+    # TODO: Data pre processing - try normalize data mean and std (https://discuss.pytorch.org/t/normalization-in-the-mnist-example/457/18) Save as ".npy" with dtype = "uint8". Before augmentation, convert back to float32 and normalize them with dataset mean/std.
+    # TODO: Compare BCE and focal
+    # TODO: focal loss with gamma=2
+    # TODO: normalize data using all data
 
     def __init__(self, writer):
         self.writer = writer
@@ -131,7 +132,7 @@ class HPAProject:
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[0], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
         self.dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix = config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_preprocessed_dir=config.DIRECTORY_PREPROCESSED_IMG)
-        self.folded_samplers = self.dataset.get_fold_sampler(fold=config.MODEL_FOLD)
+        self.folded_samplers = self.dataset.get_stratified_samplers(fold=config.MODEL_FOLD)
 
         self.run()
 
@@ -188,7 +189,7 @@ class HPAProject:
 
         evaluation = HPAEvaluation(self.writer, self.dataset.multilabel_binarizer)
         for fold, (net, optimizer) in enumerate(zip(nets, optimizers)):
-            self.step_fold(fold, net, optimizer, batch_size, evaluation)
+            self.step_fold(fold, net, optimizer, batch_size)
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             val_loss, val_f1 = evaluation.eval_fold(net, data.DataLoader(self.dataset, batch_size=batch_size, sampler=self.folded_samplers[config.fold]["val"], shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=val_collate))
             print("""
@@ -237,7 +238,7 @@ class HPAProject:
         """CLEAN UP"""
         del evaluation
 
-    def step_fold(self, fold, net, optimizer, batch_size, evaluation):
+    def step_fold(self, fold, net, optimizer, batch_size):
         config.fold = fold
 
         epoch_loss = 0
@@ -260,11 +261,16 @@ class HPAProject:
             predict = net(image)
 
             """LOSS"""
-            focal = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
+            focal = Focal_Loss_from_git(alpha=0.25, gamma=4, eps=1e-7)(labels_0, predict)
             f1, precise, recall = Differenciable_F1(beta=1)(labels_0, predict)
             bce = BCELoss()(F.sigmoid(predict), labels_0)
             weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(F.sigmoid(predict), labels_0)
-            loss = f1 + bce.sum() + focal.sum()
+            if config.epoch < 5:
+                loss = f1 + bce.sum()
+            elif config.epoch < 10:
+                loss = f1 + bce.sum() + focal.sum()
+            elif config.epoch < 15:
+                loss = f1 + bce.sum() + focal.sum()
             """BACKPROP"""
             optimizer.zero_grad()
             loss.backward()
@@ -463,7 +469,7 @@ class HPAEvaluation:
             if index != 0: continue
 
             label = self.binarlizer.inverse_transform(np.expand_dims(np.array(label).astype(np.byte), axis=0))[0]
-            predict = self.binarlizer.inverse_transform(np.expand_dims((predicteds[0] > 0.5).astype(np.byte), axis=0))
+            predict = self.binarlizer.inverse_transform(np.expand_dims((predicted > 0.5).astype(np.byte), axis=0))[0]
 
             F = plt.figure()
 
