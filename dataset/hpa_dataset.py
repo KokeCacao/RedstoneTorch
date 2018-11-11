@@ -241,7 +241,6 @@ class HPAData(data.Dataset):
            # c = MultilabelStratifiedShuffleSplit(int(a), test_size=b, random_state=None).split(x_t, y_t)
            # folded_samplers[i]['train'] = iter(c[0])
            folded_samplers[i]["val"] = SubsetRandomSampler(x_e) #y[test_index]
-        print(folded_samplers[0])
         return folded_samplers
     """
         :param self(data_len)
