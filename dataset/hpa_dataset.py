@@ -52,7 +52,34 @@ class HPAData(data.Dataset):
         # self.multilabel_binarizer = MultiLabelBinarizer().fit(self.dataframe['Target'])
         self.multilabel_binarizer = MultiLabelBinarizer()
         self.one_hot_frame = self.multilabel_binarizer.fit_transform(self.dataframe['Target'])
-
+        self.prob_dict = {27: 0.125,
+                         15: 0.05555555555555555,
+                         10: 0.043478260869565216,
+                         9: 0.02702702702702703,
+                         8: 0.022222222222222223,
+                         20: 0.007633587786259542,
+                         17: 0.006024096385542169,
+                         24: 0.003875968992248062,
+                         26: 0.003816793893129771,
+                         13: 0.002352941176470588,
+                         16: 0.002288329519450801,
+                         12: 0.0017482517482517483,
+                         22: 0.001579778830963665,
+                         18: 0.0013679890560875513,
+                         6: 0.001221001221001221,
+                         11: 0.001141552511415525,
+                         14: 0.0011312217194570137,
+                         1: 0.0010183299389002036,
+                         19: 0.0008665511265164644,
+                         3: 0.0008285004142502071,
+                         4: 0.0006844626967830253,
+                         5: 0.0004935834155972359,
+                         7: 0.0004434589800443459,
+                         23: 0.0004187604690117253,
+                         2: 0.00034916201117318437,
+                         21: 0.00033090668431502316,
+                         25: 0.00015130882130428205,
+                         0: 9.693679720822024e-05}
         self.name_label_dict = {
             0: 'Nucleoplasm',
             1: 'Nuclear membrane',
@@ -417,7 +444,7 @@ def transform(ids, image_0, labels_0, train, val):
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             image_aug_transform,
             transforms.ToTensor(),
-            # Normalize(mean=[0.05908022413399168, 0.04532851916280794, 0.040652325092460015, 0.05923425759572161], std=[0.00235381, 0.00204037, 0.00137833, 0.00246516]),
+            Normalize(mean=[0.05908022413399168, 0.04532851916280794, 0.040652325092460015, 0.05923425759572161], std=[1, 1, 1, 1]),
         ])
         return PREDICT_TRANSFORM_IMG(image_0)
 
@@ -433,7 +460,7 @@ def transform(ids, image_0, labels_0, train, val):
             'image': transforms.Compose([
                 image_aug_transform,
                 transforms.ToTensor(),
-                # Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[0.00255578, 0.00230547, 0.00129955, 0.00293934]),
+                Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[1, 1, 1, 1]),
             ]),
         }
 
@@ -444,7 +471,7 @@ def transform(ids, image_0, labels_0, train, val):
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             image_aug_transform,
             transforms.ToTensor(),
-            # Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[0.00255578, 0.00230547, 0.00129955, 0.00293934]),
+            Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[1, 1, 1, 1]),
         ])
 
         image = PREDICT_TRANSFORM_IMG(image_0)

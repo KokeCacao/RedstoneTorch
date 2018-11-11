@@ -34,6 +34,10 @@ class HPAProject:
     """"."""
 
     """URGENT"""
+    # TODO: normalize data using all data
+    # TODO: normalize and stratisfy training data into folds
+    # TODO: stratisfy and weight batch
+    # TODO: visualize prediction and train of each class
     # TODO: (https://zhuanlan.zhihu.com/p/22252270)Yes, using SGD with cosine annealing schedule. Also used Adadelta to start training, Padam for mid training, and SGD at the end. Then I freeze parts of the model and train the other layers. My current leading model is 2.3M params. Performs great locally, but public LB is 45% lower. (https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69462#412909)
     # TODO: FIx tensorboardwriter.write_eval_loss(self.writer, {"EvalFocalMean": evaluation.mean(), "EvalFocalSTD": evaluation.std()}, config.epoch)
     # TODO: fix image display or augmentation
@@ -604,6 +608,53 @@ class HPAPreprocess:
         cheers and thanks, 
         Wolfgang
         """
+    def get_mean(self, dataset, save=False, overwrite=False):
+        pbar = tqdm(dataset.id)
+        length = len(pbar)
+        sum = [0, 0, 0, 0]
+        for id in pbar:
+            img = dataset.get_load_image_by_id(id).astype(np.uint8)
+            img_mean = np.stack((img.astype(np.float32).mean(0).mean(0))/255.)
+            sum = sum + img_mean
+            pbar.set_description("{} Sum:[{:.2f},{:.2f},{:.2f},{:.2f}]".format(id, img_mean[0], img_mean[1], img_mean[2], img_mean[3]))
+            if not os.path.exists(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy") and save and overwrite:
+                np.save(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy", img)
+            elif save and not overwrite:
+                pbar.set_description("Pass: {}".format(id))
+                continue
+        mean = sum / length
+        print("     Mean = {}".format(mean))
+        return mean
+    def get_std(self, dataset, mean):
+        pbar = tqdm(dataset.id)
+        length = len(pbar)
+        sum_variance = [0, 0, 0, 0]
+        for id in pbar:
+            img = dataset.get_load_image_by_id(id).astype(np.uint8)
+            img_mean = np.stack((img.astype(np.float32).mean(0).mean(0))/255.)
+            img_variance = (img_mean - mean)**2
+            sum_variance = sum_variance + img_variance
+
+            pbar.set_description("{} Var:[{:.2f},{:.2f},{:.2f},{:.2f}]".format(id, img_variance[0], img_variance[1], img_variance[2], img_variance[3]))
+        std = (sum_variance/length)**0.5
+        std1 = (sum_variance/(length-1))**0.5
+        print("     STD  = {}".format(std))
+        print("     STD1 = {}".format(std1))
+        return mean, std, std1
+    def normalize(self, dataset, mean, std, save=True, overwrite=False):
+        """normalize and save data
+        Not recomanded because uint8 can be load faster than float32
+        """
+        pbar = tqdm(dataset.id)
+        length = len(pbar)
+        for id in pbar:
+            img = (dataset.get_load_image_by_id(id).astype(np.float32)/225. - mean)/std
+            pbar.set_description("{}".format(id))
+            if not os.path.exists(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy") and save and overwrite:
+                np.save(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy", img)
+            elif save and not overwrite:
+                pbar.set_description("Pass: {}".format(id))
+                continue
 
     def run(self, dataset):
         pbar = tqdm(dataset.id)
@@ -623,6 +674,7 @@ class HPAPreprocess:
                 pbar.set_description("{} Sum:[{:.2f},{:.2f},{:.2f},{:.2f}]".format(id, img_mean[0], img_mean[1], img_mean[2], img_mean[3]))
 
             if not os.path.exists(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy"): np.save(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy", img)
+
         if self.calculate:
             mean = sum/length
             print("     Mean = {}".format(mean))
@@ -635,8 +687,8 @@ class HPAPreprocess:
                 sum_variance = sum_variance + img_variance
 
                 pbar.set_description("{} Var:[{:.2f},{:.2f},{:.2f},{:.2f}]".format(id, img_variance[0], img_variance[1], img_variance[2], img_variance[3]))
-            std = sum_variance/length
-            std1 = sum_variance/(length-1)
+            std = (sum_variance/length)**0.5
+            std1 = (sum_variance/(length-1))**0.5
             print("     STD  = {}".format(std))
             print("     STD1 = {}".format(std1))
             return mean, std, std1
