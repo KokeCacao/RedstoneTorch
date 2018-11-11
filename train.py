@@ -112,15 +112,15 @@ if __name__ == '__main__':
 
         print("=> Current Directory: " + str(os.getcwd()))
         print("=> Loading neuronetwork...")
-        try:
-            project = hpa_project.HPAProject(writer)
-        except Exception as e:
-            # with open('Exception.txt', 'a+') as f:
-            #     f.write(str(e))
-            if not isinstance(e, KeyboardInterrupt):
-                os.system("sudo shutdown -P +30")
-                print("""
-                    WARNING: THE SYSTEM WILL SHUTDOWN
-                    Use command: sudo shutdown -c
-                """)
-            raise
+        # try:
+        project = hpa_project.HPAProject(writer)
+        # except Exception as e:
+        #     # with open('Exception.txt', 'a+') as f:
+        #     #     f.write(str(e))
+        #     if not isinstance(e, KeyboardInterrupt):
+        #         os.system("sudo shutdown -P +30")
+        #         print("""
+        #             WARNING: THE SYSTEM WILL SHUTDOWN
+        #             Use command: sudo shutdown -c
+        #         """)
+        #     raise
