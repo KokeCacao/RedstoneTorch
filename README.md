@@ -133,7 +133,7 @@ python train.py --projecttag normal3 --versiontag three --resume False
                 loss = f1 + bce.sum() + focal.sum()
             elif config.epoch < 15:
                 loss = f1 + bce.sum() + focal.sum()
-
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-11-07-48-34-200696-normal3/ --port=6006
 
 ```
 
