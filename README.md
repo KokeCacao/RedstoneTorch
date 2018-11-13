@@ -131,7 +131,7 @@ python train.py --projecttag normal3 --versiontag three --resume False
                 loss = f1 + bce.sum() + focal.sum()
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-11-08-00-19-978745-normal3/ --port=6006
 python train.py --projecttag normal4 --versiontag one --resume False
-python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-13-03-18-13-982160-normal4/ --port=6006
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-13-03-35-25-462154-normal4/ --port=6006
 //normalize by all data instead of just train or val
 
 ```

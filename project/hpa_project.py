@@ -208,6 +208,10 @@ class HPAProject:
             tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, fold=fold)
             tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
 
+        for l in range(28):
+            # TODO: per-class evaluation
+            pass
+
         """LOSS"""
         f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
         f1_2 = metrics.f1_score((evaluation.epoch_label > 0.5).astype(np.int16), (evaluation.epoch_pred > 0.5).astype(np.int16), average='macro')  # sklearn does not automatically import matrics.
@@ -294,10 +298,11 @@ class HPAProject:
             # f1 = f1_macro(predict, labels_0).mean()
 
             """DISPLAY"""
-            left = set(range(28)) - set(np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)).flatten())
-
+            left = np.array(list(set(range(28)) - set(np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)).flatten())))
+            pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(predict>0.5)[0])
             tensorboardwriter.write_memory(self.writer, "train")
-            pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.state['lr'], weighted_bce, bce))
+            pbar.set_description_str("(E{}-F{}) Stp:{} Pred:{} Left:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), pred, left))
+            # pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.state['lr'], weighted_bce, bce))
             # pbar.set_description_str("(E{}-F{}) Stp:{} Y:{}, y:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), labels_0, predict))
             tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch, 'LearningRate/{}'.format(config.fold): optimizer.state['lr'], 'Loss/{}'.format(config.fold): loss, 'F1/{}'.format(config.fold): f1, 'Focal/{}'.format(config.fold): focal, 'WeightedBCE/{}'.format(config.fold): weighted_bce, 'BCE/{}'.format(config.fold): bce, 'Precision/{}'.format(config.fold): precise, 'Recall/{}'.format(config.fold): recall}, config.global_steps[fold])
 
