@@ -214,7 +214,7 @@ class HPAProject:
 
         """LOSS"""
         f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
-        f1_2 = metrics.f1_score((evaluation.epoch_label > 0.5).astype(np.int16), (evaluation.epoch_pred > 0.5).astype(np.int16), average='macro')  # sklearn does not automatically import matrics.
+        f1_2 = metrics.f1_score((evaluation.epoch_label > 0.5).astype(np.byte), (evaluation.epoch_pred > 0.5).astype(np.byte), average='macro')  # sklearn does not automatically import matrics.
         print("F1 by sklearn = {}".format(f1_2))
         tensorboardwriter.write_epoch_loss(self.writer, {"EvalF1": f1, "Sklearn": f1_2}, config.epoch)
         tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
@@ -298,7 +298,7 @@ class HPAProject:
             # f1 = f1_macro(predict, labels_0).mean()
 
             """DISPLAY"""
-            left = np.array(list(set(range(28)) - set(np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)).flatten())))
+            left = self.dataset.multilabel_binarizer.inverse_transform((np.expand_dims((np.array(labels_0).sum(0) < 1).astype(np.byte), axis=0)))[0]
             label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
             pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(predict>0.5)[0])
             tensorboardwriter.write_memory(self.writer, "train")
@@ -551,7 +551,7 @@ class HPAPrediction:
                         if config.TRAIN_GPU_ARG: input = input.cuda()
                         predict = net(input)
                         predict = F.softmax(predict, dim=1)
-                        predict = (predict.detach().cpu().numpy() > threshold).astype(np.int16)
+                        predict = (predict.detach().cpu().numpy() > threshold).astype(np.byte)
                         encoded = self.dataset.multilabel_binarizer.inverse_transform(predict)
                         encoded = list(encoded[0])
 
