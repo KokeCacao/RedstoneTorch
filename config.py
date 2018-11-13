@@ -1,12 +1,8 @@
 import socket
 import time
 import numpy as np
-import torch
 
 from datetime import datetime
-from torch.autograd import Variable
-from torchvision.transforms import transforms
-from utils.encode import tensor_to_PIL
 
 DEBUG_TRAISE_GPU = False
 DEBUG_LAPTOP = True
@@ -22,8 +18,9 @@ MODEL_FOLD = 10
 MODEL_TRAIN_FOLD = [0]
 
 TRAIN_GPU_DICT = {
-    "ml-k80-3": "0",
+    "ml-k80-3": "0,1",
     "ml-k80-4": "0",
+    "ml-p100-1": "0",
 }
 TRAIN_GPU_ARG = TRAIN_GPU_DICT[socket.gethostname()]
 TRAIN_GPU_LIST = [int(i) for i in TRAIN_GPU_ARG.split(",")]

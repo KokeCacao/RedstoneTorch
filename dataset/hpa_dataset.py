@@ -114,7 +114,10 @@ class HPAData(data.Dataset):
         self.load_img_dir = load_img_dir
         self.load_preprocessed_dir = load_preprocessed_dir
         self.img_suffix = img_suffix
-
+        """
+        Arrange ment does not matter so you can crop it and pull label
+        
+        """
         """File sizes
         train                         14.0321076GB (124288 files)
         test                          4.6823579GB (46808 files)
