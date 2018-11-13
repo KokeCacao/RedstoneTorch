@@ -299,9 +299,10 @@ class HPAProject:
 
             """DISPLAY"""
             left = np.array(list(set(range(28)) - set(np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)).flatten())))
+            label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
             pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(predict>0.5)[0])
             tensorboardwriter.write_memory(self.writer, "train")
-            pbar.set_description_str("(E{}-F{}) Stp:{} Pred:{} Left:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), pred, left))
+            pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, left))
             # pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.state['lr'], weighted_bce, bce))
             # pbar.set_description_str("(E{}-F{}) Stp:{} Y:{}, y:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), labels_0, predict))
             tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch, 'LearningRate/{}'.format(config.fold): optimizer.state['lr'], 'Loss/{}'.format(config.fold): loss, 'F1/{}'.format(config.fold): f1, 'Focal/{}'.format(config.fold): focal, 'WeightedBCE/{}'.format(config.fold): weighted_bce, 'BCE/{}'.format(config.fold): bce, 'Precision/{}'.format(config.fold): precise, 'Recall/{}'.format(config.fold): recall}, config.global_steps[fold])
