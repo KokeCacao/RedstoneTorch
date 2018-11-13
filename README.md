@@ -133,6 +133,11 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 python train.py --projecttag normal4 --versiontag one --resume False
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-13-04-54-14-153732-normal4/ --port=6006
 //normalize by all data instead of just train or val
+python train.py --projecttag normal4 --versiontag one --resume False --loadfile two-CP46.pth --loaddir 2018-11-08-13-18-39-289369-tune6
+=
+python train.py --projecttag normal4 --versiontag one --resume False
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-13-14-20-22-604828-normal4/ --port=6006
+python train.py --projecttag normal4 --versiontag two --resume False --loadfile one-CP8.pth --loaddir 2018-11-13-14-20-22-604828-normal4
 
 ```
 
