@@ -294,6 +294,8 @@ class HPAProject:
             # f1 = f1_macro(predict, labels_0).mean()
 
             """DISPLAY"""
+            # left = set(range(28)) - set(np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)).flatten())
+
             tensorboardwriter.write_memory(self.writer, "train")
             pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.state['lr'], weighted_bce, bce))
             # pbar.set_description_str("(E{}-F{}) Stp:{} Y:{}, y:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), labels_0, predict))
