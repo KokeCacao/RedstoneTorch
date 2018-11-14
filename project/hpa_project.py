@@ -404,7 +404,7 @@ class HPAEvaluation:
             labels_0 = labels_0.cpu().numpy()
             image = image.cpu().numpy()
             image_for_display = image_for_display.numpy()
-            predict = F.softmax(predict, dim=1).detach().cpu().numpy()
+            predict = F.sigmoid(predict).detach().cpu().numpy()
 
             """SUM"""
             # np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
@@ -557,7 +557,7 @@ class HPAPrediction:
 
                         if config.TRAIN_GPU_ARG: input = input.cuda()
                         predict = net(input)
-                        predict = F.softmax(predict, dim=1).detach().cpu().numpy()
+                        predict = F.sigmoid(predict).detach().cpu().numpy()
                         encoded = list(self.dataset.multilabel_binarizer.inverse_transform(predict > threshold)[0])
 
                         f.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
