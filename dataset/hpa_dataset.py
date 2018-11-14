@@ -289,16 +289,7 @@ class HPAData(data.Dataset):
         :return: nparray image of (r, g, b, y) from 0~255
         """
         id = self.indices_to_id[indice]
-        if config.TRAIN_LOAD_FROM_PREPROCESSED and self.load_preprocessed_dir:
-            dir = self.load_preprocessed_dir
-            return np.load(os.path.join(dir, id + self.img_suffix))
-
-        dir = self.load_img_dir
-        if self.test: dir = config.DIRECTORY_TEST
-        colors = ['red', 'green', 'blue', 'yellow']
-        flags = cv2.IMREAD_GRAYSCALE
-        imgs = [cv2.imread(os.path.join(dir, id + '_' + color + self.img_suffix), flags).astype(np.uint8) for color in colors]
-        return np.stack(imgs, axis=-1)
+        return self.get_load_image_by_id(id)
 
     def get_load_label_by_indice(self, indice):
         """
