@@ -568,11 +568,11 @@ class HPAPrediction:
                         figure = plt.figure()
 
                         plt.subplot(121)
-                        plt.imshow(encode.tensor_to_np_three_channel_without_green(transforms.ToTensor()(untransfered)), vmin=0, vmax=255)
+                        plt.imshow(encode.tensor_to_np_three_channel_without_green(untransfered), vmin=0, vmax=255)
                         plt.title("Image_Real; pred:{}".format(encoded))
                         plt.grid(False)
                         plt.subplot(122)
-                        plt.imshow(encode.tensor_to_np_three_channel_without_green(input), vmin=0, vmax=1)
+                        plt.imshow(encode.tensor_to_np_three_channel_without_green(input[0]), vmin=0, vmax=1)
                         plt.title("Image_Trans")
                         plt.grid(False)
                         tensorboardwriter.write_predict_image(self.writer, "e{}-{}-{}".format(config.epoch, fold, id), figure, config.epoch)
