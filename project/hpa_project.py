@@ -262,8 +262,6 @@ class HPAProject:
             if config.TRAIN_GPU_ARG:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
-
-            print(image)
             predict = net(image)
 
             """LOSS"""
@@ -536,7 +534,7 @@ class HPAPrediction:
             # for index, net in enumerate(self.nets):
             #     save_onnx(net, (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + "-" + str(index) + ".onnx")
 
-        self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG, img_suffix=".png", test=True, load_preprocessed_dir=None)
+        self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG, img_suffix=".png", test=False, load_preprocessed_dir=None)
 
         self.run()
 
@@ -560,13 +558,11 @@ class HPAPrediction:
 
                         if config.TRAIN_GPU_ARG: input = input.cuda()
                         predict = net(input)
-                        predict = F.softmax(predict, dim=1)
-                        predict = (predict.detach().cpu().numpy() > threshold).astype(np.byte)
-                        encoded = self.dataset.multilabel_binarizer.inverse_transform(predict)
-                        encoded = list(encoded[0])
+                        predict = F.softmax(predict, dim=1).detach().cpu().numpy()
+                        encoded = list(self.dataset.multilabel_binarizer.inverse_transform(predict > threshold)[0])
 
                         f.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
-                        pbar.set_description("Fold: {}; Id: {}; Out: {}".format(fold, id, encoded))
+                        pbar.set_description("Fold:{} Id:{} Out:{} Prob:{}".format(fold, id, encoded, predict))
                         del id, input, predict, encoded
                         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
