@@ -262,6 +262,8 @@ class HPAProject:
             if config.TRAIN_GPU_ARG:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
+
+            print(image)
             predict = net(image)
 
             """LOSS"""
@@ -385,7 +387,6 @@ class HPAEvaluation:
             if config.TRAIN_GPU_ARG:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
-            print(image)
             predict = net(image)
 
             """LOSS"""
