@@ -511,7 +511,7 @@ class HPAEvaluation:
             plt.imshow(encode.tensor_to_np_three_channel_with_green(transfered), vmin=0, vmax=1)
             plt.title("Mask_Trans; f1:{}".format(loss))
             plt.grid(False)
-            tensorboardwriter.write_image(self.writer, "{}-{}".format(fold, id), F, config.epoch)
+            tensorboardwriter.write_image(self.writer, "e{}-{}-{}".format(config.epoch, fold, id), F, config.epoch)
 
 
 class HPAPrediction:
@@ -554,6 +554,7 @@ class HPAPrediction:
                     pbar = tqdm(self.dataset.id)
                     for index, id in enumerate(pbar):
                         input = self.dataset.get_load_image_by_id(id)
+                        print(input)
                         input = transform(ids=None, image_0=input, labels_0=None, train=False, val=False).unsqueeze(0)
 
                         if config.TRAIN_GPU_ARG: input = input.cuda()
