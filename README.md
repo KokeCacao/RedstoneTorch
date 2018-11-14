@@ -140,6 +140,7 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 python train.py --projecttag normal4 --versiontag two --resume False --loadfile one-CP8.pth --loaddir 2018-11-13-14-20-22-604828-normal4
 python train.py --projecttag normal4 --versiontag three --resume True --loadfile two-CPx.pth --loaddir 2018-11-13-14-20-22-604828-normal4
 python predict.py --loaddir 2018-11-13-18-29-22-424660-normal4 --versiontag 0.42 --loadfile two-CP52.pth
+python train.py --projecttag test --versiontag test --resume False
 
 ```
 
