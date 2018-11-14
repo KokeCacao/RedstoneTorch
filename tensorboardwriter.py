@@ -28,6 +28,9 @@ def write_pr_curve(writer, label, predicted, epoch, fold):
 def write_image(writer, msg, F, epoch):
     writer.add_figure("eval/image/" + msg, F, epoch)
 
+def write_predict_image(writer, msg, F, epoch):
+    writer.add_figure("predict/image/" + msg, F, epoch)
+
 def write_eval_loss(writer, loss_dict, epoch):
     writer.add_scalars('eval/loss_scalar', loss_dict, epoch)
 

@@ -517,6 +517,7 @@ class HPAEvaluation:
 class HPAPrediction:
     def __init__(self, writer):
         self.thresholds = config.PREDICTION_CHOSEN_THRESHOLD
+        self.writer = writer
         self.nets = []
         for fold in range(config.MODEL_FOLD):
             if fold not in config.MODEL_TRAIN_FOLD:
@@ -534,7 +535,7 @@ class HPAPrediction:
             # for index, net in enumerate(self.nets):
             #     save_onnx(net, (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + "-" + str(index) + ".onnx")
 
-        self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG, img_suffix=".png", test=False, load_preprocessed_dir=None)
+        self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG, img_suffix=".png", test=True, load_preprocessed_dir=None)
 
         self.run()
 
@@ -553,8 +554,8 @@ class HPAPrediction:
                     f.write('Id,Predicted\n')
                     pbar = tqdm(self.dataset.id)
                     for index, id in enumerate(pbar):
-                        input = self.dataset.get_load_image_by_id(id)
-                        input = transform(ids=None, image_0=input, labels_0=None, train=False, val=False).unsqueeze(0)
+                        untransfered = self.dataset.get_load_image_by_id(id)
+                        input = transform(ids=None, image_0=untransfered, labels_0=None, train=False, val=False).unsqueeze(0)
 
                         if config.TRAIN_GPU_ARG: input = input.cuda()
                         predict = net(input)
@@ -563,6 +564,19 @@ class HPAPrediction:
 
                         f.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
                         pbar.set_description("Fold:{} Id:{} Out:{} Prob:{}".format(fold, id, encoded, predict))
+
+                        figure = plt.figure()
+
+                        plt.subplot(121)
+                        plt.imshow(encode.tensor_to_np_three_channel_without_green(transforms.ToTensor()(untransfered)), vmin=0, vmax=255)
+                        plt.title("Image_Real; pred:{}".format(encoded))
+                        plt.grid(False)
+                        plt.subplot(122)
+                        plt.imshow(encode.tensor_to_np_three_channel_without_green(input), vmin=0, vmax=1)
+                        plt.title("Image_Trans")
+                        plt.grid(False)
+                        tensorboardwriter.write_predict_image(self.writer, "e{}-{}-{}".format(config.epoch, fold, id), figure, config.epoch)
+
                         del id, input, predict, encoded
                         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
