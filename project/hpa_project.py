@@ -554,8 +554,8 @@ class HPAPrediction:
                     pbar = tqdm(self.dataset.id)
                     for index, id in enumerate(pbar):
                         input = self.dataset.get_load_image_by_id(id)
-                        print(input)
                         input = transform(ids=None, image_0=input, labels_0=None, train=False, val=False).unsqueeze(0)
+                        print(input)
 
                         if config.TRAIN_GPU_ARG: input = input.cuda()
                         predict = net(input)
