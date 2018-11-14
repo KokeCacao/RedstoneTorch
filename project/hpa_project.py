@@ -568,8 +568,7 @@ class HPAPrediction:
                         figure = plt.figure()
 
                         plt.subplot(121)
-                        print("shape",untransfered.shape)
-                        plt.imshow(encode.tensor_to_np_three_channel_with_green(untransfered), vmin=0, vmax=1)
+                        plt.imshow(untransfered/255., vmin=0, vmax=1)
                         plt.title("Image_Real; pred:{}".format(encoded))
                         plt.grid(False)
                         plt.subplot(122)
