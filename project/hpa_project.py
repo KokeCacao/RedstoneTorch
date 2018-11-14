@@ -411,6 +411,9 @@ class HPAEvaluation:
             np.append(self.f1_losses, f1.mean())
 
             """PRINT"""
+            # label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
+            # pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(predict>0.5)[0])
+            # pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(int(config.global_steps[fold]), label, pred, left))
             pbar.set_description("Focal:{} F1:{}".format(focal.mean(), f1.mean()))
             if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(focal.flatten())
             for id, loss_item in zip(ids, focal.flatten()): fold_loss_dict[id] = loss_item
