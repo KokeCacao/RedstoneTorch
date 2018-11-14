@@ -493,7 +493,7 @@ class HPAEvaluation:
 
             plt.subplot(321)
             # print(encode.tensor_to_np_three_channel_without_green(untransfered))
-            plt.imshow(encode.tensor_to_np_three_channel_without_green(untransfered), vmin=0, vmax=255)
+            plt.imshow(encode.tensor_to_np_three_channel_without_green(untransfered), vmin=0, vmax=1)
             plt.title("Image_Real; pred:{}".format(predict))
             plt.grid(False)
 
@@ -503,7 +503,7 @@ class HPAEvaluation:
             plt.grid(False)
 
             plt.subplot(323)
-            plt.imshow(encode.tensor_to_np_three_channel_with_green(untransfered), vmin=0, vmax=255)
+            plt.imshow(encode.tensor_to_np_three_channel_with_green(untransfered), vmin=0, vmax=1)
             plt.title("Mask_Real; label:{}".format(label))
             plt.grid(False)
 
@@ -532,10 +532,8 @@ class HPAPrediction:
                 if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
                 self.nets.append(cuda(net))
         load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
-            # for index, net in enumerate(self.nets):
-            #     save_onnx(net, (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + "-" + str(index) + ".onnx")
 
-        self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG, img_suffix=".png", test=True, load_preprocessed_dir=None)
+        self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG, img_suffix=".png", test=False, load_preprocessed_dir=None)
 
         self.run()
 
