@@ -563,11 +563,12 @@ class HPAPrediction:
                         encoded = list(self.dataset.multilabel_binarizer.inverse_transform(predict > threshold)[0])
 
                         f.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
-                        pbar.set_description("Fold:{} Id:{} Out:{} Prob:{}".format(fold, id, encoded, predict))
+                        pbar.set_description("Fold:{} Id:{} Out:{} Prob:{}".format(fold, id, encoded, predict[0][0]))
 
                         figure = plt.figure()
 
                         plt.subplot(121)
+                        print("shape",untransfered.shape)
                         plt.imshow(encode.tensor_to_np_three_channel_with_green(untransfered), vmin=0, vmax=1)
                         plt.title("Image_Real; pred:{}".format(encoded))
                         plt.grid(False)
