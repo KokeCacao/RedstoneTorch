@@ -183,7 +183,7 @@ class HPAData(data.Dataset):
         elif self.load_strategy == "test" or self.load_strategy == "predict": id = self.dataframe.index.tolist()
         else: raise ValueError("the argument [load_strategy] recieved an undefined value: [{}], which is not one of 'train', 'test', 'predict'".format(load_strategy))
         self.id_len = len(id) * config.TRAIN_DATA_PERCENT
-        self.id = id[:self.id_len]
+        self.id = list(id)[:self.id_len]
 
         self.indices = list(range(self.id_len))
         self.indices_to_id = dict(zip(self.indices, self.id))
