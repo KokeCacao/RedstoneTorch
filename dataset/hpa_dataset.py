@@ -202,11 +202,12 @@ class HPAData(data.Dataset):
         self.id_to_indices = {v: k for k, v in self.indices_to_id.items()}
 
         print("""
+            Load Dir:       {}
             Data Percent:   {}
             Data Size:      {}
             Label Size:     {}
-            File Size:      {}
-        """.format(config.TRAIN_DATA_PERCENT, self.id_len, len(self.labelframe), len(file)))
+            File Size:      {}/{}
+        """.format(self.load_img_dir, config.TRAIN_DATA_PERCENT, self.id_len, len(self.labelframe), len(file), len([x.replace(self.img_suffix, "") for x in os.listdir(self.load_img_dir)])))
 
     def __len__(self):
         return self.id_len
