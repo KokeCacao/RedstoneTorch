@@ -131,7 +131,7 @@ class HPAProject:
         load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[0], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
-        self.dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=config.DIRECTORY_SUFFIX_IMG, load_preprocessed_dir=False)
+        self.dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_preprocessed_dir=config.DIRECTORY_PREPROCESSED_IMG)
         self.folded_samplers = self.dataset.get_stratified_samplers(fold=config.MODEL_FOLD)
 
         self.run()
@@ -151,7 +151,7 @@ class HPAProject:
                 #     predict = self.nets[0](input)
                 #     predict = F.sigmoid(predict).detach().cpu().numpy()
                 #     encoded = list(test_dataset.multilabel_binarizer.inverse_transform(predict > 0.5)[0])
-                #     pbar.set_description("Fold:{} Id:{} Out:{} Prob:{}".format(0, id, encoded, predict[0][0]))
+                #     pbar.set_description("Fold:{} Id:{} Out:{} Prob:{}".format(0, id, encoded, predict[0][encoded[0]]))
                 #
                 #     del id, untransfered, input, predict, encoded
                 #     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
