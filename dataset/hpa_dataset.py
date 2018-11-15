@@ -212,15 +212,15 @@ class HPAData(data.Dataset):
         self.indices_to_id = dict(zip(self.indices, self.id))
         self.id_to_indices = {v: k for k, v in self.indices_to_id.items()}
 
-        if self.writer:
-
-            data_dict = np.bincount(self.dataframe['Target'])
-            F = plt.figure()
-            plt.bar(list(range(len(data_dict))), data_dict)
-            plt.title('Histogram of All Data')
-            plt.grid(False)
-            plt.show()
-            tensorboardwriter.write_data_distribution(self.writer, F, 0, unique=True)
+        # if self.writer:
+        #
+        #     data_dict = np.bincount(self.dataframe['Target'])
+        #     F = plt.figure()
+        #     plt.bar(list(range(len(data_dict))), data_dict)
+        #     plt.title('Histogram of All Data')
+        #     plt.grid(False)
+        #     plt.show()
+        #     tensorboardwriter.write_data_distribution(self.writer, F, 0, unique=True)
 
         print("""
             Load Dir:       {}
