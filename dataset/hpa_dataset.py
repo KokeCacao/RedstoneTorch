@@ -166,7 +166,7 @@ class HPAData(data.Dataset):
        2.59075695e-03, 6.62010814e-02, 2.63903193e-03, 8.85041195e-05]
     """
 
-    def __init__(self, csv_dir, load_img_dir=None, img_suffix=".png", load_strategy="train", load_preprocessed_dir=None):
+    def __init__(self, csv_dir, load_img_dir=None, img_suffix=".png", load_strategy="train", load_preprocessed_dir=False):
         self.load_strategy = load_strategy
         print("     Reading Data with [test={}]".format(self.load_strategy))
         self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
@@ -271,11 +271,11 @@ class HPAData(data.Dataset):
         :param indice: id
         :return: nparray image of (r, g, b, y) from 0~255 (['red', 'green', 'blue', 'yellow']) (3, W, H)
         """
+        dir = self.load_img_dir
+
         if self.load_preprocessed_dir:
-            dir = self.load_preprocessed_dir
             return np.load(os.path.join(dir, id + self.img_suffix))
 
-        dir = self.load_img_dir
         colors = ['red', 'green', 'blue', 'yellow']
         flags = cv2.IMREAD_GRAYSCALE
         imgs = [cv2.imread(os.path.join(dir, id + '_' + color + self.img_suffix), flags).astype(np.uint8) for color in colors]
