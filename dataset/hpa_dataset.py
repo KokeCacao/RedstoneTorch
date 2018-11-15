@@ -255,7 +255,7 @@ class HPAData(data.Dataset):
         :param indice:
         :return: id, one hot encoded label, nparray image of (r, g, b, y) from 0~255 (['red', 'green', 'blue', 'yellow']) (3, W, H)
         """
-        return (self.indices_to_id[indice], self.get_load_label_by_indice(indice), self.get_load_image_by_indice(indice))
+        return (self.indices_to_id[indice], self.get_load_image_by_indice(indice), self.get_load_label_by_indice(indice))
 
     def get_load_image_by_indice(self, indice):
         """
