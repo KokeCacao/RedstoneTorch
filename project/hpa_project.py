@@ -141,7 +141,8 @@ class HPAProject:
             for epoch in range(config.MODEL_EPOCHS):
 
                 # TODO: temperary code
-                test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_TEST, img_suffix=config.DIRECTORY_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=False)
+                # test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_TEST, img_suffix=config.DIRECTORY_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=False)
+                test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="train", load_preprocessed_dir=True)
                 pbar = tqdm(test_dataset.id)
                 for index, id in enumerate(pbar):
                     untransfered = test_dataset.get_load_image_by_id(id)

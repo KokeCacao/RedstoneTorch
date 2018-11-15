@@ -40,6 +40,7 @@ def load_args():
     config.TRAIN_RESUME = True if args.resume == "True" else False
 
     if args.loadfile:
+        config.lastsave = args.loadfile
         if config.TRAIN_RESUME:
             config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/" + args.loadfile
             config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/"
