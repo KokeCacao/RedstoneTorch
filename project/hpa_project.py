@@ -151,10 +151,10 @@ class HPAProject:
                     if config.TRAIN_GPU_ARG: image = image.cuda()
                     predict = self.nets[0](image)
                     predict = F.sigmoid(predict).detach().cpu().numpy()
-                    encoded = list(test_dataset.multilabel_binarizer.inverse_transform(predict > 0.5)[0])
-                    pbar.set_description("Fold:{} Id:{} Out:{} Prob:{}".format(0, id, encoded, predict[0][0]))
+                    encoded = list(test_dataset.multilabel_binarizer.inverse_transform(predict > 0.5))
+                    pbar.set_description("Batch:{} Id:{} Out:{} Prob:{}".format(batch_index, ids[0], encoded[0], predict[0][0]))
 
-                    del id, image, labels_0, image_for_display, predict, encoded
+                    del ids, image, labels_0, image_for_display, predict, encoded
                     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
                 # TODO: end temperary code
 
