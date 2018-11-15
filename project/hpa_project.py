@@ -151,7 +151,7 @@ class HPAProject:
                 #
                 #     if config.TRAIN_GPU_ARG: image = image.cuda()
                 #     predict = self.nets[0](image)
-                #     predict = F.sigmoid(predict).detach().cpu().numpy()
+                #     predict = torch.sigmoid(predict).detach().cpu().numpy()
                 #     encoded = list(test_dataset.multilabel_binarizer.inverse_transform(predict > 0.5))
                 #     pbar.set_description("Batch:{} Id:{} Out:{} Prob:{}".format(batch_index, ids[0], encoded[0], predict[0][0]))
                 #
@@ -289,8 +289,8 @@ class HPAProject:
             """LOSS"""
             focal = FocalLoss_Sigmoid(alpha=0.25, gamma=4, eps=1e-7)(labels_0, predict)
             f1, precise, recall = Differenciable_F1(beta=1)(labels_0, predict)
-            bce = BCELoss()(F.sigmoid(predict), labels_0)
-            weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(F.sigmoid(predict), labels_0)
+            bce = BCELoss()(torch.sigmoid(predict), labels_0)
+            weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(torch.sigmoid(predict), labels_0)
             loss = f1 + bce.sum()
             """BACKPROP"""
             optimizer.zero_grad()
@@ -413,8 +413,8 @@ class HPAEvaluation:
             """LOSS"""
             focal = FocalLoss_Sigmoid(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
             f1, precise, recall = Differenciable_F1(beta=1)(labels_0, predict)
-            bce = BCELoss()(F.sigmoid(predict), labels_0)
-            # weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(F.sigmoid(predict), labels_0)
+            bce = BCELoss()(torch.sigmoid(predict), labels_0)
+            # weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(torch.sigmoid(predict), labels_0)
             # loss = f1 + bce.sum()
 
             """DETATCH"""
@@ -427,7 +427,7 @@ class HPAEvaluation:
             labels_0 = labels_0.cpu().numpy()
             image = image.cpu().numpy()
             image_for_display = image_for_display.numpy()
-            predict = F.sigmoid(predict).detach().cpu().numpy()
+            predict = torch.sigmoid(predict).detach().cpu().numpy()
 
             """SUM"""
             # np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
@@ -582,7 +582,7 @@ class HPAPrediction:
 
                         if config.TRAIN_GPU_ARG: image = image.cuda()
                         predict = self.nets[0](image)
-                        predict = F.sigmoid(predict).detach().cpu().numpy()
+                        predict = torch.sigmoid(predict).detach().cpu().numpy()
                         encodeds = list(self.test_dataset.multilabel_binarizer.inverse_transform(predict > 0.5))
                         pbar.set_description("Thres:{} Id:{} Out:{} Prob0:{}".format(threshold, ids[0], encodeds[0], predict[0][0]))
 

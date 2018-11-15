@@ -139,7 +139,7 @@ class Differenciable_F1(nn.Module):
 
     def forward(self, labels, logits):
         batch_size = logits.size()[0]
-        p = F.sigmoid(logits)
+        p = torch.sigmoid(logits)
         l = labels
         num_pos = torch.sum(p, 1) + self.eps
         num_pos_hat = torch.sum(l, 1) + self.eps
