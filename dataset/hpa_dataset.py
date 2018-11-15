@@ -187,9 +187,9 @@ class HPAData(data.Dataset):
         self.load_strategy = load_strategy
         print("     Reading Data with [test={}]".format(self.load_strategy))
         self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
-        self.dataframe_generator = [(int(i) for i in s.split()) for s in self.dataframe['Target']]
+        self.dataframe['Target'] = [(int(i) for i in s.split()) for s in self.dataframe['Target']]
         self.multilabel_binarizer = MultiLabelBinarizer().fit([list(range(28))])
-        self.labelframe = self.multilabel_binarizer.transform(self.dataframe_generator)
+        self.labelframe = self.multilabel_binarizer.transform(self.dataframe['Target'])
         self.load_img_dir = load_img_dir
         self.load_preprocessed_dir = load_preprocessed_dir
         self.img_suffix = img_suffix
@@ -213,9 +213,8 @@ class HPAData(data.Dataset):
         self.id_to_indices = {v: k for k, v in self.indices_to_id.items()}
 
         if self.writer:
-            data_dict = np.array(list([(int(i) for i in s.split()) for s in self.dataframe['Target']]))
-            data_dict = data_dict.astype(np.byte)
-            data_dict = np.bincount(data_dict.flatten())
+
+            data_dict = np.bincount(np.array(self.multilabel_binarizer.inverse_transform(self.labelframe), dtype=np.int).flatten())
             F = plt.figure()
             plt.bar(list(range(len(data_dict))), data_dict)
             plt.title('Histogram of All Data')
