@@ -144,7 +144,7 @@ class HPAProject:
                 # TODO: temperary code
                 # test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_TEST, img_suffix=config.DIRECTORY_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=False)
                 test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_PREPROCESSED_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="train", load_preprocessed_dir=True)
-                test_loader = data.DataLoader(self.dataset, batch_size=1, sampler=SubsetRandomSampler(test_dataset.indices), shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
+                test_loader = data.DataLoader(self.dataset, batch_size=32, sampler=SubsetRandomSampler(test_dataset.indices), shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
                 pbar = tqdm(test_loader)
                 for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
 
