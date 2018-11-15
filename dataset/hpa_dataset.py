@@ -187,9 +187,9 @@ class HPAData(data.Dataset):
         self.load_strategy = load_strategy
         print("     Reading Data with [test={}]".format(self.load_strategy))
         self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
-        self.dataframe['Target'] = [(int(i) for i in s.split()) for s in self.dataframe['Target']]
+        self.dataframe_generator = [(int(i) for i in s.split()) for s in self.dataframe['Target']]
         self.multilabel_binarizer = MultiLabelBinarizer().fit([list(range(28))])
-        self.labelframe = self.multilabel_binarizer.transform(self.dataframe['Target'])
+        self.labelframe = self.multilabel_binarizer.transform(self.dataframe_generator)
         self.load_img_dir = load_img_dir
         self.load_preprocessed_dir = load_preprocessed_dir
         self.img_suffix = img_suffix
@@ -214,7 +214,7 @@ class HPAData(data.Dataset):
 
         if self.writer:
             data_dict = np.array(self.dataframe['Target'])
-            data_dict = data_dict.astype(np.int8)
+            data_dict = data_dict.astype(np.byte)
             data_dict = np.bincount(data_dict.flatten())
             F = plt.figure()
             plt.bar(list(range(len(data_dict))), data_dict)
