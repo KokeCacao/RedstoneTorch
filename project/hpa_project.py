@@ -244,16 +244,28 @@ class HPAProject:
         if config.EVAL_IF_THRESHOLD_TEST:
             best_threshold = 0.0
             best_val = 0.0
+
+            best_threshold_dict = dict()
+            best_val_dict = list(range(28))
+
             pbar = tqdm(config.EVAL_TRY_THRESHOLD)
             for threshold in pbar:
                 score = f1_macro(evaluation.epoch_pred, evaluation.epoch_label, thresh=threshold).mean()
-                tensorboardwriter.write_threshold(self.writer, {"Fold/{}".format(config.fold): score}, threshold*1000.0)
+                tensorboardwriter.write_threshold(self.writer, {"Fold/{}".format(config.fold): score}, threshold*1000.0, classes="ALL")
                 if score > best_val:
                     best_threshold = threshold
                     best_val = score
                 pbar.set_description("Threshold: {}; F1: {}".format(threshold, score))
-            print("BestThreshold: {}, F1: {}".format(best_threshold, best_val))
+
+                for c in range(28):
+                    score = ((evaluation.epoch_pred[:][c] > threshold) * evaluation.epoch_label[:][c]).sum()
+                    tensorboardwriter.write_threshold(self.writer, {"Fold/{}".format(config.fold): score}, threshold * 1000.0, classes=c)
+                    if score > best_val_dict[c]:
+                        best_threshold_dict[c] = threshold
+                        best_val_dict[c] = score
+
             tensorboardwriter.write_best_threshold(self.writer, best_threshold, best_val, config.epoch)
+            for c in range(28): tensorboardwriter.write_best_threshold(self.writer, best_threshold_dict[c], best_val_dict[c], config.epoch, classes=c)
 
         """HISTOGRAM"""
         if config.DISPLAY_HISTOGRAM:
@@ -566,14 +578,19 @@ class HPAPrediction:
         """Used for Kaggle submission: predicts and encode all test images"""
         for fold, net in enumerate(self.nets):
             for threshold in self.thresholds:
-                save_path = "{}-{}-F{}-T{}.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
+                pred_path = "{}-{}-F{}-T{}.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
+                if os.path.exists(pred_path):
+                    os.remove(pred_path)
+                    print("WARNING: delete file '{}'".format(pred_path))
 
-                if os.path.exists(save_path):
-                    os.remove(save_path)
-                    print("WARNING: delete file '{}'".format(save_path))
+                prob_path = "{}-{}-F{}-T{}.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
+                if os.path.exists(prob_path):
+                    os.remove(prob_path)
+                    print("WARNING: delete file '{}'".format(prob_path))
 
-                with open(save_path, 'a') as f:
-                    f.write('Id,Predicted\n')
+                with open(pred_path, 'a') as pred_file, open(prob_path, 'a') as prob_file:
+                    pred_file.write('Id,Predicted\n')
+                    prob_file.write('Id,Predicted\n')
 
                     test_loader = data.DataLoader(self.test_dataset, batch_size=config.MODEL_BATCH_SIZE, sampler=SubsetRandomSampler(self.test_dataset.indices), shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
                     pbar = tqdm(test_loader)
@@ -581,13 +598,14 @@ class HPAPrediction:
                     for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
 
                         if config.TRAIN_GPU_ARG: image = image.cuda()
-                        predict = self.nets[0](image)
-                        predict = torch.sigmoid(predict).detach().cpu().numpy()
-                        encodeds = list(self.test_dataset.multilabel_binarizer.inverse_transform(predict > 0.5))
-                        pbar.set_description("Thres:{} Id:{} Out:{} Prob0:{}".format(threshold, ids[0], encodeds[0], predict[0][0]))
+                        predicts = self.nets[0](image)
+                        predicts = torch.sigmoid(predicts).detach().cpu().numpy()
+                        encodeds = list(self.test_dataset.multilabel_binarizer.inverse_transform(predicts > 0.5))
+                        pbar.set_description("Thres:{} Id:{} Out:{} Prob0:{}".format(threshold, ids[0], encodeds[0], predicts[0][0]))
 
-                        for id, encoded in zip(ids, encodeds):
-                            f.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
+                        for id, encoded, predict in zip(ids, encodeds, predicts):
+                            pred_file.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
+                            prob_file.write('{},{}\n'.format(id, " ".join(str(x) for x in predict)))
                             # figure = plt.figure()
                             #
                             # plt.subplot(121)
@@ -600,16 +618,18 @@ class HPAPrediction:
                             # plt.grid(False)
                             # tensorboardwriter.write_predict_image(self.writer, "e{}-{}-{}".format(config.epoch, fold, id), figure, config.epoch)
 
-                        del ids, image, labels_0, image_for_display, predict, encodeds
+                        del ids, image, labels_0, image_for_display, predicts, encodeds
                         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                """TURNING THRESHOLD"""
+
 
                 """ORGANIZE"""
                 f1 = pd.read_csv(config.DIRECTORY_SAMPLE_CSV)
                 f1.drop('Predicted', axis=1, inplace=True)
-                f2 = pd.read_csv(save_path)
+                f2 = pd.read_csv(pred_path)
                 f1 = f1.merge(f2, left_on='Id', right_on='Id', how='outer')
-                os.remove(save_path)
-                f1.to_csv(save_path, index=False)
+                os.remove(pred_path)
+                f1.to_csv(pred_path, index=False)
 
 
 class HPAPreprocess:
