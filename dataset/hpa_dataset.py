@@ -256,8 +256,8 @@ class HPAData(data.Dataset):
             # folded_samplers[fold]['train'] = iter(c[0])
             folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)  # y[test_index]
             if self.writer:
-                y_t_dict = np.bincount(y_t)
-                y_e_dict = np.bincount(y_e)
+                y_t_dict = np.bincount(y_t.flatten())
+                y_e_dict = np.bincount(y_e.flatten())
                 F = plt.figure()
                 fig, axs = plt.subplots(1, 2, figsize=(4, 2), sharey='all')
                 axs[0].bar(list(range(len(y_t_dict))), y_t_dict)
