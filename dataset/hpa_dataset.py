@@ -214,7 +214,7 @@ class HPAData(data.Dataset):
 
         if self.writer:
 
-            data_dict = np.bincount(np.array(self.multilabel_binarizer.inverse_transform(self.labelframe), dtype=np.int).flatten())
+            data_dict = np.bincount(np.array(self.multilabel_binarizer.inverse_transform(self.labelframe), dtype=np.dtype('int,int')).flatten())
             F = plt.figure()
             plt.bar(list(range(len(data_dict))), data_dict)
             plt.title('Histogram of All Data')
