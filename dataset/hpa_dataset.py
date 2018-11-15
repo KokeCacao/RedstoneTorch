@@ -171,30 +171,21 @@ class HPAData(data.Dataset):
         print("     Reading Data with [test={}]".format(self.load_strategy))
         self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
         self.dataframe['Target'] = [(int(i) for i in s.split()) for s in self.dataframe['Target']]
-        self.labelframe = MultiLabelBinarizer().fit_transform(self.dataframe['Target'])
+        self.multilabel_binarizer = MultiLabelBinarizer().fit([list(range(28))])
+        self.labelframe = self.multilabel_binarizer.transform(self.dataframe['Target'])
         self.load_img_dir = load_img_dir
         self.load_preprocessed_dir = load_preprocessed_dir
         self.img_suffix = img_suffix
 
-        if self.load_strategy == "train":
-            # TODO
-            """TEST MODE"""
-            self.id = list(set([x.replace(self.img_suffix, "").replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(config.DIRECTORY_TEST)]) - set(self.dataframe.index.tolist()))
-            self.id_len = len(self.id)
-        elif self.load_strategy == "test" or self.load_strategy == "predict":
-            """TRAIN MODE"""
-            self.id = self.dataframe.index.tolist()
-            self.id_len = int(len(self.id) * config.TRAIN_DATA_PERCENT)
-            self.id = self.id[:self.id_len]
-        else:
-            raise ValueError("the argument [load_strategy] recieved an undefined value: [{}], which is not one of 'train', 'test', 'predict'".format(load_strategy))
+        if load_preprocessed_dir: file = set([x.replace(self.img_suffix, "") for x in os.listdir(config.DIRECTORY_TEST)])
+        else: file = set([x.replace(self.img_suffix, "").replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(config.DIRECTORY_TEST)])
+        if self.load_strategy == "train": id = file - set(self.dataframe.index.tolist())
+        elif self.load_strategy == "test" or self.load_strategy == "predict": id = self.dataframe.index.tolist()
+        else: raise ValueError("the argument [load_strategy] recieved an undefined value: [{}], which is not one of 'train', 'test', 'predict'".format(load_strategy))
+        self.id_len = len(id) * config.TRAIN_DATA_PERCENT
+        self.id = id[:self.id_len]
 
-        """WARNING: data length and indices depends on the length of images"""
-        self.img_len = int(len(os.listdir(self.load_img_dir)) / 4 * config.TRAIN_DATA_PERCENT)
-        self.data_len = min(self.img_len, self.id_len)
-        if self.img_len != self.id_len and not self.load_strategy: raise ResourceWarning("id_len in the csv({}) is not equal to img_len in the folder({}), set data_len to {}".format(self.id_len, self.img_len, self.data_len))
-        self.indices = list(range(self.data_len))
-
+        self.indices = list(range(self.id_len))
         self.indices_to_id = dict(zip(self.indices, self.id))
         self.id_to_indices = {v: k for k, v in self.indices_to_id.items()}
 
@@ -202,10 +193,11 @@ class HPAData(data.Dataset):
             Data Percent:   {}
             Data Size:      {}
             Label Size:     {}
-        """.format(config.TRAIN_DATA_PERCENT, self.data_len, len(self.labelframe)))
+            File Size:      {}
+        """.format(config.TRAIN_DATA_PERCENT, self.id_len, len(self.labelframe), len(file)))
 
     def __len__(self):
-        return self.data_len
+        return self.id_len
 
     def get_stratified_samplers(self, fold=-1):
         """
@@ -233,16 +225,10 @@ class HPAData(data.Dataset):
             folded_samplers[i]["val"] = SubsetRandomSampler(x_e)  # y[test_index]
         return folded_samplers
 
-    """
-        :param self(data_len)
-        :param foldcv_size
-        :return folded_sampler
-    """
-
     def get_fold_samplers(self, fold=-1):
 
-        data = self.indices[:-(self.data_len % fold)]
-        left_over = self.indices[-(self.data_len % fold):]
+        data = self.indices[:-(self.id_len % fold)]
+        left_over = self.indices[-(self.id_len % fold):]
         cv_size = (len(self.indices) - len(left_over)) / fold
 
         print("     CV_size: {}".format(cv_size))
