@@ -144,7 +144,7 @@ class HPAProject:
                 # TODO: temperary code
                 # test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_TEST, img_suffix=config.DIRECTORY_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=False)
                 test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_PREPROCESSED_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="train", load_preprocessed_dir=True)
-                test_loader = data.DataLoader(self.dataset, batch_size=32, sampler=SubsetRandomSampler(test_dataset.indices), shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
+                test_loader = data.DataLoader(test_dataset, batch_size=config.MODEL_BATCH_SIZE, sampler=SubsetRandomSampler(test_dataset.indices), shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
                 pbar = tqdm(test_loader)
                 for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
 
@@ -553,8 +553,8 @@ class HPAPrediction:
                 self.nets.append(cuda(net))
         load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
 
-        self.dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_PREPROCESSED_IMG, img_suffix = config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="train", load_preprocessed_dir=True)
-        # self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG, img_suffix=".png", test=False, load_preprocessed_dir=False)
+        # self.test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_TEST, img_suffix=config.DIRECTORY_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=False)
+        self.test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_PREPROCESSED_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="train", load_preprocessed_dir=True)
 
         self.run()
 
@@ -571,32 +571,32 @@ class HPAPrediction:
 
                 with open(save_path, 'a') as f:
                     f.write('Id,Predicted\n')
-                    pbar = tqdm(self.dataset.id)
-                    for index, id in enumerate(pbar):
-                        untransfered = self.dataset.get_load_image_by_id(id)
-                        input = transform(ids=None, image_0=untransfered, labels_0=None, train=False, val=False).unsqueeze(0)
 
-                        if config.TRAIN_GPU_ARG: input = input.cuda()
-                        predict = net(input)
+                    test_loader = data.DataLoader(self.test_dataset, batch_size=config.MODEL_BATCH_SIZE, sampler=SubsetRandomSampler(self.test_dataset.indices), shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
+                    pbar = tqdm(test_loader)
+                    for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+
+                        if config.TRAIN_GPU_ARG: image = image.cuda()
+                        predict = self.nets[0](image)
                         predict = F.sigmoid(predict).detach().cpu().numpy()
-                        encoded = list(self.dataset.multilabel_binarizer.inverse_transform(predict > threshold)[0])
+                        encodeds = list(self.test_dataset.multilabel_binarizer.inverse_transform(predict > 0.5))
+                        pbar.set_description("Batch:{} Id:{} Out:{} Prob:{}".format(batch_index, ids[0], encodeds[0], predict[0][0]))
 
-                        f.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
-                        pbar.set_description("Fold:{} Id:{} Out:{} Prob:{}".format(fold, id, encoded, predict[0][encoded[0]]))
+                        for id, encoded in zip(ids, encodeds):
+                            f.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
+                            # figure = plt.figure()
+                            #
+                            # plt.subplot(121)
+                            # plt.imshow(untransfered/255., vmin=0, vmax=1)
+                            # plt.title("Image_Real; pred:{}".format(encoded))
+                            # plt.grid(False)
+                            # plt.subplot(122)
+                            # plt.imshow(encode.tensor_to_np_three_channel_with_green(np.array(input[0])), vmin=0, vmax=1)
+                            # plt.title("Image_Trans")
+                            # plt.grid(False)
+                            # tensorboardwriter.write_predict_image(self.writer, "e{}-{}-{}".format(config.epoch, fold, id), figure, config.epoch)
 
-                        figure = plt.figure()
-
-                        plt.subplot(121)
-                        plt.imshow(untransfered/255., vmin=0, vmax=1)
-                        plt.title("Image_Real; pred:{}".format(encoded))
-                        plt.grid(False)
-                        plt.subplot(122)
-                        plt.imshow(encode.tensor_to_np_three_channel_with_green(np.array(input[0])), vmin=0, vmax=1)
-                        plt.title("Image_Trans")
-                        plt.grid(False)
-                        tensorboardwriter.write_predict_image(self.writer, "e{}-{}-{}".format(config.epoch, fold, id), figure, config.epoch)
-
-                        del id, input, predict, encoded
+                        del ids, image, labels_0, image_for_display, predict, encodeds
                         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
                 """ORGANIZE"""
