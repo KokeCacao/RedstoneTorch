@@ -184,6 +184,7 @@ class HPAData(data.Dataset):
         else: raise ValueError("the argument [load_strategy] recieved an undefined value: [{}], which is not one of 'train', 'test', 'predict'".format(load_strategy))
         id = list(id)
         self.id_len = len(id) * config.TRAIN_DATA_PERCENT
+        print(self.id_len)
         self.id = id[:self.id_len]
 
         self.indices = list(range(self.id_len))
