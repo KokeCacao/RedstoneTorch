@@ -147,6 +147,8 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 
 python train.py --projecttag normal4 --versiontag four --resume True --loadfile two-CP52.pth --loaddir 2018-11-13-18-29-22-424660-normal4
 python predict.py --loaddir 2018-11-13-18-29-22-424660-normal4 --versiontag 0.42 --loadfile two-CP52.pth
+download: RedstoneTorch/model/2018-11-13-18-29-22-424660-normal4/two-CP52.pth-0.42-F0-T0.01.csv
+download: RedstoneTorch/model/2018-11-13-18-29-22-424660-normal4/two-CP52.pth-0.42-F0-T0.5.csv
 
 ```
 

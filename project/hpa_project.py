@@ -142,6 +142,7 @@ class HPAProject:
             for epoch in range(config.MODEL_EPOCHS):
 
                 # # TODO: temperary code
+                # print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
                 # # test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_TEST, img_suffix=config.DIRECTORY_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=False)
                 # test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_PREPROCESSED_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="train", load_preprocessed_dir=True)
                 # test_loader = data.DataLoader(test_dataset, batch_size=config.MODEL_BATCH_SIZE, sampler=SubsetRandomSampler(test_dataset.indices), shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
@@ -272,6 +273,7 @@ class HPAProject:
         pbar = tqdm(train_loader)
         train_len = len(train_loader) + 1e-10
 
+        print("Set Model Trainning mode to trainning=[{}]".format(net.train().training))
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
             """UPDATE LR"""
             if config.global_steps[fold] == 2 * 46808 / 32 -1: print("Perfect Place to Stop")
@@ -400,6 +402,7 @@ class HPAEvaluation:
         self.worst_loss = np.array([])
 
         pbar = tqdm(validation_loader)
+        print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
             """CALCULATE LOSS"""
             if config.TRAIN_GPU_ARG:
@@ -574,13 +577,14 @@ class HPAPrediction:
 
                     test_loader = data.DataLoader(self.test_dataset, batch_size=config.MODEL_BATCH_SIZE, sampler=SubsetRandomSampler(self.test_dataset.indices), shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
                     pbar = tqdm(test_loader)
+                    print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
                     for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
 
                         if config.TRAIN_GPU_ARG: image = image.cuda()
                         predict = self.nets[0](image)
                         predict = F.sigmoid(predict).detach().cpu().numpy()
                         encodeds = list(self.test_dataset.multilabel_binarizer.inverse_transform(predict > 0.5))
-                        pbar.set_description("Batch:{} Id:{} Out:{} Prob:{}".format(batch_index, ids[0], encodeds[0], predict[0][0]))
+                        pbar.set_description("Thres:{} Id:{} Out:{} Prob0:{}".format(threshold, ids[0], encodeds[0], predict[0][0]))
 
                         for id, encoded in zip(ids, encodeds):
                             f.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
