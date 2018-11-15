@@ -141,22 +141,22 @@ class HPAProject:
         try:
             for epoch in range(config.MODEL_EPOCHS):
 
-                # TODO: temperary code
-                # test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_TEST, img_suffix=config.DIRECTORY_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=False)
-                test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_PREPROCESSED_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="train", load_preprocessed_dir=True)
-                test_loader = data.DataLoader(test_dataset, batch_size=config.MODEL_BATCH_SIZE, sampler=SubsetRandomSampler(test_dataset.indices), shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
-                pbar = tqdm(test_loader)
-                for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
-
-                    if config.TRAIN_GPU_ARG: image = image.cuda()
-                    predict = self.nets[0](image)
-                    predict = F.sigmoid(predict).detach().cpu().numpy()
-                    encoded = list(test_dataset.multilabel_binarizer.inverse_transform(predict > 0.5))
-                    pbar.set_description("Batch:{} Id:{} Out:{} Prob:{}".format(batch_index, ids[0], encoded[0], predict[0][0]))
-
-                    del ids, image, labels_0, image_for_display, predict, encoded
-                    if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-                # TODO: end temperary code
+                # # TODO: temperary code
+                # # test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_TEST, img_suffix=config.DIRECTORY_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=False)
+                # test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_PREPROCESSED_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="train", load_preprocessed_dir=True)
+                # test_loader = data.DataLoader(test_dataset, batch_size=config.MODEL_BATCH_SIZE, sampler=SubsetRandomSampler(test_dataset.indices), shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
+                # pbar = tqdm(test_loader)
+                # for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+                #
+                #     if config.TRAIN_GPU_ARG: image = image.cuda()
+                #     predict = self.nets[0](image)
+                #     predict = F.sigmoid(predict).detach().cpu().numpy()
+                #     encoded = list(test_dataset.multilabel_binarizer.inverse_transform(predict > 0.5))
+                #     pbar.set_description("Batch:{} Id:{} Out:{} Prob:{}".format(batch_index, ids[0], encoded[0], predict[0][0]))
+                #
+                #     del ids, image, labels_0, image_for_display, predict, encoded
+                #     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                # # TODO: end temperary code
 
 
                 self.step_epoch(nets=self.nets,
@@ -554,7 +554,7 @@ class HPAPrediction:
         load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
 
         # self.test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_TEST, img_suffix=config.DIRECTORY_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=False)
-        self.test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_PREPROCESSED_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="train", load_preprocessed_dir=True)
+        self.test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_PREPROCESSED_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=True)
 
         self.run()
 
