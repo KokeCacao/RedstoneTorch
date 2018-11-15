@@ -179,12 +179,11 @@ class HPAData(data.Dataset):
 
         if load_preprocessed_dir: file = set([x.replace(self.img_suffix, "") for x in os.listdir(config.DIRECTORY_TEST)])
         else: file = set([x.replace(self.img_suffix, "").replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(config.DIRECTORY_TEST)])
-        if self.load_strategy == "train": id = file - set(self.dataframe.index.tolist())
-        elif self.load_strategy == "test" or self.load_strategy == "predict": id = self.dataframe.index.tolist()
+        if self.load_strategy == "train": id = self.dataframe.index.tolist()
+        elif self.load_strategy == "test" or self.load_strategy == "predict": id = file - set(self.dataframe.index.tolist())
         else: raise ValueError("the argument [load_strategy] recieved an undefined value: [{}], which is not one of 'train', 'test', 'predict'".format(load_strategy))
         id = list(id)
         self.id_len = int(len(id) * config.TRAIN_DATA_PERCENT)
-        print(self.id_len)
         self.id = id[:self.id_len]
 
         self.indices = list(range(self.id_len))
