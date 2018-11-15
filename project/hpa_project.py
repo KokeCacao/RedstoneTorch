@@ -151,7 +151,7 @@ class HPAProject:
                     predict = self.nets[0](input)
                     predict = F.sigmoid(predict).detach().cpu().numpy()
                     encoded = list(test_dataset.multilabel_binarizer.inverse_transform(predict > 0.5)[0])
-                    pbar.set_description("Fold:{} Id:{} Out:{} Prob:{}".format(0, id, encoded, predict[0][encoded[0]]))
+                    pbar.set_description("Fold:{} Id:{} Out:{} Prob:{}".format(0, id, encoded, predict[0][0]))
 
                     del id, untransfered, input, predict, encoded
                     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
