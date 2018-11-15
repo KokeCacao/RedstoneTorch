@@ -213,7 +213,7 @@ class HPAData(data.Dataset):
         self.id_to_indices = {v: k for k, v in self.indices_to_id.items()}
 
         if self.writer:
-            data_dict = np.bincount(self.labelframe)
+            data_dict = np.bincount(self.labelframe.flatten())
             F = plt.figure()
             fig, axs = plt.subplots(1, 1, figsize=(1, 1), sharey='all')
             axs[0].bar(list(range(len(data_dict))), data_dict)
