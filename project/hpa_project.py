@@ -131,7 +131,7 @@ class HPAProject:
         load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[0], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
-        self.dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_preprocessed_dir=config.DIRECTORY_PREPROCESSED_IMG)
+        self.dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="train", load_preprocessed_dir=config.DIRECTORY_PREPROCESSED_IMG)
         self.folded_samplers = self.dataset.get_stratified_samplers(fold=config.MODEL_FOLD)
 
         self.run()
@@ -141,20 +141,20 @@ class HPAProject:
             for epoch in range(config.MODEL_EPOCHS):
 
                 # # TODO: temperary code
-                # test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=config.DIRECTORY_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=None)
-                # pbar = tqdm(test_dataset.id)
-                # for index, id in enumerate(pbar):
-                #     untransfered = test_dataset.get_load_image_by_id(id)
-                #     input = transform(ids=None, image_0=untransfered, labels_0=None, train=False, val=False).unsqueeze(0)
-                #
-                #     if config.TRAIN_GPU_ARG: input = input.cuda()
-                #     predict = self.nets[0](input)
-                #     predict = F.sigmoid(predict).detach().cpu().numpy()
-                #     encoded = list(test_dataset.multilabel_binarizer.inverse_transform(predict > 0.5)[0])
-                #     pbar.set_description("Fold:{} Id:{} Out:{} Prob:{}".format(0, id, encoded, predict[0][encoded[0]]))
-                #
-                #     del id, untransfered, input, predict, encoded
-                #     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_TEST, img_suffix=config.DIRECTORY_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=None)
+                pbar = tqdm(test_dataset.id)
+                for index, id in enumerate(pbar):
+                    untransfered = test_dataset.get_load_image_by_id(id)
+                    input = transform(ids=None, image_0=untransfered, labels_0=None, train=False, val=False).unsqueeze(0)
+
+                    if config.TRAIN_GPU_ARG: input = input.cuda()
+                    predict = self.nets[0](input)
+                    predict = F.sigmoid(predict).detach().cpu().numpy()
+                    encoded = list(test_dataset.multilabel_binarizer.inverse_transform(predict > 0.5)[0])
+                    pbar.set_description("Fold:{} Id:{} Out:{} Prob:{}".format(0, id, encoded, predict[0][encoded[0]]))
+
+                    del id, untransfered, input, predict, encoded
+                    if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
                 # # TODO: end temperary code
 
 
@@ -625,7 +625,7 @@ class HPAPreprocess:
             STD  = [0.0025557  0.0023054  0.0012995  0.00293925]
             STD1 = [0.00255578 0.00230547 0.00129955 0.00293934]
         """
-        mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=".png", load_strategy="test", load_preprocessed_dir=None))
+        mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_TEST, img_suffix=".png", load_strategy="test", load_preprocessed_dir=None))
         print("""
         Test Data:
             Mean = {}

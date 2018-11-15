@@ -93,7 +93,7 @@ class HPAData(data.Dataset):
     File Size
         train                         14.0321076GB (124288 files)
         test                          4.6823579GB (46808 files)
-        train.csv                     0.0012744GB
+        train.csv                     0.0012744GB (31072 labels)
         sample_submission.csv         0.0004564GB
 
     LB Probing
@@ -177,8 +177,8 @@ class HPAData(data.Dataset):
         self.load_preprocessed_dir = load_preprocessed_dir
         self.img_suffix = img_suffix
 
-        if load_preprocessed_dir: file = set([x.replace(self.img_suffix, "") for x in os.listdir(config.DIRECTORY_TEST)])
-        else: file = set([x.replace(self.img_suffix, "").replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(config.DIRECTORY_TEST)])
+        if load_preprocessed_dir: file = set([x.replace(self.img_suffix, "") for x in os.listdir(self.load_img_dir)])
+        else: file = set([x.replace(self.img_suffix, "").replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(self.load_img_dir)])
         if self.load_strategy == "train": id = self.dataframe.index.tolist()
         elif self.load_strategy == "test" or self.load_strategy == "predict": id = file - set(self.dataframe.index.tolist())
         else: raise ValueError("the argument [load_strategy] recieved an undefined value: [{}], which is not one of 'train', 'test', 'predict'".format(load_strategy))
@@ -271,12 +271,11 @@ class HPAData(data.Dataset):
         :param indice: id
         :return: nparray image of (r, g, b, y) from 0~255 (['red', 'green', 'blue', 'yellow']) (3, W, H)
         """
-        if config.TRAIN_LOAD_FROM_PREPROCESSED and self.load_preprocessed_dir:
+        if self.load_preprocessed_dir:
             dir = self.load_preprocessed_dir
             return np.load(os.path.join(dir, id + self.img_suffix))
 
         dir = self.load_img_dir
-        if self.load_strategy: dir = config.DIRECTORY_TEST
         colors = ['red', 'green', 'blue', 'yellow']
         flags = cv2.IMREAD_GRAYSCALE
         imgs = [cv2.imread(os.path.join(dir, id + '_' + color + self.img_suffix), flags).astype(np.uint8) for color in colors]
