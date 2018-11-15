@@ -12,7 +12,7 @@ from tensorboardX import SummaryWriter
 import config
 # dir_prefix = 'drive/My Drive/ML/Pytorch-UNet/'
 from gpu import gpu_profile
-from loss.focal import Focal_Loss_from_git
+from loss.focal import FocalLoss_Sigmoid
 from project import hpa_project
 from utils.memory import memory_thread
 

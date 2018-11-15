@@ -5,10 +5,23 @@ import numpy as np
 from torch import nn
 import torch.nn.functional as F
 
-class Focal_Loss_from_git(nn.Module):
+class FocalLoss_Sigmoid(nn.Module):
+    """
+    Since a multiclass multilabel task is considered,
+    there are several things about the model that should
+    be pointed out. First, the SOFTMAX MUST NOT BE USED
+    as an output layer because it encourages a single label
+    prediction. The common output function for multilabel
+    tasks is sigmoid. However, combining the sigmoid with
+    the loss function (like in BCE with logits loss or in
+    Focal loss used in this kernel) allows log(sigmoid)
+    optimization of the numerical stability of the loss
+    function. Therefore, sigmoid is also removed.
+
+    """
     # https://xmfbit.github.io/2017/08/14/focal-loss-paper/
     def __init__(self, alpha=0.25, gamma=2, eps=1e-7):
-        super(Focal_Loss_from_git, self).__init__()
+        super(FocalLoss_Sigmoid, self).__init__()
         self.alpha = alpha
         self.gamma = gamma
         self.eps = eps
@@ -28,7 +41,7 @@ class Focal_Loss_from_git(nn.Module):
         # gamma = 2
 
         # softmax layer
-        y_pred = F.softmax(y_pred, dim=1) # TODO: dim really = 1?
+        y_pred = F.sigmoid(y_pred) # TODO: dim really = 1?
 
         # To avoid divided by zero
         y_pred = y_pred + self.eps

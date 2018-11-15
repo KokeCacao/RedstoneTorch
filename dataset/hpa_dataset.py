@@ -31,100 +31,72 @@ from utils.encode import to_numpy
 
 class HPAData(data.Dataset):
     """
-    Since a multiclass multilabel task is considered,
-    there are several things about the model that should
-    be pointed out. First, the SOFTMAX MUST NOT BE USED
-    as an output layer because it encourages a single label
-    prediction. The common output function for multilabel
-    tasks is sigmoid. However, combining the sigmoid with
-    the loss function (like in BCE with logits loss or in
-    Focal loss used in this kernel) allows log(sigmoid)
-    optimization of the numerical stability of the loss
-    function. Therefore, sigmoid is also removed.
+    self.prob_dict = {27: 0.125,
+                     15: 0.05555555555555555,
+                     10: 0.043478260869565216,
+                     9: 0.02702702702702703,
+                     8: 0.022222222222222223,
+                     20: 0.007633587786259542,
+                     17: 0.006024096385542169,
+                     24: 0.003875968992248062,
+                     26: 0.003816793893129771,
+                     13: 0.002352941176470588,
+                     16: 0.002288329519450801,
+                     12: 0.0017482517482517483,
+                     22: 0.001579778830963665,
+                     18: 0.0013679890560875513,
+                     6: 0.001221001221001221,
+                     11: 0.001141552511415525,
+                     14: 0.0011312217194570137,
+                     1: 0.0010183299389002036,
+                     19: 0.0008665511265164644,
+                     3: 0.0008285004142502071,
+                     4: 0.0006844626967830253,
+                     5: 0.0004935834155972359,
+                     7: 0.0004434589800443459,
+                     23: 0.0004187604690117253,
+                     2: 0.00034916201117318437,
+                     21: 0.00033090668431502316,
+                     25: 0.00015130882130428205,
+                     0: 9.693679720822024e-05}
 
-    """
+    self.name_label_dict = {
+        0: 'Nucleoplasm',
+        1: 'Nuclear membrane',
+        2: 'Nucleoli',
+        3: 'Nucleoli fibrillar center',
+        4: 'Nuclear speckles',
+        5: 'Nuclear bodies',
+        6: 'Endoplasmic reticulum',
+        7: 'Golgi apparatus',
+        8: 'Peroxisomes',
+        9: 'Endosomes',
+        10: 'Lysosomes',
+        11: 'Intermediate filaments',
+        12: 'Actin filaments',
+        13: 'Focal adhesion sites',
+        14: 'Microtubules',
+        15: 'Microtubule ends',
+        16: 'Cytokinetic bridge',
+        17: 'Mitotic spindle',
+        18: 'Microtubule organizing center',
+        19: 'Centrosome',
+        20: 'Lipid droplets',
+        21: 'Plasma membrane',
+        22: 'Cell junctions',
+        23: 'Mitochondria',
+        24: 'Aggresome',
+        25: 'Cytosol',
+        26: 'Cytoplasmic bodies',
+        27: 'Rods & rings'}
 
-    def __init__(self, csv_dir, load_img_dir=None, img_suffix=".png", test=False, load_preprocessed_dir=None):
-        print("Reading Data...")
-        self.test = test
-        if self.test: print("Prediction Mode Open...")
-        self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
-        self.dataframe['Target'] = [(int(i) for i in s.split()) for s in self.dataframe['Target']]
-        # self.multilabel_binarizer = MultiLabelBinarizer().fit(self.dataframe['Target'])
-        self.multilabel_binarizer = MultiLabelBinarizer()
-        self.one_hot_frame = self.multilabel_binarizer.fit_transform(self.dataframe['Target'])
-        self.prob_dict = {27: 0.125,
-                         15: 0.05555555555555555,
-                         10: 0.043478260869565216,
-                         9: 0.02702702702702703,
-                         8: 0.022222222222222223,
-                         20: 0.007633587786259542,
-                         17: 0.006024096385542169,
-                         24: 0.003875968992248062,
-                         26: 0.003816793893129771,
-                         13: 0.002352941176470588,
-                         16: 0.002288329519450801,
-                         12: 0.0017482517482517483,
-                         22: 0.001579778830963665,
-                         18: 0.0013679890560875513,
-                         6: 0.001221001221001221,
-                         11: 0.001141552511415525,
-                         14: 0.0011312217194570137,
-                         1: 0.0010183299389002036,
-                         19: 0.0008665511265164644,
-                         3: 0.0008285004142502071,
-                         4: 0.0006844626967830253,
-                         5: 0.0004935834155972359,
-                         7: 0.0004434589800443459,
-                         23: 0.0004187604690117253,
-                         2: 0.00034916201117318437,
-                         21: 0.00033090668431502316,
-                         25: 0.00015130882130428205,
-                         0: 9.693679720822024e-05}
-        self.name_label_dict = {
-            0: 'Nucleoplasm',
-            1: 'Nuclear membrane',
-            2: 'Nucleoli',
-            3: 'Nucleoli fibrillar center',
-            4: 'Nuclear speckles',
-            5: 'Nuclear bodies',
-            6: 'Endoplasmic reticulum',
-            7: 'Golgi apparatus',
-            8: 'Peroxisomes',
-            9: 'Endosomes',
-            10: 'Lysosomes',
-            11: 'Intermediate filaments',
-            12: 'Actin filaments',
-            13: 'Focal adhesion sites',
-            14: 'Microtubules',
-            15: 'Microtubule ends',
-            16: 'Cytokinetic bridge',
-            17: 'Mitotic spindle',
-            18: 'Microtubule organizing center',
-            19: 'Centrosome',
-            20: 'Lipid droplets',
-            21: 'Plasma membrane',
-            22: 'Cell junctions',
-            23: 'Mitochondria',
-            24: 'Aggresome',
-            25: 'Cytosol',
-            26: 'Cytoplasmic bodies',
-            27: 'Rods & rings'}
-
-        self.load_img_dir = load_img_dir
-        self.load_preprocessed_dir = load_preprocessed_dir
-        self.img_suffix = img_suffix
-        """
-        Arrange ment does not matter so you can crop it and pull label
-        
-        """
-        """File sizes
+    File Size
         train                         14.0321076GB (124288 files)
         test                          4.6823579GB (46808 files)
         train.csv                     0.0012744GB
         sample_submission.csv         0.0004564GB
-        """
-        """LB Probing
+
+    LB Probing
         0 -> 0.019 -> 0.36239782
         1 -> 0.003 -> 0.043841336
         2 -> 0.005 -> 0.075268817
@@ -153,17 +125,9 @@ class HPAData(data.Dataset):
         25 -> 0.013 -> 0.222493888
         26 -> 0.002 -> 0.028806584
         27 -> 0 -> 0
-        """
-        """[12885, 1254, 3621, 1561, 1858, 2513, 1008, 2822, 53, 45, 28, 1093, 688, 537, 1066, 21, 530, 210, 902, 1482, 172, 3777, 802, 2965, 322, 8228, 328, 11]"""
-        """[1.03670507e-01, 1.00894696e-02, 2.91339470e-02, 1.25595391e-02,
-       1.49491504e-02, 2.02191684e-02, 8.11019567e-03, 2.27053296e-02,
-       4.26428939e-04, 3.62062307e-04, 2.25283213e-04, 8.79409114e-03,
-       5.53553038e-03, 4.32061020e-03, 8.57685376e-03, 1.68962410e-04,
-       4.26428939e-03, 1.68962410e-03, 7.25733780e-03, 1.19239186e-02,
-       1.38388260e-03, 3.03890963e-02, 6.45275489e-03, 2.38558831e-02,
-       2.59075695e-03, 6.62010814e-02, 2.63903193e-03, 8.85041195e-05]"""
 
-        """
+        [12885, 1254, 3621, 1561, 1858, 2513, 1008, 2822, 53, 45, 28, 1093, 688, 537, 1066, 21, 530, 210, 902, 1482, 172, 3777, 802, 2965, 322, 8228, 328, 11]
+
         0     12885
         25     8228
         21     3777
@@ -192,29 +156,48 @@ class HPAData(data.Dataset):
         10       28
         15       21
         27       11
-        """
-        if self.test:
+
+        [1.03670507e-01, 1.00894696e-02, 2.91339470e-02, 1.25595391e-02,
+       1.49491504e-02, 2.02191684e-02, 8.11019567e-03, 2.27053296e-02,
+       4.26428939e-04, 3.62062307e-04, 2.25283213e-04, 8.79409114e-03,
+       5.53553038e-03, 4.32061020e-03, 8.57685376e-03, 1.68962410e-04,
+       4.26428939e-03, 1.68962410e-03, 7.25733780e-03, 1.19239186e-02,
+       1.38388260e-03, 3.03890963e-02, 6.45275489e-03, 2.38558831e-02,
+       2.59075695e-03, 6.62010814e-02, 2.63903193e-03, 8.85041195e-05]
+    """
+
+    def __init__(self, csv_dir, load_img_dir=None, img_suffix=".png", load_strategy="train", load_preprocessed_dir=None):
+        self.load_strategy = load_strategy
+        print("     Reading Data with [test={}]".format(self.load_strategy))
+        self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
+        self.dataframe['Target'] = [(int(i) for i in s.split()) for s in self.dataframe['Target']]
+        self.multilabel_binarizer = MultiLabelBinarizer().fit(range(28))
+        self.labelframe = self.multilabel_binarizer.transform(self.dataframe['Target'])
+        self.load_img_dir = load_img_dir
+        self.load_preprocessed_dir = load_preprocessed_dir
+        self.img_suffix = img_suffix
+
+        if self.load_strategy == "trian":
             # TODO
             """TEST MODE"""
             self.id = list(set([x.replace(self.img_suffix, "").replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(config.DIRECTORY_TEST)]) - set(self.dataframe.index.tolist()))
             self.id_len = len(self.id)
-        else:
+        elif self.load_strategy == "test" or self.load_strategy == "predict":
             """TRAIN MODE"""
             self.id = self.dataframe.index.tolist()
-            self.id_len = int(len(self.id)*config.TRAIN_DATA_PERCENT)
+            self.id_len = int(len(self.id) * config.TRAIN_DATA_PERCENT)
             self.id = self.id[:self.id_len]
 
         """WARNING: data length and indices depends on the length of images"""
         self.img_len = int(len(os.listdir(self.load_img_dir)) / 4 * config.TRAIN_DATA_PERCENT)
         self.data_len = min(self.img_len, self.id_len)
-        if self.img_len != self.id_len and not self.test: raise ResourceWarning("id_len in the csv({}) is not equal to img_len in the folder({}), set data_len to {}".format(self.id_len, self.img_len, self.data_len))
+        if self.img_len != self.id_len and not self.load_strategy: raise ResourceWarning("id_len in the csv({}) is not equal to img_len in the folder({}), set data_len to {}".format(self.id_len, self.img_len, self.data_len))
         self.indices = list(range(self.data_len))
 
-        self.indices_to_id = dict()
-        self.id_to_indices = dict()
-        print("     Data Percent: {}".format(config.TRAIN_DATA_PERCENT))
         self.indices_to_id = dict(zip(self.indices, self.id))
         self.id_to_indices = {v: k for k, v in self.indices_to_id.items()}
+
+        print("     Data Percent: {}".format(config.TRAIN_DATA_PERCENT))
         print("     Data Size: {}".format(self.data_len))
 
     def __len__(self):
@@ -226,25 +209,26 @@ class HPAData(data.Dataset):
         :return: dictionary[fold]["train" or "val"]
         """
         X = self.indices
-        y = self.one_hot_frame
+        y = self.labelframe
 
         mskf = MultilabelStratifiedKFold(n_splits=fold, random_state=None)
         folded_samplers = dict()
         for i, (train_index, test_index) in enumerate(mskf.split(X, y)):
-           print("#{} TRAIN: {}, TEST: {}".format(i, train_index, test_index))
-           x_t = np.array([X[j] for j in train_index])
-           y_t = np.array([y[j] for j in train_index])
-           x_e = np.array([X[j] for j in test_index])
-           y_e = np.array([y[j] for j in test_index])
-           folded_samplers[i] = dict()
-           folded_samplers[i]["train"] = SubsetRandomSampler(x_t)
+            print("#{} TRAIN: {}, TEST: {}".format(i, train_index, test_index))
+            x_t = np.array([X[j] for j in train_index])
+            # y_t = np.array([y[j] for j in train_index])
+            x_e = np.array([X[j] for j in test_index])
+            # y_e = np.array([y[j] for j in test_index])
+            folded_samplers[i] = dict()
+            folded_samplers[i]["train"] = SubsetRandomSampler(x_t)
 
-           # a = int(len(x_t)/config.MODEL_BATCH_SIZE)
-           # b = 1-config.MODEL_BATCH_SIZE/x_t.shape[0]
-           # c = MultilabelStratifiedShuffleSplit(int(a), test_size=b, random_state=None).split(x_t, y_t)
-           # folded_samplers[i]['train'] = iter(c[0])
-           folded_samplers[i]["val"] = SubsetRandomSampler(x_e) #y[test_index]
+            # a = int(len(x_t)/config.MODEL_BATCH_SIZE)
+            # b = 1-config.MODEL_BATCH_SIZE/x_t.shape[0]
+            # c = MultilabelStratifiedShuffleSplit(int(a), test_size=b, random_state=None).split(x_t, y_t)
+            # folded_samplers[i]['train'] = iter(c[0])
+            folded_samplers[i]["val"] = SubsetRandomSampler(x_e)  # y[test_index]
         return folded_samplers
+
     """
         :param self(data_len)
         :param foldcv_size
@@ -275,58 +259,51 @@ class HPAData(data.Dataset):
         return folded_samplers
 
     def __getitem__(self, indice):
-        labels_0 = self.get_load_label_by_indice(indice)
-        image_0 = self.get_load_image_by_indice(indice)
-        return (self.indices_to_id[indice], image_0, labels_0)
+        """
 
-    """CONFIGURATION"""
+        :param indice:
+        :return: id, one hot encoded label, nparray image of (r, g, b, y) from 0~255 (['red', 'green', 'blue', 'yellow']) (3, W, H)
+        """
+        return (self.indices_to_id[indice], self.get_load_label_by_indice(indice), self.get_load_image_by_indice(indice))
 
-    # obtain in https://www.kaggle.com/iafoss/pretrained-resnet34-with-rgby-0-448-public-lb
     def get_load_image_by_indice(self, indice):
         """
 
         :param indice: id
-        :return: nparray image of (r, g, b, y) from 0~255
+        :return: nparray image of (r, g, b, y) from 0~255 (['red', 'green', 'blue', 'yellow']) (3, W, H)
         """
         id = self.indices_to_id[indice]
         return self.get_load_image_by_id(id)
-
-    def get_load_label_by_indice(self, indice):
-        """
-
-        :param indice: id
-        :return: one hot encoded label
-        """
-        # return np.float32(self.multilabel_binarizer.transform([self.dataframe['Target'][id]])[0])
-        # print(np.float32(self.one_hot_frame[id]))
-        return np.float32(self.one_hot_frame[indice])
     def get_load_image_by_id(self, id):
         """
 
         :param indice: id
-        :return: nparray image of (r, g, b, y) from 0~255
+        :return: nparray image of (r, g, b, y) from 0~255 (['red', 'green', 'blue', 'yellow']) (3, W, H)
         """
         if config.TRAIN_LOAD_FROM_PREPROCESSED and self.load_preprocessed_dir:
             dir = self.load_preprocessed_dir
             return np.load(os.path.join(dir, id + self.img_suffix))
 
         dir = self.load_img_dir
-        if self.test: dir = config.DIRECTORY_TEST
+        if self.load_strategy: dir = config.DIRECTORY_TEST
         colors = ['red', 'green', 'blue', 'yellow']
         flags = cv2.IMREAD_GRAYSCALE
         imgs = [cv2.imread(os.path.join(dir, id + '_' + color + self.img_suffix), flags).astype(np.uint8) for color in colors]
         return np.stack(imgs, axis=-1)
+    def get_load_label_by_indice(self, indice):
+        """
 
+        :param indice: id
+        :return: one hot encoded label
+        """
+        return np.float32(self.labelframe[indice])
     def get_load_label_by_id(self, id):
         """
 
         :param indice: id
         :return: one hot encoded label
         """
-        # return np.float32(self.multilabel_binarizer.transform([self.dataframe['Target'][id]])[0])
-        # print(np.float32(self.one_hot_frame[id]))
-        return np.float32(self.one_hot_frame[self.id_to_indices[id]])
-
+        return np.float32(self.labelframe[self.id_to_indices[id]])
 
 class TrainImgAugTransform:
     def __init__(self):
@@ -337,6 +314,20 @@ class TrainImgAugTransform:
             iaa.OneOf([iaa.Noop(), iaa.Add((-40, 40)), iaa.EdgeDetect(alpha=(0.0, 0.1)), iaa.Multiply((0.95, 1.05))], iaa.ContrastNormalization((0.95, 1.05))),
             iaa.OneOf([iaa.Noop(), iaa.PiecewiseAffine(scale=(0.00, 0.02)), iaa.Affine(rotate=(-10, 10)), iaa.Affine(shear=(-10, 10))]),
             iaa.CropAndPad(percent=(-0.12, 0)),
+        ], random_order=False)
+
+    def __call__(self, img):
+        img = np.array(img)
+        return self.aug.augment_image(img)
+
+    def to_deterministic(self, n=None):
+        self.aug = self.aug.to_deterministic(n)
+        return self
+
+class PredictImgAugTransform:
+    def __init__(self):
+        self.aug = iaa.Sequential([
+            iaa.Scale({"height": config.AUGMENTATION_RESIZE, "width": config.AUGMENTATION_RESIZE}),
         ], random_order=False)
 
     def __call__(self, img):
@@ -374,37 +365,7 @@ def train_collate(batch):
     for id, image_0, labels_0 in batch:
         new_batch.append(transform(id, image_0, labels_0, train=True, val=False))
     batch = new_batch
-
-    error_msg = "batch must contain tensors, numbers, dicts or lists; found {}"
-    elem_type = type(batch[0])
-    if isinstance(batch[0], torch.Tensor):
-        out = None
-        return torch.stack(batch, 0, out=out)
-    elif elem_type.__module__ == 'numpy' and elem_type.__name__ != 'str_' \
-            and elem_type.__name__ != 'string_':
-        elem = batch[0]
-        if elem_type.__name__ == 'ndarray':
-            # array of string classes and object
-            if re.search('[SaUO]', elem.dtype.str) is not None:
-                raise TypeError(error_msg.format(elem.dtype))
-
-            return torch.stack([torch.from_numpy(b) for b in batch], 0)
-        if elem.shape == ():  # scalars
-            py_type = float if elem.dtype.name.startswith('float') else int
-            return numpy_type_map[elem.dtype.name](list(map(py_type, batch)))
-    elif isinstance(batch[0], int_classes):
-        return torch.LongTensor(batch)
-    elif isinstance(batch[0], float):
-        return torch.DoubleTensor(batch)
-    elif isinstance(batch[0], string_classes):
-        return batch
-    elif isinstance(batch[0], collections.Mapping):
-        return {key: default_collate([d[key] for d in batch]) for key in batch[0]}
-    elif isinstance(batch[0], collections.Sequence):
-        transposed = zip(*batch)
-        return [default_collate(samples) for samples in transposed]
-
-    raise TypeError((error_msg.format(type(batch[0]))))
+    return collate(batch)
 
 
 def val_collate(batch):
@@ -413,7 +374,10 @@ def val_collate(batch):
     for id, image_0, labels_0 in batch:
         new_batch.append(transform(id, image_0, labels_0, train=False, val=True))
     batch = new_batch
+    return collate(batch)
 
+
+def collate(batch):
     error_msg = "batch must contain tensors, numbers, dicts or lists; found {}"
     elem_type = type(batch[0])
     if isinstance(batch[0], torch.Tensor):
@@ -457,13 +421,13 @@ def transform(ids, image_0, labels_0, train, val):
     :return:
     """
 
-    if ids is None and labels_0 is None and train is False and val is False: # predict.py
-        image_aug_transform = TestImgAugTransform().to_deterministic()
+    if ids is None and labels_0 is None and train is False and val is False:  # predict.py
+        image_aug_transform = PredictImgAugTransform().to_deterministic()
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             image_aug_transform,
             transforms.ToTensor(),
             # Normalize(mean=[0.05908022413399168, 0.04532851916280794, 0.040652325092460015, 0.05923425759572161], std=[1, 1, 1, 1]),
-            Normalize(mean=[0.07459783,  0.05063238,  0.05089102,  0.07628681], std=[1, 1, 1, 1]),
+            Normalize(mean=[0.07459783, 0.05063238, 0.05089102, 0.07628681], std=[1, 1, 1, 1]),
         ])
         return PREDICT_TRANSFORM_IMG(image_0)
 
@@ -476,11 +440,11 @@ def transform(ids, image_0, labels_0, train, val):
     if not val and train:
         image_aug_transform = TrainImgAugTransform().to_deterministic()
         TRAIN_TRANSFORM = transforms.Compose([
-                image_aug_transform,
-                transforms.ToTensor(),
-                # Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[1, 1, 1, 1]),
-                Normalize(mean=[0.07459783,  0.05063238,  0.05089102,  0.07628681], std=[1, 1, 1, 1]),
-            ])
+            image_aug_transform,
+            transforms.ToTensor(),
+            # Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[1, 1, 1, 1]),
+            Normalize(mean=[0.07459783, 0.05063238, 0.05089102, 0.07628681], std=[1, 1, 1, 1]),
+        ])
         image = TRAIN_TRANSFORM(image_0)
         return (ids, image, labels_0, transforms.ToTensor()(image_0))
     elif not train and val:
@@ -489,7 +453,7 @@ def transform(ids, image_0, labels_0, train, val):
             image_aug_transform,
             transforms.ToTensor(),
             # Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[1, 1, 1, 1]),
-            Normalize(mean=[0.07459783,  0.05063238,  0.05089102,  0.07628681], std=[1, 1, 1, 1]),
+            Normalize(mean=[0.07459783, 0.05063238, 0.05089102, 0.07628681], std=[1, 1, 1, 1]),
         ])
 
         image = PREDICT_TRANSFORM_IMG(image_0)

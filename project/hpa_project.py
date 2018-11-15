@@ -19,7 +19,7 @@ import tensorboardwriter
 from dataset.hpa_dataset import HPAData, train_collate, val_collate, transform
 from gpu import gpu_profile
 from loss.f1 import f1_macro, Differenciable_F1
-from loss.focal import Focal_Loss_from_git
+from loss.focal import FocalLoss_Sigmoid
 from net.proteinet.proteinet_model import se_resnext101_32x4d_modified
 from utils import encode
 from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, cuda, load_checkpoint_all_fold_without_optimizers, save_onnx
@@ -139,6 +139,25 @@ class HPAProject:
     def run(self):
         try:
             for epoch in range(config.MODEL_EPOCHS):
+
+                # TODO: temperary code
+                test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=config.DIRECTORY_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=None)
+                pbar = tqdm(test_dataset.id)
+                for index, id in enumerate(pbar):
+                    untransfered = test_dataset.get_load_image_by_id(id)
+                    input = transform(ids=None, image_0=untransfered, labels_0=None, train=False, val=False).unsqueeze(0)
+
+                    if config.TRAIN_GPU_ARG: input = input.cuda()
+                    predict = self.nets[0](input)
+                    predict = F.sigmoid(predict).detach().cpu().numpy()
+                    encoded = list(test_dataset.multilabel_binarizer.inverse_transform(predict > 0.5)[0])
+                    pbar.set_description("Fold:{} Id:{} Out:{} Prob:{}".format(0, id, encoded, predict[0][encoded[0]]))
+
+                    del id, untransfered, input, predict, encoded
+                    if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                # TODO: end temperary code
+
+
                 self.step_epoch(nets=self.nets,
                                 optimizers=self.optimizers,
                                 batch_size=config.MODEL_BATCH_SIZE
@@ -265,7 +284,7 @@ class HPAProject:
             predict = net(image)
 
             """LOSS"""
-            focal = Focal_Loss_from_git(alpha=0.25, gamma=4, eps=1e-7)(labels_0, predict)
+            focal = FocalLoss_Sigmoid(alpha=0.25, gamma=4, eps=1e-7)(labels_0, predict)
             f1, precise, recall = Differenciable_F1(beta=1)(labels_0, predict)
             bce = BCELoss()(F.sigmoid(predict), labels_0)
             weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(F.sigmoid(predict), labels_0)
@@ -388,7 +407,7 @@ class HPAEvaluation:
             predict = net(image)
 
             """LOSS"""
-            focal = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
+            focal = FocalLoss_Sigmoid(alpha=0.25, gamma=2, eps=1e-7)(labels_0, predict)
             f1, precise, recall = Differenciable_F1(beta=1)(labels_0, predict)
             bce = BCELoss()(F.sigmoid(predict), labels_0)
             # weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(F.sigmoid(predict), labels_0)
@@ -533,7 +552,8 @@ class HPAPrediction:
                 self.nets.append(cuda(net))
         load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
 
-        self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG, img_suffix=".png", test=False, load_preprocessed_dir=None)
+        self.dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix = config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="train", load_preprocessed_dir=config.DIRECTORY_PREPROCESSED_IMG)
+        # self.dataset = HPAData(config.DIRECTORY_CSV, config.DIRECTORY_IMG, img_suffix=".png", test=False, load_preprocessed_dir=None)
 
         self.run()
 
@@ -561,7 +581,7 @@ class HPAPrediction:
                         encoded = list(self.dataset.multilabel_binarizer.inverse_transform(predict > threshold)[0])
 
                         f.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
-                        pbar.set_description("Fold:{} Id:{} Out:{} Prob:{}".format(fold, id, encoded, predict[0][0]))
+                        pbar.set_description("Fold:{} Id:{} Out:{} Prob:{}".format(fold, id, encoded, predict[0][encoded[0]]))
 
                         figure = plt.figure()
 
@@ -592,7 +612,7 @@ class HPAPreprocess:
         self.calculate = calculate # 6item/s when turn off calculation, 6item/s when turn on, 85item/s when loaded in memory (80 save + 85to_np = 6 load)
         if not os.path.exists(config.DIRECTORY_PREPROCESSED_IMG):
             os.makedirs(config.DIRECTORY_PREPROCESSED_IMG)
-        mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=".png", test=False, load_preprocessed_dir=None))
+        mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=".png", load_strategy="train", load_preprocessed_dir=None))
         print("""
         Train Data:
             Mean = {}
@@ -605,7 +625,7 @@ class HPAPreprocess:
             STD  = [0.0025557  0.0023054  0.0012995  0.00293925]
             STD1 = [0.00255578 0.00230547 0.00129955 0.00293934]
         """
-        mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=".png", test=True, load_preprocessed_dir=None))
+        mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=".png", load_strategy="test", load_preprocessed_dir=None))
         print("""
         Test Data:
             Mean = {}
