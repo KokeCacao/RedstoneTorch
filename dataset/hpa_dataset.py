@@ -213,7 +213,7 @@ class HPAData(data.Dataset):
         self.id_to_indices = {v: k for k, v in self.indices_to_id.items()}
 
         if self.writer:
-            data_dict = np.bincount(self.dataframe['Target'].flatten())
+            data_dict = np.bincount(np.array(self.dataframe['Target']).flatten())
             F = plt.figure()
             plt.bar(list(range(len(data_dict))), data_dict)
             plt.title('Histogram of All Data')
