@@ -10,11 +10,11 @@ from matplotlib import pyplot as plt
 def write_loss(writer, loss_dict, global_step):
     writer.add_scalars('train/loss_scalar', loss_dict, global_step)
 
-def write_threshold(writer, fold_value_dict, threshold, classes="ALL"):
-    writer.add_scalars('threshold/threshold_distribution/{}'.format(str(classes)), fold_value_dict, threshold)
+def write_threshold(writer, classes, score, threshold, fold):
+    writer.add_scalars('threshold/threshold_distribution/'.format(fold), {"Class/{}".format(classes): score}, threshold)
 
-def write_best_threshold(writer, threshold, score, epoch, classes="ALL"):
-    writer.add_scalars('threshold/best_threshold/{}'.format(str(classes)), {"Threshold":threshold, "Score": score}, epoch)
+def write_best_threshold(writer, classes, score, threshold, epoch, fold):
+    writer.add_scalars('threshold/best_threshold/{}'.format(fold), {"Threshold/{}".format(classes):threshold, "Score": score}, epoch)
 
 def write_data_distribution(writer, F, fold, unique=False):
     if unique:

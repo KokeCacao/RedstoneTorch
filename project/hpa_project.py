@@ -255,7 +255,7 @@ class HPAProject:
             pbar = tqdm(config.EVAL_TRY_THRESHOLD)
             for threshold in pbar:
                 score = f1_macro(evaluation.epoch_pred, evaluation.epoch_label, thresh=threshold).mean()
-                tensorboardwriter.write_threshold(self.writer, {"Fold/{}".format(config.fold): score}, threshold * 1000.0, classes="ALL")
+                tensorboardwriter.write_threshold(self.writer, -1, score, threshold * 1000.0, config.fold)
                 if score > best_val:
                     best_threshold = threshold
                     best_val = score
@@ -263,13 +263,13 @@ class HPAProject:
 
                 for c in range(28):
                     score = ((evaluation.epoch_pred[:][c] > threshold) * evaluation.epoch_label[:][c]).sum()
-                    tensorboardwriter.write_threshold(self.writer, {"Fold/{}".format(config.fold): score}, threshold * 1000.0, classes=c)
+                    tensorboardwriter.write_threshold(self.writer, c, score, threshold * 1000.0, config.fold)
                     if score > best_val_dict[c]:
                         best_threshold_dict[c] = threshold
                         best_val_dict[c] = score
 
-            tensorboardwriter.write_best_threshold(self.writer, best_threshold, best_val, config.epoch)
-            for c in range(28): tensorboardwriter.write_best_threshold(self.writer, best_threshold_dict[c], best_val_dict[c], config.epoch, classes=c)
+            tensorboardwriter.write_best_threshold(self.writer, -1, best_val, best_threshold, config.epoch, config.fold)
+            for c in range(28): tensorboardwriter.write_best_threshold(self.writer, c, best_val_dict[c], best_threshold_dict[c], config.epoch, config.fold)
 
         """HISTOGRAM"""
         if config.DISPLAY_HISTOGRAM:
