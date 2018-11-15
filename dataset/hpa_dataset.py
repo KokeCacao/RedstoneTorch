@@ -214,7 +214,7 @@ class HPAData(data.Dataset):
 
         if self.writer:
             data_dict = np.array(self.dataframe['Target'])
-            data_dict = data_dict.astype(np.byte)
+            data_dict = data_dict.astype(np.int8)
             data_dict = np.bincount(data_dict.flatten())
             F = plt.figure()
             plt.bar(list(range(len(data_dict))), data_dict)
