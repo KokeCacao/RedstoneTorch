@@ -215,8 +215,7 @@ class HPAData(data.Dataset):
         if self.writer:
             data_dict = np.bincount(self.labelframe.flatten())
             F = plt.figure()
-            fig, axs = plt.subplots(1, 1, figsize=(1, 1), sharey='all')
-            axs[0].bar(list(range(len(data_dict))), data_dict)
+            plt.bar(list(range(len(data_dict))), data_dict)
             plt.title('Histogram of All Data')
             plt.grid(False)
             tensorboardwriter.write_data_distribution(self.writer, F, 0, unique=True)
