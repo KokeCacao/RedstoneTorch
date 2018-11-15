@@ -96,6 +96,17 @@ class HPAData(data.Dataset):
         train.csv                     0.0012744GB (31072 labels)
         sample_submission.csv         0.0004564GB
 
+
+        Test Data:
+            Mean = [0.05908022 0.04532852 0.04065233 0.05923426]
+            STD  = [0.00235361 0.0020402  0.00137821 0.00246495]
+            STD1 = [0.00235381 0.00204037 0.00137833 0.00246516]
+
+        Train Data:
+            Mean = [0.0804419  0.05262986 0.05474701 0.08270896]
+            STD  = [0.0025557  0.0023054  0.0012995  0.00293925]
+            STD1 = [0.00255578 0.00230547 0.00129955 0.00293934]
+
     LB Probing
         0 -> 0.019 -> 0.36239782
         1 -> 0.003 -> 0.043841336
@@ -166,7 +177,7 @@ class HPAData(data.Dataset):
        2.59075695e-03, 6.62010814e-02, 2.63903193e-03, 8.85041195e-05]
     """
 
-    def __init__(self, csv_dir, load_img_dir=None, img_suffix=".png", load_strategy="train", load_preprocessed_dir=False):
+    def __init__(self, csv_dir, load_img_dir, img_suffix=".png", load_strategy="train", load_preprocessed_dir=False):
         self.load_strategy = load_strategy
         print("     Reading Data with [test={}]".format(self.load_strategy))
         self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')

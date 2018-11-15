@@ -140,22 +140,22 @@ class HPAProject:
         try:
             for epoch in range(config.MODEL_EPOCHS):
 
-                # # # TODO: temperary code
-                # test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_TEST, img_suffix=config.DIRECTORY_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=False)
-                # pbar = tqdm(test_dataset.id)
-                # for index, id in enumerate(pbar):
-                #     untransfered = test_dataset.get_load_image_by_id(id)
-                #     input = transform(ids=None, image_0=untransfered, labels_0=None, train=False, val=False).unsqueeze(0)
-                #
-                #     if config.TRAIN_GPU_ARG: input = input.cuda()
-                #     predict = self.nets[0](input)
-                #     predict = F.sigmoid(predict).detach().cpu().numpy()
-                #     encoded = list(test_dataset.multilabel_binarizer.inverse_transform(predict > 0.5)[0])
-                #     pbar.set_description("Fold:{} Id:{} Out:{} Prob:{}".format(0, id, encoded, predict[0][0]))
-                #
-                #     del id, untransfered, input, predict, encoded
-                #     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-                # # # TODO: end temperary code
+                # TODO: temperary code
+                test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_TEST, img_suffix=config.DIRECTORY_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=False)
+                pbar = tqdm(test_dataset.id)
+                for index, id in enumerate(pbar):
+                    untransfered = test_dataset.get_load_image_by_id(id)
+                    input = transform(ids=None, image_0=untransfered, labels_0=None, train=False, val=False).unsqueeze(0)
+
+                    if config.TRAIN_GPU_ARG: input = input.cuda()
+                    predict = self.nets[0](input)
+                    predict = F.sigmoid(predict).detach().cpu().numpy()
+                    encoded = list(test_dataset.multilabel_binarizer.inverse_transform(predict > 0.5)[0])
+                    pbar.set_description("Fold:{} Id:{} Out:{} Prob:{}".format(0, id, encoded, predict[0][0]))
+
+                    del id, untransfered, input, predict, encoded
+                    if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                # TODO: end temperary code
 
 
                 self.step_epoch(nets=self.nets,
@@ -619,12 +619,6 @@ class HPAPreprocess:
             STD  = {}
             STD1 = {}
         """.format(mean, std, std1))
-        """
-        Train Data:
-            Mean = [0.0804419  0.05262986 0.05474701 0.08270896]
-            STD  = [0.0025557  0.0023054  0.0012995  0.00293925]
-            STD1 = [0.00255578 0.00230547 0.00129955 0.00293934]
-        """
         mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_TEST, img_suffix=".png", load_strategy="test", load_preprocessed_dir=False))
         print("""
         Test Data:
@@ -632,13 +626,6 @@ class HPAPreprocess:
             STD  = {}
             STD1 = {}
         """.format(mean, std, std1))
-        """
-        Test Data:
-            Mean = [0.05908022 0.04532852 0.04065233 0.05923426]
-            STD  = [0.00235361 0.0020402  0.00137821 0.00246495]
-            STD1 = [0.00235381 0.00204037 0.00137833 0.00246516]
-        """
-
 
         """ https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69462
         Hi lafoss, 
