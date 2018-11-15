@@ -172,6 +172,7 @@ class HPAData(data.Dataset):
         self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
         self.dataframe['Target'] = [(int(i) for i in s.split()) for s in self.dataframe['Target']]
         # self.multilabel_binarizer = MultiLabelBinarizer().fit([list(range(28))])
+        self.multilabel_binarizer = MultiLabelBinarizer()
         self.labelframe = self.multilabel_binarizer.fit_transform(self.dataframe['Target'])
         self.load_img_dir = load_img_dir
         self.load_preprocessed_dir = load_preprocessed_dir
