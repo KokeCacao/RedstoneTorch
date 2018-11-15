@@ -177,7 +177,7 @@ class HPAData(data.Dataset):
         self.load_preprocessed_dir = load_preprocessed_dir
         self.img_suffix = img_suffix
 
-        if self.load_strategy == "trian":
+        if self.load_strategy == "train":
             # TODO
             """TEST MODE"""
             self.id = list(set([x.replace(self.img_suffix, "").replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(config.DIRECTORY_TEST)]) - set(self.dataframe.index.tolist()))
@@ -187,6 +187,8 @@ class HPAData(data.Dataset):
             self.id = self.dataframe.index.tolist()
             self.id_len = int(len(self.id) * config.TRAIN_DATA_PERCENT)
             self.id = self.id[:self.id_len]
+        else:
+            raise ValueError("the argument [load_strategy] recieved an undefined value: [{}], which is not one of 'train', 'test', 'predict'".format(load_strategy))
 
         """WARNING: data length and indices depends on the length of images"""
         self.img_len = int(len(os.listdir(self.load_img_dir)) / 4 * config.TRAIN_DATA_PERCENT)
