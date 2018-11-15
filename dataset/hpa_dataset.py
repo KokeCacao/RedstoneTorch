@@ -171,9 +171,8 @@ class HPAData(data.Dataset):
         print("     Reading Data with [test={}]".format(self.load_strategy))
         self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
         self.dataframe['Target'] = [(int(i) for i in s.split()) for s in self.dataframe['Target']]
-        # self.multilabel_binarizer = MultiLabelBinarizer().fit([list(range(28))])
-        self.multilabel_binarizer = MultiLabelBinarizer()
-        self.labelframe = self.multilabel_binarizer.fit_transform(self.dataframe['Target'])
+        self.multilabel_binarizer = MultiLabelBinarizer().fit([list(range(28))])
+        self.labelframe = self.multilabel_binarizer.transform(self.dataframe['Target'])
         self.load_img_dir = load_img_dir
         self.load_preprocessed_dir = load_preprocessed_dir
         self.img_suffix = img_suffix
@@ -200,8 +199,11 @@ class HPAData(data.Dataset):
         self.indices_to_id = dict(zip(self.indices, self.id))
         self.id_to_indices = {v: k for k, v in self.indices_to_id.items()}
 
-        print("     Data Percent: {}".format(config.TRAIN_DATA_PERCENT))
-        print("     Data Size: {}".format(self.data_len))
+        print("""
+            Data Percent:   {}
+            Data Size:      {}
+            Label Size:     {}
+        """.format(config.TRAIN_DATA_PERCENT, self.data_len, len(self.labelframe)))
 
     def __len__(self):
         return self.data_len
