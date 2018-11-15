@@ -2,9 +2,10 @@ import collections
 import os
 import re
 
+import matplotlib as mpl
 import torch
-
 import cv2
+import config
 import numpy as np
 import pandas as pd
 from imgaug import augmenters as iaa
@@ -25,8 +26,12 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from torch.utils.data.dataloader import numpy_type_map, default_collate
 from torchvision.transforms import transforms, Normalize
 
-import config
-from utils.encode import to_numpy
+import tensorboardwriter
+
+if os.environ.get('DISPLAY', '') == '':
+    print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')
+    mpl.use('Agg')
+from matplotlib import pyplot as plt
 
 
 class HPAData(data.Dataset):
@@ -177,7 +182,8 @@ class HPAData(data.Dataset):
        2.59075695e-03, 6.62010814e-02, 2.63903193e-03, 8.85041195e-05]
     """
 
-    def __init__(self, csv_dir, load_img_dir, img_suffix=".png", load_strategy="train", load_preprocessed_dir=False):
+    def __init__(self, csv_dir, load_img_dir, img_suffix=".png", load_strategy="train", load_preprocessed_dir=False, writer=None):
+        self.writer = writer
         self.load_strategy = load_strategy
         print("     Reading Data with [test={}]".format(self.load_strategy))
         self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
@@ -188,11 +194,16 @@ class HPAData(data.Dataset):
         self.load_preprocessed_dir = load_preprocessed_dir
         self.img_suffix = img_suffix
 
-        if load_preprocessed_dir: file = set([x.replace(self.img_suffix, "") for x in os.listdir(self.load_img_dir)])
-        else: file = set([x.replace(self.img_suffix, "").replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(self.load_img_dir)])
-        if self.load_strategy == "train": id = self.dataframe.index.tolist()
-        elif self.load_strategy == "test" or self.load_strategy == "predict": id = file - set(self.dataframe.index.tolist())
-        else: raise ValueError("the argument [load_strategy] recieved an undefined value: [{}], which is not one of 'train', 'test', 'predict'".format(load_strategy))
+        if load_preprocessed_dir:
+            file = set([x.replace(self.img_suffix, "") for x in os.listdir(self.load_img_dir)])
+        else:
+            file = set([x.replace(self.img_suffix, "").replace("_red", "").replace("_green", "").replace("_blue", "").replace("_yellow", "") for x in os.listdir(self.load_img_dir)])
+        if self.load_strategy == "train":
+            id = self.dataframe.index.tolist()
+        elif self.load_strategy == "test" or self.load_strategy == "predict":
+            id = file - set(self.dataframe.index.tolist())
+        else:
+            raise ValueError("the argument [load_strategy] recieved an undefined value: [{}], which is not one of 'train', 'test', 'predict'".format(load_strategy))
         id = list(id)
         self.id_len = int(len(id) * config.TRAIN_DATA_PERCENT)
         self.id = id[:self.id_len]
@@ -200,6 +211,15 @@ class HPAData(data.Dataset):
         self.indices = list(range(self.id_len))
         self.indices_to_id = dict(zip(self.indices, self.id))
         self.id_to_indices = {v: k for k, v in self.indices_to_id.items()}
+
+        if self.writer:
+            data_dict = np.bincount(self.labelframe)
+            F = plt.figure()
+            fig, axs = plt.subplots(1, 1, figsize=(1, 1), sharey='all')
+            axs[0].bar(list(range(len(data_dict))), data_dict)
+            plt.title('Histogram of All Data')
+            plt.grid(False)
+            tensorboardwriter.write_data_distribution(self.writer, F, 0, unique=True)
 
         print("""
             Load Dir:       {}
@@ -222,20 +242,31 @@ class HPAData(data.Dataset):
 
         mskf = MultilabelStratifiedKFold(n_splits=fold, random_state=None)
         folded_samplers = dict()
-        for i, (train_index, test_index) in enumerate(mskf.split(X, y)):
-            print("#{} TRAIN: {}, TEST: {}".format(i, train_index, test_index))
-            x_t = np.array([X[j] for j in train_index])
-            # y_t = np.array([y[j] for j in train_index])
-            x_e = np.array([X[j] for j in test_index])
-            # y_e = np.array([y[j] for j in test_index])
-            folded_samplers[i] = dict()
-            folded_samplers[i]["train"] = SubsetRandomSampler(x_t)
+        for fold, (train_index, test_index) in enumerate(mskf.split(X, y)):
+            print("#{} TRAIN: {}, TEST: {}".format(fold, train_index, test_index))
+            x_t = train_index
+            y_t = np.array([y[j] for j in train_index])
+            x_e = test_index
+            y_e = np.array([y[j] for j in test_index])
+            folded_samplers[fold] = dict()
+            folded_samplers[fold]["train"] = SubsetRandomSampler(x_t)
 
             # a = int(len(x_t)/config.MODEL_BATCH_SIZE)
             # b = 1-config.MODEL_BATCH_SIZE/x_t.shape[0]
             # c = MultilabelStratifiedShuffleSplit(int(a), test_size=b, random_state=None).split(x_t, y_t)
-            # folded_samplers[i]['train'] = iter(c[0])
-            folded_samplers[i]["val"] = SubsetRandomSampler(x_e)  # y[test_index]
+            # folded_samplers[fold]['train'] = iter(c[0])
+            folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)  # y[test_index]
+            if self.writer:
+                y_t_dict = np.bincount(y_t)
+                y_e_dict = np.bincount(y_e)
+                F = plt.figure()
+                fig, axs = plt.subplots(1, 2, figsize=(4, 2), sharey='all')
+                axs[0].bar(list(range(len(y_t_dict))), y_t_dict)
+                axs[1].bar(list(range(len(y_e_dict))), y_e_dict)
+                plt.title('Histogram of Train and Eval data')
+                plt.grid(False)
+                tensorboardwriter.write_data_distribution(self.writer, F, fold)
+            # gc.collect()
         return folded_samplers
 
     def get_fold_samplers(self, fold=-1):
@@ -265,7 +296,7 @@ class HPAData(data.Dataset):
         """
 
         :param indice:
-        :return: id, one hot encoded label, nparray image of (r, g, b, y) from 0~255 (['red', 'green', 'blue', 'yellow']) (3, W, H)
+        :return: id, one hot encoded label, nparray image of (r, g, b, y) from 0~255 (['red', 'green', 'blue', 'yellow']) (4, W, H)
         """
         return (self.indices_to_id[indice], self.get_load_image_by_indice(indice), self.get_load_label_by_indice(indice))
 
@@ -273,15 +304,16 @@ class HPAData(data.Dataset):
         """
 
         :param indice: id
-        :return: nparray image of (r, g, b, y) from 0~255 (['red', 'green', 'blue', 'yellow']) (3, W, H)
+        :return: nparray image of (r, g, b, y) from 0~255 (['red', 'green', 'blue', 'yellow']) (4, W, H)
         """
         id = self.indices_to_id[indice]
         return self.get_load_image_by_id(id)
+
     def get_load_image_by_id(self, id):
         """
 
         :param indice: id
-        :return: nparray image of (r, g, b, y) from 0~255 (['red', 'green', 'blue', 'yellow']) (3, W, H)
+        :return: nparray image of (r, g, b, y) from 0~255 (['red', 'green', 'blue', 'yellow']) (4, W, H)
         """
         dir = self.load_img_dir
 
@@ -292,14 +324,16 @@ class HPAData(data.Dataset):
         flags = cv2.IMREAD_GRAYSCALE
         imgs = [cv2.imread(os.path.join(dir, id + '_' + color + self.img_suffix), flags).astype(np.uint8) for color in colors]
         return np.stack(imgs, axis=-1)
+
     def get_load_label_by_indice(self, indice):
         """
 
         :param indice: id
         :return: one hot encoded label
         """
-        if len(self.labelframe)-1 < indice: return None
+        if len(self.labelframe) - 1 < indice: return None
         return np.float32(self.labelframe[indice])
+
     def get_load_label_by_id(self, id):
         """
 
@@ -307,6 +341,7 @@ class HPAData(data.Dataset):
         :return: one hot encoded label
         """
         return np.float32(self.labelframe[self.id_to_indices[id]])
+
 
 class TrainImgAugTransform:
     def __init__(self):
@@ -326,6 +361,7 @@ class TrainImgAugTransform:
     def to_deterministic(self, n=None):
         self.aug = self.aug.to_deterministic(n)
         return self
+
 
 class PredictImgAugTransform:
     def __init__(self):

@@ -152,6 +152,7 @@ download: RedstoneTorch/model/2018-11-13-18-29-22-424660-normal4/two-CP52.pth-0.
 download: RedstoneTorch/model/2018-11-13-18-29-22-424660-normal4/two-CP52.pth-0.42-F0-T0.5.csv
 =
 python train.py --projecttag normal4 --versiontag three --resume True --loadfile two-CP52.pth --loaddir 2018-11-13-18-29-22-424660-normal4
+python train.py --projecttag normal4 --versiontag four --resume True --loadfile three-CP56.pth --loaddir 2018-11-13-18-29-22-424660-normal4
 
 ```
 

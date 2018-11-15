@@ -35,13 +35,14 @@ class HPAProject:
     """"."""
 
     """URGENT"""
-    # TODO: stratisfy and weight batch
-    # TODO: visualize prediction and train of each class
+    # TODO: Brian: I do a random dropout on the high labels, removing 60% of the values 0 and 25.
+    # TODO: I tried focal loss + soft F1 and focal loss - log(soft F1). Initially the convergence is faster, but later on I ended up with about the same result. Though, I didn't train the model for a long time, just ~6 hours., I get the same result by focal loss + soft F1. Accelerates convergence from 130 epochs to 30., You can check this https://www.kaggle.com/rejpalcz/best-loss-function-for-f1-score-metric
+    # TODO: bigger img method: https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/71179#419005
+    # TODO: https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/71179#419005
     # TODO: (https://zhuanlan.zhihu.com/p/22252270)Yes, using SGD with cosine annealing schedule. Also used Adadelta to start training, Padam for mid training, and SGD at the end. Then I freeze parts of the model and train the other layers. My current leading model is 2.3M params. Performs great locally, but public LB is 45% lower. (https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69462#412909)
     # TODO: adjust lr  set base lr to 1/3 or 1/4 of max lr.
     # TODO: LB probing for threshold adjust
     # TODO: My top model on 512x512x3 is similar to gap net. It is a convnet encoder + one gap at the end + dense layers + sigmoid. I've trained it for hundreds of epochs at least. (https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69955)
-    # TODO: make sure all lose input are correct
     # TODO: remove 6f062840-bba9-11e8-b2ba-ac1f6b6435d0 from dataset since channel shifted
 
     """SCHEDULE"""
@@ -50,9 +51,7 @@ class HPAProject:
     # TODO: LB probing threshold is better or fold best threshold is better? test it in CV and !
 
     """"TODO"""
-    # TODO: Ask your biology teacher about yellow channel
     # TODO: cosine (https://github.com/SeuTao/Kaggle_TGS2018_4th_solution/blob/master/loss/cyclic_lr.py) change to AdamW
-    # TODO: try set f1 to 0 when 0/0; (7 missing classes in LB) / (28 total classes) = 0.25, and if the organizer is interpreting 0/0 as 0
     # TODO: try to process RBY first, and then concat Green layer
     # TODO: Zero padding in augmentation
     # TODO: Better augmentation
@@ -63,9 +62,8 @@ class HPAProject:
     # TODO: attention Residual Attention Network for Image Classification - Fei Wang, cvpr 2017 https://arxiv.org/abs/1704.06904 https://www.youtube.com/watch?v=Deq1BGTHIPA, https://blog.csdn.net/wspba/article/details/73727469
     # TODO: train on 1028*1028 image
     # TODO: visualization: https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/70173
-    # TODO: try a better GPU
     # TODO: train using predicted label
-    # TODO: Distribute Train and Validation by label
+    # TODO: reproducability https://docs.nvidia.com/deeplearning/sdk/cudnn-developer-guide/index.html#reproducibility
 
     """"TESTINGS"""
     # TODO: fix display image (color and tag)
@@ -102,6 +100,13 @@ class HPAProject:
 
     """FINISHED"""
 
+    # TODO: make sure all lose input are correct
+    # TODO: visualize prediction and train of each class
+    # TODO: stratisfy and weight batch
+    # TODO: Distribute Train and Validation by label
+    # TODO: try set f1 to 0 when 0/0; (7 missing classes in LB) / (28 total classes) = 0.25, and if the organizer is interpreting 0/0 as 0
+    # TODO: Ask your biology teacher about yellow channel
+    # TODO: try a better GPU
     # TODO: fix image display or augmentation
     # TODO: normalize and stratisfy training data into folds
     # TODO: Data pre processing - try normalize data mean and std (https://discuss.pytorch.org/t/normalization-in-the-mnist-example/457/18) Save as ".npy" with dtype = "uint8". Before augmentation, convert back to float32 and normalize them with dataset mean/std.
@@ -132,7 +137,7 @@ class HPAProject:
         load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[0], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
-        self.dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_PREPROCESSED_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="train", load_preprocessed_dir=True)
+        self.dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_PREPROCESSED_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="train", load_preprocessed_dir=True, writer=self.writer)
         self.folded_samplers = self.dataset.get_stratified_samplers(fold=config.MODEL_FOLD)
 
         self.run()
@@ -158,7 +163,6 @@ class HPAProject:
                 #     del ids, image, labels_0, image_for_display, predict, encoded
                 #     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
                 # # TODO: end temperary code
-
 
                 self.step_epoch(nets=self.nets,
                                 optimizers=self.optimizers,
@@ -245,13 +249,13 @@ class HPAProject:
             best_threshold = 0.0
             best_val = 0.0
 
-            best_threshold_dict = dict()
-            best_val_dict = list(range(28))
+            best_threshold_dict = np.zeros(28)
+            best_val_dict = np.zeros(28)
 
             pbar = tqdm(config.EVAL_TRY_THRESHOLD)
             for threshold in pbar:
                 score = f1_macro(evaluation.epoch_pred, evaluation.epoch_label, thresh=threshold).mean()
-                tensorboardwriter.write_threshold(self.writer, {"Fold/{}".format(config.fold): score}, threshold*1000.0, classes="ALL")
+                tensorboardwriter.write_threshold(self.writer, {"Fold/{}".format(config.fold): score}, threshold * 1000.0, classes="ALL")
                 if score > best_val:
                     best_threshold = threshold
                     best_val = score
@@ -288,7 +292,7 @@ class HPAProject:
         print("Set Model Trainning mode to trainning=[{}]".format(net.train().training))
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
             """UPDATE LR"""
-            if config.global_steps[fold] == 2 * 46808 / 32 -1: print("Perfect Place to Stop")
+            if config.global_steps[fold] == 2 * 46808 / 32 - 1: print("Perfect Place to Stop")
             optimizer.state['lr'] = config.TRAIN_TRY_LR_FORMULA(config.global_steps[fold]) if config.TRAIN_TRY_LR else config.TRAIN_COSINE(config.global_steps[fold])
 
             """TRAIN NET"""
@@ -302,7 +306,7 @@ class HPAProject:
             focal = FocalLoss_Sigmoid(alpha=0.25, gamma=4, eps=1e-7)(labels_0, predict)
             f1, precise, recall = Differenciable_F1(beta=1)(labels_0, predict)
             bce = BCELoss()(torch.sigmoid(predict), labels_0)
-            weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(torch.sigmoid(predict), labels_0)
+            weighted_bce = BCELoss(weight=torch.Tensor([1801.5 / 12885, 1801.5 / 1254, 1801.5 / 3621, 1801.5 / 1561, 1801.5 / 1858, 1801.5 / 2513, 1801.5 / 1008, 1801.5 / 2822, 1801.5 / 53, 1801.5 / 45, 1801.5 / 28, 1801.5 / 1093, 1801.5 / 688, 1801.5 / 537, 1801.5 / 1066, 1801.5 / 21, 1801.5 / 530, 1801.5 / 210, 1801.5 / 902, 1801.5 / 1482, 1801.5 / 172, 1801.5 / 3777, 1801.5 / 802, 1801.5 / 2965, 1801.5 / 322, 1801.5 / 8228, 1801.5 / 328, 1801.5 / 11]).cuda())(torch.sigmoid(predict), labels_0)
             loss = f1 + bce.sum()
             """BACKPROP"""
             optimizer.zero_grad()
@@ -329,7 +333,7 @@ class HPAProject:
             """DISPLAY"""
             left = self.dataset.multilabel_binarizer.inverse_transform((np.expand_dims((np.array(labels_0).sum(0) < 1).astype(np.byte), axis=0)))[0]
             label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
-            pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(predict>0.5)[0])
+            pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(predict > 0.5)[0])
             tensorboardwriter.write_memory(self.writer, "train")
             pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, left))
             # pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.state['lr'], weighted_bce, bce))
@@ -467,7 +471,7 @@ class HPAEvaluation:
 
             """DISPLAY"""
             tensorboardwriter.write_memory(self.writer, "train")
-            if config.DISPLAY_VISUALIZATION and batch_index < 5*32/config.MODEL_BATCH_SIZE: self.display(config.fold, ids, image, image_for_display, labels_0, predict, focal)
+            if config.DISPLAY_VISUALIZATION and batch_index < 5 * 32 / config.MODEL_BATCH_SIZE: self.display(config.fold, ids, image, image_for_display, labels_0, predict, focal)
 
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display
@@ -622,7 +626,6 @@ class HPAPrediction:
                         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
                 """TURNING THRESHOLD"""
 
-
                 """ORGANIZE"""
                 f1 = pd.read_csv(config.DIRECTORY_SAMPLE_CSV)
                 f1.drop('Predicted', axis=1, inplace=True)
@@ -633,8 +636,9 @@ class HPAPrediction:
 
 
 class HPAPreprocess:
-    def __init__(self, calculate=False):
-        self.calculate = calculate # 6item/s when turn off calculation, 6item/s when turn on, 85item/s when loaded in memory (80 save + 85to_np = 6 load)
+    def __init__(self, calculate=False, expected_img_size=(4, 512, 512)):
+        self.expected_img_size = expected_img_size
+        self.calculate = calculate  # 6item/s when turn off calculation, 6item/s when turn on, 85item/s when loaded in memory (80 save + 85to_np = 6 load)
         if not os.path.exists(config.DIRECTORY_PREPROCESSED_IMG):
             os.makedirs(config.DIRECTORY_PREPROCESSED_IMG)
         mean, std, std1 = self.run(HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_IMG, img_suffix=".png", load_strategy="train", load_preprocessed_dir=False))
@@ -674,13 +678,15 @@ class HPAPreprocess:
         cheers and thanks, 
         Wolfgang
         """
+
     def get_mean(self, dataset, save=False, overwrite=False):
         pbar = tqdm(dataset.id)
         length = len(pbar)
         sum = [0, 0, 0, 0]
         for id in pbar:
             img = dataset.get_load_image_by_id(id).astype(np.uint8)
-            img_mean = np.stack((img.astype(np.float32).mean(0).mean(0))/255.)
+            if self.expected_img_size != img.size: raise ValueError("Expected image size:{} is not equal to actual image size:{}".format(self.expected_img_size, img.size))
+            img_mean = np.stack((img.astype(np.float32).mean(0).mean(0)) / 255.)
             sum = sum + img_mean
             pbar.set_description("{} Sum:[{:.2f},{:.2f},{:.2f},{:.2f}]".format(id, img_mean[0], img_mean[1], img_mean[2], img_mean[3]))
             if not os.path.exists(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy") and save and overwrite:
@@ -691,22 +697,25 @@ class HPAPreprocess:
         mean = sum / length
         print("     Mean = {}".format(mean))
         return mean
+
     def get_std(self, dataset, mean):
         pbar = tqdm(dataset.id)
         length = len(pbar)
         sum_variance = [0, 0, 0, 0]
         for id in pbar:
             img = dataset.get_load_image_by_id(id).astype(np.uint8)
-            img_mean = np.stack((img.astype(np.float32).mean(0).mean(0))/255.)
-            img_variance = (img_mean - mean)**2
+            if self.expected_img_size != img.size: raise ValueError("Expected image size:{} is not equal to actual image size:{}".format(self.expected_img_size, img.size))
+            img_mean = np.stack((img.astype(np.float32).mean(0).mean(0)) / 255.)
+            img_variance = (img_mean - mean) ** 2
             sum_variance = sum_variance + img_variance
 
             pbar.set_description("{} Var:[{:.2f},{:.2f},{:.2f},{:.2f}]".format(id, img_variance[0], img_variance[1], img_variance[2], img_variance[3]))
-        std = (sum_variance/length)**0.5
-        std1 = (sum_variance/(length-1))**0.5
+        std = (sum_variance / length) ** 0.5
+        std1 = (sum_variance / (length - 1)) ** 0.5
         print("     STD  = {}".format(std))
         print("     STD1 = {}".format(std1))
         return mean, std, std1
+
     def normalize(self, dataset, mean, std, save=True, overwrite=False):
         """normalize and save data
         Not recomanded because uint8 can be load faster than float32
@@ -714,7 +723,8 @@ class HPAPreprocess:
         pbar = tqdm(dataset.id)
         length = len(pbar)
         for id in pbar:
-            img = (dataset.get_load_image_by_id(id).astype(np.float32)/225. - mean)/std
+            img = (dataset.get_load_image_by_id(id).astype(np.float32) / 225. - mean) / std
+            if self.expected_img_size != img.size: raise ValueError("Expected image size:{} is not equal to actual image size:{}".format(self.expected_img_size, img.size))
             pbar.set_description("{}".format(id))
             if not os.path.exists(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy") and save and overwrite:
                 np.save(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy", img)
@@ -733,33 +743,31 @@ class HPAPreprocess:
                 pbar.set_description("Pass: {}".format(id))
                 continue
             img = dataset.get_load_image_by_id(id).astype(np.uint8)
+            if self.expected_img_size != img.size: raise ValueError("Expected image size:{} is not equal to actual image size:{}".format(self.expected_img_size, img.size))
             # print(img.shape) # (512, 512, 4)
             if self.calculate:
-                img_mean = np.stack((img.astype(np.float32).mean(0).mean(0))/255.)
+                img_mean = np.stack((img.astype(np.float32).mean(0).mean(0)) / 255.)
                 sum = sum + img_mean
                 pbar.set_description("{} Sum:[{:.2f},{:.2f},{:.2f},{:.2f}]".format(id, img_mean[0], img_mean[1], img_mean[2], img_mean[3]))
 
             if not os.path.exists(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy"): np.save(config.DIRECTORY_PREPROCESSED_IMG + id + ".npy", img)
 
         if self.calculate:
-            mean = sum/length
+            mean = sum / length
             print("     Mean = {}".format(mean))
         if self.calculate:
             pbar = tqdm(dataset.id)
             for id in pbar:
                 img = dataset.get_load_image_by_id(id).astype(np.uint8)
-                img_mean = np.stack((img.astype(np.float32).mean(0).mean(0))/255.)
-                img_variance = (img_mean - mean)**2
+                if self.expected_img_size != img.size: raise ValueError("Expected image size:{} is not equal to actual image size:{}".format(self.expected_img_size, img.size))
+                img_mean = np.stack((img.astype(np.float32).mean(0).mean(0)) / 255.)
+                img_variance = (img_mean - mean) ** 2
                 sum_variance = sum_variance + img_variance
 
                 pbar.set_description("{} Var:[{:.2f},{:.2f},{:.2f},{:.2f}]".format(id, img_variance[0], img_variance[1], img_variance[2], img_variance[3]))
-            std = (sum_variance/length)**0.5
-            std1 = (sum_variance/(length-1))**0.5
+            std = (sum_variance / length) ** 0.5
+            std1 = (sum_variance / (length - 1)) ** 0.5
             print("     STD  = {}".format(std))
             print("     STD1 = {}".format(std1))
             return mean, std, std1
         return 0, 0, 0
-
-
-
-

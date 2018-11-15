@@ -16,6 +16,12 @@ def write_threshold(writer, fold_value_dict, threshold, classes="ALL"):
 def write_best_threshold(writer, threshold, score, epoch, classes="ALL"):
     writer.add_scalars('threshold/best_threshold/{}'.format(str(classes)), {"Threshold":threshold, "Score": score}, epoch)
 
+def write_data_distribution(writer, F, fold, unique=False):
+    if unique:
+        writer.add_figure("data/fold_distribution", F, 0)
+        return
+    writer.add_figure("data/fold_distribution/{}".format(fold), F, 0)
+
 def write_loss_distribution(writer, loss_list, epoch):
     writer.add_histogram("eval/loss_distribution", loss_list, epoch)
 
@@ -26,10 +32,10 @@ def write_pr_curve(writer, label, predicted, epoch, fold):
     writer.add_pr_curve("eval/pr_curve/{}".format(fold), label, predicted, epoch)
 
 def write_image(writer, msg, F, epoch):
-    writer.add_figure("eval/image/" + msg, F, epoch)
+    writer.add_figure("eval/image/{}".format(msg), F, epoch)
 
 def write_predict_image(writer, msg, F, epoch):
-    writer.add_figure("predict/image/" + msg, F, epoch)
+    writer.add_figure("predict/image/{}".format(msg), F, epoch)
 
 def write_eval_loss(writer, loss_dict, epoch):
     writer.add_scalars('eval/loss_scalar', loss_dict, epoch)
