@@ -203,11 +203,11 @@ class HPAData(data.Dataset):
 
         print("""
             Load Dir:       {}
+            Data Size:      {}/{}
             Data Percent:   {}
-            Data Size:      {}
             Label Size:     {}
             File Size:      {}/{}
-        """.format(self.load_img_dir, config.TRAIN_DATA_PERCENT, self.id_len, len(self.labelframe), len(file), len([x.replace(self.img_suffix, "") for x in os.listdir(self.load_img_dir)])))
+        """.format(self.load_img_dir, self.id_len, len(file), config.TRAIN_DATA_PERCENT, len(self.labelframe), len(file), len([x.replace(self.img_suffix, "") for x in os.listdir(self.load_img_dir)])))
 
     def __len__(self):
         return self.id_len
@@ -298,6 +298,7 @@ class HPAData(data.Dataset):
         :param indice: id
         :return: one hot encoded label
         """
+        if len(self.labelframe)-1 < indice: return None
         return np.float32(self.labelframe[indice])
     def get_load_label_by_id(self, id):
         """

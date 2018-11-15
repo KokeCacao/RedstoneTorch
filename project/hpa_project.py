@@ -10,6 +10,7 @@ from sklearn import metrics
 from torch.nn import BCELoss
 from torch.utils import data
 import torch.nn.functional as F
+from torch.utils.data import SubsetRandomSampler
 from torchvision import datasets, transforms
 from tqdm import tqdm
 from PIL import Image
@@ -142,19 +143,18 @@ class HPAProject:
 
                 # TODO: temperary code
                 # test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_TEST, img_suffix=config.DIRECTORY_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=False)
-                test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_PREPROCESSED_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=True)
-                pbar = tqdm(test_dataset.id)
-                for index, id in enumerate(pbar):
-                    untransfered = test_dataset.get_load_image_by_id(id)
-                    input = transform(ids=None, image_0=untransfered, labels_0=None, train=False, val=False).unsqueeze(0)
+                test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_PREPROCESSED_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="train", load_preprocessed_dir=True)
+                test_loader = data.DataLoader(self.dataset, batch_size=1, sampler=SubsetRandomSampler(test_dataset.indices), shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
+                pbar = tqdm(test_loader)
+                for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
 
-                    if config.TRAIN_GPU_ARG: input = input.cuda()
-                    predict = self.nets[0](input)
+                    if config.TRAIN_GPU_ARG: image = image.cuda()
+                    predict = self.nets[0](image)
                     predict = F.sigmoid(predict).detach().cpu().numpy()
                     encoded = list(test_dataset.multilabel_binarizer.inverse_transform(predict > 0.5)[0])
                     pbar.set_description("Fold:{} Id:{} Out:{} Prob:{}".format(0, id, encoded, predict[0][0]))
 
-                    del id, untransfered, input, predict, encoded
+                    del id, image, labels_0, image_for_display, predict, encoded
                     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
                 # TODO: end temperary code
 
