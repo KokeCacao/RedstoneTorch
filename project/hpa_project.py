@@ -587,7 +587,7 @@ class HPAPrediction:
                     os.remove(pred_path)
                     print("WARNING: delete file '{}'".format(pred_path))
 
-                prob_path = "{}-{}-F{}-T{}.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
+                prob_path = "{}-{}-F{}-T{}-Prob.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
                 if os.path.exists(prob_path):
                     os.remove(prob_path)
                     print("WARNING: delete file '{}'".format(prob_path))

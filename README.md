@@ -155,6 +155,8 @@ python train.py --projecttag normal4 --versiontag three --resume True --loadfile
 python train.py --projecttag normal4 --versiontag four --resume True --loadfile three-CP56.pth --loaddir 2018-11-13-18-29-22-424660-normal4
 //fix display, predict, add f1-gamma5, remove bce
 python predict.py --loaddir 2018-11-13-18-29-22-424660-normal4 --versiontag 0.1942 --loadfile four-CP64.pth
+download: RedstoneTorch/model/2018-11-13-18-29-22-424660-normal4/four-CP64.pth-0.1942-F0-T0.1942.csv
+
 
 
 ```
