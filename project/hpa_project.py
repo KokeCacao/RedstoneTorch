@@ -262,7 +262,7 @@ class HPAProject:
                 pbar.set_description("Threshold: {}; F1: {}".format(threshold, score))
 
                 for c in range(28):
-                    score = ((evaluation.epoch_pred[:][c] > threshold) * evaluation.epoch_label[:][c]).sum()
+                    score = metrics.accuracy_score(evaluation.epoch_label[:][c], (evaluation.epoch_pred[:][c]>threshold))
                     tensorboardwriter.write_threshold(self.writer, c, score, threshold * 1000.0, config.fold)
                     if score > best_val_dict[c]:
                         best_threshold_dict[c] = threshold
