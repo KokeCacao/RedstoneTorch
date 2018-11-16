@@ -153,6 +153,9 @@ download: RedstoneTorch/model/2018-11-13-18-29-22-424660-normal4/two-CP52.pth-0.
 =
 python train.py --projecttag normal4 --versiontag three --resume True --loadfile two-CP52.pth --loaddir 2018-11-13-18-29-22-424660-normal4
 python train.py --projecttag normal4 --versiontag four --resume True --loadfile three-CP56.pth --loaddir 2018-11-13-18-29-22-424660-normal4
+//fix display, predict, add f1-gamma5, remove bce
+python predict.py --loaddir 2018-11-13-18-29-22-424660-normal4 --versiontag 0.1942 --loadfile four-CP64.pth
+
 
 ```
 
