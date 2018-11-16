@@ -594,7 +594,7 @@ class HPAPrediction:
 
                 with open(pred_path, 'a') as pred_file, open(prob_path, 'a') as prob_file:
                     pred_file.write('Id,Predicted\n')
-                    prob_file.write('Id,Predicted\n')
+                    prob_file.write('Id,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27\n')
 
                     test_loader = data.DataLoader(self.test_dataset, batch_size=config.MODEL_BATCH_SIZE, sampler=SubsetRandomSampler(self.test_dataset.indices), shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
                     pbar = tqdm(test_loader)
