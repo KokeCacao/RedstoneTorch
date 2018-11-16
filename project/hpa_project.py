@@ -609,7 +609,7 @@ class HPAPrediction:
 
                         for id, encoded, predict in zip(ids, encodeds, predicts):
                             pred_file.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
-                            prob_file.write('{},{}\n'.format(id, " ".join(str(x) for x in predict)))
+                            prob_file.write('{},{}\n'.format(id, ",".join(str(x) for x in predict)))
                             # figure = plt.figure()
                             #
                             # plt.subplot(121)
