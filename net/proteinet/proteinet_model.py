@@ -76,7 +76,7 @@ pretrained_settings = {
             'input_range': [0, 1],
             'mean': [0.485, 0.456, 0.406],
             'std': [0.229, 0.224, 0.225],
-            'num_classes': 1000
+            'num_classes': 28
         }
     },
 }
@@ -398,11 +398,11 @@ def modified_initialize_pretrained_model(model, num_classes, settings):
     model_state.update(pretrained_state)
     model.load_state_dict(model_state, strict=False)
 
-    model.input_space = settings['input_space']
-    model.input_size = settings['input_size']
-    model.input_range = settings['input_range']
-    model.mean = settings['mean']
-    model.std = settings['std']
+    # model.input_space = settings['input_space']
+    # model.input_size = settings['input_size']
+    # model.input_range = settings['input_range']
+    # model.mean = settings['mean']
+    # model.std = settings['std']
 
 
 def senet154(num_classes=1000, pretrained='imagenet'):

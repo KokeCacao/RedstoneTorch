@@ -151,17 +151,19 @@ python predict.py --loaddir 2018-11-13-18-29-22-424660-normal4 --versiontag 0.42
 download: RedstoneTorch/model/2018-11-13-18-29-22-424660-normal4/two-CP52.pth-0.42-F0-T0.01.csv
 download: RedstoneTorch/model/2018-11-13-18-29-22-424660-normal4/two-CP52.pth-0.42-F0-T0.5.csv
 =
+//fix sigmoid
 python train.py --projecttag normal4 --versiontag three --resume True --loadfile two-CP52.pth --loaddir 2018-11-13-18-29-22-424660-normal4
 python train.py --projecttag normal4 --versiontag four --resume True --loadfile three-CP56.pth --loaddir 2018-11-13-18-29-22-424660-normal4
 //fix display, predict, add f1-gamma5, remove bce
-python predict.py --loaddir 2018-11-13-18-29-22-424660-normal4 --versiontag 0.1942 --loadfile four-CP64.pth
+python predict.py --loaddir 2018-11-13-18-29-22-424660-normal4 --versiontag 0.1942 --loadfile four-CP64.pth (raw threshold)
 download: RedstoneTorch/model/2018-11-13-18-29-22-424660-normal4/four-CP64.pth-0.1942-F0-T0.1942.csv
-python predict.py --loaddir 2018-11-13-18-29-22-424660-normal4 --versiontag 0.2187 --loadfile four-CP64.pth
-download: RedstoneTorch/model/2018-11-13-18-29-22-424660-normal4/four-CP64.pth-0.2187-F0-T0.1942.csv
-python predict.py --loaddir 2018-11-13-18-29-22-424660-normal4 --versiontag 0.2187 --loadfile four-CP55.pth
-download: RedstoneTorch/model/2018-11-13-18-29-22-424660-normal4/four-CP64.pth-0.2187-F0-T0.1942.csv
-
-
+python predict.py --loaddir 2018-11-13-18-29-22-424660-normal4 --versiontag 0.2187 --loadfile four-CP64.pth (smothed threshold)
+download: RedstoneTorch/model/2018-11-13-18-29-22-424660-normal4/four-CP64.pth-0.2187-F0-T0.2187.csv
+python predict.py --loaddir 2018-11-13-18-29-22-424660-normal4 --versiontag 0.2187 --loadfile three-CP55.pth (CP55)
+download: RedstoneTorch/model/2018-11-13-18-29-22-424660-normal4/three-CP55.pth-0.2187-F0-T0.2187.csv
+=
+python train.py --projecttag normal5 --versiontag one --resume False --loadfile two-CP52.pth --loaddir 2018-11-13-18-29-22-424660-normal4
+//change augmentation, change optimzer, output more validatuon loss, image to size 512, batch to 32
 
 ```
 

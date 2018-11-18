@@ -1,23 +1,21 @@
 import itertools
+import operator
 import os
 import sys
 
 import matplotlib as mpl
 import numpy as np
-import torch
 import pandas as pd
+import torch
 from sklearn import metrics
 from torch.nn import BCELoss
 from torch.utils import data
-import torch.nn.functional as F
 from torch.utils.data import SubsetRandomSampler
-from torchvision import datasets, transforms
 from tqdm import tqdm
-from PIL import Image
 
 import config
 import tensorboardwriter
-from dataset.hpa_dataset import HPAData, train_collate, val_collate, transform
+from dataset.hpa_dataset import HPAData, train_collate, val_collate
 from gpu import gpu_profile
 from loss.f1 import f1_macro, Differenciable_F1
 from loss.focal import FocalLoss_Sigmoid
@@ -35,7 +33,9 @@ class HPAProject:
     """"."""
 
     """URGENT"""
-    # TODO: Brian: I do a random dropout on the high labels, removing 60% of the values 0 and 25.
+    # TODO: https://arxiv.org/pdf/1802.10171.pdf supervision
+    # TODO: download data: https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69984
+    # TODO: Brian: I do a random dropout on the high labels, removing 60% of the values 0 and 25. https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/71147#419480
     # TODO: I tried focal loss + soft F1 and focal loss - log(soft F1). Initially the convergence is faster, but later on I ended up with about the same result. Though, I didn't train the model for a long time, just ~6 hours., I get the same result by focal loss + soft F1. Accelerates convergence from 130 epochs to 30., You can check this https://www.kaggle.com/rejpalcz/best-loss-function-for-f1-score-metric
     # TODO: bigger img method: https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/71179#419005
     # TODO: https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/71179#419005
@@ -64,6 +64,14 @@ class HPAProject:
     # TODO: visualization: https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/70173
     # TODO: train using predicted label
     # TODO: reproducability https://docs.nvidia.com/deeplearning/sdk/cudnn-developer-guide/index.html#reproducibility
+
+    """ASSUMPTIONS
+    1. How well can you know a cell's structure by looking at 1 or 2 of 3 images
+    2. Largest class have huge surface area covered?
+    3. The green filter is only the location of ONE protein
+    4. There are 27 cell types, would it be reasonable to assume that the location of a specific protein in [cell-type]-[cell1] is the same as [cell-type]-[cell2]
+    
+    """
 
     """"TESTINGS"""
     # TODO: fix display image (color and tag)
@@ -121,7 +129,7 @@ class HPAProject:
         self.nets = []
         for fold in range(config.MODEL_FOLD):
             if fold not in config.MODEL_TRAIN_FOLD:
-                print("     Jumping Fold: #{}".format(fold))
+                print("     Skipping Fold: #{}".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))
                 net = se_resnext101_32x4d_modified(num_classes=config.TRAIN_NUMCLASS, pretrained='imagenet')
@@ -214,6 +222,11 @@ class HPAProject:
 
         evaluation = HPAEvaluation(self.writer, self.dataset.multilabel_binarizer)
         for fold, (net, optimizer) in enumerate(zip(nets, optimizers)):
+            """Switch Optimizers"""
+            if config.epoch == 50:
+                optimizer = torch.optim.SGD(net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, dampening=0, weight_decay=config.MODEL_WEIGHT_DEFAY, nesterov=False)
+                tensorboardwriter.write_text(self.writer, "Switch to torch.optim.SGD, weight_decay={}, momentum={}".format(config.MODEL_WEIGHT_DEFAY, config.MODEL_MOMENTUM), config.global_steps[fold])
+
             self.step_fold(fold, net, optimizer, batch_size)
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             val_loss, val_f1 = evaluation.eval_fold(net, data.DataLoader(self.dataset, batch_size=batch_size, sampler=self.folded_samplers[config.fold]["val"], shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=val_collate))
@@ -233,15 +246,19 @@ class HPAProject:
             tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, fold=fold)
             tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
 
-        for l in range(28):
-            # TODO: per-class evaluation
-            pass
-
         """LOSS"""
         f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
         f1_2 = metrics.f1_score((evaluation.epoch_label > 0.5).astype(np.byte), (evaluation.epoch_pred > 0.5).astype(np.byte), average='macro')  # sklearn does not automatically import matrics.
-        print("F1 by sklearn = {}".format(f1_2))
-        tensorboardwriter.write_epoch_loss(self.writer, {"EvalF1": f1, "Sklearn": f1_2}, config.epoch)
+        f1_dict = dict(("Class-{}".format(i), x) for i, x in enumerate(metrics.f1_score((evaluation.epoch_label > 0.5).astype(np.byte), (evaluation.epoch_pred > 0.5).astype(np.byte), average=None)))
+        f1_dict.update({"EvalF1": f1, "Sklearn": f1_2})
+        max_names = max(f1_dict.items(), key=operator.itemgetter(1))
+        min_names = min(f1_dict.items(), key=operator.itemgetter(1))
+        print("""
+            F1 by sklearn = {}
+            Max = {}, socre = {}
+            Min = {}, score = {}
+        """.format(f1_2, max_names, f1_dict[max_names[0]], min_names, f1_dict[min_names[0]]))
+        tensorboardwriter.write_epoch_loss(self.writer, f1_dict, config.epoch)
         tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
 
         """THRESHOLD"""
@@ -262,7 +279,7 @@ class HPAProject:
                 pbar.set_description("Threshold: {}; F1: {}".format(threshold, score))
 
                 for c in range(28):
-                    score = metrics.f1_score(evaluation.epoch_label[:][c], (evaluation.epoch_pred[:][c]>threshold))
+                    score = metrics.f1_score(evaluation.epoch_label[:][c], (evaluation.epoch_pred[:][c] > threshold))
                     tensorboardwriter.write_threshold(self.writer, c, score, threshold * 1000.0, config.fold)
                     if score > best_val_dict[c]:
                         best_threshold_dict[c] = threshold
@@ -291,6 +308,7 @@ class HPAProject:
 
         print("Set Model Trainning mode to trainning=[{}]".format(net.train().training))
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+
             """UPDATE LR"""
             if config.global_steps[fold] == 2 * 46808 / 32 - 1: print("Perfect Place to Stop")
             optimizer.state['lr'] = config.TRAIN_TRY_LR_FORMULA(config.global_steps[fold]) if config.TRAIN_TRY_LR else config.TRAIN_COSINE(config.global_steps[fold])
@@ -300,6 +318,7 @@ class HPAProject:
             if config.TRAIN_GPU_ARG:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
+            import pdb; pdb.set_trace()
             predict = net(image)
 
             """LOSS"""
@@ -307,7 +326,8 @@ class HPAProject:
             f1, precise, recall = Differenciable_F1(beta=1)(labels_0, predict)
             bce = BCELoss()(torch.sigmoid(predict), labels_0)
             weighted_bce = BCELoss(weight=torch.Tensor([1801.5 / 12885, 1801.5 / 1254, 1801.5 / 3621, 1801.5 / 1561, 1801.5 / 1858, 1801.5 / 2513, 1801.5 / 1008, 1801.5 / 2822, 1801.5 / 53, 1801.5 / 45, 1801.5 / 28, 1801.5 / 1093, 1801.5 / 688, 1801.5 / 537, 1801.5 / 1066, 1801.5 / 21, 1801.5 / 530, 1801.5 / 210, 1801.5 / 902, 1801.5 / 1482, 1801.5 / 172, 1801.5 / 3777, 1801.5 / 802, 1801.5 / 2965, 1801.5 / 322, 1801.5 / 8228, 1801.5 / 328, 1801.5 / 11]).cuda())(torch.sigmoid(predict), labels_0)
-            loss = f1 + focal.sum()
+            loss = focal.sum() if config.epoch < 10 else loss = f1
+            if config.epoch == 10: tensorboardwriter.write_text(self.writer, "Switch to f1", config.global_steps[fold])
             """BACKPROP"""
             optimizer.zero_grad()
             loss.backward()
@@ -408,7 +428,7 @@ class HPAEvaluation:
         return self
 
     def eval_fold(self, net, validation_loader):
-        fold_loss_dict = dict()
+        id_loss_dict = dict()
         predict_total = None
         label_total = None
 
@@ -455,23 +475,23 @@ class HPAEvaluation:
             # pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(int(config.global_steps[fold]), label, pred, left))
             pbar.set_description("Focal:{} F1:{}".format(focal.mean(), f1.mean()))
             if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(focal.flatten())
-            for id, loss_item in zip(ids, focal.flatten()): fold_loss_dict[id] = loss_item
+            for id, loss_item in zip(ids, focal.flatten()): id_loss_dict[id] = loss_item
             predict_total = np.concatenate((predict_total, predict), axis=0) if predict_total is not None else predict
             label_total = np.concatenate((label_total, labels_0), axis=0) if label_total is not None else labels_0
 
             """EVALUATE LOSS"""
-            min_loss = min(fold_loss_dict.values())
-            min_key = min(fold_loss_dict, key=fold_loss_dict.get)
+            min_loss = min(id_loss_dict.values())
+            min_key = min(id_loss_dict, key=id_loss_dict.get)
             np.append(self.best_loss, min_loss)
             np.append(self.best_id, min_key)
-            max_loss = max(fold_loss_dict.values())
-            max_key = max(fold_loss_dict, key=fold_loss_dict.get)
+            max_loss = max(id_loss_dict.values())
+            max_key = max(id_loss_dict, key=id_loss_dict.get)
             np.append(self.worst_loss, max_loss)
             np.append(self.worst_id, max_key)
 
             """DISPLAY"""
             tensorboardwriter.write_memory(self.writer, "train")
-            if config.DISPLAY_VISUALIZATION and batch_index < 5 * 32 / config.MODEL_BATCH_SIZE: self.display(config.fold, ids, image, image_for_display, labels_0, predict, focal)
+            if config.DISPLAY_VISUALIZATION and batch_index < 2 * config.MODEL_BATCH_SIZE / 32: self.display(config.fold, ids, image, image_for_display, labels_0, predict, focal)
 
             """CLEAN UP"""
             del ids, image, labels_0, image_for_display
@@ -481,17 +501,17 @@ class HPAEvaluation:
         del pbar
         """LOSS"""
         f1 = f1_macro(predict_total, label_total).mean()
-        tensorboardwriter.write_eval_loss(self.writer, {"FoldFocal/{}".format(config.fold): np.array(fold_loss_dict.values()).mean(), "FoldF1/{}".format(config.fold): f1}, config.epoch)
+        tensorboardwriter.write_eval_loss(self.writer, {"FoldFocal/{}".format(config.fold): np.array(id_loss_dict.values()).mean(), "FoldF1/{}".format(config.fold): f1}, config.epoch)
         tensorboardwriter.write_pr_curve(self.writer, label_total, predict_total, config.epoch, config.fold)
         self.epoch_pred = np.concatenate((self.epoch_pred, predict_total), axis=0) if self.epoch_pred is not None else predict_total
         self.epoch_label = np.concatenate((self.epoch_label, label_total), axis=0) if self.epoch_label is not None else label_total
         del predict_total, label_total
 
-        # self.epoch_dict = np.concatenate((self.epoch_dict, [fold_loss_dict]), axis=0)
+        # self.epoch_dict = np.concatenate((self.epoch_dict, [id_loss_dict]), axis=0)
 
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-        mean_loss = np.array(fold_loss_dict.values()).mean()
-        del fold_loss_dict
+        mean_loss = np.array(id_loss_dict.values()).mean()
+        del id_loss_dict
         self.mean_losses.append(mean_loss)
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
         return mean_loss, f1

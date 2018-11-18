@@ -2,6 +2,7 @@ import collections
 import os
 import re
 
+import imgaug
 import matplotlib as mpl
 import torch
 import cv2
@@ -214,7 +215,7 @@ class HPAData(data.Dataset):
 
         # if self.writer:
         #
-        #     data_dict = np.bincount(self.dataframe['Target'])
+        #     data_dict = np.bincount(self.dataframe['Target'].tolist())
         #     F = plt.figure()
         #     plt.bar(list(range(len(data_dict))), data_dict)
         #     plt.title('Histogram of All Data')
@@ -343,16 +344,54 @@ class HPAData(data.Dataset):
         """
         return np.float32(self.labelframe[self.id_to_indices[id]])
 
-
 class TrainImgAugTransform:
+    """
+    Dont crop: not every cell has perfect data, some lose some class if you crop it
+    You can mess up with location info: they are not that important
+    Dont twist too much green data: their structure is important
+    You can think of this challenge as
+    Add Negative Sample: no green layer should have no sample
+    Wrap is bad
+    Green layer's Sharpon should be carefully designed. It should adjust with other paremeters.
+    Dropout need to tested by network
+    iaa.ContrastNormalization((x, x)) Will change background and amount of green. be careful.
+
+    """
     def __init__(self):
         self.aug = iaa.Sequential([
-            iaa.Scale({"height": config.AUGMENTATION_RESIZE, "width": config.AUGMENTATION_RESIZE}),
+            iaa.CropAndPad(percent=(0, 0.1), pad_mode=["constant", "reflect"], pad_cval=0),
+            iaa.OneOf([
+                iaa.Noop(),
+                iaa.PiecewiseAffine(scale=(0.00, 0.02), nb_rows=4, nb_cols=4, mode=["constant", "reflect", "wrap"], cval=0),
+                iaa.Affine(rotate=(-10, 10), mode=["constant", "reflect"], cval=0),
+                iaa.Affine(shear=(-10, 10), mode=["constant", "reflect"], cval=0),
+            ]),
+            iaa.PiecewiseAffine(scale=(0.00, 0.05), nb_rows=4, nb_cols=4, mode=["constant", "reflect", "wrap"], cval=0),
+            iaa.ContrastNormalization((1.0, 1.01)),
+            iaa.Scale({"height": config.AUGMENTATION_RESIZE, "width": config.AUGMENTATION_RESIZE}, interpolation=['nearest', 'linear', 'area', 'cubic']),
+            iaa.WithChannels([0,2,3], iaa.Sequential([
+                iaa.OneOf([
+                    iaa.Noop(),
+                    iaa.EdgeDetect(alpha=(0.0, 0.1)),
+                    iaa.Multiply((0.8, 1.3), per_channel=1.0),
+                    iaa.ContrastNormalization((0.95, 1.05))
+                ]),
+                iaa.OneOf(
+                    iaa.CoarseDropout((0.0, 0.02), size_percent=(0.005, 0.005), per_channel=1.0),
+                ),
+                iaa.Sharpen(alpha=(0.0, 0.25), lightness=(0.0, 0.45)),
+                ])),
+            iaa.WithChannels([1], iaa.Sequential([
+                iaa.OneOf([
+                    iaa.Noop(),
+                    iaa.Multiply((1.0, 1.15)),
+                    iaa.ContrastNormalization((1.0, 1.01)),
+                ]),
+                iaa.Sharpen(alpha=(0.24, 0.26), lightness=(0.44, 0.46)),
+            ])),
             iaa.Fliplr(0.5),
             iaa.Flipud(0.5),
-            iaa.OneOf([iaa.Noop(), iaa.Add((-40, 40)), iaa.EdgeDetect(alpha=(0.0, 0.1)), iaa.Multiply((0.95, 1.05))], iaa.ContrastNormalization((0.95, 1.05))),
-            iaa.OneOf([iaa.Noop(), iaa.PiecewiseAffine(scale=(0.00, 0.02)), iaa.Affine(rotate=(-10, 10)), iaa.Affine(shear=(-10, 10))]),
-            iaa.CropAndPad(percent=(-0.12, 0)),
+
         ], random_order=False)
 
     def __call__(self, img):
@@ -363,6 +402,51 @@ class TrainImgAugTransform:
         self.aug = self.aug.to_deterministic(n)
         return self
 
+class AggressiveTrainImgAugTransform:
+    def __init__(self):
+        self.aug = iaa.Sequential([
+            iaa.CropAndPad(percent=(0, 0.1), pad_mode=["constant", "reflect"], pad_cval=0),
+            iaa.OneOf([
+                iaa.Noop(),
+                iaa.PiecewiseAffine(scale=(0.00, 0.02), nb_rows=4, nb_cols=4, mode=["constant", "reflect", "wrap"], cval=0),
+                iaa.Affine(rotate=(-10, 10), mode=["constant", "reflect"], cval=0),
+                iaa.Affine(shear=(-10, 10), mode=["constant", "reflect"], cval=0),
+            ]),
+            iaa.PiecewiseAffine(scale=(0.00, 0.05), nb_rows=4, nb_cols=4, mode=["constant", "reflect", "wrap"], cval=0),
+            iaa.ContrastNormalization((1.0, 1.01)),
+            iaa.Scale({"height": config.AUGMENTATION_RESIZE, "width": config.AUGMENTATION_RESIZE}, interpolation=['nearest', 'linear', 'area', 'cubic']),
+            iaa.WithChannels([0,2,3], iaa.Sequential([
+                iaa.OneOf([
+                    iaa.Noop(),
+                    iaa.EdgeDetect(alpha=(0.0, 0.1)),
+                    iaa.Multiply((0.2, 1.3), per_channel=1.0),
+                    iaa.ContrastNormalization((0.95, 1.05))
+                ]),
+                iaa.OneOf(
+                    iaa.CoarseDropout((0.0, 0.02), size_percent=(0.005, 0.005), per_channel=1.0),
+                ),
+                iaa.Sharpen(alpha=(0.0, 0.25), lightness=(0.0, 0.45)),
+                ])),
+            iaa.WithChannels([1], iaa.Sequential([
+                iaa.OneOf([
+                    iaa.Noop(),
+                    iaa.Multiply((1.0, 1.15)),
+                    iaa.ContrastNormalization((1.0, 1.01)),
+                ]),
+                iaa.Sharpen(alpha=(0.24, 0.26), lightness=(0.44, 0.46)),
+            ])),
+            iaa.Fliplr(0.5),
+            iaa.Flipud(0.5),
+
+        ], random_order=False)
+
+    def __call__(self, img):
+        img = np.array(img)
+        return self.aug.augment_image(img)
+
+    def to_deterministic(self, n=None):
+        self.aug = self.aug.to_deterministic(n)
+        return self
 
 class PredictImgAugTransform:
     def __init__(self):
@@ -385,8 +469,6 @@ class TestImgAugTransform:
             iaa.Scale({"height": config.AUGMENTATION_RESIZE, "width": config.AUGMENTATION_RESIZE}),
             iaa.Fliplr(0.5),
             iaa.Flipud(0.5),
-            iaa.OneOf([iaa.Noop(), iaa.Add((-20, 20)), iaa.EdgeDetect(alpha=(0.0, 0.1)), iaa.Multiply((0.98, 1.02))], iaa.ContrastNormalization((0.99, 1.01))),
-            iaa.OneOf([iaa.Noop(), iaa.PiecewiseAffine(scale=(0.00, 0.01)), iaa.Affine(rotate=(-5, 5)), iaa.Affine(shear=(-5, 5))]),
             iaa.CropAndPad(percent=(-0.06, 0)),
         ], random_order=False)
 
@@ -488,7 +570,7 @@ def transform(ids, image_0, labels_0, train, val):
         image = TRAIN_TRANSFORM(image_0)
         return (ids, image, labels_0, transforms.ToTensor()(image_0))
     elif not train and val:
-        image_aug_transform = TestImgAugTransform().to_deterministic()
+        image_aug_transform = TrainImgAugTransform().to_deterministic()
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             image_aug_transform,
             transforms.ToTensor(),
