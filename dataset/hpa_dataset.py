@@ -567,7 +567,7 @@ def transform(ids, image_0, labels_0, train, val):
             # Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[1, 1, 1, 1]),
             Normalize(mean=[0.07459783, 0.05063238, 0.05089102, 0.07628681], std=[1, 1, 1, 1]),
         ])
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         print(image_0.shape)
         image = TRAIN_TRANSFORM(image_0)
         return (ids, image, labels_0, transforms.ToTensor()(image_0))
