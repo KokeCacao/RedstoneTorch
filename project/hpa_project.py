@@ -318,7 +318,6 @@ class HPAProject:
             if config.TRAIN_GPU_ARG:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
-            import pdb; pdb.set_trace()
             predict = net(image)
 
             """LOSS"""
