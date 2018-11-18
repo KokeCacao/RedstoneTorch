@@ -396,7 +396,6 @@ class TrainImgAugTransform:
 
     def __call__(self, img):
         img = np.array(img)
-        print(img)
         return self.aug.augment_image(img)
 
     def to_deterministic(self, n=None):
@@ -548,7 +547,7 @@ def transform(ids, image_0, labels_0, train, val):
         image_aug_transform = PredictImgAugTransform().to_deterministic()
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             image_aug_transform,
-            lambda x: np.clip(x, a_min=0, a_max=1),
+            lambda x: np.clip(x, a_min=0, a_max=255),
             transforms.ToTensor(),
             # Normalize(mean=[0.05908022413399168, 0.04532851916280794, 0.040652325092460015, 0.05923425759572161], std=[1, 1, 1, 1]),
             Normalize(mean=[0.07459783, 0.05063238, 0.05089102, 0.07628681], std=[1, 1, 1, 1]),
@@ -565,7 +564,7 @@ def transform(ids, image_0, labels_0, train, val):
         image_aug_transform = TrainImgAugTransform().to_deterministic()
         TRAIN_TRANSFORM = transforms.Compose([
             image_aug_transform,
-            lambda x: np.clip(x, a_min=0, a_max=1),
+            lambda x: np.clip(x, a_min=0, a_max=255),
             transforms.ToTensor(),
             # Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[1, 1, 1, 1]),
             Normalize(mean=[0.07459783, 0.05063238, 0.05089102, 0.07628681], std=[1, 1, 1, 1]),
@@ -577,7 +576,7 @@ def transform(ids, image_0, labels_0, train, val):
         image_aug_transform = TrainImgAugTransform().to_deterministic()
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             image_aug_transform,
-            lambda x: np.clip(x, a_min=0, a_max=1),
+            lambda x: np.clip(x, a_min=0, a_max=255),
             transforms.ToTensor(),
             # Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[1, 1, 1, 1]),
             Normalize(mean=[0.07459783, 0.05063238, 0.05089102, 0.07628681], std=[1, 1, 1, 1]),
