@@ -547,6 +547,7 @@ def transform(ids, image_0, labels_0, train, val):
         image_aug_transform = PredictImgAugTransform().to_deterministic()
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             image_aug_transform,
+            lambda x: np.clip(x, a_min=0),
             transforms.ToTensor(),
             # Normalize(mean=[0.05908022413399168, 0.04532851916280794, 0.040652325092460015, 0.05923425759572161], std=[1, 1, 1, 1]),
             Normalize(mean=[0.07459783, 0.05063238, 0.05089102, 0.07628681], std=[1, 1, 1, 1]),
@@ -563,18 +564,19 @@ def transform(ids, image_0, labels_0, train, val):
         image_aug_transform = TrainImgAugTransform().to_deterministic()
         TRAIN_TRANSFORM = transforms.Compose([
             image_aug_transform,
+            lambda x: np.clip(x, a_min=0),
             transforms.ToTensor(),
             # Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[1, 1, 1, 1]),
             Normalize(mean=[0.07459783, 0.05063238, 0.05089102, 0.07628681], std=[1, 1, 1, 1]),
         ])
         # import pdb; pdb.set_trace()
-        print(type(image_0))
         image = TRAIN_TRANSFORM(image_0)
         return (ids, image, labels_0, transforms.ToTensor()(image_0))
     elif not train and val:
         image_aug_transform = TrainImgAugTransform().to_deterministic()
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             image_aug_transform,
+            lambda x: np.clip(x, a_min=0),
             transforms.ToTensor(),
             # Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[1, 1, 1, 1]),
             Normalize(mean=[0.07459783, 0.05063238, 0.05089102, 0.07628681], std=[1, 1, 1, 1]),
