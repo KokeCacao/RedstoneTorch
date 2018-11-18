@@ -396,6 +396,7 @@ class TrainImgAugTransform:
 
     def __call__(self, img):
         img = np.array(img)
+        print(img)
         return self.aug.augment_image(img)
 
     def to_deterministic(self, n=None):
@@ -564,7 +565,6 @@ def transform(ids, image_0, labels_0, train, val):
         image_aug_transform = TrainImgAugTransform().to_deterministic()
         TRAIN_TRANSFORM = transforms.Compose([
             image_aug_transform,
-            lambda x: print(x),
             lambda x: np.clip(x, a_min=0, a_max=1),
             transforms.ToTensor(),
             # Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[1, 1, 1, 1]),
