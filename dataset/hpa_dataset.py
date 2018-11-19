@@ -203,7 +203,7 @@ class HPAData(data.Dataset):
         elif self.load_strategy == "test" or self.load_strategy == "predict":
             id = file - set(self.dataframe.index.tolist())
         else:
-            raise ValueError("the argument [load_strategy] recieved an undefined value: [{}], which is not one of 'train', 'test', 'predict'".format(load_strategy))
+            raise ValueError("the argument [load_strategy] recieved and undefined value: [{}], which is not one of 'train', 'test', 'predict'".format(load_strategy))
         id = list(id)
         self.id_len = int(len(id) * config.TRAIN_DATA_PERCENT)
         self.id = id[:self.id_len]
@@ -211,7 +211,6 @@ class HPAData(data.Dataset):
         self.indices = list(range(self.id_len))
         self.indices_to_id = dict(zip(self.indices, self.id))
         self.id_to_indices = {v: k for k, v in self.indices_to_id.items()}
-        self.id_to_label = dict((id, list(int(i) for i in s.split())) for s in [self.dataframe['Target'].loc[id] for id in self.id])
 
         # if self.writer:
         #
@@ -240,10 +239,10 @@ class HPAData(data.Dataset):
         :return: dictionary[fold]["train" or "val"]
         """
         X = self.indices
-        y = self.multilabel_binarizer.transform(list(self.id_to_label.values()))
+        y = list(self.get_load_label_by_id(x) for x in X)
 
         import pdb; pdb.set_trace()
-        print("Indice:{}, Id:{}, Label:{}".format(self.indices[0], self.id[0], list(self.id_to_label.values())[0]))
+        print("Indice:{}, Id:{}, Label:{}".format(X[0], self.id[0], y[0]))
 
         mskf = MultilabelStratifiedKFold(n_splits=fold, random_state=None)
         folded_samplers = dict()
