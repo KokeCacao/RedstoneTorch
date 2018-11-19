@@ -239,7 +239,7 @@ class HPAData(data.Dataset):
         :return: dictionary[fold]["train" or "val"]
         """
         X = self.indices
-        y = np.array(self.get_load_label_by_indice(x) for x in X)
+        y = np.array(list(self.get_load_label_by_indice(x) for x in X))
 
         # import pdb; pdb.set_trace()
         # print("Indice:{}, Id:{}, Label:{}".format(X[0], self.id[0], y[0]))
