@@ -167,6 +167,7 @@ python train.py --projecttag normal5 --versiontag one --resume False --loadfile 
 python train.py --projecttag aug --versiontag one --resume False --loadfile two-CP35.pth --loaddir 2018-11-08-13-18-39-289369-tune6
 //change image size to 384
 
+
 ```
 
 ## Usage
