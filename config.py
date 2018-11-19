@@ -15,7 +15,7 @@ MODEL_INIT_LEARNING_RATE = 0.1
 MODEL_MOMENTUM = 0.9
 MODEL_WEIGHT_DEFAY = 0.0001
 MODEL_FOLD = 10
-MODEL_TRAIN_FOLD = [0]
+MODEL_TRAIN_FOLD = [1, 2, 3]
 
 TRAIN_GPU_DICT = {
     "ml-k80-3": "0",
@@ -25,7 +25,7 @@ TRAIN_GPU_DICT = {
 TRAIN_GPU_ARG = TRAIN_GPU_DICT[socket.gethostname()]
 TRAIN_GPU_LIST = [int(i) for i in TRAIN_GPU_ARG.split(",")]
 TRAIN_VAL_PERCENT = 0.05
-TRAIN_DATA_PERCENT = 0.01
+TRAIN_DATA_PERCENT = 1.0
 TRAIN_SEED = 19
 TRAIN_SAVE_CHECKPOINT = True
 TRAIN_NUM_WORKER = 4 * len(TRAIN_GPU_LIST)  # idea from: https://discuss.pytorch.org/t/guidelines-for-assigning-num-workers-to-dataloader/813/5

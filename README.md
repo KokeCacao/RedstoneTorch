@@ -168,7 +168,8 @@ python train.py --projecttag aug --versiontag one --resume False --loadfile two-
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-19-04-02-48-790862-aug/ --port=6006
 //add four times TTA, adjust weighted BCE to negatively weighted, use weighted BCE, create an LB versioin submission - dropping rare class,
 python train.py --projecttag test --versiontag test --resume False
-
+python train.py --projecttag aug2 --versiontag one --resume False --loadfile two-CP35.pth --loaddir 2018-11-08-13-18-39-289369-tune6
+//start training aug with 3 fold -1,2,3
 ```
 
 ## Usage
