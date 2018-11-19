@@ -262,10 +262,23 @@ class HPAData(data.Dataset):
             if self.writer:
                 y_t_dict = np.bincount((y_t.astype(np.int8)*np.array(list(range(28)))).flatten())
                 y_e_dict = np.bincount((y_e.astype(np.int8)*np.array(list(range(28)))).flatten())
-                F, (ax1, ax2) = plt.subplots(1, 2, figsize=(4, 2), sharey='none')
-                ax1.bar(list(range(len(y_t_dict))), y_t_dict)
-                ax2.bar(list(range(len(y_e_dict))), y_e_dict)
+                # F, (ax1, ax2) = plt.subplots(1, 2, figsize=(4, 2), sharey='none')
+                # ax1.bar(list(range(len(y_t_dict))), y_t_dict)
+                # ax2.bar(list(range(len(y_e_dict))), y_e_dict)
+                F, ax1 = plt.subplot()
+                ax1.set_xlabel('Train')
+                ax1.set_ylabel('exp', color='tab:red')
+                ax1.bar(list(range(len(y_e_dict))), y_e_dict, color='tab:red')
+                ax1.tick_params(axis='y', labelcolor='tab:red')
+                ax2 = ax1.twinx()
+                ax2.set_xlabel('Eval')
+                ax2.set_ylabel('exp', color='tab:blue')
+                ax2.bar(list(range(len(y_e_dict))), y_e_dict, color='tab:blue')
+                ax2.tick_params(axis='y', labelcolor='tab:blue')
+                # F.tight_layout()
                 tensorboardwriter.write_data_distribution(self.writer, F, fold)
+
+
             # gc.collect()
         return folded_samplers
 
