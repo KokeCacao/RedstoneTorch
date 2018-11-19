@@ -212,6 +212,7 @@ class HPAData(data.Dataset):
         self.indices = list(range(self.id_len))
         self.indices_to_id = dict(zip(self.indices, self.id))
         self.id_to_indices = {v: k for k, v in self.indices_to_id.items()}
+        self.id_to_label = dict((id, list(int(i) for i in s.split())) for s in self.dataframe.loc[self.id])
 
         # if self.writer:
         #
@@ -240,7 +241,9 @@ class HPAData(data.Dataset):
         :return: dictionary[fold]["train" or "val"]
         """
         X = self.indices
-        y = self.labelframe
+        y = self.id_to_label.values()
+
+        print("Indice:{}, Id:{}, Label:{}".format(self.indices[19], self.id[19], list(self.id_to_label.values())[19]))
 
         mskf = MultilabelStratifiedKFold(n_splits=fold, random_state=None)
         folded_samplers = dict()
