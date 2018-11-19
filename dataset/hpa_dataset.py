@@ -241,7 +241,6 @@ class HPAData(data.Dataset):
         X = self.indices
         y = np.array(list(self.get_load_label_by_indice(x) for x in X))
 
-        # import pdb; pdb.set_trace()
         # print("Indice:{}, Id:{}, Label:{}".format(X[0], self.id[0], y[0]))
 
         mskf = MultilabelStratifiedKFold(n_splits=fold, random_state=None)
@@ -261,6 +260,7 @@ class HPAData(data.Dataset):
             # folded_samplers[fold]['train'] = iter(c[0])
             folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)  # y[test_index]
             if self.writer:
+                import pdb; pdb.set_trace()
                 y_t_dict = np.bincount(y_t.flatten())
                 y_e_dict = np.bincount(y_e.flatten())
                 F, (ax1, ax2) = plt.subplots(1, 2, figsize=(4, 2), sharey='all')
