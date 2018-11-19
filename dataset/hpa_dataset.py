@@ -188,9 +188,8 @@ class HPAData(data.Dataset):
         self.load_strategy = load_strategy
         print("     Reading Data with [test={}]".format(self.load_strategy))
         self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
-        self.dataframe['Target'] = [(int(i) for i in s.split()) for s in self.dataframe['Target']]
         self.multilabel_binarizer = MultiLabelBinarizer().fit([list(range(28))])
-        self.labelframe = self.multilabel_binarizer.transform(self.dataframe['Target'])
+        self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in s.split()) for s in self.dataframe['Target']])
         self.load_img_dir = load_img_dir
         self.load_preprocessed_dir = load_preprocessed_dir
         self.img_suffix = img_suffix
@@ -241,7 +240,7 @@ class HPAData(data.Dataset):
         :return: dictionary[fold]["train" or "val"]
         """
         X = self.indices
-        y = self.id_to_label.values()
+        y = list(self.id_to_label.values())
 
         print("Indice:{}, Id:{}, Label:{}".format(self.indices[19], self.id[19], list(self.id_to_label.values())[19]))
 
