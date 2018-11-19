@@ -208,7 +208,7 @@ class HPAData(data.Dataset):
         self.id_len = int(len(id) * config.TRAIN_DATA_PERCENT)
         self.id = id[:self.id_len]
 
-        self.indices = list(range(self.id_len))
+        self.indices = np.array(list(range(self.id_len)))
         self.indices_to_id = dict(zip(self.indices, self.id))
         self.id_to_indices = {v: k for k, v in self.indices_to_id.items()}
 
