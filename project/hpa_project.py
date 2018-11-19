@@ -33,7 +33,14 @@ class HPAProject:
     """"."""
 
     """URGENT"""
+    # TODO: try pytorch's lr_schedular
+    # TODO: try albumnentation
+    # TODO: change to ResNet50, Xception, Inception ResNet v2 x 5, SEResNext too lag?
+    # TODO: understand F1-macro and so that you know how to adjust your post processing
+    # TODO: ensemble with majority voting on stage 1: 0.505 + 0.501 + 0.511 LB: 0.516
     # TODO: https://arxiv.org/pdf/1802.10171.pdf supervision
+    # TODO: data augmentation by sliding, get more data
+    # TODO: 1,983,191 labels associated. Then I dropped labels with frequency less than 50 decreasing the number of labels to around ~ 1.6M. This way the unique number of labels in my dataset decreased to 3862.
     # TODO: download data: https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/69984
     # TODO: Brian: I do a random dropout on the high labels, removing 60% of the values 0 and 25. https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/71147#419480
     # TODO: I tried focal loss + soft F1 and focal loss - log(soft F1). Initially the convergence is faster, but later on I ended up with about the same result. Though, I didn't train the model for a long time, just ~6 hours., I get the same result by focal loss + soft F1. Accelerates convergence from 130 epochs to 30., You can check this https://www.kaggle.com/rejpalcz/best-loss-function-for-f1-score-metric
@@ -127,6 +134,7 @@ class HPAProject:
 
         self.optimizers = []
         self.nets = []
+        self.lr_schedulers = []
         for fold in range(config.MODEL_FOLD):
             if fold not in config.MODEL_TRAIN_FOLD:
                 print("     Skipping Fold: #{}".format(fold))
@@ -136,13 +144,18 @@ class HPAProject:
                 if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
                 # self.optimizers.append(torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY))
-                self.optimizers.append(torch.optim.Adadelta(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DEFAY))
+                optimizer = torch.optim.Adadelta(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DEFAY)
+                self.optimizers.append(optimizer)
                 net = cuda(net)
                 self.nets.append(net)
+                lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=10*100, verbose=False, threshold=1e-4, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-8)
+                self.lr_schedulers.append(lr_scheduler)
+
                 # for name, param in net.named_parameters():
                 #     if param.requires_grad:
                 #         print (name)
         load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
+        print(self.nets[0])
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[0], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
         self.dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_PREPROCESSED_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="train", load_preprocessed_dir=True, writer=self.writer)
@@ -174,6 +187,7 @@ class HPAProject:
 
                 self.step_epoch(nets=self.nets,
                                 optimizers=self.optimizers,
+                                lr_schedulers=self.lr_schedulers,
                                 batch_size=config.MODEL_BATCH_SIZE
                                 )
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
@@ -193,6 +207,7 @@ class HPAProject:
     def step_epoch(self,
                    nets,
                    optimizers,
+                   lr_schedulers,
                    batch_size
                    ):
         config.epoch = config.epoch + 1
@@ -221,13 +236,13 @@ class HPAProject:
         #             {'params': net.module.final.parameters(), 'lr': 0.0015}], lr=lr, betas=(0.9, 0.999), eps=1e-08, weight_decay=weight_decay) # all parameter learnable
 
         evaluation = HPAEvaluation(self.writer, self.dataset.multilabel_binarizer)
-        for fold, (net, optimizer) in enumerate(zip(nets, optimizers)):
+        for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
             """Switch Optimizers"""
             if config.epoch == 50:
                 optimizer = torch.optim.SGD(net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, dampening=0, weight_decay=config.MODEL_WEIGHT_DEFAY, nesterov=False)
                 tensorboardwriter.write_text(self.writer, "Switch to torch.optim.SGD, weight_decay={}, momentum={}".format(config.MODEL_WEIGHT_DEFAY, config.MODEL_MOMENTUM), config.global_steps[fold])
 
-            self.step_fold(fold, net, optimizer, batch_size)
+            self.step_fold(fold, net, optimizer, lr_scheduler, batch_size)
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             val_loss, val_f1 = evaluation.eval_fold(net, data.DataLoader(self.dataset, batch_size=batch_size, sampler=self.folded_samplers[config.fold]["val"], shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=val_collate))
             print("""
@@ -238,6 +253,7 @@ class HPAProject:
         """DISPLAY"""
         best_id, best_loss = evaluation.best()
         worst_id, worst_loss = evaluation.worst()
+        import pdb; pdb.set_trace()
         for fold, (best_id, best_loss, worst_id, worst_loss) in enumerate(zip(best_id, best_loss, worst_id, worst_loss)):
             best_img = self.dataset.get_load_image_by_id(best_id)
             best_label = self.dataset.get_load_label_by_id(best_id)
@@ -296,7 +312,7 @@ class HPAProject:
         """CLEAN UP"""
         del evaluation
 
-    def step_fold(self, fold, net, optimizer, batch_size):
+    def step_fold(self, fold, net, optimizer, lr_scheduler, batch_size):
         config.fold = fold
 
         epoch_loss = 0
@@ -308,29 +324,41 @@ class HPAProject:
 
         print("Set Model Trainning mode to trainning=[{}]".format(net.train().training))
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
-            torch.optim.lr_scheduler
 
-            """UPDATE LR"""
-            if config.global_steps[fold] == 2 * 46808 / 32 - 1: print("Perfect Place to Stop")
-            optimizer.state['lr'] = config.TRAIN_TRY_LR_FORMULA(config.global_steps[fold]) if config.TRAIN_TRY_LR else config.TRAIN_COSINE(config.global_steps[fold])
+            # """UPDATE LR"""
+            # if config.global_steps[fold] == 2 * 46808 / 32 - 1: print("Perfect Place to Stop")
+            # optimizer.state['lr'] = config.TRAIN_TRY_LR_FORMULA(config.global_steps[fold]) if config.TRAIN_TRY_LR else config.TRAIN_COSINE(config.global_steps[fold])
 
             """TRAIN NET"""
             config.global_steps[fold] = config.global_steps[fold] + 1
             if config.TRAIN_GPU_ARG:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
-            predict = net(image)
+            logits_predict = net(image)
+            sigmoid_predict = torch.sigmoid(logits_predict)
 
             """LOSS"""
-            focal = FocalLoss_Sigmoid(alpha=0.25, gamma=5, eps=1e-7)(labels_0, predict)
-            f1, precise, recall = Differenciable_F1(beta=1)(labels_0, predict)
-            bce = BCELoss()(torch.sigmoid(predict), labels_0)
-            weighted_bce = BCELoss(weight=torch.Tensor([1801.5 / 12885, 1801.5 / 1254, 1801.5 / 3621, 1801.5 / 1561, 1801.5 / 1858, 1801.5 / 2513, 1801.5 / 1008, 1801.5 / 2822, 1801.5 / 53, 1801.5 / 45, 1801.5 / 28, 1801.5 / 1093, 1801.5 / 688, 1801.5 / 537, 1801.5 / 1066, 1801.5 / 21, 1801.5 / 530, 1801.5 / 210, 1801.5 / 902, 1801.5 / 1482, 1801.5 / 172, 1801.5 / 3777, 1801.5 / 802, 1801.5 / 2965, 1801.5 / 322, 1801.5 / 8228, 1801.5 / 328, 1801.5 / 11]).cuda())(torch.sigmoid(predict), labels_0)
+            focal = FocalLoss_Sigmoid(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
+            f1, precise, recall = Differenciable_F1(beta=1)(labels_0, logits_predict)
+            bce = BCELoss()(sigmoid_predict, labels_0)
+            positive_bce = BCELoss(weight=labels_0*20+1)(sigmoid_predict, labels_0)
+            # [1801.5 / 12885, 1801.5 / 1254, 1801.5 / 3621, 1801.5 / 1561, 1801.5 / 1858, 1801.5 / 2513, 1801.5 / 1008, 1801.5 / 2822, 1801.5 / 53, 1801.5 / 45, 1801.5 / 28, 1801.5 / 1093, 1801.5 / 688, 1801.5 / 537, 1801.5 / 1066, 1801.5 / 21, 1801.5 / 530, 1801.5 / 210, 1801.5 / 902, 1801.5 / 1482, 1801.5 / 172, 1801.5 / 3777, 1801.5 / 802, 1801.5 / 2965, 1801.5 / 322, 1801.5 / 8228, 1801.5 / 328, 1801.5 / 11] / (1801.5 / 11)
+            weighted_bce = BCELoss(weight=torch.Tensor(
+                [8.53705860e-04, 8.77192982e-03, 3.03783485e-03, 7.04676489e-03,
+                 5.92034446e-03, 4.37723836e-03, 1.09126984e-02, 3.89794472e-03,
+                 2.07547170e-01, 2.44444444e-01, 3.92857143e-01, 1.00640439e-02,
+                 1.59883721e-02, 2.04841713e-02, 1.03189493e-02, 5.23809524e-01,
+                 2.07547170e-02, 5.23809524e-02, 1.21951220e-02, 7.42240216e-03,
+                 6.39534884e-02, 2.91236431e-03, 1.37157107e-02, 3.70994941e-03,
+                 3.41614907e-02, 1.33689840e-03, 3.35365854e-02, 1.00000000e+00]
+            ).cuda())(sigmoid_predict, labels_0)
             if config.epoch < 10:
                 loss = bce
-            else: loss = f1
+            else:
+                loss = f1 + weighted_bce
             if config.epoch == 10: tensorboardwriter.write_text(self.writer, "Switch to f1", config.global_steps[fold])
             """BACKPROP"""
+            lr_scheduler.step((precise.detach().cpu().numpy().mean()+recall.detach().cpu().numpy().mean())/2, epoch=config.global_steps[fold])
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -341,40 +369,43 @@ class HPAProject:
             precise = precise.detach().cpu().numpy().mean()
             recall = recall.detach().cpu().numpy().mean()
             bce = bce.detach().cpu().numpy().mean()
+            positive_bce = positive_bce.detach().cpu().numpy().mean()
             weighted_bce = weighted_bce.detach().cpu().numpy().mean()
             loss = loss.detach().cpu().numpy().mean()
             labels_0 = labels_0.cpu().numpy()
-            predict = predict.detach().cpu().numpy()
+            logits_predict = logits_predict.detach().cpu().numpy()
+            sigmoid_predict = sigmoid_predict.detach().cpu().numpy()
             # print(image)
 
             """SUM"""
             epoch_loss = epoch_loss + loss.mean()
             epoch_f1 = epoch_f1 + f1.mean()
-            # f1 = f1_macro(predict, labels_0).mean()
+            # f1 = f1_macro(logits_predict, labels_0).mean()
 
             """DISPLAY"""
             left = self.dataset.multilabel_binarizer.inverse_transform((np.expand_dims((np.array(labels_0).sum(0) < 1).astype(np.byte), axis=0)))[0]
             label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
-            pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(predict > 0.5)[0])
+            pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(logits_predict > 0.5)[0])
             tensorboardwriter.write_memory(self.writer, "train")
             pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, left))
             # pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.state['lr'], weighted_bce, bce))
-            # pbar.set_description_str("(E{}-F{}) Stp:{} Y:{}, y:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), labels_0, predict))
+            # pbar.set_description_str("(E{}-F{}) Stp:{} Y:{}, y:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), labels_0, logits_predict))
             tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch,
                                                        'LearningRate/{}'.format(config.fold): optimizer.state['lr'],
                                                        'Loss/{}'.format(config.fold): loss,
                                                        'F1/{}'.format(config.fold): f1,
                                                        'Focal/{}'.format(config.fold): focal,
+                                                       'PositiveBCE/{}'.format(config.fold): positive_bce,
                                                        'WeightedBCE/{}'.format(config.fold): weighted_bce,
                                                        'BCE/{}'.format(config.fold): bce,
                                                        'Precision/{}'.format(config.fold): precise,
                                                        'Recall/{}'.format(config.fold): recall,
-                                                       'PredictProbability/{}'.format(config.fold): predict.mean(),
+                                                       'PredictProbability/{}'.format(config.fold): logits_predict.mean(),
                                                        'LabelProbability/{}'.format(config.fold): labels_0.mean()}, config.global_steps[fold])
 
             """CLEAN UP"""
-            del ids, image, labels_0, image_for_display
-            del predict, loss, focal, f1
+            del ids, image, image_for_display
+            del focal, f1, precise, recall, bce, positive_bce, weighted_bce, loss, labels_0, logits_predict, sigmoid_predict
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
         del train_loader, pbar
 
@@ -439,20 +470,22 @@ class HPAEvaluation:
         self.best_loss = np.array([])
         self.worst_loss = np.array([])
 
-        pbar = tqdm(validation_loader)
+        pbar = tqdm(itertools.chain(validation_loader, validation_loader, validation_loader, validation_loader))
         print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
             """CALCULATE LOSS"""
             if config.TRAIN_GPU_ARG:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
-            predict = net(image)
+            logits_predict = net(image)
+            sigmoid_predict = torch.sigmoid(logits_predict)
 
             """LOSS"""
-            focal = FocalLoss_Sigmoid(alpha=0.25, gamma=5, eps=1e-7)(labels_0, predict)
-            f1, precise, recall = Differenciable_F1(beta=1)(labels_0, predict)
-            bce = BCELoss()(torch.sigmoid(predict), labels_0)
-            # weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(torch.sigmoid(predict), labels_0)
+            focal = FocalLoss_Sigmoid(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
+            f1, precise, recall = Differenciable_F1(beta=1)(labels_0, logits_predict)
+            bce = BCELoss()(sigmoid_predict, labels_0)
+            positive_bce = BCELoss(weight=labels_0*20+1)(sigmoid_predict, labels_0)
+            # weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(torch.sigmoid(logits_predict), labels_0)
             # loss = f1 + bce.sum()
 
             """DETATCH"""
@@ -461,24 +494,26 @@ class HPAEvaluation:
             precise = precise.detach().cpu().numpy().mean()
             recall = recall.detach().cpu().numpy().mean()
             bce = bce.detach().cpu().numpy().mean()
+            positive_bce = positive_bce.cpu().numpy().mean()
             # loss = loss.detach().cpu().numpy()
             labels_0 = labels_0.cpu().numpy()
             image = image.cpu().numpy()
             image_for_display = image_for_display.numpy()
-            predict = torch.sigmoid(predict).detach().cpu().numpy()
+            logits_predict = logits_predict.detach().cpu().numpy()
+            sigmoid_predict = sigmoid_predict.detach().cpu().numpy()
 
             """SUM"""
-            # np.append(self.f1_losses, f1_macro(predict, labels_0).mean())
+            # np.append(self.f1_losses, f1_macro(sigmoid_predict, labels_0).mean())
             np.append(self.f1_losses, f1.mean())
 
             """PRINT"""
             # label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
-            # pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(predict>0.5)[0])
+            # pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(sigmoid_predict>0.5)[0])
             # pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(int(config.global_steps[fold]), label, pred, left))
             pbar.set_description("Focal:{} F1:{}".format(focal.mean(), f1.mean()))
             if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(focal.flatten())
             for id, loss_item in zip(ids, focal.flatten()): id_loss_dict[id] = loss_item
-            predict_total = np.concatenate((predict_total, predict), axis=0) if predict_total is not None else predict
+            predict_total = np.concatenate((predict_total, sigmoid_predict), axis=0) if predict_total is not None else sigmoid_predict
             label_total = np.concatenate((label_total, labels_0), axis=0) if label_total is not None else labels_0
 
             """EVALUATE LOSS"""
@@ -493,11 +528,11 @@ class HPAEvaluation:
 
             """DISPLAY"""
             tensorboardwriter.write_memory(self.writer, "train")
-            if config.DISPLAY_VISUALIZATION and batch_index < 2 * config.MODEL_BATCH_SIZE / 32: self.display(config.fold, ids, image, image_for_display, labels_0, predict, focal)
+            if config.DISPLAY_VISUALIZATION and batch_index < 2 * config.MODEL_BATCH_SIZE / 32: self.display(config.fold, ids, image, image_for_display, labels_0, sigmoid_predict, focal)
 
             """CLEAN UP"""
-            del ids, image, labels_0, image_for_display
-            del predict, focal
+            del ids, image, image_for_display
+            del focal, f1, precise, recall, bce, positive_bce, labels_0, logits_predict, sigmoid_predict
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
         del pbar
@@ -614,9 +649,15 @@ class HPAPrediction:
                     os.remove(prob_path)
                     print("WARNING: delete file '{}'".format(prob_path))
 
-                with open(pred_path, 'a') as pred_file, open(prob_path, 'a') as prob_file:
+                lb_path = "{}-{}-F{}-T{}-LB.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
+                if os.path.exists(lb_path):
+                    os.remove(lb_path)
+                    print("WARNING: delete file '{}'".format(lb_path))
+
+                with open(pred_path, 'a') as pred_file, open(prob_path, 'a') as prob_file, open(lb_path, 'a') as lb_file:
                     pred_file.write('Id,Predicted\n')
                     prob_file.write('Id,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27\n')
+                    lb_file.write('Id,Predicted\n')
 
                     test_loader = data.DataLoader(self.test_dataset, batch_size=config.MODEL_BATCH_SIZE, sampler=SubsetRandomSampler(self.test_dataset.indices), shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
                     pbar = tqdm(test_loader)
@@ -632,6 +673,7 @@ class HPAPrediction:
                         for id, encoded, predict in zip(ids, encodeds, predicts):
                             pred_file.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
                             prob_file.write('{},{}\n'.format(id, ",".join(str(x) for x in predict)))
+                            lb_file.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded if x not in [8, 9, 10, 15, 20, 24, 27])))
                             # figure = plt.figure()
                             #
                             # plt.subplot(121)
@@ -649,12 +691,15 @@ class HPAPrediction:
                 """TURNING THRESHOLD"""
 
                 """ORGANIZE"""
-                f1 = pd.read_csv(config.DIRECTORY_SAMPLE_CSV)
-                f1.drop('Predicted', axis=1, inplace=True)
-                f2 = pd.read_csv(pred_path)
-                f1 = f1.merge(f2, left_on='Id', right_on='Id', how='outer')
-                os.remove(pred_path)
-                f1.to_csv(pred_path, index=False)
+                def sort(dir_sample, dir_save):
+                    f1 = pd.read_csv(dir_sample)
+                    f1.drop('Predicted', axis=1, inplace=True)
+                    f2 = pd.read_csv(dir_save)
+                    f1 = f1.merge(f2, left_on='Id', right_on='Id', how='outer')
+                    os.remove(dir_save)
+                    f1.to_csv(dir_save, index=False)
+                sort(config.DIRECTORY_SAMPLE_CSV, pred_path)
+                sort(config.DIRECTORY_SAMPLE_CSV, lb_path)
 
 
 class HPAPreprocess:

@@ -165,8 +165,8 @@ download: RedstoneTorch/model/2018-11-13-18-29-22-424660-normal4/three-CP55.pth-
 python train.py --projecttag normal5 --versiontag one --resume False --loadfile two-CP52.pth --loaddir 2018-11-13-18-29-22-424660-normal4
 //change augmentation, change optimzer, output more validatuon loss, image to size 512, batch to 32
 python train.py --projecttag aug --versiontag one --resume False --loadfile two-CP35.pth --loaddir 2018-11-08-13-18-39-289369-tune6
-//change image size to 384
-
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-19-04-02-48-790862-aug/ --port=6006
+//add four times TTA, adjust weighted BCE to negatively weighted, use weighted BCE, create an LB versioin submission - dropping rare class,
 
 ```
 
