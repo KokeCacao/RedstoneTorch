@@ -212,7 +212,7 @@ class HPAData(data.Dataset):
         self.indices_to_id = dict(zip(self.indices, self.id))
         self.id_to_indices = {v: k for k, v in self.indices_to_id.items()}
         import pdb; pdb.set_trace()
-        self.id_to_label = dict((id, list(int(i) for i in s.replace("Target    ", "").split())) for s in [self.dataframe.loc[id] for id in self.id])
+        self.id_to_label = dict((id, list(int(i) for i in s.split())) for s in [self.dataframe['Target'].loc[id] for id in self.id])
 
         # if self.writer:
         #
