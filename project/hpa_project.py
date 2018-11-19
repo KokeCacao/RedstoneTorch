@@ -257,7 +257,7 @@ class HPAProject:
             F1 by sklearn = {}
             Max = {}, socre = {}
             Min = {}, score = {}
-        """.format(f1_2, max_names, f1_dict[max_names[0]], min_names, f1_dict[min_names[0]]))
+        """.format(f1_2, max_names[0], max_names[1], min_names[0], min_names[1]))
         tensorboardwriter.write_epoch_loss(self.writer, f1_dict, config.epoch)
         tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
 
