@@ -239,7 +239,7 @@ class HPAData(data.Dataset):
         :return: dictionary[fold]["train" or "val"]
         """
         X = self.indices
-        y = list(self.get_load_label_by_indice(x) for x in X)
+        y = np.array(self.get_load_label_by_indice(x) for x in X)
 
         import pdb; pdb.set_trace()
         # print("Indice:{}, Id:{}, Label:{}".format(X[0], self.id[0], y[0]))
@@ -263,12 +263,11 @@ class HPAData(data.Dataset):
             if self.writer:
                 y_t_dict = np.bincount(y_t.flatten())
                 y_e_dict = np.bincount(y_e.flatten())
-                F = plt.figure()
-                fig, axs = plt.subplots(1, 2, figsize=(4, 2), sharey='all')
-                axs[0].bar(list(range(len(y_t_dict))), y_t_dict)
-                axs[1].bar(list(range(len(y_e_dict))), y_e_dict)
-                plt.title('Histogram of Train and Eval data')
-                plt.grid(False)
+                F, (ax1, ax2) = plt.subplots(1, 2, figsize=(4, 2), sharey='all')
+                ax1.bar(list(range(len(y_t_dict))), y_t_dict)
+                ax2.bar(list(range(len(y_e_dict))), y_e_dict)
+                F.title('Histogram of Train and Eval data')
+                F.grid(False)
                 tensorboardwriter.write_data_distribution(self.writer, F, fold)
             # gc.collect()
         return folded_samplers
