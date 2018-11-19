@@ -243,7 +243,7 @@ class HPAData(data.Dataset):
         X = self.indices
         y = list(self.id_to_label.values())
 
-        print("Indice:{}, Id:{}, Label:{}".format(self.indices[19], self.id[19], list(self.id_to_label.values())[19]))
+        print("Indice:{}, Id:{}, Label:{}".format(self.indices[0], self.id[0], list(self.id_to_label.values())[0]))
 
         mskf = MultilabelStratifiedKFold(n_splits=fold, random_state=None)
         folded_samplers = dict()
