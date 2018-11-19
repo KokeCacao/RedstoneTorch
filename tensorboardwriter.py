@@ -62,14 +62,16 @@ def write_epoch_loss(writer, loss_dict, epoch):
 
 
 def write_best_img(writer, img, label, id, loss, fold):
-    F = plt.imshow(img)
-    plt.title("id: {}; label: {}; loss: {}".format(id, label, loss))
+    F = plt.figure()
+    plt.imshow(img)
+    plt.title("BestId: {}; label: {}; loss: {}".format(id, label, loss))
     plt.grid(False)
     writer.add_figure("eval/best", F, fold)
 
 
 def write_worst_img(writer, img, label, id, loss, fold):
-    F = plt.imshow(img)
-    plt.title("id: {}; label: {}; loss: {}".format(id, label, loss))
+    F = plt.figure()
+    plt.imshow(img)
+    plt.title("WorstId: {}; label: {}; loss: {}".format(id, label, loss))
     plt.grid(False)
     writer.add_figure("eval/worst", F, fold)

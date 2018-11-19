@@ -253,7 +253,6 @@ class HPAProject:
         """DISPLAY"""
         best_id, best_loss = evaluation.best()
         worst_id, worst_loss = evaluation.worst()
-        import pdb; pdb.set_trace()
         for fold, (best_id, best_loss, worst_id, worst_loss) in enumerate(zip(best_id, best_loss, worst_id, worst_loss)):
             best_img = self.dataset.get_load_image_by_id(best_id)
             best_label = self.dataset.get_load_label_by_id(best_id)
@@ -467,10 +466,10 @@ class HPAEvaluation:
         predict_total = None
         label_total = None
 
-        self.best_id = np.array([])
-        self.worst_id = np.array([])
-        self.best_loss = np.array([])
-        self.worst_loss = np.array([])
+        self.best_id = []
+        self.worst_id = []
+        self.best_loss = []
+        self.worst_loss = []
 
         pbar = tqdm(itertools.chain(validation_loader, validation_loader, validation_loader, validation_loader))
         print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
@@ -521,12 +520,12 @@ class HPAEvaluation:
             """EVALUATE LOSS"""
             min_loss = min(id_loss_dict.values())
             min_key = min(id_loss_dict, key=id_loss_dict.get)
-            np.append(self.best_loss, min_loss)
-            np.append(self.best_id, min_key)
+            self.best_loss = np.append(self.best_loss, min_loss)
+            self.best_id = np.append(self.best_id, min_key)
             max_loss = max(id_loss_dict.values())
             max_key = max(id_loss_dict, key=id_loss_dict.get)
-            np.append(self.worst_loss, max_loss)
-            np.append(self.worst_id, max_key)
+            self.worst_loss = np.append(self.worst_loss, max_loss)
+            self.worst_id = np.append(self.worst_id, max_key)
 
             """DISPLAY"""
             tensorboardwriter.write_memory(self.writer, "train")
