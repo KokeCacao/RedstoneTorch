@@ -326,7 +326,7 @@ class HPAProject:
             bce = BCELoss()(torch.sigmoid(predict), labels_0)
             weighted_bce = BCELoss(weight=torch.Tensor([1801.5 / 12885, 1801.5 / 1254, 1801.5 / 3621, 1801.5 / 1561, 1801.5 / 1858, 1801.5 / 2513, 1801.5 / 1008, 1801.5 / 2822, 1801.5 / 53, 1801.5 / 45, 1801.5 / 28, 1801.5 / 1093, 1801.5 / 688, 1801.5 / 537, 1801.5 / 1066, 1801.5 / 21, 1801.5 / 530, 1801.5 / 210, 1801.5 / 902, 1801.5 / 1482, 1801.5 / 172, 1801.5 / 3777, 1801.5 / 802, 1801.5 / 2965, 1801.5 / 322, 1801.5 / 8228, 1801.5 / 328, 1801.5 / 11]).cuda())(torch.sigmoid(predict), labels_0)
             if config.epoch < 10:
-                loss = focal.sum()
+                loss = bce
             else: loss = f1
             if config.epoch == 10: tensorboardwriter.write_text(self.writer, "Switch to f1", config.global_steps[fold])
             """BACKPROP"""
