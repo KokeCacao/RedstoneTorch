@@ -66,18 +66,18 @@ def write_best_img(writer, img, label, id, loss, fold):
     F = plt.figure()
     img = np_three_channel_with_green(img, img.shape, green_intensity=1, other_intensity=1)
     plt.imshow(img)
-    plt.title("BestId: {}; label: {}; loss: {}".format(id, label, loss))
+    plt.title("label: {}; loss: {}".format(label, loss))
     plt.grid(False)
-    writer.add_figure("eval/best", F, fold)
+    writer.add_figure("best/{}".format(id), F, fold)
 
 
 def write_worst_img(writer, img, label, id, loss, fold):
     F = plt.figure()
     img = np_three_channel_with_green(img, img.shape, green_intensity=1, other_intensity=1)
     plt.imshow(img)
-    plt.title("WorstId: {}; label: {}; loss: {}".format(id, label, loss))
+    plt.title("label: {}; loss: {}".format(label, loss))
     plt.grid(False)
-    writer.add_figure("eval/worst", F, fold)
+    writer.add_figure("worst/{}".format(id), F, fold)
 
 def np_three_channel_with_green(image, shape, green_intensity=1, other_intensity=1):
     """
