@@ -390,6 +390,7 @@ class HPAProject:
             pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, left))
             # pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.state['lr'], weighted_bce, bce))
             # pbar.set_description_str("(E{}-F{}) Stp:{} Y:{}, y:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), labels_0, logits_predict))
+            import pdb; pdb.set_trace()
             tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch,
                                                        'LearningRate/{}'.format(config.fold): optimizer.state['lr'],
                                                        'Loss/{}'.format(config.fold): loss,
@@ -401,7 +402,8 @@ class HPAProject:
                                                        'Precision/{}'.format(config.fold): precise,
                                                        'Recall/{}'.format(config.fold): recall,
                                                        'PredictProbability/{}'.format(config.fold): logits_predict.mean(),
-                                                       'LabelProbability/{}'.format(config.fold): labels_0.mean()}, config.global_steps[fold])
+                                                       'LabelProbability/{}'.format(config.fold): labels_0.mean(),
+                                                       }, config.global_steps[fold])
 
             """CLEAN UP"""
             del ids, image, image_for_display
