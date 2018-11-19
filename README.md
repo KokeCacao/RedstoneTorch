@@ -164,7 +164,7 @@ download: RedstoneTorch/model/2018-11-13-18-29-22-424660-normal4/three-CP55.pth-
 =
 python train.py --projecttag normal5 --versiontag one --resume False --loadfile two-CP52.pth --loaddir 2018-11-13-18-29-22-424660-normal4
 //change augmentation, change optimzer, output more validatuon loss, image to size 512, batch to 32
-python train.py --projecttag test --versiontag test --resume False
+python train.py --projecttag aug --versiontag one --resume False
 //change image size to 384
 
 ```

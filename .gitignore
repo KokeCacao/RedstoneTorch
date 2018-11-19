@@ -4,3 +4,4 @@ SUBMISSION*
 data/*.zip
 .idea
 .orig
+.ipnb_checkpoints/
