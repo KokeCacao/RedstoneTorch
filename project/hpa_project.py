@@ -253,7 +253,7 @@ class HPAProject:
         """DISPLAY"""
         best_id, best_loss = evaluation.best()
         worst_id, worst_loss = evaluation.worst()
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         for fold, (best_id, best_loss, worst_id, worst_loss) in enumerate(zip(best_id, best_loss, worst_id, worst_loss)):
             best_img = self.dataset.get_load_image_by_id(best_id)
             best_label = self.dataset.get_load_label_by_id(best_id)
