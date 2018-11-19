@@ -253,7 +253,7 @@ class HPAProject:
         """DISPLAY"""
         best_id, best_loss = evaluation.best()
         worst_id, worst_loss = evaluation.worst()
-        # import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         for fold, (best_id, best_loss, worst_id, worst_loss) in enumerate(zip(best_id, best_loss, worst_id, worst_loss)):
             best_img = self.dataset.get_load_image_by_id(best_id)
             best_label = self.dataset.get_load_label_by_id(best_id)
@@ -390,9 +390,9 @@ class HPAProject:
             pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, left))
             # pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.state['lr'], weighted_bce, bce))
             # pbar.set_description_str("(E{}-F{}) Stp:{} Y:{}, y:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), labels_0, logits_predict))
-            import pdb; pdb.set_trace()
+
             tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch,
-                                                       'LearningRate/{}'.format(config.fold): optimizer.state['lr'],
+                                                       'LearningRate/{}'.format(config.fold): optimizer.param_groups[0]['lr'],
                                                        'Loss/{}'.format(config.fold): loss,
                                                        'F1/{}'.format(config.fold): f1,
                                                        'Focal/{}'.format(config.fold): focal,
