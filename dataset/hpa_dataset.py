@@ -261,8 +261,8 @@ class HPAData(data.Dataset):
             folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)  # y[test_index]
             if self.writer:
                 import pdb; pdb.set_trace()
-                y_t_dict = np.bincount(y_t.flatten())
-                y_e_dict = np.bincount(y_e.flatten())
+                y_t_dict = np.bincount((y_t*np.array(list(range(28)))).flatten())
+                y_e_dict = np.bincount((y_e*np.array(list(range(28)))).flatten())
                 F, (ax1, ax2) = plt.subplots(1, 2, figsize=(4, 2), sharey='all')
                 ax1.bar(list(range(len(y_t_dict))), y_t_dict)
                 ax2.bar(list(range(len(y_e_dict))), y_e_dict)
