@@ -308,6 +308,7 @@ class HPAProject:
 
         print("Set Model Trainning mode to trainning=[{}]".format(net.train().training))
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+            torch.optim.lr_scheduler
 
             """UPDATE LR"""
             if config.global_steps[fold] == 2 * 46808 / 32 - 1: print("Perfect Place to Stop")
