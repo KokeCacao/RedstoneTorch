@@ -265,7 +265,7 @@ class HPAData(data.Dataset):
                 # F, (ax1, ax2) = plt.subplots(1, 2, figsize=(4, 2), sharey='none')
                 # ax1.bar(list(range(len(y_t_dict))), y_t_dict)
                 # ax2.bar(list(range(len(y_e_dict))), y_e_dict)
-                F, ax1 = plt.subplot()
+                F, ax1 = plt.subplots()
                 ax1.set_xlabel('Train')
                 ax1.set_ylabel('exp', color='tab:red')
                 ax1.bar(list(range(len(y_e_dict))), y_e_dict, color='tab:red')
