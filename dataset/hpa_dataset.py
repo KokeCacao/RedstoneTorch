@@ -267,10 +267,12 @@ class HPAData(data.Dataset):
                 # ax2.bar(list(range(len(y_e_dict))), y_e_dict)
                 F = plt.figure()
                 ax = F.add_subplot(111)
-                tr = ax.bar(np.arange(len(y_e_dict)) -0.2, y_e_dict, color='tab:red', log=True)
-                ev = ax.bar(np.arange(len(y_e_dict)) +0.2, y_e_dict, color='tab:blue', log=True)
+                tr = ax.bar(np.arange(len(y_t_dict)) -0.5, y_t_dict, color='tab:red', log=True)
+                ev = ax.bar(np.arange(len(y_e_dict)) +0.5, y_e_dict, color='tab:blue', log=True)
                 ax.legend((tr[0], ev[0]), ('trian', 'eval'))
                 ax.set_ylabel('exp', color='tab:blue')
+                for i, v in enumerate(y_t_dict): ax.text(v + 3, i + .25, str(v), color='red', fontweight='bold')
+                for i, v in enumerate(y_e_dict): ax.text(v + 3, i + .25, str(v), color='blue', fontweight='bold')
                 tensorboardwriter.write_data_distribution(self.writer, F, fold)
 
 
