@@ -148,13 +148,14 @@ class HPAProject:
                 self.optimizers.append(optimizer)
                 net = cuda(net)
                 self.nets.append(net)
-                lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=10*100, verbose=False, threshold=1e-4, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-8)
+                lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=2*int(27964.8/config.MODEL_BATCH_SIZE), verbose=False, threshold=1e-4, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-8)
                 self.lr_schedulers.append(lr_scheduler)
 
                 # for name, param in net.named_parameters():
                 #     if param.requires_grad:
                 #         print (name)
         load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
+
         print(self.nets[0])
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[0], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 

@@ -170,6 +170,8 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 python train.py --projecttag test --versiontag test --resume False
 python train.py --projecttag aug2 --versiontag one --resume False --loadfile two-CP35.pth --loaddir 2018-11-08-13-18-39-289369-tune6
 //start training aug with 3 fold -1,2,3
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-19-18-55-35-204127-aug2/ --port=6006
+
 ```
 
 ## Usage
