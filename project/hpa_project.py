@@ -171,25 +171,6 @@ class HPAProject:
     def run(self):
         try:
             for epoch in range(config.MODEL_EPOCHS):
-
-                # # TODO: temperary code
-                # print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
-                # # test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_TEST, img_suffix=config.DIRECTORY_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=False)
-                # test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_PREPROCESSED_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="train", load_preprocessed_dir=True)
-                # test_loader = data.DataLoader(test_dataset, batch_size=config.MODEL_BATCH_SIZE, sampler=SubsetRandomSampler(test_dataset.indices), shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
-                # pbar = tqdm(test_loader)
-                # for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
-                #
-                #     if config.TRAIN_GPU_ARG: image = image.cuda()
-                #     predict = self.nets[0](image)
-                #     predict = torch.sigmoid(predict).detach().cpu().numpy()
-                #     encoded = list(test_dataset.multilabel_binarizer.inverse_transform(predict > 0.5))
-                #     pbar.set_description("Batch:{} Id:{} Out:{} Prob:{}".format(batch_index, ids[0], encoded[0], predict[0][0]))
-                #
-                #     del ids, image, labels_0, image_for_display, predict, encoded
-                #     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-                # # TODO: end temperary code
-
                 self.step_epoch(nets=self.nets,
                                 optimizers=self.optimizers,
                                 lr_schedulers=self.lr_schedulers,
@@ -250,7 +231,18 @@ class HPAProject:
             optimizer = load.move_optimizer_to_cuda(optimizer)
             self.step_fold(fold, net, optimizer, lr_scheduler, batch_size)
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-            val_loss, val_f1 = evaluation.eval_fold(net, data.DataLoader(self.dataset, batch_size=batch_size, sampler=self.folded_samplers[config.fold]["val"], shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=val_collate))
+            val_loss, val_f1 = evaluation.eval_fold(net, data.DataLoader(self.dataset,
+                                                                         batch_size=batch_size,
+                                                                         shuffle=False,
+                                                                         sampler=self.folded_samplers[config.fold]["val"],
+                                                                         batch_sampler=None,
+                                                                         num_workers=config.TRAIN_NUM_WORKER,
+                                                                         collate_fn=val_collate,
+                                                                         pin_memory=False,
+                                                                         drop_last=False,
+                                                                         timeout=0,
+                                                                         worker_init_fn=None,
+                                                                         ))
             print("""
                 ValidLoss: {}, ValidF1: {}
             """.format(val_loss, val_f1))
@@ -325,7 +317,19 @@ class HPAProject:
         epoch_loss = 0
         epoch_f1 = 0
 
-        train_loader = data.DataLoader(self.dataset, batch_size=batch_size, sampler=self.folded_samplers[config.fold]["train"], shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
+        # pin_memory: https://blog.csdn.net/tsq292978891/article/details/80454568
+        train_loader = data.DataLoader(self.dataset,
+                                       batch_size=batch_size,
+                                       shuffle=False,
+                                       sampler=self.folded_samplers[config.fold]["train"],
+                                       batch_sampler=None,
+                                       num_workers=config.TRAIN_NUM_WORKER,
+                                       collate_fn=train_collate,
+                                       pin_memory=True,
+                                       drop_last=False,
+                                       timeout=0,
+                                       worker_init_fn=None,
+                                       )
         pbar = tqdm(train_loader)
         train_len = len(train_loader) + 1e-10
 
@@ -390,10 +394,11 @@ class HPAProject:
             # f1 = f1_macro(logits_predict, labels_0).mean()
 
             """DISPLAY"""
+            tensorboardwriter.write_memory(self.writer, "train")
+
             left = self.dataset.multilabel_binarizer.inverse_transform((np.expand_dims((np.array(labels_0).sum(0) < 1).astype(np.byte), axis=0)))[0]
             label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
             pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(logits_predict > 0.5)[0])
-            tensorboardwriter.write_memory(self.writer, "train")
             pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, left))
             # pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.param_groups[0]['lr'], weighted_bce, bce))
             # pbar.set_description_str("(E{}-F{}) Stp:{} Y:{}, y:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), labels_0, logits_predict))
@@ -673,7 +678,18 @@ class HPAPrediction:
                     prob_file.write('Id,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27\n')
                     lb_file.write('Id,Predicted\n')
 
-                    test_loader = data.DataLoader(self.test_dataset, batch_size=config.MODEL_BATCH_SIZE, sampler=SubsetRandomSampler(self.test_dataset.indices), shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=train_collate)
+                    test_loader = data.DataLoader(self.test_dataset,
+                                                  batch_size=config.MODEL_BATCH_SIZE,
+                                                  shuffle=False,
+                                                  sampler=SubsetRandomSampler(self.test_dataset.indices),
+                                                  batch_sampler=None,
+                                                  num_workers=config.TRAIN_NUM_WORKER,
+                                                  collate_fn=train_collate,
+                                                  pin_memory=True,
+                                                  drop_last=False,
+                                                  timeout=0,
+                                                  worker_init_fn=None,
+                                                  )
                     pbar = tqdm(test_loader)
                     print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
                     for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
