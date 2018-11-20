@@ -1,5 +1,7 @@
 import os
 import numpy as np
+
+import config
 from utils.memory import write_memory
 import matplotlib as mpl
 
@@ -64,7 +66,7 @@ def write_epoch_loss(writer, loss_dict, epoch):
 
 def write_best_img(writer, img, label, id, loss, fold):
     F = plt.figure()
-    img = np_three_channel_with_green(img, img.shape, green_intensity=1, other_intensity=1)
+    img = np_three_channel_with_green(img, (3, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), green_intensity=1, other_intensity=1)
     plt.imshow(img)
     plt.title("label: {}; loss: {}".format(label, loss))
     plt.grid(False)
@@ -73,7 +75,7 @@ def write_best_img(writer, img, label, id, loss, fold):
 
 def write_worst_img(writer, img, label, id, loss, fold):
     F = plt.figure()
-    img = np_three_channel_with_green(img, img.shape, green_intensity=1, other_intensity=1)
+    img = np_three_channel_with_green(img, (3, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), green_intensity=1, other_intensity=1)
     plt.imshow(img)
     plt.title("label: {}; loss: {}".format(label, loss))
     plt.grid(False)

@@ -97,7 +97,7 @@ class HPAData(data.Dataset):
         27: 'Rods & rings'}
 
     File Size
-        train                         14.0321076GB (124288 files)
+        train                         14.0321076GB (_three_channel_with_green(img, img.sha files)
         test                          4.6823579GB (46808 files)
         train.csv                     0.0012744GB (31072 labels)
         sample_submission.csv         0.0004564GB
