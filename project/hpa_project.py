@@ -20,7 +20,7 @@ from gpu import gpu_profile
 from loss.f1 import f1_macro, Differenciable_F1
 from loss.focal import FocalLoss_Sigmoid
 from net.proteinet.proteinet_model import se_resnext101_32x4d_modified
-from utils import encode
+from utils import encode, load
 from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, cuda, load_checkpoint_all_fold_without_optimizers, save_onnx
 
 if os.environ.get('DISPLAY', '') == '':
@@ -151,7 +151,6 @@ class HPAProject:
                 # self.optimizers.append(torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY))
                 optimizer = torch.optim.Adadelta(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DEFAY)
                 self.optimizers.append(optimizer)
-                net = cuda(net)
                 self.nets.append(net)
                 lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=2*int(27964.8/config.MODEL_BATCH_SIZE), verbose=False, threshold=1e-4, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-8)
                 self.lr_schedulers.append(lr_scheduler)
@@ -247,13 +246,16 @@ class HPAProject:
             if config.epoch == 50:
                 optimizer = torch.optim.SGD(net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, dampening=0, weight_decay=config.MODEL_WEIGHT_DEFAY, nesterov=False)
                 tensorboardwriter.write_text(self.writer, "Switch to torch.optim.SGD, weight_decay={}, momentum={}".format(config.MODEL_WEIGHT_DEFAY, config.MODEL_MOMENTUM), config.global_steps[fold])
-
+            net = net.cuda()
+            optimizer = load.move_optimizer_to_cuda(optimizer)
             self.step_fold(fold, net, optimizer, lr_scheduler, batch_size)
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             val_loss, val_f1 = evaluation.eval_fold(net, data.DataLoader(self.dataset, batch_size=batch_size, sampler=self.folded_samplers[config.fold]["val"], shuffle=False, num_workers=config.TRAIN_NUM_WORKER, collate_fn=val_collate))
             print("""
                 ValidLoss: {}, ValidF1: {}
             """.format(val_loss, val_f1))
+            net = net.cpu()
+            optimizer = load.move_optimizer_to_cpu(optimizer)
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
         """DISPLAY"""
@@ -468,7 +470,7 @@ class HPAEvaluation:
         return self
 
     def eval_fold(self, net, validation_loader):
-        id_loss_dict = dict()
+        focal_losses = np.array([])
         predict_total = None
         label_total = None
 
@@ -495,8 +497,24 @@ class HPAEvaluation:
             # weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(torch.sigmoid(logits_predict), labels_0)
             # loss = f1 + bce.sum()
 
+            """EVALUATE LOSS"""
+            focal = focal.detach()
+            focal_min = focal.min()
+            focal_max = focal.max()
+            focal_min_id = (focal == focal_min).nonzero()
+            focal_max_id = (focal == focal_max).nonzero()
+            focal_min = focal_min.cpu().numpy()
+            focal_max = focal_max.cpu().numpy()
+            focal_min_id = ids[focal_min_id.cpu().numpy()]
+            focal_max_id = ids[focal_max_id.cpu().numpy()]
+            self.best_loss = np.append(self.best_loss, focal_min)
+            self.worst_loss = np.append(self.worst_loss, focal_max)
+            self.best_id = np.append(self.best_id, focal_min_id)
+            self.worst_id = np.append(self.worst_id, focal_max_id)
+
             """DETATCH"""
-            focal = focal.detach().cpu().numpy()
+            focal = focal.cpu().numpy()
+            focal_mean = focal.mean()
             f1 = f1.detach().cpu().numpy()
             precise = precise.detach().cpu().numpy().mean()
             recall = recall.detach().cpu().numpy().mean()
@@ -512,6 +530,7 @@ class HPAEvaluation:
             """SUM"""
             # np.append(self.f1_losses, f1_macro(sigmoid_predict, labels_0).mean())
             np.append(self.f1_losses, f1.mean())
+            np.append(focal_losses, focal_mean)
 
             """PRINT"""
             # label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
@@ -519,48 +538,31 @@ class HPAEvaluation:
             # pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(int(config.global_steps[fold]), label, pred, left))
             pbar.set_description("Focal:{} F1:{}".format(focal.mean(), f1.mean()))
             # if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(focal.flatten())
-            for id, loss_item in zip(ids, focal.flatten()): id_loss_dict[id] = loss_item
             predict_total = np.concatenate((predict_total, sigmoid_predict), axis=0) if predict_total is not None else sigmoid_predict
             label_total = np.concatenate((label_total, labels_0), axis=0) if label_total is not None else labels_0
 
-            """EVALUATE LOSS"""
-            min_loss = min(id_loss_dict.values())
-            min_key = min(id_loss_dict, key=id_loss_dict.get)
-            self.best_loss = np.append(self.best_loss, min_loss)
-            self.best_id = np.append(self.best_id, min_key)
-            max_loss = max(id_loss_dict.values())
-            max_key = max(id_loss_dict, key=id_loss_dict.get)
-            self.worst_loss = np.append(self.worst_loss, max_loss)
-            self.worst_id = np.append(self.worst_id, max_key)
 
             """DISPLAY"""
             tensorboardwriter.write_memory(self.writer, "train")
-            if config.DISPLAY_VISUALIZATION and batch_index < 2 * config.MODEL_BATCH_SIZE / 32: self.display(config.fold, ids, image, image_for_display, labels_0, sigmoid_predict, focal)
+            if config.DISPLAY_VISUALIZATION and batch_index < max(1, config.MODEL_BATCH_SIZE / 32): self.display(config.fold, ids, image, image_for_display, labels_0, sigmoid_predict, focal)
 
             """CLEAN UP"""
             del ids, image, image_for_display
             del focal, f1, precise, recall, labels_0, logits_predict, sigmoid_predict
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
-            """Memory Leak"""
-            # import gc
-            # for obj in gc.get_objects():
-            #     if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-            #         print(type(obj), obj.size())
         del pbar
         """LOSS"""
         f1 = f1_macro(predict_total, label_total).mean()
-        tensorboardwriter.write_eval_loss(self.writer, {"FoldFocal/{}".format(config.fold): np.array(id_loss_dict.values()).mean(), "FoldF1/{}".format(config.fold): f1}, config.epoch)
+        tensorboardwriter.write_eval_loss(self.writer, {"FoldFocal/{}".format(config.fold): focal_losses.mean(), "FoldF1/{}".format(config.fold): f1}, config.epoch)
         tensorboardwriter.write_pr_curve(self.writer, label_total, predict_total, config.epoch, config.fold)
         self.epoch_pred = np.concatenate((self.epoch_pred, predict_total), axis=0) if self.epoch_pred is not None else predict_total
         self.epoch_label = np.concatenate((self.epoch_label, label_total), axis=0) if self.epoch_label is not None else label_total
         del predict_total, label_total
 
-        # self.epoch_dict = np.concatenate((self.epoch_dict, [id_loss_dict]), axis=0)
-
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-        mean_loss = np.array(id_loss_dict.values()).mean()
-        del id_loss_dict
+        mean_loss = focal_losses.mean()
+        del focal_losses
         self.mean_losses.append(mean_loss)
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
         return mean_loss, f1

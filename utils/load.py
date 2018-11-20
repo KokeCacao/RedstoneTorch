@@ -38,7 +38,7 @@ def load_checkpoint_all_fold(nets, optimizers, load_path):
         for fold, (net, optimizer) in enumerate(zip(nets, optimizers)):
             net.load_state_dict(checkpoint['state_dicts'][fold])
             optimizer.load_state_dict(checkpoint['optimizers'][fold])
-            move_optimizer_to_cuda(optimizer)
+            # move_optimizer_to_cuda(optimizer)
             print("=> Loading checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
         print("=> Loaded checkpoint {} epoch; {}-{} step".format(config.epoch, config.global_steps[0], config.global_steps[-1]))
     else:
@@ -76,7 +76,7 @@ def load_checkpoint_one_fold(net, optimizer, fold, load_path):
         config.global_steps = checkpoint['global_steps']
         net.load_state_dict(checkpoint['state_dict'][fold])
         optimizer.load_state_dict(checkpoint['optimizer'][fold])
-        move_optimizer_to_cuda(optimizer)
+        # move_optimizer_to_cuda(optimizer)
         print("=> Loading checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
         print("=> Loaded checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
     else:
@@ -98,6 +98,22 @@ def move_optimizer_to_cuda(optimizer):
             for k in param_state.keys():
                 if torch.is_tensor(param_state[k]):
                     param_state[k] = param_state[k].cuda()
+    return optimizer
+
+def move_optimizer_to_cpu(optimizer):
+    """
+    Move the optimizer state to GPU, if necessary.
+    After calling, any parameter specific state in the optimizer
+    will be located on the same device as the parameter.
+    """
+    for param_group in optimizer.param_groups:
+        for param in param_group['params']:
+            # if not param.is_cuda:
+            param_state = optimizer.state[param]
+            for k in param_state.keys():
+                if torch.is_tensor(param_state[k]):
+                    param_state[k] = param_state[k].cpu()
+    return optimizer
 
 def save_onnx(cudaed_net, net_input_shape, dir, export_params=False, verbose=True):
     print("=> Start Saving ONNX file...")
