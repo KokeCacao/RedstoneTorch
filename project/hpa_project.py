@@ -506,8 +506,9 @@ class HPAEvaluation:
             focal = focal.detach()
             focal_min = focal.min()
             focal_max = focal.max()
-            focal_min_id = (focal == focal_min).nonzero()
-            focal_max_id = (focal == focal_max).nonzero()
+            import pdb; pdb.set_trace()
+            focal_min_id = (focal == focal_min).nonzero()[0]
+            focal_max_id = (focal == focal_max).nonzero()[0]
             focal_min = focal_min.cpu().numpy()
             focal_max = focal_max.cpu().numpy()
             focal_min_id = ids[focal_min_id.cpu().numpy()]
