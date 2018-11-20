@@ -223,6 +223,7 @@ class HPAProject:
 
         evaluation = HPAEvaluation(self.writer, self.dataset.multilabel_binarizer)
         for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
+            import pdb; pdb.set_trace()
             """Switch Optimizers"""
             if config.epoch == 50:
                 optimizer = torch.optim.SGD(net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, dampening=0, weight_decay=config.MODEL_WEIGHT_DEFAY, nesterov=False)
@@ -487,7 +488,6 @@ class HPAEvaluation:
         pbar = tqdm(itertools.chain(validation_loader, validation_loader, validation_loader, validation_loader))
         print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
-            import pdb; pdb.set_trace()
             """CALCULATE LOSS"""
             if config.TRAIN_GPU_ARG:
                 image = image.cuda()
