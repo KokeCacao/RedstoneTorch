@@ -487,6 +487,7 @@ class HPAEvaluation:
         pbar = tqdm(itertools.chain(validation_loader, validation_loader, validation_loader, validation_loader))
         print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+            import pdb; pdb.set_trace()
             """CALCULATE LOSS"""
             if config.TRAIN_GPU_ARG:
                 image = image.cuda()
@@ -506,9 +507,8 @@ class HPAEvaluation:
             focal = focal.detach()
             focal_min = focal.min()
             focal_max = focal.max()
-            import pdb; pdb.set_trace()
-            focal_min_id = (focal == focal_min).nonzero()[0]
-            focal_max_id = (focal == focal_max).nonzero()[0]
+            focal_min_id = (focal == focal_min).nonzero().view(1)[0]
+            focal_max_id = (focal == focal_max).nonzero().view(1)[0]
             focal_min = focal_min.cpu().numpy()
             focal_max = focal_max.cpu().numpy()
             focal_min_id = ids[focal_min_id.cpu().numpy()]
