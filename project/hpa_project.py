@@ -543,10 +543,10 @@ class HPAEvaluation:
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
             """Memory Leak"""
-            import gc
-            for obj in gc.get_objects():
-                if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-                    print(type(obj), obj.size())
+            # import gc
+            # for obj in gc.get_objects():
+            #     if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+            #         print(type(obj), obj.size())
         del pbar
         """LOSS"""
         f1 = f1_macro(predict_total, label_total).mean()

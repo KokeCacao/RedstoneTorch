@@ -173,6 +173,7 @@ python train.py --projecttag aug2 --versiontag one --resume False --loadfile two
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-19-18-55-35-204127-aug2/ --port=6006
 =
 python train.py --projecttag augnew --versiontag one --resume False
+python train.py --projecttag test --versiontag one --resume False
 //2 fold
 
 ```
