@@ -33,8 +33,8 @@ class HPAProject:
     """"."""
 
     """URGENT"""
-    # TODO: try pytorch's lr_schedular
-    # TODO: try albumnentation
+    # TODO: PyCQA/flake8
+    # TODO: try albumnentation: https://albumentations.readthedocs.io/en/latest/writing_tests.html
     # TODO: change to ResNet50, Xception, Inception ResNet v2 x 5, SEResNext too lag?
     # TODO: understand F1-macro and so that you know how to adjust your post processing
     # TODO: ensemble with majority voting on stage 1: 0.505 + 0.501 + 0.511 LB: 0.516
@@ -71,6 +71,10 @@ class HPAProject:
     # TODO: visualization: https://www.kaggle.com/c/human-protein-atlas-image-classification/discussion/70173
     # TODO: train using predicted label
     # TODO: reproducability https://docs.nvidia.com/deeplearning/sdk/cudnn-developer-guide/index.html#reproducibility
+    # NON DETERMINISTIC ISSUE: https://www.zhihu.com/question/67209417/answer/534749835
+    # class MyUpsample2(nn.Module):
+    #     def forward(self, x):
+    #         return x[:, :, :, None, :, None].expand(-1, -1, -1, 2, -1, 2).reshape(x.size(0), x.size(1), x.size(2) * 2, x.size(3) * 2)
 
     """ASSUMPTIONS
     1. How well can you know a cell's structure by looking at 1 or 2 of 3 images
@@ -115,6 +119,7 @@ class HPAProject:
 
     """FINISHED"""
 
+    # TODO: try pytorch's lr_schedular
     # TODO: make sure all lose input are correct
     # TODO: visualize prediction and train of each class
     # TODO: stratisfy and weight batch
@@ -392,7 +397,7 @@ class HPAProject:
             # pbar.set_description_str("(E{}-F{}) Stp:{} Y:{}, y:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), labels_0, logits_predict))
 
             tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch,
-                                                       'LearningRate/{}'.format(config.fold): optimizer.param_groups[0]['lr'],
+                                                       'LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold): optimizer.param_groups[0]['lr'],
                                                        'Loss/{}'.format(config.fold): loss,
                                                        'F1/{}'.format(config.fold): f1,
                                                        'Focal/{}'.format(config.fold): focal,
@@ -485,8 +490,8 @@ class HPAEvaluation:
             """LOSS"""
             focal = FocalLoss_Sigmoid(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
             f1, precise, recall = Differenciable_F1(beta=1)(labels_0, logits_predict)
-            bce = BCELoss()(sigmoid_predict, labels_0)
-            positive_bce = BCELoss(weight=labels_0*20+1)(sigmoid_predict, labels_0)
+            # bce = BCELoss()(sigmoid_predict, labels_0)
+            # positive_bce = BCELoss(weight=labels_0*20+1)(sigmoid_predict, labels_0)
             # weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(torch.sigmoid(logits_predict), labels_0)
             # loss = f1 + bce.sum()
 
@@ -495,8 +500,8 @@ class HPAEvaluation:
             f1 = f1.detach().cpu().numpy()
             precise = precise.detach().cpu().numpy().mean()
             recall = recall.detach().cpu().numpy().mean()
-            bce = bce.detach().cpu().numpy().mean()
-            positive_bce = positive_bce.detach().cpu().numpy().mean()
+            # bce = bce.detach().cpu().numpy().mean()
+            # positive_bce = positive_bce.detach().cpu().numpy().mean()
             # loss = loss.detach().cpu().numpy()
             labels_0 = labels_0.cpu().numpy()
             image = image.cpu().numpy()
@@ -513,7 +518,7 @@ class HPAEvaluation:
             # pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(sigmoid_predict>0.5)[0])
             # pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(int(config.global_steps[fold]), label, pred, left))
             pbar.set_description("Focal:{} F1:{}".format(focal.mean(), f1.mean()))
-            if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(focal.flatten())
+            # if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(focal.flatten())
             for id, loss_item in zip(ids, focal.flatten()): id_loss_dict[id] = loss_item
             predict_total = np.concatenate((predict_total, sigmoid_predict), axis=0) if predict_total is not None else sigmoid_predict
             label_total = np.concatenate((label_total, labels_0), axis=0) if label_total is not None else labels_0
@@ -534,9 +539,14 @@ class HPAEvaluation:
 
             """CLEAN UP"""
             del ids, image, image_for_display
-            del focal, f1, precise, recall, bce, positive_bce, labels_0, logits_predict, sigmoid_predict
+            del focal, f1, precise, recall, labels_0, logits_predict, sigmoid_predict
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
+            """Memory Leak"""
+            import gc
+            for obj in gc.get_objects():
+                if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                    print(type(obj), obj.size())
         del pbar
         """LOSS"""
         f1 = f1_macro(predict_total, label_total).mean()
