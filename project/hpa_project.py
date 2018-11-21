@@ -33,8 +33,7 @@ class HPAProject:
     """"."""
 
     """URGENT"""
-    # TODO: PyCQA/flake8
-    # TODO: try albumnentation: https://albumentations.readthedocs.io/en/latest/writing_tests.html
+    # TODO: PyCQA/flake8 to check code
     # TODO: change to ResNet50, Xception, Inception ResNet v2 x 5, SEResNext too lag?
     # TODO: understand F1-macro and so that you know how to adjust your post processing
     # TODO: ensemble with majority voting on stage 1: 0.505 + 0.501 + 0.511 LB: 0.516
@@ -95,6 +94,7 @@ class HPAProject:
     # TODO: your upvote list
 
     """GIVE UP"""
+    # TODO: try albumnentation: https://albumentations.readthedocs.io/en/latest/writing_tests.html
     # TODO: put image in SSD: https://cloud.google.com/compute/docs/disks/add-persistent-disk#create_disk
     # TODO: test visualize your network
     # TODO: freeze loaded layer, check if the layers loaded correctly (ie. I want to load as much as I can)
@@ -223,7 +223,7 @@ class HPAProject:
 
         evaluation = HPAEvaluation(self.writer, self.dataset.multilabel_binarizer)
         for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
-            import pdb; pdb.set_trace()
+            import pdb; pdb.set_trace() #1357Mb -> 1215Mb
             """Switch Optimizers"""
             if config.epoch == 50:
                 optimizer = torch.optim.SGD(net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, dampening=0, weight_decay=config.MODEL_WEIGHT_DEFAY, nesterov=False)
@@ -248,8 +248,8 @@ class HPAProject:
                 ValidLoss: {}, ValidF1: {}
             """.format(val_loss, val_f1))
             net = net.cpu()
-            optimizer = load.move_optimizer_to_cpu(optimizer)
-            if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+            optimizer = load.move_optimizer_to_cpu(optimizer) #3299Mb
+            if config.TRAIN_GPU_ARG: torch.cuda.empty_cache() #1215Mb
 
         """DISPLAY"""
         best_id, best_loss = evaluation.best()
@@ -336,6 +336,7 @@ class HPAProject:
 
         print("Set Model Trainning mode to trainning=[{}]".format(net.train().training))
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+            #1215MB -> 4997MB = 3782
 
             # """UPDATE LR"""
             # if config.global_steps[fold] == 2 * 46808 / 32 - 1: print("Perfect Place to Stop")
@@ -488,6 +489,7 @@ class HPAEvaluation:
         pbar = tqdm(itertools.chain(validation_loader, validation_loader, validation_loader, validation_loader))
         print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+
             """CALCULATE LOSS"""
             if config.TRAIN_GPU_ARG:
                 image = image.cuda()
@@ -542,7 +544,7 @@ class HPAEvaluation:
             # label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
             # pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(sigmoid_predict>0.5)[0])
             # pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(int(config.global_steps[fold]), label, pred, left))
-            pbar.set_description("Focal:{} F1:{}".format(focal.mean(), f1.mean()))
+            pbar.set_description("Focal:{} F1:{}".format(focal_mean, f1.mean()))
             # if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(focal.flatten())
             predict_total = np.concatenate((predict_total, sigmoid_predict), axis=0) if predict_total is not None else sigmoid_predict
             label_total = np.concatenate((label_total, labels_0), axis=0) if label_total is not None else labels_0
@@ -564,11 +566,9 @@ class HPAEvaluation:
         tensorboardwriter.write_pr_curve(self.writer, label_total, predict_total, config.epoch, config.fold)
         self.epoch_pred = np.concatenate((self.epoch_pred, predict_total), axis=0) if self.epoch_pred is not None else predict_total
         self.epoch_label = np.concatenate((self.epoch_label, label_total), axis=0) if self.epoch_label is not None else label_total
-        del predict_total, label_total
 
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
         mean_loss = focal_losses.mean()
-        del focal_losses
         self.mean_losses.append(mean_loss)
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
         return mean_loss, f1
@@ -649,7 +649,6 @@ class HPAPrediction:
                 self.nets.append(cuda(net))
         load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
 
-        # self.test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_TEST, img_suffix=config.DIRECTORY_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=False)
         self.test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_PREPROCESSED_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=True)
 
         self.run()

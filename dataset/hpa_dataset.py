@@ -15,6 +15,12 @@ from torch._six import string_classes, int_classes
 from torch.utils import data
 from torch.utils.data import SubsetRandomSampler
 from sklearn.preprocessing import MultiLabelBinarizer
+# from albumentations import (
+#     HorizontalFlip, IAAPerspective, ShiftScaleRotate, CLAHE, RandomRotate90,
+#     Transpose, ShiftScaleRotate, Blur, OpticalDistortion, GridDistortion, HueSaturationValue,
+#     IAAAdditiveGaussianNoise, GaussNoise, MotionBlur, MedianBlur, IAAPiecewiseAffine,
+#     IAASharpen, IAAEmboss, RandomContrast, RandomBrightness, Flip, OneOf, Compose
+# )
 
 ## https://discuss.pytorch.org/t/feedback-on-pytorch-for-kaggle-competitions/2252/3
 ## https://discuss.pytorch.org/t/questions-about-imagefolder/774
@@ -578,6 +584,12 @@ def transform(ids, image_0, labels_0, train, val):
             Normalize(mean=[0.07459783, 0.05063238, 0.05089102, 0.07628681], std=[1, 1, 1, 1]),
         ])
         # import pdb; pdb.set_trace()
+
+        if_non_label = np.random.choice([True, False], 1, p=[0.035, 0.965])
+        if if_non_label:
+            image_0[:][:][1] = image_0[:][:][1]*0.
+            labels_0 = labels_0*0.
+
         image = TRAIN_TRANSFORM(image_0)
         return (ids, image, labels_0, transforms.ToTensor()(image_0))
     elif not train and val:
@@ -589,6 +601,11 @@ def transform(ids, image_0, labels_0, train, val):
             # Normalize(mean=[0.080441904331346, 0.05262986230955176, 0.05474700710311806, 0.08270895676048498], std=[1, 1, 1, 1]),
             Normalize(mean=[0.07459783, 0.05063238, 0.05089102, 0.07628681], std=[1, 1, 1, 1]),
         ])
+
+        if_non_label = np.random.choice([True, False], 1, p=[0.035, 0.965])
+        if if_non_label:
+            image_0[:][:][1] = image_0[:][:][1]*0.
+            labels_0 = labels_0*0.
 
         image = PREDICT_TRANSFORM_IMG(image_0)
         return (ids, image, labels_0, transforms.ToTensor()(image_0))
