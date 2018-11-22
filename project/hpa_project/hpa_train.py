@@ -490,7 +490,7 @@ class HPAEvaluation:
         self.best_loss = []
         self.worst_loss = []
 
-        pbar = tqdm(itertools.chain(validation_loader, validation_loader, validation_loader, validation_loader))
+        pbar = tqdm(itertools.chain(validation_loader, validation_loader, validation_loader, validation_loader), total=len(validation_loader)*4)
         print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
             """CALCULATE LOSS"""
