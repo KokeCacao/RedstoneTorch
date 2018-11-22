@@ -506,8 +506,9 @@ class HPAEvaluation:
 
             """EVALUATE LOSS"""
             focal = focal.detach()
-            focal_min = focal.min()
-            focal_max = focal.max()
+            import pdb; pdb.set_trace()
+            focal_min = focal.min()[0]
+            focal_max = focal.max()[0]
             focal_min_id = (focal == focal_min).nonzero().view(1)[0]
             focal_max_id = (focal == focal_max).nonzero().view(1)[0]
             focal_min = focal_min.cpu().numpy()

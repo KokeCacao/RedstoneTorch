@@ -176,7 +176,7 @@ python train.py --projecttag augnew --versiontag one --resume False
 python train.py --projecttag test --versiontag one --resume False
 //2 fold
 =
-python train.py --projecttag seresnextaugnew --versiontag one --resume False
+python train.py --projecttag seresnext-augnew-2pooling --versiontag one --resume False
 
 ```
 
