@@ -70,7 +70,7 @@ def write_best_img(writer, img, label, id, loss, fold):
     plt.imshow(img)
     plt.title("Id:{} label:{} loss:{}".format(id, label, loss))
     plt.grid(False)
-    writer.add_figure("worst/{}".format(config.epoch), F, fold)
+    writer.add_figure("worst/{}".format(fold), F, 0)
 
 
 def write_worst_img(writer, img, label, id, loss, fold):
@@ -79,7 +79,7 @@ def write_worst_img(writer, img, label, id, loss, fold):
     plt.imshow(img)
     plt.title("Id:{} label:{} loss:{}".format(id, label, loss))
     plt.grid(False)
-    writer.add_figure("worst/{}".format(config.epoch), F, fold)
+    writer.add_figure("worst/{}".format(fold), F, 0)
 
 def np_three_channel_with_green(image, shape, green_intensity=1, other_intensity=1):
     """
