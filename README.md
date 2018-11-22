@@ -175,6 +175,8 @@ python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneT
 python train.py --projecttag augnew --versiontag one --resume False
 python train.py --projecttag test --versiontag one --resume False
 //2 fold
+=
+python train.py --projecttag seresnextaugnew --versiontag one --resume False
 
 ```
 
