@@ -15,7 +15,7 @@ def save_checkpoint_fold(state_dicts, optimizer_dicts, interupt=False):
     interupt = "INTERUPT-" if interupt else ""
     if not os.path.exists(config.DIRECTORY_CHECKPOINT):
         os.makedirs(config.DIRECTORY_CHECKPOINT)
-    config.lastsave = interupt + tag + config.DIRECTORY_CP_NAME.format(config.epoch)
+    config.lastsave = interupt + tag + config.DIRECTORY_CP_NAME.format(config.epoch, config.MODEL_TRAIN_FOLD, config.PROJECT_TAG, config.versiontag, config.MODEL_INIT_LEARNING_RATE, config.MODEL_BATCH_SIZE, config.AUGMENTATION_RESIZE)
     torch.save({
         'epoch': config.epoch,
         'global_steps': config.global_steps,

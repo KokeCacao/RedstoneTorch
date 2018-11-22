@@ -18,7 +18,7 @@ if PROJECT_NAME == "HPA":
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DEFAY = 0.0001
     MODEL_FOLD = 10
-    MODEL_TRAIN_FOLD = [0,1,2,3]
+    MODEL_TRAIN_FOLD = [1]
 
     TRAIN_GPU_DICT = {
         "ml-k80-3": "0",
@@ -57,7 +57,7 @@ if PROJECT_NAME == "HPA":
     DIRECTORY_SAMPLE_CSV = DIRECTORY_PREFIX + 'data/sample_submission.csv'
     DIRECTORY_CHECKPOINT = DIRECTORY_PREFIX + "model/" + PROJECT_TAG + "/"
     DIRECTORY_TEST = DIRECTORY_PREFIX + 'data/test/'
-    DIRECTORY_CP_NAME = 'CP{}.pth'
+    DIRECTORY_CP_NAME = 'CP{}F{}PT{}VT{}LR{}BS{}IMG{}.pth'
 
     PREDICTION_WRITER = False
     PREDICTION_TAG = "test"
