@@ -488,12 +488,13 @@ class HPAEvaluation:
         pbar = tqdm(itertools.chain(validation_loader, validation_loader, validation_loader, validation_loader))
         print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
-
+            import pdb; pdb.set_trace()
             """CALCULATE LOSS"""
             if config.TRAIN_GPU_ARG:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
             logits_predict = net(image)
+            if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             sigmoid_predict = torch.sigmoid(logits_predict)
 
             """LOSS"""
@@ -506,7 +507,6 @@ class HPAEvaluation:
 
             """EVALUATE LOSS"""
             focal = focal.detach()
-            import pdb; pdb.set_trace()
             focal_min = focal.min().item()
             focal_min_id = (focal == focal_min).nonzero()
             focal_min_id = focal_min_id.view(focal_min_id.size(), -1)[0]
