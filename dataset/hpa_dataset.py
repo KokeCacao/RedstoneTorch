@@ -586,7 +586,7 @@ def transform(ids, image_0, labels_0, train, val):
             STD1 = [0.00255578 0.00230547 0.00129955 0.00293934]
     """
     if not val and train:
-        image_aug_transform = TrainImgAugTransform().to_deterministic()
+        image_aug_transform = AggressiveTrainImgAugTransform().to_deterministic()
         TRAIN_TRANSFORM = transforms.Compose([
             image_aug_transform,
             lambda x: np.clip(x, a_min=0, a_max=255),

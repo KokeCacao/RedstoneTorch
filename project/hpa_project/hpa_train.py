@@ -27,6 +27,8 @@ if os.environ.get('DISPLAY', '') == '':
 from matplotlib import pyplot as plt
 
 """URGENT"""
+# TODO: more aug so that your model can distinguish dark image
+# TODO: give minority class more appearance so that it trains faster
 # TODO: emsemble augmentation?
 # TODO: go 8 times augmentation to generate image and then train
 # TODO: search threshold on all fold
@@ -95,6 +97,7 @@ from matplotlib import pyplot as plt
 # TODO: put image in SSD: https://cloud.google.com/compute/docs/disks/add-persistent-disk#create_disk
 # TODO: test visualize your network
 # TODO: freeze loaded layer, check if the layers loaded correctly (ie. I want to load as much as I can)
+# TODO: strange data: da9c2918-bbbf-11e8-b2bb-ac1f6b6435d0, 209fa196-bbad-11e8-b2ba-ac1f6b6435d0
 
 """LB PROBING
 you can actually verify the correct metric by probing the LB.
@@ -151,7 +154,8 @@ class HPATrain:
                 optimizer = torch.optim.Adadelta(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DEFAY)
                 self.optimizers.append(optimizer)
                 self.nets.append(net)
-                lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=2*int(27964.8/config.MODEL_BATCH_SIZE), verbose=False, threshold=1e-4, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-8)
+                # lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=4*int(27964.8/config.MODEL_BATCH_SIZE), verbose=False, threshold=1e-4, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-8)
+                lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=4, verbose=False, threshold=1e-4, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-8)
                 self.lr_schedulers.append(lr_scheduler)
 
                 # for name, param in net.named_parameters():
@@ -255,9 +259,9 @@ class HPATrain:
         worst_id, worst_loss = evaluation.worst()
         for fold, (best_id, best_loss, worst_id, worst_loss) in enumerate(zip(best_id, best_loss, worst_id, worst_loss)):
             best_img = self.dataset.get_load_image_by_id(best_id)
-            best_label = self.dataset.get_load_label_by_id(best_id)
+            best_label = self.dataset.multilabel_binarizer.inverse_transform(np.expand_dims(self.dataset.get_load_label_by_id(best_id), axis=0))[0]
             worst_img = self.dataset.get_load_image_by_id(worst_id)
-            worst_label = self.dataset.get_load_label_by_id(worst_id)
+            worst_label = self.dataset.multilabel_binarizer.inverse_transform(np.expand_dims(self.dataset.get_load_label_by_id(worst_id), axis=0))[0]
             tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, fold=fold)
             tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
 
@@ -362,7 +366,7 @@ class HPATrain:
                  1.59883721e-02, 2.04841713e-02, 1.03189493e-02, 5.23809524e-01,
                  2.07547170e-02, 5.23809524e-02, 1.21951220e-02, 7.42240216e-03,
                  6.39534884e-02, 2.91236431e-03, 1.37157107e-02, 3.70994941e-03,
-                 3.41614907e-02, 1.33689840e-03, 3.35365854e-02, 1.00000000e+00]
+                 3.41614907e-02, 1.33689840e-03, 3.35365854e-02, 1.00000000e+00] *50
             ).cuda())(sigmoid_predict, labels_0)
             if config.epoch < 10:
                 loss = bce
@@ -370,7 +374,7 @@ class HPATrain:
                 loss = f1 + weighted_bce
             if config.epoch == 10: tensorboardwriter.write_text(self.writer, "Switch to f1", config.global_steps[fold])
             """BACKPROP"""
-            lr_scheduler.step((precise.detach().cpu().numpy().mean()+recall.detach().cpu().numpy().mean())/2, epoch=config.global_steps[fold])
+            # lr_scheduler.step(f1.detach().cpu().numpy().mean(), epoch=config.global_steps[fold])
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -430,6 +434,7 @@ class HPATrain:
             Epoch: {}, Fold: {}
             TrainLoss: {}, TrainF1: {}
         """.format(config.epoch, config.fold, train_loss, epoch_f1))
+        lr_scheduler.step(epoch_f1, epoch=config.epoch)
 
         del train_loss
 
