@@ -9,8 +9,8 @@ import numpy as np
 import torch
 
 import config
+import project.hpa_project.hpa_preprocess
 from gpu import gpu_profile
-from project import hpa_project
 
 
 def get_args():
@@ -82,5 +82,5 @@ if __name__ == '__main__':
         print("=> Current Directory: " + str(os.getcwd()))
         print("=> Loading neuronetwork...")
 
-        preprocess = hpa_project.HPAPreprocess()
+        preprocess = project.hpa_project.hpa_preprocess.HPAPreprocess()
 

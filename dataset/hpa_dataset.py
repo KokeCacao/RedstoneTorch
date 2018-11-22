@@ -405,6 +405,10 @@ class TrainImgAugTransform:
             ])),
             iaa.Fliplr(0.5),
             iaa.Flipud(0.5),
+            iaa.OneOf([
+                iaa.Noop(),
+                iaa.Affine(rotate=90),
+            ]),
 
         ], random_order=False)
 
@@ -451,6 +455,10 @@ class AggressiveTrainImgAugTransform:
             ])),
             iaa.Fliplr(0.5),
             iaa.Flipud(0.5),
+            iaa.OneOf([
+                iaa.Noop(),
+                iaa.Affine(rotate=90),
+            ]),
 
         ], random_order=False)
 
@@ -483,7 +491,10 @@ class TestImgAugTransform:
             iaa.Scale({"height": config.AUGMENTATION_RESIZE, "width": config.AUGMENTATION_RESIZE}),
             iaa.Fliplr(0.5),
             iaa.Flipud(0.5),
-            iaa.CropAndPad(percent=(-0.06, 0)),
+            iaa.OneOf([
+                iaa.Noop(),
+                iaa.Affine(rotate=90),
+            ]),
         ], random_order=False)
 
     def __call__(self, img):
@@ -585,8 +596,7 @@ def transform(ids, image_0, labels_0, train, val):
         ])
         # import pdb; pdb.set_trace()
 
-        if_non_label = np.random.choice([True, False], 1, p=[0.035, 0.965])
-        if if_non_label:
+        if np.random.choice([True, False], 1, p=[0.035, 0.965]):
             image_0[:][:][1] = image_0[:][:][1]*0.
             labels_0 = labels_0*0.
 
@@ -602,8 +612,7 @@ def transform(ids, image_0, labels_0, train, val):
             Normalize(mean=[0.07459783, 0.05063238, 0.05089102, 0.07628681], std=[1, 1, 1, 1]),
         ])
 
-        if_non_label = np.random.choice([True, False], 1, p=[0.035, 0.965])
-        if if_non_label:
+        if np.random.choice([True, False], 1, p=[0.035, 0.965]):
             image_0[:][:][1] = image_0[:][:][1]*0.
             labels_0 = labels_0*0.
 

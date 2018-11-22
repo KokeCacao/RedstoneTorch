@@ -5,12 +5,10 @@ import sys
 
 import matplotlib as mpl
 import numpy as np
-import pandas as pd
 import torch
 from sklearn import metrics
 from torch.nn import BCELoss
 from torch.utils import data
-from torch.utils.data import SubsetRandomSampler
 from tqdm import tqdm
 
 import config
@@ -19,7 +17,7 @@ from dataset.hpa_dataset import HPAData, train_collate, val_collate
 from gpu import gpu_profile
 from loss.f1 import f1_macro, Differenciable_F1
 from loss.focal import FocalLoss_Sigmoid
-from net.proteinet.proteinet_model import se_resnext101_32x4d_modified
+from project.hpa_project.hpa_model import se_resnext101_32x4d_modified
 from utils import encode, load
 from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, cuda, load_checkpoint_all_fold_without_optimizers, save_onnx
 from visualization.gradcam import GradCam

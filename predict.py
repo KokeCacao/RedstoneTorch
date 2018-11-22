@@ -1,6 +1,5 @@
 import sys
 import random
-from datetime import datetime
 from optparse import OptionParser
 
 import imgaug as ia
@@ -9,8 +8,8 @@ import torch
 from tensorboardX import SummaryWriter
 
 import config
+import project.hpa_project.hpa_prediction
 from gpu import gpu_profile
-from project import hpa_project
 from utils.memory import memory_thread
 
 
@@ -78,4 +77,4 @@ if __name__ == '__main__':
 
         reproduceability()
 
-        prediction = hpa_project.HPAPrediction(writer)
+        prediction = project.hpa_project.hpa_prediction.HPAPrediction(writer)

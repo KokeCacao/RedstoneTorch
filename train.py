@@ -12,9 +12,7 @@ from tensorboardX import SummaryWriter
 import config
 # dir_prefix = 'drive/My Drive/ML/Pytorch-UNet/'
 from gpu import gpu_profile
-from loss.focal import FocalLoss_Sigmoid
-from project import hpa_project
-from utils.memory import memory_thread
+from project.hpa_project import hpa_train
 
 
 # def log_data(file_name, data):
@@ -114,7 +112,7 @@ if __name__ == '__main__':
         print("=> Current Directory: " + str(os.getcwd()))
         print("=> Loading neuronetwork...")
         try:
-            project = hpa_project.HPAProject(writer)
+            project = hpa_train.HPATrain(writer)
         except Exception as e:
             # with open('Exception.txt', 'a+') as f:
             #     f.write(str(e))
