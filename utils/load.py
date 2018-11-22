@@ -13,9 +13,8 @@ def save_checkpoint_fold(state_dicts, optimizer_dicts, interupt=False):
     if interupt: print("WARNING: loading interupt models may be buggy")
     tag = config.versiontag + "-" if config.versiontag else ""
     interupt = "INTERUPT-" if interupt else ""
-    if config.TRAIN_SAVE_CHECKPOINT:
-        if not os.path.exists(config.DIRECTORY_CHECKPOINT):
-            os.makedirs(config.DIRECTORY_CHECKPOINT)
+    if not os.path.exists(config.DIRECTORY_CHECKPOINT):
+        os.makedirs(config.DIRECTORY_CHECKPOINT)
     config.lastsave = interupt + tag + config.DIRECTORY_CP_NAME.format(config.epoch)
     torch.save({
         'epoch': config.epoch,
