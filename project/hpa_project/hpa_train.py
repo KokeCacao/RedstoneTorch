@@ -488,7 +488,6 @@ class HPAEvaluation:
         pbar = tqdm(itertools.chain(validation_loader, validation_loader, validation_loader, validation_loader))
         print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
-            import pdb; pdb.set_trace()
             """CALCULATE LOSS"""
             if config.TRAIN_GPU_ARG:
                 image = image.cuda()
