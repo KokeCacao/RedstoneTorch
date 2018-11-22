@@ -77,12 +77,6 @@ if PROJECT_NAME == "HPA":
     fold = 0
     versiontag = ""
 
-    # PREDICT_TRANSFORM_BACK = transforms.Compose([
-    #     lambda x: (x > Variable(torch.Tensor([PREDICTION_CHOSEN_THRESHOLD])).cuda()).float() * 1,
-    #     lambda x: tensor_to_PIL(x),
-    #     transforms.Resize((101, 101)),
-    #     transforms.Grayscale(),
-    # ])
 elif PROJECT_NAME == "QUBO":
     DEBUG_TRAISE_GPU = False
     DEBUG_LAPTOP = True
