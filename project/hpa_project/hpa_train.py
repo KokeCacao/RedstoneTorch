@@ -513,8 +513,8 @@ class HPAEvaluation:
             focal_min_id = focal_min_id.view(focal_min_id.size(), -1)[0]
             focal_max_id = (focal == focal_max).nonzero()
             focal_max_id = focal_max_id.view(focal_max_id.size(), -1)[0]
-            focal_min_id = ids[focal_min_id.cpu().numpy()]
-            focal_max_id = ids[focal_max_id.cpu().numpy()]
+            focal_min_id = ids[focal_min_id.cpu().numpy()[0]]
+            focal_max_id = ids[focal_max_id.cpu().numpy()[0]]
             self.best_loss = np.append(self.best_loss, focal_min)
             self.worst_loss = np.append(self.worst_loss, focal_max)
             self.best_id = np.append(self.best_id, focal_min_id)
