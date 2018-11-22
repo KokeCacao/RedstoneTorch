@@ -520,6 +520,7 @@ class HPAEvaluation:
             self.best_id = np.append(self.best_id, focal_min_id)
             self.worst_id = np.append(self.worst_id, focal_max_id)
             del focal_min, focal_min_id, focal_max, focal_max_id
+            if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
             """DETATCH"""
             focal = focal.cpu().numpy()

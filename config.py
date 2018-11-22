@@ -58,7 +58,7 @@ if PROJECT_NAME == "HPA":
     DIRECTORY_SAMPLE_CSV = DIRECTORY_PREFIX + 'data/sample_submission.csv'
     DIRECTORY_CHECKPOINT = DIRECTORY_PREFIX + "model/" + PROJECT_TAG + "/"
     DIRECTORY_TEST = DIRECTORY_PREFIX + 'data/test/'
-    DIRECTORY_CP_NAME = 'CP{}F{}PT{}VT{}LR{}BS{}IMG{}.pth'
+    DIRECTORY_CP_NAME = 'CP{}_F{}_PT{}_VT{}_LR{}_BS{}_IMG{}.pth'
 
     PREDICTION_WRITER = False
     PREDICTION_TAG = "test"
