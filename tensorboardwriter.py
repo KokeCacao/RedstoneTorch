@@ -14,7 +14,7 @@ write_memory = write_memory
 
 
 def write_text(writer, text, step):
-    writer.add_text('text/', text, global_step=step, walltime=None)
+    writer.add_text('text', text, global_step=step, walltime=None)
 
 
 def write_loss(writer, loss_dict, global_step):

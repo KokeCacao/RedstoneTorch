@@ -372,7 +372,7 @@ class HPATrain:
                 loss = bce
             else:
                 loss = f1 + weighted_bce
-            if config.epoch == 10: tensorboardwriter.write_text(self.writer, "Switch to f1", config.global_steps[fold])
+            if config.epoch == 10 and batch_index == 0: tensorboardwriter.write_text(self.writer, "Switch to f1 at epoch={}".format(config.epoch), config.global_steps[fold])
             """BACKPROP"""
             # lr_scheduler.step(f1.detach().cpu().numpy().mean(), epoch=config.global_steps[fold])
             optimizer.zero_grad()
