@@ -1,6 +1,7 @@
 import os
 
 import pandas as pd
+import numpy as np
 import torch
 from torch.utils import data
 from torch.utils.data import SubsetRandomSampler
@@ -80,7 +81,7 @@ class HPAPrediction:
                         predicts = self.nets[0](image)
                         predicts = torch.sigmoid(predicts).detach().cpu().numpy()
                         encodeds = list(self.test_dataset.multilabel_binarizer.inverse_transform(predicts > 0.5))
-                        pbar.set_description("Thres:{} Id:{} Out:{} Prob0:{}".format(threshold, ids[0], encodeds[0], predicts[0][0]))
+                        pbar.set_description("Thres:{} Id:{} Out:{} Prob:{}".format(threshold, ids[0], encodeds[0], np.absolute(predicts[0]-0.5).mean()+0.5))
 
                         for id, encoded, predict in zip(ids, encodeds, predicts):
                             pred_file.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
