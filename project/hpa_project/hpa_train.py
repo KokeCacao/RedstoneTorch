@@ -27,6 +27,7 @@ if os.environ.get('DISPLAY', '') == '':
 from matplotlib import pyplot as plt
 
 """URGENT"""
+# TODO: compare batch norm and without batch norm in prediction. Try and compare using threshold 0.01 and 0.1 in submitted CP, try and compare tuning threshold by hand picking, compare result when CP52
 # TODO: more aug so that your model can distinguish dark image
 # TODO: give minority class more appearance so that it trains faster
 # TODO: emsemble augmentation?
@@ -248,7 +249,7 @@ class HPATrain:
                                                                          worker_init_fn=None,
                                                                          ))
             print("""
-                ValidLoss: {}, ValidF1: {}
+            ValidLoss: {}, ValidF1: {}
             """.format(val_loss, val_f1))
             net = net.cpu()
             optimizer = load.move_optimizer_to_cpu(optimizer) #3299Mb

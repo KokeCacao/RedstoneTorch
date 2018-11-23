@@ -403,14 +403,32 @@ class TrainImgAugTransform:
                 ]),
                 iaa.Sharpen(alpha=(0.24, 0.26), lightness=(0.44, 0.46)),
             ])),
-            iaa.Fliplr(0.5),
-            iaa.Flipud(0.5),
-            iaa.OneOf([
-                iaa.Noop(),
-                iaa.Affine(rotate=90),
-            ]),
 
         ], random_order=False)
+        chance = config.epoch / 8
+        if chance == 0:
+            pass
+        elif chance == 1:
+            self.aug.add(iaa.Fliplr(1))
+        elif chance == 2:
+            self.aug.add(iaa.Fliplr(1))
+            self.aug.add(iaa.Flipud(1))
+        elif chance == 3:
+            self.aug.add(iaa.Flipud(1))
+        elif chance == 4:
+            self.aug.add(iaa.Affine(rotate=90))
+        elif chance == 5:
+            self.aug.add(iaa.Affine(rotate=90))
+            self.aug.add(iaa.Fliplr(1))
+        elif chance == 6:
+            self.aug.add(iaa.Affine(rotate=90))
+            self.aug.add(iaa.Fliplr(1))
+            self.aug.add(iaa.Flipud(1))
+        elif chance == 7:
+            self.aug.add(iaa.Affine(rotate=90))
+            self.aug.add(iaa.Flipud(1))
+        else:
+            raise ValueError("Chance cannot equal to other number other than [0, 7]")
 
     def __call__(self, img):
         img = np.array(img)
@@ -453,14 +471,33 @@ class AggressiveTrainImgAugTransform:
                 ]),
                 iaa.Sharpen(alpha=(0.24, 0.26), lightness=(0.44, 0.46)),
             ])),
-            iaa.Fliplr(0.5),
-            iaa.Flipud(0.5),
-            iaa.OneOf([
-                iaa.Noop(),
-                iaa.Affine(rotate=90),
-            ]),
 
         ], random_order=False)
+        chance = config.epoch / 8
+        if chance == 0:
+            pass
+        elif chance == 1:
+            self.aug.add(iaa.Fliplr(1))
+        elif chance == 2:
+            self.aug.add(iaa.Fliplr(1))
+            self.aug.add(iaa.Flipud(1))
+        elif chance == 3:
+            self.aug.add(iaa.Flipud(1))
+        elif chance == 4:
+            self.aug.add(iaa.Affine(rotate=90))
+        elif chance == 5:
+            self.aug.add(iaa.Affine(rotate=90))
+            self.aug.add(iaa.Fliplr(1))
+        elif chance == 6:
+            self.aug.add(iaa.Affine(rotate=90))
+            self.aug.add(iaa.Fliplr(1))
+            self.aug.add(iaa.Flipud(1))
+        elif chance == 7:
+            self.aug.add(iaa.Affine(rotate=90))
+            self.aug.add(iaa.Flipud(1))
+        else:
+            raise ValueError("Chance cannot equal to other number other than [0, 7]")
+
 
     def __call__(self, img):
         img = np.array(img)
@@ -489,13 +526,31 @@ class TestImgAugTransform:
     def __init__(self):
         self.aug = iaa.Sequential([
             iaa.Scale({"height": config.AUGMENTATION_RESIZE, "width": config.AUGMENTATION_RESIZE}),
-            iaa.Fliplr(0.5),
-            iaa.Flipud(0.5),
-            iaa.OneOf([
-                iaa.Noop(),
-                iaa.Affine(rotate=90),
-            ]),
         ], random_order=False)
+        chance = config.epoch / 8
+        if chance == 0:
+            pass
+        elif chance == 1:
+            self.aug.add(iaa.Fliplr(1))
+        elif chance == 2:
+            self.aug.add(iaa.Fliplr(1))
+            self.aug.add(iaa.Flipud(1))
+        elif chance == 3:
+            self.aug.add(iaa.Flipud(1))
+        elif chance == 4:
+            self.aug.add(iaa.Affine(rotate=90))
+        elif chance == 5:
+            self.aug.add(iaa.Affine(rotate=90))
+            self.aug.add(iaa.Fliplr(1))
+        elif chance == 6:
+            self.aug.add(iaa.Affine(rotate=90))
+            self.aug.add(iaa.Fliplr(1))
+            self.aug.add(iaa.Flipud(1))
+        elif chance == 7:
+            self.aug.add(iaa.Affine(rotate=90))
+            self.aug.add(iaa.Flipud(1))
+        else:
+            raise ValueError("Chance cannot equal to other number other than [0, 7]")
 
     def __call__(self, img):
         img = np.array(img)
@@ -586,7 +641,7 @@ def transform(ids, image_0, labels_0, train, val):
             STD1 = [0.00255578 0.00230547 0.00129955 0.00293934]
     """
     if not val and train:
-        image_aug_transform = AggressiveTrainImgAugTransform().to_deterministic()
+        image_aug_transform = AggressiveTrainImgAugTransform().to_deterministic() if config.epoch > 20 else TrainImgAugTransform().to_deterministic()
         TRAIN_TRANSFORM = transforms.Compose([
             image_aug_transform,
             lambda x: np.clip(x, a_min=0, a_max=255),

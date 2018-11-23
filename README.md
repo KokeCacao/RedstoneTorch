@@ -180,7 +180,10 @@ python train.py --projecttag seresnext-augnew-2pooling --versiontag one --resume
 python train.py --projecttag seresnext-augnew-2pooling --versiontag 9ff937c --resume True --loadfile one-CP23_F[1]_PT2018-11-22-05-08-27-139778-seresnext-augnew-2pooling_VTone_LR0.1_BS64_IMG224.pth --loaddir 2018-11-22-05-08-27-139778-seresnext-augnew-2pooling
 
 python predict.py --loaddir 2018-11-22-05-08-27-139778-seresnext-augnew-2pooling --versiontag d418e9d_THRES0.1_SK0.4862 --loadfile 9ff937c-CP27_F[1]_PTseresnext-augnew-2pooling_VT9ff937c_LR0.1_BS64_IMG224.pth
-python train.py --projecttag seresnext-augnew-2pooling --versiontag 9ff937c --resume True --loadfile 9ff937c-CP27_F[1]_PTseresnext-augnew-2pooling_VT9ff937c_LR0.1_BS64_IMG224.pth --loaddir 2018-11-22-05-08-27-139778-seresnext-augnew-2pooling
+python train.py --projecttag seresnext-augnew-2pooling --versiontag 20f4aed --resume True --loadfile 9ff937c-CP27_F[1]_PTseresnext-augnew-2pooling_VT9ff937c_LR0.1_BS64_IMG224.pth --loaddir 2018-11-22-05-08-27-139778-seresnext-augnew-2pooling
+
+RedstoneTorch/model/2018-11-22-05-08-27-139778-seresnext-augnew-2pooling/9ff937c-CP27_F[1]_PTseresnext-augnew-2pooling_VT9ff937c_LR0.1_BS64_IMG224.pth-d418e9d_THRES0.1_SK0.4862-F0-T0.1-LB.csv
+RedstoneTorch/model/2018-11-22-05-08-27-139778-seresnext-augnew-2pooling/9ff937c-CP27_F[1]_PTseresnext-augnew-2pooling_VT9ff937c_LR0.1_BS64_IMG224.pth-d418e9d_THRES0.1_SK0.4862-F0-T0.1.csv
 
 ```
 
