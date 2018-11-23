@@ -81,7 +81,7 @@ class HPAPrediction:
                         predicts = self.nets[0](image)
                         predicts = torch.sigmoid(predicts).detach().cpu().numpy()
                         encodeds = list(self.test_dataset.multilabel_binarizer.inverse_transform(predicts > 0.5))
-                        pbar.set_description("Thres:{} Id:{} Out:{} Prob:{}".format(threshold, ids[0], encodeds[0], np.absolute(predicts[0]-0.5).mean()+0.5))
+                        pbar.set_description("Thres:{} Id:{} Prob:{} Out:{}".format(threshold, ids[0], np.absolute(predicts[0]-0.5).mean()+0.5, encodeds[0]))
 
                         for id, encoded, predict in zip(ids, encodeds, predicts):
                             pred_file.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
@@ -113,3 +113,6 @@ class HPAPrediction:
                     f1.to_csv(dir_save, index=False)
                 sort(config.DIRECTORY_SAMPLE_CSV, pred_path)
                 sort(config.DIRECTORY_SAMPLE_CSV, lb_path)
+                print("Pred_path: {}".format(pred_path))
+                print("Lb_path: {}".format(lb_path))
+                print("Prob_path: {}".format(prob_path))
