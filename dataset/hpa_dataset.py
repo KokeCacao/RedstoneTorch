@@ -527,7 +527,7 @@ class TestImgAugTransform:
         self.aug = iaa.Sequential([
             iaa.Scale({"height": config.AUGMENTATION_RESIZE, "width": config.AUGMENTATION_RESIZE}),
         ], random_order=False)
-        chance = config.epoch / 8
+        chance = config.eval_index / 8
         if chance == 0:
             pass
         elif chance == 1:

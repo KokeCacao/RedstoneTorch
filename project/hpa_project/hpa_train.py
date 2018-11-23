@@ -335,10 +335,10 @@ class HPATrain:
                                        timeout=0,
                                        worker_init_fn=None,
                                        )
-        pbar = tqdm(train_loader)
-        train_len = len(train_loader) + 1e-10
 
         print("Set Model Trainning mode to trainning=[{}]".format(net.train().training))
+        pbar = tqdm(train_loader)
+        train_len = len(train_loader) + 1e-10
         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
             #1215MB -> 4997MB = 3782
 
@@ -491,82 +491,85 @@ class HPAEvaluation:
         self.best_loss = []
         self.worst_loss = []
 
-        pbar = tqdm(itertools.chain(validation_loader, validation_loader, validation_loader, validation_loader), total=len(validation_loader)*4)
         print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
-        for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
-            """CALCULATE LOSS"""
-            if config.TRAIN_GPU_ARG:
-                image = image.cuda()
-                labels_0 = labels_0.cuda()
-            logits_predict = net(image)
+        for eval_index in range(4): # TODO: set to range(8)
+            config.eval_index = eval_index
+            pbar = tqdm(validation_loader)
+            for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+                """CALCULATE LOSS"""
+                if config.TRAIN_GPU_ARG:
+                    image = image.cuda()
+                    labels_0 = labels_0.cuda()
+                logits_predict = net(image)
+                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                sigmoid_predict = torch.sigmoid(logits_predict)
+
+                """LOSS"""
+                focal = FocalLoss_Sigmoid(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
+                f1, precise, recall = Differenciable_F1(beta=1)(labels_0, logits_predict)
+                # bce = BCELoss()(sigmoid_predict, labels_0)
+                # positive_bce = BCELoss(weight=labels_0*20+1)(sigmoid_predict, labels_0)
+                # weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(torch.sigmoid(logits_predict), labels_0)
+                # loss = f1 + bce.sum()
+
+                """EVALUATE LOSS"""
+                focal = focal.detach()
+                focal_min = focal.min().item()
+                focal_min_id = (focal == focal_min).nonzero()
+                focal_min_id = focal_min_id.view(focal_min_id.size(), -1)[0]
+                focal_min_id = ids[focal_min_id.cpu().numpy()[0]]
+                focal_max = focal.max().item()
+                focal_max_id = (focal == focal_max).nonzero()
+                focal_max_id = focal_max_id.view(focal_max_id.size(), -1)[0]
+                focal_max_id = ids[focal_max_id.cpu().numpy()[0]]
+                self.best_loss = np.append(self.best_loss, focal_min)
+                self.worst_loss = np.append(self.worst_loss, focal_max)
+                self.best_id = np.append(self.best_id, focal_min_id)
+                self.worst_id = np.append(self.worst_id, focal_max_id)
+                del focal_min, focal_min_id, focal_max, focal_max_id
+                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+
+                """DETATCH"""
+                focal = focal.cpu().numpy()
+                focal_mean = focal.mean()
+                f1 = f1.detach().cpu().numpy()
+                precise = precise.detach().cpu().numpy().mean()
+                recall = recall.detach().cpu().numpy().mean()
+                # bce = bce.detach().cpu().numpy().mean()
+                # positive_bce = positive_bce.detach().cpu().numpy().mean()
+                # loss = loss.detach().cpu().numpy()
+                labels_0 = labels_0.cpu().numpy()
+                image = image.cpu().numpy()
+                image_for_display = image_for_display.numpy()
+                logits_predict = logits_predict.detach().cpu().numpy()
+                sigmoid_predict = sigmoid_predict.detach().cpu().numpy()
+
+                """SUM"""
+                # np.append(self.f1_losses, f1_macro(sigmoid_predict, labels_0).mean())
+                self.f1_losses = np.append(self.f1_losses, f1.mean())
+                focal_losses = np.append(focal_losses, focal_mean)
+
+                """PRINT"""
+                # label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
+                # pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(sigmoid_predict>0.5)[0])
+                # pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(int(config.global_steps[fold]), label, pred, left))
+                pbar.set_description("(E{}F{}I{}) Focal:{} F1:{}".format(config.epoch, config.fold, config.eval_index, focal_mean, f1.mean()))
+                # if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(focal.flatten())
+                predict_total = np.concatenate((predict_total, sigmoid_predict), axis=0) if predict_total is not None else sigmoid_predict
+                label_total = np.concatenate((label_total, labels_0), axis=0) if label_total is not None else labels_0
+
+
+                """DISPLAY"""
+                tensorboardwriter.write_memory(self.writer, "train")
+                if config.DISPLAY_VISUALIZATION and batch_index < max(1, config.MODEL_BATCH_SIZE / 32): self.display(config.fold, ids, image, image_for_display, labels_0, sigmoid_predict, focal)
+
+                """CLEAN UP"""
+                del ids, image, image_for_display
+                del focal, f1, precise, recall, labels_0, logits_predict, sigmoid_predict
+                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
+            del pbar
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-            sigmoid_predict = torch.sigmoid(logits_predict)
-
-            """LOSS"""
-            focal = FocalLoss_Sigmoid(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
-            f1, precise, recall = Differenciable_F1(beta=1)(labels_0, logits_predict)
-            # bce = BCELoss()(sigmoid_predict, labels_0)
-            # positive_bce = BCELoss(weight=labels_0*20+1)(sigmoid_predict, labels_0)
-            # weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(torch.sigmoid(logits_predict), labels_0)
-            # loss = f1 + bce.sum()
-
-            """EVALUATE LOSS"""
-            focal = focal.detach()
-            focal_min = focal.min().item()
-            focal_min_id = (focal == focal_min).nonzero()
-            focal_min_id = focal_min_id.view(focal_min_id.size(), -1)[0]
-            focal_min_id = ids[focal_min_id.cpu().numpy()[0]]
-            focal_max = focal.max().item()
-            focal_max_id = (focal == focal_max).nonzero()
-            focal_max_id = focal_max_id.view(focal_max_id.size(), -1)[0]
-            focal_max_id = ids[focal_max_id.cpu().numpy()[0]]
-            self.best_loss = np.append(self.best_loss, focal_min)
-            self.worst_loss = np.append(self.worst_loss, focal_max)
-            self.best_id = np.append(self.best_id, focal_min_id)
-            self.worst_id = np.append(self.worst_id, focal_max_id)
-            del focal_min, focal_min_id, focal_max, focal_max_id
-            if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-
-            """DETATCH"""
-            focal = focal.cpu().numpy()
-            focal_mean = focal.mean()
-            f1 = f1.detach().cpu().numpy()
-            precise = precise.detach().cpu().numpy().mean()
-            recall = recall.detach().cpu().numpy().mean()
-            # bce = bce.detach().cpu().numpy().mean()
-            # positive_bce = positive_bce.detach().cpu().numpy().mean()
-            # loss = loss.detach().cpu().numpy()
-            labels_0 = labels_0.cpu().numpy()
-            image = image.cpu().numpy()
-            image_for_display = image_for_display.numpy()
-            logits_predict = logits_predict.detach().cpu().numpy()
-            sigmoid_predict = sigmoid_predict.detach().cpu().numpy()
-
-            """SUM"""
-            # np.append(self.f1_losses, f1_macro(sigmoid_predict, labels_0).mean())
-            self.f1_losses = np.append(self.f1_losses, f1.mean())
-            focal_losses = np.append(focal_losses, focal_mean)
-
-            """PRINT"""
-            # label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
-            # pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(sigmoid_predict>0.5)[0])
-            # pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(int(config.global_steps[fold]), label, pred, left))
-            pbar.set_description("Focal:{} F1:{}".format(focal_mean, f1.mean()))
-            # if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(focal.flatten())
-            predict_total = np.concatenate((predict_total, sigmoid_predict), axis=0) if predict_total is not None else sigmoid_predict
-            label_total = np.concatenate((label_total, labels_0), axis=0) if label_total is not None else labels_0
-
-
-            """DISPLAY"""
-            tensorboardwriter.write_memory(self.writer, "train")
-            if config.DISPLAY_VISUALIZATION and batch_index < max(1, config.MODEL_BATCH_SIZE / 32): self.display(config.fold, ids, image, image_for_display, labels_0, sigmoid_predict, focal)
-
-            """CLEAN UP"""
-            del ids, image, image_for_display
-            del focal, f1, precise, recall, labels_0, logits_predict, sigmoid_predict
-            if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-            if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
-        del pbar
         """LOSS"""
         f1 = f1_macro(predict_total, label_total).mean()
         tensorboardwriter.write_eval_loss(self.writer, {"FoldFocal/{}".format(config.fold): focal_losses.mean(), "FoldF1/{}".format(config.fold): f1}, config.epoch)

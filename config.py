@@ -71,6 +71,7 @@ if PROJECT_NAME == "HPA":
     # AUGMENTATION_RESIZE = 384
     # AUGMENTATION_RESIZE = 512
 
+    eval_index = 0
     start_time = time.time()
     lastsave = None
     global_steps = []
