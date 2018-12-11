@@ -1,3 +1,4 @@
+#rb HPAExtraDataDownloader-1.rb
 require 'net/http'
 
 text=File.open('subcellular_location.tsv').read
