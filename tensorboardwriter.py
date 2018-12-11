@@ -26,7 +26,7 @@ def write_threshold(writer, classes, score, threshold, fold):
 
 
 def write_best_threshold(writer, classes, score, threshold, epoch, fold):
-    writer.add_scalars('threshold/best_threshold/{}'.format(fold), {"Threshold/{}".format(classes): threshold, "Score": score}, epoch)
+    writer.add_scalars('threshold/best_threshold/{}'.format(fold), {"Threshold/{}".format(classes): threshold}, epoch)
 
 
 def write_data_distribution(writer, F, fold, unique=False):

@@ -27,6 +27,9 @@ if os.environ.get('DISPLAY', '') == '':
 from matplotlib import pyplot as plt
 
 """URGENT"""
+# TODO: dropout = 0.5?, my std is correct? You can at least surpass https://www.kaggle.com/iafoss/pretrained-resnet34-with-rgby-0-460-public-lb
+# TODO: implement shakeup prediction
+# TODO: more aggressive TTA so that you an get a better threshold to select
 # TODO: compare batch norm and without batch norm in prediction. Try and compare using threshold 0.01 and 0.1 in submitted CP, try and compare tuning threshold by hand picking, compare result when CP52
 # TODO: more aug so that your model can distinguish dark image
 # TODO: give minority class more appearance so that it trains faster

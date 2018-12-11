@@ -190,8 +190,8 @@ Download: RedstoneTorch/model/2018-11-22-05-08-27-139778-seresnext-augnew-2pooli
 Download: RedstoneTorch/model/2018-11-22-05-08-27-139778-seresnext-augnew-2pooling/20f4aed-CP38_F[1]_PTseresnext-augnew-2pooling_VT20f4aed_LR0.1_BS64_IMG224.pth-4edd2fd_THRES0.268_SK0.5436-F0-T0.1.csv
 Download: RedstoneTorch/model/2018-11-22-05-08-27-139778-seresnext-augnew-2pooling/20f4aed-CP38_F[1]_PTseresnext-augnew-2pooling_VT20f4aed_LR0.1_BS64_IMG224.pth-4edd2fd_THRES0.268_SK0.5436-F0-T0.01.csv
 
-python train.py --projecttag seresnext-augnew-2pooling --versiontag 20f4aed --resume True --loadfile 9ff937c-CP27_F[1]_PTseresnext-augnew-2pooling_VT9ff937c_LR0.1_BS64_IMG224.pth --loaddir 2018-11-22-05-08-27-139778-seresnext-augnew-2pooling
-
+python train.py --projecttag seresnext-augnew-2pooling --versiontag 4ebebfe --resume True --loadfile 20f4aed-CP38_F[1]_PTseresnext-augnew-2pooling_VT20f4aed_LR0.1_BS64_IMG224.pth --loaddir 2018-11-22-05-08-27-139778-seresnext-augnew-2pooling
+python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-22-05-08-27-139778-seresnext-augnew-2pooling/ --port=6006
 ```
 
 ## Usage

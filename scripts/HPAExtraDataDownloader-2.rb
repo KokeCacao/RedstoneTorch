@@ -125,7 +125,7 @@ threads =  []
 			image_id = img[:id]
 			url = img[:url]
 			f = "#{image_id}.jpg"
-			fn= "images/#{image_id}_rgb.jpg"
+			fn= "images/#{image_id}"
 
 			url.gsub!('http://','')
 			d,p = url.split('.org/')
@@ -137,12 +137,23 @@ threads =  []
 				puts "#{i}:#{urls.length}::#{d}/#{p}::#{f}"
 			end
 			begin
+			        red = p.gsub('blue_red_green', 'red')
+			        green = p.gsub('blue_red_green', 'green')
+			        blue = p.gsub('blue_red_green', 'blue')
+			        yellow = p.gsub('blue_red_green', 'yellow')
 			        net = HttpNoTcpDelay.new(d,80)
 			        net.start do |http|
-			            resp = http.get("/#{p}")
-			            open(fn, "wb") do |file|
-			            #open(f, "wb") do |file|
-			                file.write(resp.body)
+			            open(fn+"_red.jpg", "wb") do |file|
+			                file.write(http.get("/#{red}").body)
+			            end
+			            open(fn+"_green.jpg", "wb") do |file|
+			                file.write(http.get("/#{green}").body)
+			            end
+			            open(fn+"_blue.jpg", "wb") do |file|
+			                file.write(http.get("/#{blue}").body)
+			            end
+			            open(fn+"_yellow.jpg", "wb") do |file|
+			                file.write(http.get("/#{yellow}").body)
 			            end
 			        end
 			rescue
