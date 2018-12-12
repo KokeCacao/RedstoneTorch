@@ -193,8 +193,8 @@ Download: RedstoneTorch/model/2018-11-22-05-08-27-139778-seresnext-augnew-2pooli
 python train.py --projecttag seresnext-augnew-2pooling --versiontag 4ebebfe --resume True --loadfile 20f4aed-CP38_F[1]_PTseresnext-augnew-2pooling_VT20f4aed_LR0.1_BS64_IMG224.pth --loaddir 2018-11-22-05-08-27-139778-seresnext-augnew-2pooling
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-22-05-08-27-139778-seresnext-augnew-2pooling/ --port=6006
 
-python predict.py --versiontag gsfv1 --loaddir 2018-11-22-05-08-27-139778-seresnext-augnew-2pooling --loadfile 20f4aed-CP38_F[1]_PTseresnext-augnew-2pooling_VT20f4aed_LR0.1_BS64_IMG224.pth
-Download: RedstoneTorch/model/20f4aed-CP38_F[1]_PTseresnext-augnew-2pooling_VT20f4aed_LR0.1_BS64_IMG224.pth-gsfv1-F0-T0.268.csv
+python predict.py --versiontag gsfv1 --loaddir 2018-11-22-05-08-27-139778-seresnext-augnew-2pooling --loadfile 4ebebfe-CP44_F[1]_PTseresnext-augnew-2pooling_VT4ebebfe_LR0.1_BS64_IMG224.pth
+Download: RedstoneTorch/model/2018-11-22-05-08-27-139778-seresnext-augnew-2pooling/4ebebfe-CP44_F[1]_PTseresnext-augnew-2pooling_VT4ebebfe_LR0.1_BS64_IMG224.pth-gsfv1-F0-T0.268.csv
 
 ```
 
@@ -886,3 +886,9 @@ module.last_linear.bias
 | 25    | 0.01502            | 0.1221                  |
 | 26    | 0.0050050          | 0.1943                  |
 | 27    | 0.01502            | 0.1180                  |
+
+| Input Image Size | Speed       | Batch Size | Format | Device                     |
+|------------------|-------------|------------|--------|----------------------------|
+| 4x1728x1728      | 1.16s/img   | 1          | jpg    | 16CPU, 1 Nvidia Tesla P100 |
+| 4x512x512        | 0.0128s/img | 64         | npy    | 16CPU, 1 Nvidia Tesla P100 |
+| 4x512x512        | 0.0769s/img | 1          | npy    | 16CPU, 1 Nvidia Tesla P100 |
