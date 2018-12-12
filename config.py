@@ -13,7 +13,7 @@ if PROJECT_NAME == "HPA":
     DEBUG_AUTO_SHUTDOWN = True
 
     MODEL_EPOCHS = 100
-    MODEL_BATCH_SIZE = 64
+    MODEL_BATCH_SIZE = 16
     MODEL_INIT_LEARNING_RATE = 0.1
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DEFAY = 0.0001
@@ -28,7 +28,7 @@ if PROJECT_NAME == "HPA":
     }
     TRAIN_GPU_ARG = TRAIN_GPU_DICT[socket.gethostname()]
     TRAIN_GPU_LIST = [int(i) for i in TRAIN_GPU_ARG.split(",")]
-    TRAIN_DATA_PERCENT = 0.1
+    TRAIN_DATA_PERCENT = 1.0
     TRAIN_SEED = 19
     TRAIN_NUM_WORKER = 16 # idea from: https://discuss.pytorch.org/t/guidelines-for-assigning-num-workers-to-dataloader/813/5
     TRAIN_NUM_GPU = len(TRAIN_GPU_LIST)
