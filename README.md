@@ -194,6 +194,7 @@ python train.py --projecttag seresnext-augnew-2pooling --versiontag 4ebebfe --re
 python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/model/2018-11-22-05-08-27-139778-seresnext-augnew-2pooling/ --port=6006
 
 python predict.py --versiontag gsfv1 --loaddir 2018-11-22-05-08-27-139778-seresnext-augnew-2pooling --loadfile 20f4aed-CP38_F[1]_PTseresnext-augnew-2pooling_VT20f4aed_LR0.1_BS64_IMG224.pth
+Download: RedstoneTorch/model/20f4aed-CP38_F[1]_PTseresnext-augnew-2pooling_VT20f4aed_LR0.1_BS64_IMG224.pth-gsfv1-F0-T0.268.csv
 
 ```
 
