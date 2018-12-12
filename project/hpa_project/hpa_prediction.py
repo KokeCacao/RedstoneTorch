@@ -136,7 +136,7 @@ class HPATest:
                 self.nets.append(cuda(net))
         load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
 
-        self.test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir="scripts/images/", img_suffix=".jpg", load_strategy="test", load_preprocessed_dir=False, column='Label')
+        self.test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir="scripts/images/", img_suffix=".jpg", load_strategy="test", load_preprocessed_dir=False)
 
         self.run()
 
