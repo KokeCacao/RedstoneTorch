@@ -77,4 +77,5 @@ if __name__ == '__main__':
 
         reproduceability()
 
-        prediction = project.hpa_project.hpa_prediction.HPAPrediction(writer)
+        test = project.hpa_project.hpa_prediction.HPATest(writer)
+        # prediction = project.hpa_project.hpa_prediction.HPAPrediction(writer)

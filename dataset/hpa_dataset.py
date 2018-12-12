@@ -189,13 +189,13 @@ class HPAData(data.Dataset):
        2.59075695e-03, 6.62010814e-02, 2.63903193e-03, 8.85041195e-05]
     """
 
-    def __init__(self, csv_dir, load_img_dir, img_suffix=".png", load_strategy="train", load_preprocessed_dir=False, writer=None):
+    def __init__(self, csv_dir, load_img_dir, img_suffix=".png", load_strategy="train", load_preprocessed_dir=False, writer=None, column='Target'):
         self.writer = writer
         self.load_strategy = load_strategy
         print("     Reading Data with [test={}]".format(self.load_strategy))
         self.dataframe = pd.read_csv(csv_dir, engine='python').set_index('Id')
         self.multilabel_binarizer = MultiLabelBinarizer().fit([list(range(28))])
-        self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in s.split()) for s in self.dataframe['Target']])
+        self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in s.split()) for s in self.dataframe[column]])
         self.load_img_dir = load_img_dir
         self.load_preprocessed_dir = load_preprocessed_dir
         self.img_suffix = img_suffix
