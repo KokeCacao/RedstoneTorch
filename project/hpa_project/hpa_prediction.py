@@ -150,20 +150,8 @@ class HPATest:
                     os.remove(pred_path)
                     print("WARNING: delete file '{}'".format(pred_path))
 
-                prob_path = "{}-{}-F{}-T{}-Prob.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
-                if os.path.exists(prob_path):
-                    os.remove(prob_path)
-                    print("WARNING: delete file '{}'".format(prob_path))
-
-                lb_path = "{}-{}-F{}-T{}-LB.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
-                if os.path.exists(lb_path):
-                    os.remove(lb_path)
-                    print("WARNING: delete file '{}'".format(lb_path))
-
-                with open(pred_path, 'a') as pred_file, open(prob_path, 'a') as prob_file, open(lb_path, 'a') as lb_file:
+                with open(pred_path, 'a') as pred_file:
                     pred_file.write('Id,Predicted\n')
-                    prob_file.write('Id,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27\n')
-                    lb_file.write('Id,Predicted\n')
 
                     test_loader = data.DataLoader(self.test_dataset,
                                                   batch_size=config.MODEL_BATCH_SIZE,
@@ -184,13 +172,9 @@ class HPATest:
                         if config.TRAIN_GPU_ARG: image = image.cuda()
                         predicts = self.nets[0](image)
                         predicts = torch.sigmoid(predicts).detach().cpu().numpy()
-                        encodeds = list(self.test_dataset.multilabel_binarizer.inverse_transform(predicts > 0.5))
-                        pbar.set_description("Thres:{} Id:{} Prob:{} Out:{}".format(threshold, ids[0], np.absolute(predicts[0]-0.5).mean()+0.5, encodeds[0]))
+                        encodeds = list(self.test_dataset.multilabel_binarizer.inverse_transform(predicts > threshold))
+                        pbar.set_description("Thres:{} Id:{} Prob:{} Out:{}".format(threshold, ids[0], np.absolute(predicts-0.5).mean()+0.5, encodeds[0]))
 
-                        for id, encoded, predict in zip(ids, encodeds, predicts):
-                            pred_file.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
-                            prob_file.write('{},{}\n'.format(id, ",".join(str(x) for x in predict)))
-                            lb_file.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded if x not in [8, 9, 10, 15, 20, 24, 27])))
 
                         del ids, image, labels_0, image_for_display, predicts, encodeds
                         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
