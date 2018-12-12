@@ -101,6 +101,15 @@ class HPAData(data.Dataset):
         25: 'Cytosol',
         26: 'Cytoplasmic bodies',
         27: 'Rods & rings'}
+    self.name_label_dict = {
+        8: 'Peroxisomes',
+        9: 'Endosomes',
+        10: 'Lysosomes',
+        12: 'Actin filaments',
+        17: 'Mitotic spindle',
+        20: 'Lipid droplets',
+        25: 'Cytosol',
+        26: 'Cytoplasmic bodies',
 
     File Size
         train                         14.0321076GB (_three_channel_with_green(img, img.sha files)
