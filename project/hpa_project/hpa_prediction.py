@@ -80,7 +80,7 @@ class HPAPrediction:
                         if config.TRAIN_GPU_ARG: image = image.cuda()
                         predicts = self.nets[0](image)
                         predicts = torch.sigmoid(predicts).detach().cpu().numpy()
-                        encodeds = list(self.test_dataset.multilabel_binarizer.inverse_transform(predicts > 0.5))
+                        encodeds = list(self.test_dataset.multilabel_binarizer.inverse_transform(predicts > threshold))
                         pbar.set_description("Thres:{} Id:{} Prob:{} Out:{}".format(threshold, ids[0], np.absolute(predicts[0]-0.5).mean()+0.5, encodeds[0]))
 
                         for id, encoded, predict in zip(ids, encodeds, predicts):

@@ -893,3 +893,8 @@ module.last_linear.bias
 | 4x1728x1728      | 1.16s/img   | 1          | jpg    | 16CPU, 1 Nvidia Tesla P100 |
 | 4x512x512        | 0.0128s/img | 64         | npy    | 16CPU, 1 Nvidia Tesla P100 |
 | 4x512x512        | 0.0769s/img | 1          | npy    | 16CPU, 1 Nvidia Tesla P100 |
+
+|         | Correct Label | Total Label | Binary Accuracy | F1-Macro Score | Precision | Recall | IOU Score |
+|---------|---------------|-------------|-----------------|----------------|-----------|--------|-----------|
+| Human   | 5360          | 5880        | 91.15%          | 0.1124         | 44.67%    | 27.46% | 27.29%    |
+| Machine | 301384        | 311108      | 96.87%          | 0.3407         | 67.29%    | 69.23% | 63.07%    |
