@@ -122,7 +122,8 @@ elif PROJECT_NAME == "QUBO":
     EVAL_IF_THRESHOLD_TEST = True
     EVAL_TRY_THRESHOLD = np.linspace(0.0, 1.0, 1000)
 
-    DIRECTORY_PREFIX = "/home/koke_cacao/Documents/Koke_Cacao/Python/WorkSpace/RedstoneTorch/" # remember to add '/' at the end
+    DIRECTORY_PREFIX = "/RedstoneTorch/" # remember to add '/' at the end
+    # DIRECTORY_PREFIX = "/home/koke_cacao/Documents/Koke_Cacao/Python/WorkSpace/RedstoneTorch/" # remember to add '/' at the end
     DIRECTORY_SUFFIX_IMG = ".png"
     DIRECTORY_PREPROCESSED_SUFFIX_IMG = ".npy"
     # DIRECTORY_IMG = DIRECTORY_PREFIX + "data/train/"
