@@ -18,6 +18,8 @@ from project.hpa_project import hpa_train
 # def log_data(file_name, data):
 #     with open(file_name + ".txt", "a+") as file:
 #         file.write(data + "\n")
+from project.qubo_project import qubo_train
+
 
 def get_args():
     parser = OptionParser()
@@ -112,7 +114,8 @@ if __name__ == '__main__':
         print("=> Current Directory: " + str(os.getcwd()))
         print("=> Loading neuronetwork...")
         try:
-            project = hpa_train.HPATrain(writer)
+            # project = hpa_train.HPATrain(writer)
+            project = qubo_train.QUBOTrain(writer)
         except Exception as e:
             # with open('Exception.txt', 'a+') as f:
             #     f.write(str(e))

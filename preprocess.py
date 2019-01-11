@@ -9,7 +9,7 @@ import numpy as np
 import torch
 
 import config
-import project.hpa_project.hpa_preprocess
+import project.qubo_project.qubo_preprocess
 from gpu import gpu_profile
 
 
@@ -76,11 +76,11 @@ if __name__ == '__main__':
     config.DEBUG_LAPTOP = False
     if not config.DEBUG_TEST_CODE:
         if config.DEBUG_TRAISE_GPU: sys.settrace(gpu_profile)
-        load_args()
+        # load_args()
         reproduceability()
 
         print("=> Current Directory: " + str(os.getcwd()))
-        print("=> Loading neuronetwork...")
+        # print("=> Loading neuronetwork...")
 
-        preprocess = project.hpa_project.hpa_preprocess.HPAPreprocess()
+        preprocess = project.qubo_project.qubo_preprocess.QUBOPreprocess()
 
