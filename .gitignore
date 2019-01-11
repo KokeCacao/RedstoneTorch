@@ -7,3 +7,4 @@ data/*.zip
 .ipnb_checkpoints/
 */xml
 */images
+data/*
