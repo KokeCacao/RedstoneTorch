@@ -197,6 +197,7 @@ python predict.py --versiontag gsfv1 --loaddir 2018-11-22-05-08-27-139778-seresn
 Download: RedstoneTorch/model/2018-11-22-05-08-27-139778-seresnext-augnew-2pooling/4ebebfe-CP44_F[1]_PTseresnext-augnew-2pooling_VT4ebebfe_LR0.1_BS64_IMG224.pth-gsfv1-F0-T0.268.csv
 python predict.py --versiontag gsfv2 --loaddir 2018-11-22-05-08-27-139778-seresnext-augnew-2pooling --loadfile 4ebebfe-CP44_F[1]_PTseresnext-augnew-2pooling_VT4ebebfe_LR0.1_BS64_IMG224.pth
 
+python train.py --projecttag test --versiontag 403b8e85
 ```
 
 ## Usage
@@ -234,7 +235,11 @@ However, you may not have the full permission to read doanloaded file, use
 ```commandline
 sudo chmod -R a+rwx train.csv
 ```
-to give yourself permission to read.
+to give yourself permission to read.  
+If you want to connect to your machine
+```
+ssh -i '/home/koke_cacao/.ssh/google_compute_engine' koke_cacao@35.229.123.118
+```
 ### Preprocess
 By using this command
 ```commandline

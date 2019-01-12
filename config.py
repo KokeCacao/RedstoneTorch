@@ -124,6 +124,7 @@ elif PROJECT_NAME == "QUBO":
 
     DIRECTORY_PREFIX = "/RedstoneTorch/" # remember to add '/' at the end
     # DIRECTORY_PREFIX = "/home/koke_cacao/Documents/Koke_Cacao/Python/WorkSpace/RedstoneTorch/" # remember to add '/' at the end
+    # ~/RedstoneTorch/data/qubo_dataset/preprocessed$ mv /home/k1412042720/qubo_dataset.zip ~/RedstoneTorch/data/qubo_dataset/preprocessed/
     DIRECTORY_SUFFIX_IMG = ".png"
     DIRECTORY_PREPROCESSED_SUFFIX_IMG = ".npy"
     # DIRECTORY_IMG = DIRECTORY_PREFIX + "data/train/"
