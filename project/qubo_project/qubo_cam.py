@@ -60,8 +60,8 @@ class GradCam():
         # one_hot_output = torch.FloatTensor(1, model_output.size()[-1]).zero_()
         # one_hot_output[0][target_class] = 1
         # Zero grads
-        self.model.module.features._modules.zero_grad() #TODO
-        self.model.module.logits._modules.zero_grad() #TODO
+        self.model.module.features.zero_grad() #TODO
+        self.model.module.logits.zero_grad() #TODO
         # Backward pass with specified target, activate register_hook
         model_output.backward(gradient=label_0, retain_graph=True)
         # Get hooked gradients
