@@ -601,6 +601,14 @@ class Logits(nn.Module):
         self.penultimate_filters = penultimate_filters
         self.filters_multiplier = filters_multiplier
 
+        filters = self.penultimate_filters // 24
+        # 24 is default value for the architecture
+
+        self.relu = nn.ReLU()
+        self.avg_pool = nn.AvgPool2d(7, stride=1, padding=0)
+        self.dropout = nn.Dropout()
+        self.last_linear = nn.Linear(24*filters, self.num_classes)
+
     def forward(self, features):
         x = self.relu(features)
         x = self.avg_pool(x)
@@ -616,7 +624,6 @@ class NASNetAMobile(nn.Module):
         super(NASNetAMobile, self).__init__()
         self.features = Features(num_classes, stem_filters, penultimate_filters, filters_multiplier)
         self.logits = Logits(num_classes, stem_filters, penultimate_filters, filters_multiplier)
-
 
         """WEIGHT INIT"""
         for m in self.modules():
