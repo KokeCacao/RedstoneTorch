@@ -338,7 +338,7 @@ class QUBOEvaluation:
         self.epoch_label = None
 
     def cam(self, net, image, labels_0, target_layer=17):
-        net.eval()
+        # print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
         gcv2 = GradCam(net, target_layer) # usually last conv layer
         # Generate cam mask
         cam = gcv2.generate_cam(image, labels_0)
@@ -357,13 +357,6 @@ class QUBOEvaluation:
         save_gradient_images(grayscale_cam_gb, config.DIRECTORY_CSV + '_img_gray.jpg')
         print('Guided grad cam completed')
 
-    def eval_epoch(self, nets=None, validation_loaders=None):
-
-        if nets != None and validation_loaders != None:
-            for fold, (net, validation_loader) in enumerate(zip(nets, validation_loaders)):
-                self.eval_fold(net, validation_loader)
-        return self
-
     def eval_fold(self, net, validation_loader):
         focal_losses = np.array([])
         predict_total = None
@@ -379,9 +372,10 @@ class QUBOEvaluation:
             config.eval_index = eval_index
             pbar = tqdm(validation_loader)
 
-
-
             for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+                if batch_index == 0:
+                    self.cam(net, image, labels_0, target_layer=17)
+
                 """CALCULATE LOSS"""
                 if config.TRAIN_GPU_ARG:
                     image = image.cuda()
