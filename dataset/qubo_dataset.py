@@ -73,7 +73,7 @@ class QUBODataset(data.Dataset):
             Data Percent:   {}
             Label Size:     {}
             File Size:      {}/{}
-        """.format(train_csv_dir, test_csv_dir, self.id_len, "?", config.TRAIN_DATA_PERCENT, len(self.labelframe), len(file), len([x.replace(self.img_suffix, "") for x in os.listdir(self.load_img_dir)])))
+        """.format(train_csv_dir, test_csv_dir, self.id_len, "?", config.TRAIN_DATA_PERCENT, len(self.labelframe), len(id), len([x.replace(self.img_suffix, "") for x in os.listdir(self.load_img_dir)])))
 
     def __len__(self):
         return self.id_len
