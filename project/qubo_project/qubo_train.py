@@ -503,7 +503,6 @@ class QUBOEvaluation:
             F = plt.figure()
 
             plt.subplot(321)
-            print(encode.tensor_to_np_three_channel_without_green(untransfered))
             plt.imshow(untransfered.numpy().transpose((1, 2, 0)))
             plt.title("Image_Real; pred:{}".format(predict))
             plt.grid(False)
