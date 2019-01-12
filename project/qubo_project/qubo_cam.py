@@ -22,7 +22,7 @@ class CamExtractor():
             Does a forward pass on convolutions, hooks the function at given layer
         """
         conv_output = None
-        for i, (module_pos, module) in enumerate(self.model.module.feature._modules.items()):
+        for i, (module_pos, module) in enumerate(self.model.module.features._modules.items()):
             x = module(x)  # Forward
             if i == self.target_layer:
                 x.register_hook(self.save_gradient)
