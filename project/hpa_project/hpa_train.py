@@ -266,7 +266,11 @@ class HPATrain:
             best_label = self.dataset.multilabel_binarizer.inverse_transform(np.expand_dims(self.dataset.get_load_label_by_id(best_id), axis=0))[0]
             worst_img = self.dataset.get_load_image_by_id(worst_id)
             worst_label = self.dataset.multilabel_binarizer.inverse_transform(np.expand_dims(self.dataset.get_load_label_by_id(worst_id), axis=0))[0]
+
+            best_img = encode.np_three_channel_with_green(best_img, (3, config.AUGMENTATION_IMG_ORIGINAL_SIZE, config.AUGMENTATION_IMG_ORIGINAL_SIZE), green_intensity=1, other_intensity=1)
             tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, fold=fold)
+
+            worst_img = encode.np_three_channel_with_green(worst_img, (3, config.AUGMENTATION_IMG_ORIGINAL_SIZE, config.AUGMENTATION_IMG_ORIGINAL_SIZE), green_intensity=1, other_intensity=1)
             tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
 
         """LOSS"""

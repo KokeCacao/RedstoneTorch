@@ -66,7 +66,6 @@ def write_epoch_loss(writer, loss_dict, epoch):
 
 def write_best_img(writer, img, label, id, loss, fold):
     F = plt.figure()
-    img = np_three_channel_with_green(img, (3, config.AUGMENTATION_IMG_ORIGINAL_SIZE, config.AUGMENTATION_IMG_ORIGINAL_SIZE), green_intensity=1, other_intensity=1)
     plt.imshow(img)
     plt.title("Id:{} label:{} loss:{}".format(id, label, loss))
     plt.grid(False)
@@ -75,21 +74,7 @@ def write_best_img(writer, img, label, id, loss, fold):
 
 def write_worst_img(writer, img, label, id, loss, fold):
     F = plt.figure()
-    img = np_three_channel_with_green(img, (3, config.AUGMENTATION_IMG_ORIGINAL_SIZE, config.AUGMENTATION_IMG_ORIGINAL_SIZE), green_intensity=1, other_intensity=1)
     plt.imshow(img)
     plt.title("Id:{} label:{} loss:{}".format(id, label, loss))
     plt.grid(False)
     writer.add_figure("worst/{}".format(fold), F, 0)
-
-def np_three_channel_with_green(image, shape, green_intensity=1, other_intensity=1):
-    """
-
-    :param image: ndarray with channel of (r, g, b, y), shape of (W, H, 4)
-    :return: np_three_channel_with_green for mpl display
-    """
-    image = image.transpose((2, 0, 1))
-    img = np.zeros(shape)
-    img[0] = other_intensity*(0.5*image[0] + 0.25*image[3])/0.75
-    img[1] = (green_intensity*0.5*image[1] + 0*image[3])/0.75
-    img[2] = other_intensity*image[2]
-    return np.stack(img/255., axis=-1)

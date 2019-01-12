@@ -134,8 +134,8 @@ class QUBOTrain:
             best_label = self.dataset.multilabel_binarizer.inverse_transform(np.expand_dims(self.dataset.get_load_label_by_id(best_id), axis=0))[0]
             worst_img = self.dataset.get_load_image_by_id(worst_id)
             worst_label = self.dataset.multilabel_binarizer.inverse_transform(np.expand_dims(self.dataset.get_load_label_by_id(worst_id), axis=0))[0]
-            tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, fold=fold)
-            tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
+            tensorboardwriter.write_best_img(self.writer, img=best_img.transpose((2, 0, 1)), label=best_label, id=best_id, loss=best_loss, fold=fold)
+            tensorboardwriter.write_worst_img(self.writer, img=worst_img.transpose((2, 0, 1)), label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
 
         """LOSS"""
         f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()

@@ -119,3 +119,17 @@ def save_as_npy(from_dir, to_dir):
     img = Image.open(from_dir)
     data = np.array(img, dtype='uint8')
     np.save(to_dir, data)
+
+
+def np_three_channel_with_green(image, shape, green_intensity=1, other_intensity=1):
+    """
+
+    :param image: ndarray with channel of (r, g, b, y), shape of (W, H, 4)
+    :return: np_three_channel_with_green for mpl display
+    """
+    image = image.transpose((2, 0, 1))
+    img = np.zeros(shape)
+    img[0] = other_intensity*(0.5*image[0] + 0.25*image[3])/0.75
+    img[1] = (green_intensity*0.5*image[1] + 0*image[3])/0.75
+    img[2] = other_intensity*image[2]
+    return np.stack(img/255., axis=-1)
