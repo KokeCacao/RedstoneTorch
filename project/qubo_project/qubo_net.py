@@ -637,7 +637,7 @@ def nasnetamobile(num_classes=1001, pretrained='imagenet'):
         model = NASNetAMobile(num_classes=num_classes)
 
         model_dict = model.state_dict()
-        filtered_dict = {k: v for k, v in model_zoo.load_url(settings['url'], map_location=None).items() if k in model_dict}
+        filtered_dict = {k: v for k, v in model_zoo.load_url(settings['url'], map_location=None).items() if k in model_dict and v.size() == model_dict[k].size()}
         model_dict.update(filtered_dict)
         model.load_state_dict(model_dict)
 
