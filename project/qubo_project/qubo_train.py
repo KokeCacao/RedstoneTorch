@@ -13,7 +13,7 @@ from tqdm import tqdm
 
 import config
 import tensorboardwriter
-from dataset.hpa_dataset import HPAData, train_collate, val_collate
+from dataset.qubo_dataset import QUBODataset, train_collate, val_collate
 from gpu import gpu_profile
 from loss.f1 import f1_macro, Differenciable_F1
 from loss.focal import FocalLoss_Sigmoid
@@ -57,7 +57,7 @@ class QUBOTrain:
         print(self.nets[0])
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[0], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
-        self.dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_PREPROCESSED_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="train", load_preprocessed_dir=True, writer=self.writer)
+        self.dataset = QUBODataset(config.DIRECTORY_CSV, config.DIRECTORY_CSV, load_strategy="train", writer=self.writer, column='Target')
         self.folded_samplers = self.dataset.get_stratified_samplers(fold=config.MODEL_FOLD)
 
         self.run()
@@ -92,7 +92,7 @@ class QUBOTrain:
                    ):
         config.epoch = config.epoch + 1
 
-        evaluation = HPAEvaluation(self.writer, self.dataset.multilabel_binarizer)
+        evaluation = QUBOEvaluation(self.writer, self.dataset.multilabel_binarizer)
         for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
             # import pdb; pdb.set_trace() #1357Mb -> 1215Mb
             """Switch Optimizers"""
@@ -313,7 +313,7 @@ class QUBOTrain:
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
 
 
-class HPAEvaluation:
+class QUBOEvaluation:
     def __init__(self, writer, binarlizer):
         self.writer = writer
         self.binarlizer = binarlizer
