@@ -373,13 +373,15 @@ class QUBOEvaluation:
             pbar = tqdm(validation_loader)
 
             for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
-                if batch_index == 0:
-                    self.cam(net, image, labels_0, target_layer=17)
 
                 """CALCULATE LOSS"""
                 if config.TRAIN_GPU_ARG:
                     image = image.cuda()
                     labels_0 = labels_0.cuda()
+
+                if batch_index == 0:
+                    self.cam(net, image, labels_0, target_layer=17)
+
                 logits_predict = net(image)
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
                 sigmoid_predict = torch.sigmoid(logits_predict)
