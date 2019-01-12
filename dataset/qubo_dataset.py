@@ -51,7 +51,7 @@ class QUBODataset(data.Dataset):
         self.test_dataframe = pd.read_csv(test_csv_dir, engine='python').set_index('Id')
         self.multilabel_binarizer = MultiLabelBinarizer().fit([list(range(5))])
         # self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in s.split()) for s in self.train_dataframe[column]])
-        self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in s.split()) for s in self.dataframe[column]])
+        self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in s.split()) for s in self.train_dataframe[column]])
 
         if self.load_strategy == "train":
             id = self.train_dataframe.index.tolist()
