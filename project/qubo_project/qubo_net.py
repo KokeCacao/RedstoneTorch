@@ -516,12 +516,9 @@ class ReductionCell1(nn.Module):
         x_out = torch.cat([x_comb_iter_1, x_comb_iter_2, x_comb_iter_3, x_comb_iter_4], 1)
         return x_out
 
-
-class NASNetAMobile(nn.Module):
-    """NASNetAMobile (4 @ 1056) """
-
+class Features(nn.Module):
     def __init__(self, num_classes=1001, stem_filters=32, penultimate_filters=1056, filters_multiplier=2):
-        super(NASNetAMobile, self).__init__()
+        super(Features, self).__init__()
         self.num_classes = num_classes
         self.stem_filters = stem_filters
         self.penultimate_filters = penultimate_filters
@@ -571,21 +568,7 @@ class NASNetAMobile(nn.Module):
         self.cell_15 = NormalCell(in_channels_left=24*filters, out_channels_left=4*filters, # 24, 4
                                   in_channels_right=24*filters, out_channels_right=4*filters) # 24, 4
 
-        self.relu = nn.ReLU()
-        self.avg_pool = nn.AvgPool2d(7, stride=1, padding=0)
-        self.dropout = nn.Dropout()
-        self.last_linear = nn.Linear(24*filters, self.num_classes)
-
-        """WEIGHT INIT"""
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-            elif isinstance(m, nn.BatchNorm2d):
-                nn.init.constant_(m.weight, 1)
-            elif isinstance(m, nn.Linear):
-                nn.init.xavier_normal_(m.weight)
-
-    def features(self, input):
+    def forward(self, input):
         x_conv0 = self.conv0(input)
         x_stem_0 = self.cell_stem_0(x_conv0)
         x_stem_1 = self.cell_stem_1(x_conv0, x_stem_0)
@@ -610,13 +593,39 @@ class NASNetAMobile(nn.Module):
         x_cell_15 = self.cell_15(x_cell_14, x_cell_13)
         return x_cell_15
 
-    def logits(self, features):
+class Logist(nn.Module):
+    def __init__(self, num_classes=1001, stem_filters=32, penultimate_filters=1056, filters_multiplier=2):
+        super(Logist, self).__init__()
+        self.num_classes = num_classes
+        self.stem_filters = stem_filters
+        self.penultimate_filters = penultimate_filters
+        self.filters_multiplier = filters_multiplier
+
+    def forward(self, features):
         x = self.relu(features)
         x = self.avg_pool(x)
         x = x.view(x.size(0), -1)
         x = self.dropout(x)
         x = self.last_linear(x)
         return x
+
+class NASNetAMobile(nn.Module):
+    """NASNetAMobile (4 @ 1056) """
+
+    def __init__(self, num_classes=1001, stem_filters=32, penultimate_filters=1056, filters_multiplier=2):
+        super(NASNetAMobile, self).__init__()
+        self.features = Features(num_classes, stem_filters, penultimate_filters, filters_multiplier)
+        self.logist = Logist(num_classes, stem_filters, penultimate_filters, filters_multiplier)
+
+
+        """WEIGHT INIT"""
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+            elif isinstance(m, nn.Linear):
+                nn.init.xavier_normal_(m.weight)
 
     def forward(self, input):
         x = self.features(input)
