@@ -337,7 +337,7 @@ class QUBOEvaluation:
         self.epoch_pred = None
         self.epoch_label = None
 
-    def cam(self, net, image, labels_0, target_layer=17):
+    def cam(self, net, image, labels_0, target_layer=0):
         # print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
         gcv2 = GradCam(net, target_layer) # usually last conv layer
         # Generate cam mask
@@ -380,7 +380,7 @@ class QUBOEvaluation:
                     labels_0 = labels_0.cuda()
 
                 if batch_index == 0:
-                    self.cam(net, image, labels_0, target_layer=17)
+                    self.cam(net, image, labels_0)
 
                 logits_predict = net(image)
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
