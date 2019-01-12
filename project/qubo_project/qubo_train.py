@@ -503,22 +503,22 @@ class QUBOEvaluation:
             F = plt.figure()
 
             plt.subplot(321)
-            plt.imshow(untransfered.numpy().transpose((1, 2, 0)))
+            plt.imshow(untransfered.transpose((1, 2, 0)))
             plt.title("Image_Real; pred:{}".format(predict))
             plt.grid(False)
 
             plt.subplot(322)
-            plt.imshow(transfered.numpy().transpose((1, 2, 0)))
+            plt.imshow(transfered.transpose((1, 2, 0)))
             plt.title("Image_Trans")
             plt.grid(False)
 
             plt.subplot(323)
-            plt.imshow(untransfered.numpy().transpose((1, 2, 0)))
+            plt.imshow(untransfered.transpose((1, 2, 0)))
             plt.title("Mask_Real; label:{}".format(label))
             plt.grid(False)
 
             plt.subplot(324)
-            plt.imshow(transfered.numpy().transpose((1, 2, 0)))
+            plt.imshow(transfered.transpose((1, 2, 0)))
             plt.title("Mask_Trans; f1:{}".format(loss))
             plt.grid(False)
             tensorboardwriter.write_image(self.writer, "e{}-{}-{}".format(config.epoch, fold, id), F, config.epoch)
