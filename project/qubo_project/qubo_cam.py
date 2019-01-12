@@ -65,9 +65,9 @@ class GradCam():
         # Backward pass with specified target, activate register_hook
         model_output.backward(gradient=label_0, retain_graph=True)
         # Get hooked gradients
-        guided_gradients = self.extractor.gradients.data.numpy()[0]
+        guided_gradients = self.extractor.gradients.data.cpu().numpy()[0]
         # Get convolution outputs
-        target = conv_output.data.numpy()[0]
+        target = conv_output.data.cpu().numpy()[0]
         # Get weights from gradients
         weights = np.mean(guided_gradients, axis=(1, 2))  # Take averages for each gradient
         # Create empty numpy array for cam
@@ -127,7 +127,7 @@ class GuidedBackprop():
         model_output.backward(gradient=label_0)
         # Convert Pytorch variable to numpy array
         # [0] to get rid of the first channel (1,3,224,224)
-        gradients_as_arr = self.gradients.data.numpy()[0]
+        gradients_as_arr = self.gradients.data.cpu().numpy()[0]
         return gradients_as_arr
 
 def guided_grad_cam(grad_cam_mask, guided_backprop_mask):
