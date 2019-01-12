@@ -576,6 +576,13 @@ class NASNetAMobile(nn.Module):
         self.dropout = nn.Dropout()
         self.last_linear = nn.Linear(24*filters, self.num_classes)
 
+        """WEIGHT INIT"""
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+
     def features(self, input):
         x_conv0 = self.conv0(input)
         x_stem_0 = self.cell_stem_0(x_conv0)
@@ -626,7 +633,11 @@ def nasnetamobile(num_classes=1001, pretrained='imagenet'):
 
         # both 'imagenet'&'imagenet+background' are loaded from same parameters
         model = NASNetAMobile(num_classes=num_classes)
-        model.load_state_dict(model_zoo.load_url(settings['url'], map_location=None))
+
+        model_dict = model.state_dict()
+        filtered_dict = {k: v for k, v in model_zoo.load_url(settings['url'], map_location=None).items() if k in model_dict}
+        model_dict.update(filtered_dict)
+        model.load_state_dict(model_dict)
 
        # if pretrained == 'imagenet':
        #     new_last_linear = nn.Linear(model.last_linear.in_features, 1000)
