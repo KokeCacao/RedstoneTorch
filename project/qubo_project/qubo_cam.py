@@ -34,10 +34,10 @@ class CamExtractor():
             Does a full forward pass on the model
         """
         # Forward pass on the convolutions
-        conv_output, x = self.forward_pass_on_convolutions(x)
+        conv_output, logits_output = self.forward_pass_on_convolutions(x)
         # Forward pass on the classifier
-        x = self.model.module.logits(x) #TODO
-        return conv_output, x
+        # x = self.model.module.logits(x) #TODO
+        return conv_output, logits_output
 
 class GradCam():
     """
