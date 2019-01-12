@@ -18,6 +18,7 @@ from gpu import gpu_profile
 from loss.f1 import f1_macro, Differenciable_F1
 from loss.focal import FocalLoss_Sigmoid
 from project.qubo_project import qubo_net
+from project.qubo_project.qubo_cam import GradCam, GuidedBackprop, guided_grad_cam, save_gradient_images, convert_to_grayscale
 from utils import encode, load
 from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx
 
@@ -40,6 +41,9 @@ class QUBOTrain:
                 print("     Creating Fold: #{}".format(fold))
                 net = qubo_net.nasnetamobile(num_classes=config.TRAIN_NUMCLASS, pretrained="imagenet")
                 if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
+
+                for i, module_pos, module in enumerate(self.model.features._modules.items()):
+                    print("#{}-{} -> {}".format(i, module_pos, module))
 
                 # self.optimizers.append(torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY))
                 optimizer = torch.optim.Adadelta(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DEFAY)
@@ -332,6 +336,26 @@ class QUBOEvaluation:
         self.epoch_pred = None
         self.epoch_label = None
 
+    def cam(self, net, image, labels_0, target_layer):
+        net.eval()
+        gcv2 = GradCam(net, target_layer) # usually last conv layer
+        # Generate cam mask
+        cam = gcv2.generate_cam(image, labels_0)
+        print('Grad cam completed')
+
+        # Guided backprop
+        GBP = GuidedBackprop(net)
+        # Get gradients
+        guided_grads = GBP.generate_gradients(image, labels_0)
+        print('Guided backpropagation completed')
+
+        # Guided Grad cam
+        cam_gb = guided_grad_cam(cam, guided_grads)
+        save_gradient_images(cam_gb, config.DIRECTORY_CSV+"_img.jpg")
+        grayscale_cam_gb = convert_to_grayscale(cam_gb)
+        save_gradient_images(grayscale_cam_gb, config.DIRECTORY_CSV + '_img_gray.jpg')
+        print('Guided grad cam completed')
+
     def eval_epoch(self, nets=None, validation_loaders=None):
 
         if nets != None and validation_loaders != None:
@@ -353,6 +377,9 @@ class QUBOEvaluation:
         for eval_index in range(4): # TODO: set to range(8)
             config.eval_index = eval_index
             pbar = tqdm(validation_loader)
+
+
+
             for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
                 """CALCULATE LOSS"""
                 if config.TRAIN_GPU_ARG:
