@@ -17,9 +17,9 @@ from dataset.qubo_dataset import QUBODataset, train_collate, val_collate
 from gpu import gpu_profile
 from loss.f1 import f1_macro, Differenciable_F1
 from loss.focal import FocalLoss_Sigmoid
+from project.qubo_project import qubo_net
 from utils import encode, load
 from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx
-from net import nasnet_mobile
 
 if os.environ.get('DISPLAY', '') == '':
     print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')
@@ -38,7 +38,7 @@ class QUBOTrain:
                 print("     Skipping Fold: #{}".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))
-                net = nasnet_mobile.nasnetamobile(num_classes=config.TRAIN_NUMCLASS, pretrained="imagenet")
+                net = qubo_net.nasnetamobile(num_classes=config.TRAIN_NUMCLASS, pretrained="imagenet")
                 if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
                 # self.optimizers.append(torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY))
@@ -477,22 +477,22 @@ class QUBOEvaluation:
 
             plt.subplot(321)
             # print(encode.tensor_to_np_three_channel_without_green(untransfered))
-            plt.imshow(encode.tensor_to_np_three_channel_without_green(untransfered), vmin=0, vmax=1)
+            plt.imshow(untransfered)
             plt.title("Image_Real; pred:{}".format(predict))
             plt.grid(False)
 
             plt.subplot(322)
-            plt.imshow(encode.tensor_to_np_three_channel_without_green(transfered), vmin=0, vmax=1)
+            plt.imshow(transfered)
             plt.title("Image_Trans")
             plt.grid(False)
 
             plt.subplot(323)
-            plt.imshow(encode.tensor_to_np_three_channel_with_green(untransfered), vmin=0, vmax=1)
+            plt.imshow(untransfered)
             plt.title("Mask_Real; label:{}".format(label))
             plt.grid(False)
 
             plt.subplot(324)
-            plt.imshow(encode.tensor_to_np_three_channel_with_green(transfered), vmin=0, vmax=1)
+            plt.imshow(transfered)
             plt.title("Mask_Trans; f1:{}".format(loss))
             plt.grid(False)
             tensorboardwriter.write_image(self.writer, "e{}-{}-{}".format(config.epoch, fold, id), F, config.epoch)

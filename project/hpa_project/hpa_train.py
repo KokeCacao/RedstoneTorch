@@ -17,7 +17,7 @@ from dataset.hpa_dataset import HPAData, train_collate, val_collate
 from gpu import gpu_profile
 from loss.f1 import f1_macro, Differenciable_F1
 from loss.focal import FocalLoss_Sigmoid
-from project.hpa_project.hpa_model import se_resnext101_32x4d_modified
+from project.hpa_project.hpa_net import se_resnext101_32x4d_modified
 from utils import encode, load
 from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx
 

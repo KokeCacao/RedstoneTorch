@@ -102,7 +102,7 @@ elif PROJECT_NAME == "QUBO":
     }
     TRAIN_GPU_ARG = TRAIN_GPU_DICT[socket.gethostname()]
     TRAIN_GPU_LIST = [int(i) for i in TRAIN_GPU_ARG.split(",")]
-    TRAIN_DATA_PERCENT = 1
+    TRAIN_DATA_PERCENT = 0.1
     TRAIN_SEED = 19
     TRAIN_NUM_WORKER = 1
     TRAIN_NUM_GPU = len(TRAIN_GPU_LIST)

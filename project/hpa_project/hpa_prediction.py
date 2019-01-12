@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 import config
 from dataset.hpa_dataset import HPAData, train_collate
-from project.hpa_project.hpa_model import se_resnext101_32x4d_modified
+from project.hpa_project.hpa_net import se_resnext101_32x4d_modified
 from utils.load import save_onnx, cuda, load_checkpoint_all_fold_without_optimizers
 
 
