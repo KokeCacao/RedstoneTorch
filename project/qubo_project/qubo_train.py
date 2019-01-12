@@ -227,19 +227,10 @@ class QUBOTrain:
             bce = BCELoss()(sigmoid_predict, labels_0)
             positive_bce = BCELoss(weight=labels_0*20+1)(sigmoid_predict, labels_0)
             # [1801.5 / 12885, 1801.5 / 1254, 1801.5 / 3621, 1801.5 / 1561, 1801.5 / 1858, 1801.5 / 2513, 1801.5 / 1008, 1801.5 / 2822, 1801.5 / 53, 1801.5 / 45, 1801.5 / 28, 1801.5 / 1093, 1801.5 / 688, 1801.5 / 537, 1801.5 / 1066, 1801.5 / 21, 1801.5 / 530, 1801.5 / 210, 1801.5 / 902, 1801.5 / 1482, 1801.5 / 172, 1801.5 / 3777, 1801.5 / 802, 1801.5 / 2965, 1801.5 / 322, 1801.5 / 8228, 1801.5 / 328, 1801.5 / 11] / (1801.5 / 11)
-            weighted_bce = BCELoss(weight=(torch.Tensor(
-                [8.53705860e-04, 8.77192982e-03, 3.03783485e-03, 7.04676489e-03,
-                 5.92034446e-03, 4.37723836e-03, 1.09126984e-02, 3.89794472e-03,
-                 2.07547170e-01, 2.44444444e-01, 3.92857143e-01, 1.00640439e-02,
-                 1.59883721e-02, 2.04841713e-02, 1.03189493e-02, 5.23809524e-01,
-                 2.07547170e-02, 5.23809524e-02, 1.21951220e-02, 7.42240216e-03,
-                 6.39534884e-02, 2.91236431e-03, 1.37157107e-02, 3.70994941e-03,
-                 3.41614907e-02, 1.33689840e-03, 3.35365854e-02, 1.00000000e+00]
-            )*5.00000000e01).cuda())(sigmoid_predict, labels_0)
             if config.epoch < 10:
                 loss = bce
             else:
-                loss = f1 + weighted_bce
+                loss = f1
             if config.epoch == 10 and batch_index == 0: tensorboardwriter.write_text(self.writer, "Switch to f1 at epoch={}".format(config.epoch), config.global_steps[fold])
             """BACKPROP"""
             # lr_scheduler.step(f1.detach().cpu().numpy().mean(), epoch=config.global_steps[fold])
@@ -254,7 +245,7 @@ class QUBOTrain:
             recall = recall.detach().cpu().numpy().mean()
             bce = bce.detach().cpu().numpy().mean()
             positive_bce = positive_bce.detach().cpu().numpy().mean()
-            weighted_bce = weighted_bce.detach().cpu().numpy().mean()
+            # weighted_bce = weighted_bce.detach().cpu().numpy().mean()
             loss = loss.detach().cpu().numpy().mean()
             labels_0 = labels_0.cpu().numpy()
             logits_predict = logits_predict.detach().cpu().numpy()
@@ -282,7 +273,7 @@ class QUBOTrain:
                                                        'F1/{}'.format(config.fold): f1,
                                                        'Focal/{}'.format(config.fold): focal,
                                                        'PositiveBCE/{}'.format(config.fold): positive_bce,
-                                                       'WeightedBCE/{}'.format(config.fold): weighted_bce,
+                                                       # 'WeightedBCE/{}'.format(config.fold): weighted_bce,
                                                        'BCE/{}'.format(config.fold): bce,
                                                        'Precision/{}'.format(config.fold): precise,
                                                        'Recall/{}'.format(config.fold): recall,
@@ -292,7 +283,7 @@ class QUBOTrain:
 
             """CLEAN UP"""
             del ids, image, image_for_display
-            del focal, f1, precise, recall, bce, positive_bce, weighted_bce, loss, labels_0, logits_predict, sigmoid_predict
+            del focal, f1, precise, recall, bce, positive_bce, loss, labels_0, logits_predict, sigmoid_predict
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
         del train_loader, pbar
 
