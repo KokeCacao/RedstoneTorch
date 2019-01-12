@@ -149,8 +149,7 @@ def guided_grad_cam(grad_cam_mask, guided_backprop_mask):
     print("guided_backprop_mask.shape = {}".format(guided_backprop_mask.shape))
     cam_gb = np.multiply(grad_cam_mask, guided_backprop_mask)
     print("cam_gbshape = {}".format(cam_gb.shape))
-    cam_gb = np.repeat(cam_gb, 3, axis=0)
-    print("cam_gbshape = {}".format(cam_gb.shape))
+    cam_gb = np.array([cam_gb, cam_gb, cam_gb])
     return cam_gb
 
 
