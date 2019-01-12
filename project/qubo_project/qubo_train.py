@@ -42,8 +42,8 @@ class QUBOTrain:
                 net = qubo_net.nasnetamobile(num_classes=config.TRAIN_NUMCLASS, pretrained="imagenet")
                 if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
-                for module_pos, module in net.module._modules.items():
-                    print("#{} -> {}".format(module_pos, module))
+                # for module_pos, module in net.module._modules.items():
+                #     print("#{} -> {}".format(module_pos, module))
 
                 # self.optimizers.append(torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY))
                 optimizer = torch.optim.Adadelta(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DEFAY)
@@ -336,7 +336,7 @@ class QUBOEvaluation:
         self.epoch_pred = None
         self.epoch_label = None
 
-    def cam(self, net, image, labels_0, target_layer):
+    def cam(self, net, image, labels_0, target_layer=17):
         net.eval()
         gcv2 = GradCam(net, target_layer) # usually last conv layer
         # Generate cam mask
@@ -503,23 +503,23 @@ class QUBOEvaluation:
             F = plt.figure()
 
             plt.subplot(321)
-            # print(encode.tensor_to_np_three_channel_without_green(untransfered))
-            plt.imshow(untransfered)
+            print(encode.tensor_to_np_three_channel_without_green(untransfered))
+            plt.imshow(untransfered.numpy().transpose((1, 2, 0)))
             plt.title("Image_Real; pred:{}".format(predict))
             plt.grid(False)
 
             plt.subplot(322)
-            plt.imshow(transfered)
+            plt.imshow(transfered.numpy().transpose((1, 2, 0)))
             plt.title("Image_Trans")
             plt.grid(False)
 
             plt.subplot(323)
-            plt.imshow(untransfered)
+            plt.imshow(untransfered.numpy().transpose((1, 2, 0)))
             plt.title("Mask_Real; label:{}".format(label))
             plt.grid(False)
 
             plt.subplot(324)
-            plt.imshow(transfered)
+            plt.imshow(transfered.numpy().transpose((1, 2, 0)))
             plt.title("Mask_Trans; f1:{}".format(loss))
             plt.grid(False)
             tensorboardwriter.write_image(self.writer, "e{}-{}-{}".format(config.epoch, fold, id), F, config.epoch)

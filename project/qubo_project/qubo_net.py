@@ -583,7 +583,7 @@ class NASNetAMobile(nn.Module):
             elif isinstance(m, nn.BatchNorm2d):
                 nn.init.constant_(m.weight, 1)
             elif isinstance(m, nn.Linear):
-                nn.init.xavier_normal(m.weight)
+                nn.init.xavier_normal_(m.weight)
 
     def features(self, input):
         x_conv0 = self.conv0(input)
