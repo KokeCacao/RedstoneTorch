@@ -55,6 +55,7 @@ class QUBODataset(data.Dataset):
 
         if self.load_strategy == "train":
             id = self.train_dataframe.index.tolist()
+            print(id)
         elif self.load_strategy == "test" or self.load_strategy == "predict":
             id = self.test_dataframe.index.tolist()
         else:
@@ -153,7 +154,6 @@ class QUBODataset(data.Dataset):
         :param indice:
         :return: id, one hot encoded label, nparray image of (r, g, b, y) from 0~255 (['red', 'green', 'blue', 'yellow']) (4, W, H)
         """
-        print(self.id)
         return (self.indices_to_id[indice], self.get_load_image_by_indice(indice), self.get_load_label_by_indice(indice))
 
     def get_load_image_by_indice(self, indice, suffix=".npy"):
