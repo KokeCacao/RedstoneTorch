@@ -22,7 +22,7 @@ class CamExtractor():
             Does a forward pass on convolutions, hooks the function at given layer
         """
         conv_output = None
-        for i, (module_pos, module) in enumerate(self.model._modules.items()):
+        for i, (module_pos, module) in enumerate(self.model._modules.features.items()):
             x = module(x)  # Forward
             if i == self.target_layer:
                 x.register_hook(self.save_gradient)
@@ -37,7 +37,7 @@ class CamExtractor():
         conv_output, x = self.forward_pass_on_convolutions(x)
         x = x.view(x.size(0), -1)  # Flatten
         # Forward pass on the classifier
-        x = self.model.logits(x) #TODO
+        x = self.model._modules.logits(x) #TODO
         return conv_output, x
 
 class GradCam():
@@ -61,8 +61,8 @@ class GradCam():
         # one_hot_output = torch.FloatTensor(1, model_output.size()[-1]).zero_()
         # one_hot_output[0][target_class] = 1
         # Zero grads
-        self.model.features.zero_grad() #TODO
-        self.model.logits.zero_grad() #TODO
+        self.model._modules.features.zero_grad() #TODO
+        self.model._modules.logits.zero_grad() #TODO
         # Backward pass with specified target, activate register_hook
         model_output.backward(gradient=label_0, retain_graph=True)
         # Get hooked gradients
@@ -100,7 +100,7 @@ class GuidedBackprop():
             self.gradients = grad_in[0]
 
         # Register hook to the first layer
-        first_layer = list(self.model.features._modules.items())[0][1]
+        first_layer = list(self.model._modules.features.items())[0][1]
         first_layer.register_backward_hook(hook_function)
 
     def update_relus(self):
@@ -114,7 +114,7 @@ class GuidedBackprop():
             if isinstance(module, ReLU):
                 return (torch.clamp(grad_in[0], min=0.0),)
         # Loop through layers, hook up ReLUs with relu_hook_function
-        for pos, module in self.model.features._modules.items():
+        for pos, module in self.model._modules.features.items():
             if isinstance(module, ReLU):
                 module.register_backward_hook(relu_hook_function)
 
