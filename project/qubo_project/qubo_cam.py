@@ -141,7 +141,11 @@ def guided_grad_cam(grad_cam_mask, guided_backprop_mask):
         grad_cam_mask (np_arr): Class activation map mask
         guided_backprop_mask (np_arr):Guided backprop mask
     """
+    # ValueError: operands could not be broadcast together with shapes (224,224) (32,111,111)
+    guided_backprop_mask = np.mean(guided_backprop_mask, axis=0)
+    guided_backprop_mask = np.kron(guided_backprop_mask, np.ones(224, 224))
     cam_gb = np.multiply(grad_cam_mask, guided_backprop_mask)
+    cam_gb = np.repeat(cam_gb, 3, axis=0)
     return cam_gb
 
 
