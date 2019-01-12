@@ -593,9 +593,9 @@ class Features(nn.Module):
         x_cell_15 = self.cell_15(x_cell_14, x_cell_13)
         return x_cell_15
 
-class Logist(nn.Module):
+class Logits(nn.Module):
     def __init__(self, num_classes=1001, stem_filters=32, penultimate_filters=1056, filters_multiplier=2):
-        super(Logist, self).__init__()
+        super(Logits, self).__init__()
         self.num_classes = num_classes
         self.stem_filters = stem_filters
         self.penultimate_filters = penultimate_filters
@@ -615,7 +615,7 @@ class NASNetAMobile(nn.Module):
     def __init__(self, num_classes=1001, stem_filters=32, penultimate_filters=1056, filters_multiplier=2):
         super(NASNetAMobile, self).__init__()
         self.features = Features(num_classes, stem_filters, penultimate_filters, filters_multiplier)
-        self.logist = Logist(num_classes, stem_filters, penultimate_filters, filters_multiplier)
+        self.logits = Logits(num_classes, stem_filters, penultimate_filters, filters_multiplier)
 
 
         """WEIGHT INIT"""
