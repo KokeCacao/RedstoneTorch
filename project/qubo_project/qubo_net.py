@@ -582,6 +582,8 @@ class NASNetAMobile(nn.Module):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
             elif isinstance(m, nn.BatchNorm2d):
                 nn.init.constant_(m.weight, 1)
+            elif isinstance(m, nn.Linear):
+                nn.init.xavier_normal(m.weight)
 
     def features(self, input):
         x_conv0 = self.conv0(input)
