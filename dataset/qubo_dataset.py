@@ -189,19 +189,8 @@ class QUBODataset(data.Dataset):
         """
         return np.float32(self.labelframe[self.id_to_indices[id]])
 
+
 class TrainImgAugTransform:
-    """
-    Dont crop: not every cell has perfect data, some lose some class if you crop it
-    You can mess up with location info: they are not that important
-    Dont twist too much green data: their structure is important
-    You can think of this challenge as
-    Add Negative Sample: no green layer should have no sample
-    Wrap is bad
-    Green layer's Sharpon should be carefully designed. It should adjust with other paremeters.
-    Dropout need to tested by network
-    iaa.ContrastNormalization((x, x)) Will change background and amount of green. be careful.
-
-    """
     def __init__(self):
         self.aug = iaa.Sequential([
             iaa.CropAndPad(percent=(0, 0.1), pad_mode=["constant", "reflect"], pad_cval=0),
@@ -214,75 +203,7 @@ class TrainImgAugTransform:
             iaa.PiecewiseAffine(scale=(0.00, 0.05), nb_rows=4, nb_cols=4, mode=["constant", "reflect", "wrap"], cval=0),
             iaa.ContrastNormalization((1.0, 1.01)),
             iaa.Scale({"height": config.AUGMENTATION_RESIZE, "width": config.AUGMENTATION_RESIZE}, interpolation=['nearest', 'linear', 'area', 'cubic']),
-            iaa.WithChannels([0,2,3], iaa.Sequential([
-                iaa.OneOf([
-                    iaa.Noop(),
-                    iaa.EdgeDetect(alpha=(0.0, 0.1)),
-                    iaa.Multiply((0.8, 1.3), per_channel=1.0),
-                    iaa.ContrastNormalization((0.95, 1.05))
-                ]),
-                iaa.OneOf(
-                    iaa.CoarseDropout((0.0, 0.02), size_percent=(0.005, 0.005), per_channel=1.0),
-                ),
-                iaa.Sharpen(alpha=(0.0, 0.25), lightness=(0.0, 0.45)),
-                ])),
-            iaa.WithChannels([1], iaa.Sequential([
-                iaa.OneOf([
-                    iaa.Noop(),
-                    iaa.Multiply((1.0, 1.15)),
-                    iaa.ContrastNormalization((1.0, 1.01)),
-                ]),
-                iaa.Sharpen(alpha=(0.24, 0.26), lightness=(0.44, 0.46)),
-            ])),
-
-        ], random_order=False)
-        chance = config.epoch / 8
-        if chance == 0:
-            pass
-        elif chance == 1:
-            self.aug.add(iaa.Fliplr(1))
-        elif chance == 2:
-            self.aug.add(iaa.Fliplr(1))
-            self.aug.add(iaa.Flipud(1))
-        elif chance == 3:
-            self.aug.add(iaa.Flipud(1))
-        elif chance == 4:
-            self.aug.add(iaa.Affine(rotate=90))
-        elif chance == 5:
-            self.aug.add(iaa.Affine(rotate=90))
-            self.aug.add(iaa.Fliplr(1))
-        elif chance == 6:
-            self.aug.add(iaa.Affine(rotate=90))
-            self.aug.add(iaa.Fliplr(1))
-            self.aug.add(iaa.Flipud(1))
-        elif chance == 7:
-            self.aug.add(iaa.Affine(rotate=90))
-            self.aug.add(iaa.Flipud(1))
-        else:
-            raise ValueError("Chance cannot equal to other number other than [0, 7]")
-
-    def __call__(self, img):
-        img = np.array(img)
-        return self.aug.augment_image(img)
-
-    def to_deterministic(self, n=None):
-        self.aug = self.aug.to_deterministic(n)
-        return self
-
-class AggressiveTrainImgAugTransform:
-    def __init__(self):
-        self.aug = iaa.Sequential([
-            iaa.CropAndPad(percent=(0, 0.1), pad_mode=["constant", "reflect"], pad_cval=0),
-            iaa.OneOf([
-                iaa.Noop(),
-                iaa.PiecewiseAffine(scale=(0.00, 0.02), nb_rows=4, nb_cols=4, mode=["constant", "reflect", "wrap"], cval=0),
-                iaa.Affine(rotate=(-10, 10), mode=["constant", "reflect"], cval=0),
-                iaa.Affine(shear=(-10, 10), mode=["constant", "reflect"], cval=0),
-            ]),
-            iaa.PiecewiseAffine(scale=(0.00, 0.05), nb_rows=4, nb_cols=4, mode=["constant", "reflect", "wrap"], cval=0),
-            iaa.ContrastNormalization((1.0, 1.01)),
-            iaa.Scale({"height": config.AUGMENTATION_RESIZE, "width": config.AUGMENTATION_RESIZE}, interpolation=['nearest', 'linear', 'area', 'cubic']),
-            iaa.WithChannels([0,2,3], iaa.Sequential([
+            iaa.WithChannels([0,1,2], iaa.Sequential([
                 iaa.OneOf([
                     iaa.Noop(),
                     iaa.EdgeDetect(alpha=(0.0, 0.1)),
@@ -294,14 +215,6 @@ class AggressiveTrainImgAugTransform:
                 ),
                 iaa.Sharpen(alpha=(0.0, 0.25), lightness=(0.0, 0.45)),
                 ])),
-            iaa.WithChannels([1], iaa.Sequential([
-                iaa.OneOf([
-                    iaa.Noop(),
-                    iaa.Multiply((1.0, 1.15)),
-                    iaa.ContrastNormalization((1.0, 1.01)),
-                ]),
-                iaa.Sharpen(alpha=(0.24, 0.26), lightness=(0.44, 0.46)),
-            ])),
 
         ], random_order=False)
         chance = config.epoch / 8
@@ -471,7 +384,7 @@ def transform(ids, image_0, labels_0, train, val):
             STD1 = [0.00255578 0.00230547 0.00129955 0.00293934]
     """
     if not val and train:
-        image_aug_transform = AggressiveTrainImgAugTransform().to_deterministic() if config.epoch > 20 else TrainImgAugTransform().to_deterministic()
+        image_aug_transform = TrainImgAugTransform().to_deterministic() if config.epoch > 20 else TrainImgAugTransform().to_deterministic()
         TRAIN_TRANSFORM = transforms.Compose([
             image_aug_transform,
             lambda x: np.clip(x, a_min=0, a_max=255),
