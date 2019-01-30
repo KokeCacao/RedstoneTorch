@@ -39,7 +39,7 @@ class QUBOTrain:
                 print("     Skipping Fold: #{}".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))
-                net = qubo_net.nasnetamobile(num_classes=config.TRAIN_NUMCLASS, pretrained="imagenet")
+                net = qubo_net.nasnetamobile(num_classes=config.TRAIN_NUM_CLASS, pretrained="imagenet")
                 if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
                 # for module_pos, module in net.module._modules.items():
@@ -158,8 +158,8 @@ class QUBOTrain:
             best_threshold = 0.0
             best_val = 0.0
 
-            best_threshold_dict = np.zeros(28)
-            best_val_dict = np.zeros(28)
+            best_threshold_dict = np.zeros(config.TRAIN_NUM_CLASS)
+            best_val_dict = np.zeros(config.TRAIN_NUM_CLASS)
 
             pbar = tqdm(config.EVAL_TRY_THRESHOLD)
             for threshold in pbar:
@@ -170,7 +170,7 @@ class QUBOTrain:
                     best_val = score
                 pbar.set_description("Threshold: {}; F1: {}".format(threshold, score))
 
-                for c in range(28):
+                for c in range(config.TRAIN_NUM_CLASS):
                     score = metrics.f1_score(evaluation.epoch_label[:][c], (evaluation.epoch_pred[:][c] > threshold))
                     tensorboardwriter.write_threshold(self.writer, c, score, threshold * 1000.0, config.fold)
                     if score > best_val_dict[c]:
@@ -178,7 +178,7 @@ class QUBOTrain:
                         best_val_dict[c] = score
 
             tensorboardwriter.write_best_threshold(self.writer, -1, best_val, best_threshold, config.epoch, config.fold)
-            for c in range(28): tensorboardwriter.write_best_threshold(self.writer, c, best_val_dict[c], best_threshold_dict[c], config.epoch, config.fold)
+            for c in range(config.TRAIN_NUM_CLASS): tensorboardwriter.write_best_threshold(self.writer, c, best_val_dict[c], best_threshold_dict[c], config.epoch, config.fold)
 
         """HISTOGRAM"""
         if config.DISPLAY_HISTOGRAM:
@@ -231,7 +231,6 @@ class QUBOTrain:
             f1, precise, recall = Differenciable_F1(beta=1)(labels_0, logits_predict)
             bce = BCELoss()(sigmoid_predict, labels_0)
             positive_bce = BCELoss(weight=labels_0*20+1)(sigmoid_predict, labels_0)
-            # [1801.5 / 12885, 1801.5 / 1254, 1801.5 / 3621, 1801.5 / 1561, 1801.5 / 1858, 1801.5 / 2513, 1801.5 / 1008, 1801.5 / 2822, 1801.5 / 53, 1801.5 / 45, 1801.5 / 28, 1801.5 / 1093, 1801.5 / 688, 1801.5 / 537, 1801.5 / 1066, 1801.5 / 21, 1801.5 / 530, 1801.5 / 210, 1801.5 / 902, 1801.5 / 1482, 1801.5 / 172, 1801.5 / 3777, 1801.5 / 802, 1801.5 / 2965, 1801.5 / 322, 1801.5 / 8228, 1801.5 / 328, 1801.5 / 11] / (1801.5 / 11)
             if config.epoch < 10:
                 loss = bce
             else:

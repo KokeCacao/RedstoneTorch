@@ -33,7 +33,7 @@ if PROJECT_NAME == "HPA":
     TRAIN_NUM_WORKER = 16 # idea from: https://discuss.pytorch.org/t/guidelines-for-assigning-num-workers-to-dataloader/813/5
     TRAIN_NUM_GPU = len(TRAIN_GPU_LIST)
     TRAIN_RESUME = True
-    TRAIN_NUMCLASS = 28
+    TRAIN_NUM_CLASS = 28
     # TRAIN_COSINE = lambda global_step: (0.1 / 2) * (np.cos(np.pi * (np.mod(global_step, 20 * 46808 / 64) / (20 * 46808 / 64))) + 1)  # y=(0.01/2)*(cos(pi*(mod(x-1,10000)/(10000)))+1)
     # TRAIN_TRY_LR = False
     # TRAIN_TRY_LR_FORMULA = lambda x: x / (8 * np.mod(-x - 1, 600) + 0.1) - 0.000207 * x  # y=x/(8*\operatorname{mod}(-x-1,600)+0.1)-0.000207*x
@@ -107,7 +107,7 @@ elif PROJECT_NAME == "QUBO":
     TRAIN_NUM_WORKER = 1
     TRAIN_NUM_GPU = len(TRAIN_GPU_LIST)
     TRAIN_RESUME = True
-    TRAIN_NUMCLASS = 5
+    TRAIN_NUM_CLASS = 5
     # TRAIN_COSINE = lambda global_step: (0.1 / 2) * (np.cos(np.pi * (np.mod(global_step, 20 * 46808 / 64) / (20 * 46808 / 64))) + 1)  # y=(0.01/2)*(cos(pi*(mod(x-1,10000)/(10000)))+1)
     # TRAIN_TRY_LR = False
     # TRAIN_TRY_LR_FORMULA = lambda x: x / (8 * np.mod(-x - 1, 600) + 0.1) - 0.000207 * x  # y=x/(8*\operatorname{mod}(-x-1,600)+0.1)-0.000207*x

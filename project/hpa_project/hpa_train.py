@@ -151,7 +151,7 @@ class HPATrain:
                 print("     Skipping Fold: #{}".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))
-                net = se_resnext101_32x4d_modified(num_classes=config.TRAIN_NUMCLASS, pretrained='imagenet')
+                net = se_resnext101_32x4d_modified(num_classes=config.TRAIN_NUM_CLASS, pretrained='imagenet')
                 if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
                 # self.optimizers.append(torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY))

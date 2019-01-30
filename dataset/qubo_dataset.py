@@ -57,7 +57,7 @@ class QUBODataset(data.Dataset):
         print("     Reading Data with [test={}]".format(self.load_strategy))
         self.train_dataframe = pd.read_csv(train_csv_dir, engine='python').set_index('Id').sample(frac=1)
         self.test_dataframe = pd.read_csv(test_csv_dir, engine='python').set_index('Id').sample(frac=1)
-        self.multilabel_binarizer = MultiLabelBinarizer().fit([list(range(5))])
+        self.multilabel_binarizer = MultiLabelBinarizer().fit([list(range(config.TRAIN_NUM_CLASS))])
         # self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in s.split()) for s in self.train_dataframe[column]])
         self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in str(s).split()) for s in self.train_dataframe[column]])
 
@@ -113,8 +113,8 @@ class QUBODataset(data.Dataset):
             # folded_samplers[fold]['train'] = iter(c[0])
             folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)  # y[test_index]
             if self.writer:
-                y_t_dict = np.bincount((y_t.astype(np.int8)*np.array(list(range(5)))).flatten())
-                y_e_dict = np.bincount((y_e.astype(np.int8)*np.array(list(range(5)))).flatten())
+                y_t_dict = np.bincount((y_t.astype(np.int8) * np.array(list(range(config.TRAIN_NUM_CLASS)))).flatten())
+                y_e_dict = np.bincount((y_e.astype(np.int8) * np.array(list(range(config.TRAIN_NUM_CLASS)))).flatten())
                 # F, (ax1, ax2) = plt.subplots(1, 2, figsize=(4, 2), sharey='none')
                 # ax1.bar(list(range(len(y_t_dict))), y_t_dict)
                 # ax2.bar(list(range(len(y_e_dict))), y_e_dict)

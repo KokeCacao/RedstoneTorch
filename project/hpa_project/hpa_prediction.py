@@ -23,7 +23,7 @@ class HPAPrediction:
                 print("     Junping Fold: #{}".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))
-                net = se_resnext101_32x4d_modified(num_classes=config.TRAIN_NUMCLASS, pretrained='imagenet')
+                net = se_resnext101_32x4d_modified(num_classes=config.TRAIN_NUM_CLASS, pretrained='imagenet')
 
                 """ONNX"""
                 if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(net, (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
@@ -127,7 +127,7 @@ class HPATest:
                 print("     Junping Fold: #{}".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))
-                net = se_resnext101_32x4d_modified(num_classes=config.TRAIN_NUMCLASS, pretrained='imagenet')
+                net = se_resnext101_32x4d_modified(num_classes=config.TRAIN_NUM_CLASS, pretrained='imagenet')
 
                 """ONNX"""
                 if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(net, (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
