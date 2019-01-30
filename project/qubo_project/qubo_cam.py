@@ -144,11 +144,11 @@ def guided_grad_cam(grad_cam_mask, guided_backprop_mask):
     """
     # ValueError: operands could not be broadcast together with shapes (224,224) (32,111,111)
     guided_backprop_mask = np.mean(guided_backprop_mask, axis=0)
-    print("guided_backprop_mask.shape = {}".format(guided_backprop_mask.shape))
+    # print("guided_backprop_mask.shape = {}".format(guided_backprop_mask.shape))
     guided_backprop_mask = transform.resize(guided_backprop_mask, (224, 224))
-    print("guided_backprop_mask.shape = {}".format(guided_backprop_mask.shape))
+    # print("guided_backprop_mask.shape = {}".format(guided_backprop_mask.shape))
     cam_gb = np.multiply(grad_cam_mask, guided_backprop_mask)
-    print("cam_gbshape = {}".format(cam_gb.shape))
+    # print("cam_gbshape = {}".format(cam_gb.shape))
     cam_gb = np.array([cam_gb, cam_gb, cam_gb])
     return cam_gb
 

@@ -134,7 +134,7 @@ class QUBOTrain:
             best_label = self.dataset.multilabel_binarizer.inverse_transform(np.expand_dims(self.dataset.get_load_label_by_id(best_id), axis=0))[0]
             worst_img = self.dataset.get_load_image_by_id(worst_id)
             worst_label = self.dataset.multilabel_binarizer.inverse_transform(np.expand_dims(self.dataset.get_load_label_by_id(worst_id), axis=0))[0]
-            print("best_img.shape = {}".format(best_img.shape))
+            # print("best_img.shape = {}".format(best_img.shape))
             tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, fold=fold)
             tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
 
@@ -336,7 +336,7 @@ class QUBOEvaluation:
         self.epoch_pred = None
         self.epoch_label = None
 
-    def cam(self, net, image, labels_0, target_layer=0):
+    def cam(self, net, image, labels_0, writer, target_layer=0):
         # print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
         gcv2 = GradCam(net, target_layer) # usually last conv layer
         # Generate cam mask
@@ -351,7 +351,8 @@ class QUBOEvaluation:
         cam_gb = guided_grad_cam(cam, guided_grads)
         save_gradient_images(cam_gb, config.DIRECTORY_CSV+"_img.jpg")
         grayscale_cam_gb = convert_to_grayscale(cam_gb)
-        save_gradient_images(grayscale_cam_gb, config.DIRECTORY_CSV + '_img_gray.jpg')
+        tensorboardwriter.write_focus(writer, grayscale_cam_gb, labels_0, config.epoch, config.fold)
+        # save_gradient_images(grayscale_cam_gb, config.DIRECTORY_CSV + '_img_gray.jpg')
 
     def eval_fold(self, net, validation_loader):
         focal_losses = np.array([])
