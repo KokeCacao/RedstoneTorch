@@ -419,10 +419,10 @@ def transform(ids, image_0, labels_0, train, val):
         TRAIN_TRANSFORM = transforms.Compose([
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
             image_aug_transform,
-            lambda x: x['image'],
-            lambda x: np.clip(x, a_min=0, a_max=255),
-            transforms.ToTensor(),
-            Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+            # lambda x: x['image'],
+            # lambda x: np.clip(x, a_min=0, a_max=255),
+            # transforms.ToTensor(),
+            # Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
         ])
         image = TRAIN_TRANSFORM(image_0)
         return (ids, image, labels_0, transforms.ToTensor()(image_0))
