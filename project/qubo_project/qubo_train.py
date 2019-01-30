@@ -15,12 +15,13 @@ import config
 import tensorboardwriter
 from dataset.qubo_dataset import QUBODataset, train_collate, val_collate
 from gpu import gpu_profile
-from loss.f1 import f1_macro, Differenciable_F1
-from loss.focal import FocalLoss_Sigmoid
+from loss.f1 import f1_macro, differenciable_f1_sigmoid, differenciable_f1_softmax
+from loss.focal import focalloss_sigmoid, focalloss_softmax
 from project.qubo_project import qubo_net
 from project.qubo_project.qubo_cam import GradCam, GuidedBackprop, guided_grad_cam, save_gradient_images, convert_to_grayscale
 from utils import encode, load
 from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx
+from utils.lr_finder import LRFinder
 
 if os.environ.get('DISPLAY', '') == '':
     print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')
@@ -67,6 +68,22 @@ class QUBOTrain:
         self.run()
 
     def run(self):
+        if config.DEBUG_LR_FINDER:
+            lr_finder = LRFinder(self.nets[0], self.optimizers[0], torch.nn.CrossEntropyLoss(), device="cuda")
+            lr_finder.range_test(data.DataLoader(self.dataset,
+                                           batch_size=config.MODEL_BATCH_SIZE,
+                                           shuffle=False,
+                                           sampler=self.folded_samplers[config.fold]["train"],
+                                           batch_sampler=None,
+                                           num_workers=config.TRAIN_NUM_WORKER,
+                                           collate_fn=train_collate,
+                                           pin_memory=True,
+                                           drop_last=False,
+                                           timeout=0,
+                                           worker_init_fn=None,
+                                           ), end_lr=100, num_iter=100, step_mode="exp")
+            tensorboardwriter.write_plot(self.writer, lr_finder.plot(), "lr_finder")
+
         try:
             for epoch in range(config.MODEL_EPOCHS):
                 self.step_epoch(nets=self.nets,
@@ -224,13 +241,13 @@ class QUBOTrain:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
             logits_predict = net(image)
-            sigmoid_predict = torch.sigmoid(logits_predict)
+            prob_predict = torch.nn.Softmax(logits_predict)
 
             """LOSS"""
-            focal = FocalLoss_Sigmoid(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
-            f1, precise, recall = Differenciable_F1(beta=1)(labels_0, logits_predict)
-            bce = BCELoss()(sigmoid_predict, labels_0)
-            positive_bce = BCELoss(weight=labels_0*20+1)(sigmoid_predict, labels_0)
+            focal = focalloss_softmax(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
+            f1, precise, recall = differenciable_f1_softmax(beta=1)(labels_0, logits_predict)
+            bce = BCELoss()(prob_predict, labels_0)
+            positive_bce = BCELoss(weight=labels_0*20+1)(prob_predict, labels_0)
             if config.epoch < 10:
                 loss = bce
             else:
@@ -253,7 +270,7 @@ class QUBOTrain:
             loss = loss.detach().cpu().numpy().mean()
             labels_0 = labels_0.cpu().numpy()
             logits_predict = logits_predict.detach().cpu().numpy()
-            sigmoid_predict = sigmoid_predict.detach().cpu().numpy()
+            prob_predict = prob_predict.detach().cpu().numpy()
             # print(image)
 
             """SUM"""
@@ -287,7 +304,7 @@ class QUBOTrain:
 
             """CLEAN UP"""
             del ids, image, image_for_display
-            del focal, f1, precise, recall, bce, positive_bce, loss, labels_0, logits_predict, sigmoid_predict
+            del focal, f1, precise, recall, bce, positive_bce, loss, labels_0, logits_predict, prob_predict
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
         del train_loader, pbar
 
@@ -382,15 +399,11 @@ class QUBOEvaluation:
 
                 logits_predict = net(image)
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-                sigmoid_predict = torch.sigmoid(logits_predict)
+                prob_predict = torch.nn.Softmax(logits_predict)
 
                 """LOSS"""
-                focal = FocalLoss_Sigmoid(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
-                f1, precise, recall = Differenciable_F1(beta=1)(labels_0, logits_predict)
-                # bce = BCELoss()(sigmoid_predict, labels_0)
-                # positive_bce = BCELoss(weight=labels_0*20+1)(sigmoid_predict, labels_0)
-                # weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(torch.sigmoid(logits_predict), labels_0)
-                # loss = f1 + bce.sum()
+                focal = focalloss_softmax(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
+                f1, precise, recall = differenciable_f1_softmax(beta=1)(labels_0, logits_predict)
 
                 """EVALUATE LOSS"""
                 focal = focal.detach()
@@ -422,30 +435,30 @@ class QUBOEvaluation:
                 image = image.cpu().numpy()
                 image_for_display = image_for_display.numpy()
                 logits_predict = logits_predict.detach().cpu().numpy()
-                sigmoid_predict = sigmoid_predict.detach().cpu().numpy()
+                prob_predict = prob_predict.detach().cpu().numpy()
 
                 """SUM"""
-                # np.append(self.f1_losses, f1_macro(sigmoid_predict, labels_0).mean())
+                # np.append(self.f1_losses, f1_macro(prob_predict, labels_0).mean())
                 self.f1_losses = np.append(self.f1_losses, f1.mean())
                 focal_losses = np.append(focal_losses, focal_mean)
 
                 """PRINT"""
                 # label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
-                # pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(sigmoid_predict>0.5)[0])
+                # pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(prob_predict>0.5)[0])
                 # pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(int(config.global_steps[fold]), label, pred, left))
                 pbar.set_description("(E{}F{}I{}) Focal:{} F1:{}".format(config.epoch, config.fold, config.eval_index, focal_mean, f1.mean()))
                 # if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(focal.flatten())
-                predict_total = np.concatenate((predict_total, sigmoid_predict), axis=0) if predict_total is not None else sigmoid_predict
+                predict_total = np.concatenate((predict_total, prob_predict), axis=0) if predict_total is not None else prob_predict
                 label_total = np.concatenate((label_total, labels_0), axis=0) if label_total is not None else labels_0
 
 
                 """DISPLAY"""
                 tensorboardwriter.write_memory(self.writer, "train")
-                if config.DISPLAY_VISUALIZATION and batch_index < max(1, config.MODEL_BATCH_SIZE / 32): self.display(config.fold, ids, image, image_for_display, labels_0, sigmoid_predict, focal)
+                if config.DISPLAY_VISUALIZATION and batch_index < max(1, config.MODEL_BATCH_SIZE / 32): self.display(config.fold, ids, image, image_for_display, labels_0, prob_predict, focal)
 
                 """CLEAN UP"""
                 del ids, image, image_for_display
-                del focal, f1, precise, recall, labels_0, logits_predict, sigmoid_predict
+                del focal, f1, precise, recall, labels_0, logits_predict, prob_predict
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
                 if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
             del pbar

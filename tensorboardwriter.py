@@ -78,6 +78,8 @@ def write_focus(writer, img, label, epoch, fold):
     plt.grid(False)
     writer.add_figure("focus/{}".format(fold), F, 0)
 
+def write_plot(writer, plot, message):
+    writer.add_figure("plot/{}".format(message), plot, 0)
 
 def write_worst_img(writer, img, label, id, loss, fold):
     F = plt.figure()
