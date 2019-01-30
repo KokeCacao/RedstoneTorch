@@ -85,7 +85,7 @@ elif PROJECT_NAME == "QUBO":
     DEBUG_TEST_CODE = False
     DEBUG_AUTO_SHUTDOWN = True
 
-    DEBUG_LR_FINDER = False
+    DEBUG_LR_FINDER = True
 
     MODEL_EPOCHS = 100
     MODEL_BATCH_SIZE = 32
@@ -123,6 +123,7 @@ elif PROJECT_NAME == "QUBO":
 
     EVAL_IF_THRESHOLD_TEST = True
     EVAL_TRY_THRESHOLD = np.linspace(0.0, 1.0, 1000)
+    EVAL_THRESHOLD = 0.2
 
     DIRECTORY_PREFIX = "" # remember to add '/' at the end
     # DIRECTORY_PREFIX = "/home/koke_cacao/Documents/Koke_Cacao/Python/WorkSpace/RedstoneTorch/" # remember to add '/' at the end

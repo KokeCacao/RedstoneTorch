@@ -89,7 +89,7 @@ class QUBOTrain:
                                                                          drop_last=False,
                                                                          timeout=0,
                                                                          worker_init_fn=None,
-                                                                         ), end_lr=10, num_iter=200, step_mode="exp")
+                                                                         ), end_lr=10, num_iter=100, step_mode="exp")
             tensorboardwriter.write_plot(self.writer, lr_finder.plot(skip_end=0), "lr_finder")
             lr_finder.reset()
 
@@ -170,8 +170,8 @@ class QUBOTrain:
 
         """LOSS"""
         f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
-        f1_2 = metrics.f1_score((evaluation.epoch_label > 0.5).astype(np.byte), (evaluation.epoch_pred > 0.5).astype(np.byte), average='macro')  # sklearn does not automatically import matrics.
-        f1_dict = dict(("Class-{}".format(i), x) for i, x in enumerate(metrics.f1_score((evaluation.epoch_label > 0.5).astype(np.byte), (evaluation.epoch_pred > 0.5).astype(np.byte), average=None)))
+        f1_2 = metrics.f1_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), average='macro')  # sklearn does not automatically import matrics.
+        f1_dict = dict(("Class-{}".format(i), x) for i, x in enumerate(metrics.f1_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), average=None)))
         f1_dict.update({"EvalF1": f1, "Sklearn": f1_2})
         max_names = max(f1_dict.items(), key=operator.itemgetter(1))
         min_names = min(f1_dict.items(), key=operator.itemgetter(1))
@@ -296,7 +296,7 @@ class QUBOTrain:
 
             left = self.dataset.multilabel_binarizer.inverse_transform((np.expand_dims((np.array(labels_0).sum(0) < 1).astype(np.byte), axis=0)))[0]
             label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
-            pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(logits_predict > 0.5)[0])
+            pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(logits_predict > config.EVAL_THRESHOLD)[0])
             pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, left))
             # pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.param_groups[0]['lr'], weighted_bce, bce))
             # pbar.set_description_str("(E{}-F{}) Stp:{} Y:{}, y:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), labels_0, logits_predict))
@@ -519,7 +519,7 @@ class QUBOEvaluation:
             if index != 0: continue
 
             label = self.binarlizer.inverse_transform(np.expand_dims(np.array(label).astype(np.byte), axis=0))[0]
-            predict = self.binarlizer.inverse_transform(np.expand_dims((predicted > 0.5).astype(np.byte), axis=0))[0]
+            predict = self.binarlizer.inverse_transform(np.expand_dims((predicted > config.EVAL_THRESHOLD).astype(np.byte), axis=0))[0]
 
             F = plt.figure()
 
