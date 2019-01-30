@@ -342,20 +342,17 @@ class QUBOEvaluation:
         gcv2 = GradCam(net, target_layer) # usually last conv layer
         # Generate cam mask
         cam = gcv2.generate_cam(image, labels_0)
-        print('Grad cam completed')
 
         # Guided backprop
         GBP = GuidedBackprop(net)
         # Get gradients
         guided_grads = GBP.generate_gradients(image, labels_0)
-        print('Guided backpropagation completed')
 
         # Guided Grad cam
         cam_gb = guided_grad_cam(cam, guided_grads)
         save_gradient_images(cam_gb, config.DIRECTORY_CSV+"_img.jpg")
         grayscale_cam_gb = convert_to_grayscale(cam_gb)
         save_gradient_images(grayscale_cam_gb, config.DIRECTORY_CSV + '_img_gray.jpg')
-        print('Guided grad cam completed')
 
     def eval_fold(self, net, validation_loader):
         focal_losses = np.array([])

@@ -1,6 +1,7 @@
 import collections
 import os
 import re
+from random import randint
 
 import imgaug
 import matplotlib as mpl
@@ -156,21 +157,12 @@ class QUBODataset(data.Dataset):
         return (self.indices_to_id[indice], self.get_load_image_by_indice(indice), self.get_load_label_by_indice(indice))
 
     def get_load_image_by_indice(self, indice, suffix=".npy"):
-        """
-
-        :param indice: id
-        :return: nparray image of (r, g, b, y) from 0~255 (['red', 'green', 'blue', 'yellow']) (4, W, H)
-        """
         id = self.indices_to_id[indice]
         return self.get_load_image_by_id(id, suffix)
 
     def get_load_image_by_id(self, id, suffix=".npy"):
-        """
-
-        :param indice: id
-        :return: nparray image of (r, g, b, y) from 0~255 (['red', 'green', 'blue', 'yellow']) (4, W, H)
-        """
-        return np.load(id)
+        rand = randint(0, self.train_dataframe.at[id, 'Num']-1)
+        return np.load(id.format(rand))
 
     def get_load_label_by_indice(self, indice):
         """

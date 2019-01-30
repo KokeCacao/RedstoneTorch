@@ -28,12 +28,13 @@ class QUBOPreprocess:
 
     def run(self, videos):
         pbar = tqdm(videos)
+        # with open(config.DIRECTORY_CSV, 'a') as csv:
+        #     csv.write('Id,Target,Max\n')
         with open(config.DIRECTORY_CSV, 'a') as csv:
-            csv.write('Id,Target\n')
+            csv.write('Id,Target,Num\n')
         for video in pbar:
             npy_dirs = self.to_image(video)
 
-            classes = ""
             if "/bins/" in video:
                 classes = "1"
             elif "/buoy/" in video:
@@ -44,11 +45,13 @@ class QUBOPreprocess:
                 classes = "0"
             elif "/torpedo/" in video:
                 classes = "4"
-            else: raise ValueError("Unexpected path: {}".format(video))
+            else:
+                print("Unexpected path: {}".format(video))
+                continue
             with open(config.DIRECTORY_CSV, 'a') as csv:
-                for npy_dir in npy_dirs:
-                    csv.write('{},{}\n'.format(npy_dir ,classes))
-
+                # for npy_dir in npy_dirs:
+                #     csv.write('{},{},{}\n'.format(npy_dir, classes, len(npy_dirs)))
+                csv.write('{},{},{}\n'.format(npy_dirs[0].replace("_0.npy", "_{}.npy"), classes, len(npy_dirs)))
 
     def to_image(self, dir):
         subdir = dir.split("/")[-2]+"/"
