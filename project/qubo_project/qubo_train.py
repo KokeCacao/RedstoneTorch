@@ -241,7 +241,7 @@ class QUBOTrain:
                 image = image.cuda()
                 labels_0 = labels_0.cuda()
             logits_predict = net(image)
-            prob_predict = torch.nn.Softmax(logits_predict)
+            prob_predict = torch.nn.Softmax()(logits_predict)
 
             """LOSS"""
             focal = focalloss_softmax(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
@@ -399,7 +399,7 @@ class QUBOEvaluation:
 
                 logits_predict = net(image)
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-                prob_predict = torch.nn.Softmax(logits_predict)
+                prob_predict = torch.nn.Softmax()(logits_predict)
 
                 """LOSS"""
                 focal = focalloss_softmax(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
