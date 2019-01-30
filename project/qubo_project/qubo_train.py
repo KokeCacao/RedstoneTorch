@@ -130,9 +130,9 @@ class QUBOTrain:
         for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
             # import pdb; pdb.set_trace() #1357Mb -> 1215Mb
             """Switch Optimizers"""
-            if config.epoch == 50:
-                optimizer = torch.optim.SGD(net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, dampening=0, weight_decay=config.MODEL_WEIGHT_DEFAY, nesterov=False)
-                tensorboardwriter.write_text(self.writer, "Switch to torch.optim.SGD, weight_decay={}, momentum={}".format(config.MODEL_WEIGHT_DEFAY, config.MODEL_MOMENTUM), config.global_steps[fold])
+            # if config.epoch == 50:
+            #     optimizer = torch.optim.SGD(net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, dampening=0, weight_decay=config.MODEL_WEIGHT_DEFAY, nesterov=False)
+            #     tensorboardwriter.write_text(self.writer, "Switch to torch.optim.SGD, weight_decay={}, momentum={}".format(config.MODEL_WEIGHT_DEFAY, config.MODEL_MOMENTUM), config.global_steps[fold])
             net = net.cuda()
             optimizer = load.move_optimizer_to_cuda(optimizer)
             self.step_fold(fold, net, optimizer, lr_scheduler, batch_size)
@@ -261,11 +261,11 @@ class QUBOTrain:
             f1, precise, recall = differenciable_f1_softmax(beta=1)(labels_0, logits_predict)
             bce = BCELoss()(prob_predict, labels_0)
             positive_bce = BCELoss(weight=labels_0*20+1)(prob_predict, labels_0)
-            if config.epoch < 10:
+            if config.epoch < 50:
                 loss = bce
             else:
                 loss = f1
-            if config.epoch == 10 and batch_index == 0: tensorboardwriter.write_text(self.writer, "Switch to f1 at epoch={}".format(config.epoch), config.global_steps[fold])
+            if config.epoch == 50 and batch_index == 0: tensorboardwriter.write_text(self.writer, "Switch to f1 at epoch={}".format(config.epoch), config.global_steps[fold])
             """BACKPROP"""
             # lr_scheduler.step(f1.detach().cpu().numpy().mean(), epoch=config.global_steps[fold])
             optimizer.zero_grad()
