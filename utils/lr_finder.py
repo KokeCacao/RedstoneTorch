@@ -171,7 +171,9 @@ class LRFinder(object):
         running_loss = 0
         self.model.eval()
         with torch.no_grad():
-            for inputs, labels in dataloader:
+            for ids, image, labels_0, image_for_display in dataloader:
+                inputs = image
+                labels = labels_0
                 # Move data to the correct device
                 inputs = inputs.to(self.device)
                 labels = labels.to(self.device)
