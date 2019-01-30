@@ -69,7 +69,7 @@ class QUBOTrain:
 
     def run(self):
         if config.DEBUG_LR_FINDER:
-            lr_finder = LRFinder(self.nets[0], self.optimizers[0], torch.nn.BCEWithLogitsLoss, device="cuda")
+            lr_finder = LRFinder(self.nets[0], self.optimizers[0], torch.nn.BCEWithLogitsLoss(), device="cuda")
             lr_finder.range_test(data.DataLoader(self.dataset,
                                            batch_size=config.MODEL_BATCH_SIZE,
                                            shuffle=False,
