@@ -22,7 +22,7 @@ class QUBOPreprocess:
                 files.append(os.path.join(path, name))
                 print("Get Name: {}".format(name))
 
-        print("files in selected {}".format(files))
+        print("files in selected {} in path {}".format(files, config.DIRECTORY_SELECTED_IMG))
         self.run(files)
 
 
