@@ -66,7 +66,7 @@ class QUBOTrain:
         self.folded_samplers = self.dataset.get_stratified_samplers(fold=config.MODEL_FOLD)
 
         if config.DEBUG_LR_FINDER:
-            lr_finder = LRFinder(self.nets[0], self.optimizers[0], torch.nn.BCEWithLogitsLoss(), device="cuda")
+            lr_finder = LRFinder(self.nets[0], torch.optim.Adadelta(params=self.nets[0].parameters(), lr=0.000001, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DEFAY), torch.nn.BCEWithLogitsLoss(), device="cuda")
             lr_finder.range_test(data.DataLoader(self.dataset,
                                            batch_size=config.MODEL_BATCH_SIZE,
                                            shuffle=False,
@@ -89,7 +89,7 @@ class QUBOTrain:
                                                                          drop_last=False,
                                                                          timeout=0,
                                                                          worker_init_fn=None,
-                                                                         ), end_lr=10, num_iter=500, step_mode="exp")
+                                                                         ), end_lr=10, num_iter=200, step_mode="exp")
             tensorboardwriter.write_plot(self.writer, lr_finder.plot(skip_end=0), "lr_finder")
             lr_finder.reset()
 
