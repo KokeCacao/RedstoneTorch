@@ -110,11 +110,14 @@ class LRFinder(object):
         iterator = iter(train_loader)
         for iteration in tqdm(range(num_iter)):
             # Get a new set of inputs and labels
+            """ Edit this to fit your dataset """
             try:
-                inputs, labels = next(iterator)
+                ids, image, labels_0, image_for_display = next(iterator)
             except StopIteration:
                 iterator = iter(train_loader)
-                inputs, labels = next(iterator)
+                ids, image, labels_0, image_for_display = next(iterator)
+            inputs = image
+            labels = labels_0
 
             # Train on batch and retrieve loss
             loss = self._train_batch(inputs, labels)
