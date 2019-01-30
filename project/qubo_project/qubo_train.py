@@ -68,7 +68,7 @@ class QUBOTrain:
         if config.DEBUG_LR_FINDER:
             net_ = qubo_net.nasnetamobile(num_classes=config.TRAIN_NUM_CLASS, pretrained="imagenet")
             if config.TRAIN_GPU_ARG: net_ = torch.nn.DataParallel(net_, device_ids=config.TRAIN_GPU_LIST)
-            lr_finder = LRFinder(net_, torch.optim.Adadelta(params=net_.parameters(), lr=0.0001, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DEFAY), torch.nn.BCEWithLogitsLoss(), device="cuda")
+            lr_finder = LRFinder(net_, torch.optim.Adadelta(params=net_.parameters(), lr=0.00001, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DEFAY), torch.nn.BCEWithLogitsLoss(), device="cuda")
             lr_finder.range_test(data.DataLoader(self.dataset,
                                            batch_size=config.MODEL_BATCH_SIZE,
                                            shuffle=False,
@@ -80,7 +80,7 @@ class QUBOTrain:
                                            drop_last=False,
                                            timeout=0,
                                            worker_init_fn=None,
-                                           ), end_lr=10, num_iter=100, step_mode="exp")
+                                           ), end_lr=10, num_iter=500, step_mode="exp")
             tensorboardwriter.write_plot(self.writer, lr_finder.plot(), "lr_finder")
 
 
