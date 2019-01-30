@@ -213,13 +213,14 @@ class LRFinder(object):
             losses = losses[skip_start:-skip_end]
 
         # Plot loss as a function of the learning rate
+        F = plt.figure()
         plt.plot(lrs, losses)
         if log_lr:
             plt.xscale("log")
         plt.xlabel("Learning rate")
         plt.ylabel("Loss")
         plt.show()
-        return plt
+        return F
 
 
 class LinearLR(_LRScheduler):
