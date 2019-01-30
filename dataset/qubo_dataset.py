@@ -400,7 +400,7 @@ def transform(ids, image_0, labels_0, train, val):
     if ids is None and labels_0 is None and train is False and val is False:  # predict.py
         image_aug_transform = PredictImgAugTransform().to_deterministic()
         PREDICT_TRANSFORM_IMG = transforms.Compose([
-            lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE),interpolation=cv2.INTER_CUBIC),
+            lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
             image_aug_transform,
             lambda x: np.clip(x, a_min=0, a_max=255),
             transforms.ToTensor(),
@@ -417,8 +417,8 @@ def transform(ids, image_0, labels_0, train, val):
     if not val and train:
         image_aug_transform = strong_aug()
         TRAIN_TRANSFORM = transforms.Compose([
-            lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE),interpolation=cv2.INTER_CUBIC),
-            image_aug_transform,
+            lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
+            # image_aug_transform,
             lambda x: np.clip(x, a_min=0, a_max=255),
             transforms.ToTensor(),
             Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
@@ -428,7 +428,7 @@ def transform(ids, image_0, labels_0, train, val):
     elif not train and val:
         image_aug_transform = strong_aug()
         PREDICT_TRANSFORM_IMG = transforms.Compose([
-            lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE),interpolation=cv2.INTER_CUBIC),
+            lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
             image_aug_transform,
             lambda x: np.clip(x, a_min=0, a_max=255),
             transforms.ToTensor(),
