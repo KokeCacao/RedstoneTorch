@@ -332,7 +332,6 @@ def strong_aug(p=1):
             RandomBrightnessContrast(),
         ], p=0.3),
         HueSaturationValue(p=0.3),
-        lambda x: x['image']
     ], p=p)
 
 def train_collate(batch):
@@ -402,6 +401,7 @@ def transform(ids, image_0, labels_0, train, val):
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
             image_aug_transform,
+            lambda x: x['image'],
             lambda x: np.clip(x, a_min=0, a_max=255),
             transforms.ToTensor(),
             Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
@@ -418,7 +418,8 @@ def transform(ids, image_0, labels_0, train, val):
         image_aug_transform = strong_aug()
         TRAIN_TRANSFORM = transforms.Compose([
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
-            # image_aug_transform,
+            image_aug_transform,
+            lambda x: x['image'],
             lambda x: np.clip(x, a_min=0, a_max=255),
             transforms.ToTensor(),
             Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
@@ -430,6 +431,7 @@ def transform(ids, image_0, labels_0, train, val):
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
             image_aug_transform,
+            lambda x: x['image'],
             lambda x: np.clip(x, a_min=0, a_max=255),
             transforms.ToTensor(),
             Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
