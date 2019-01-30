@@ -183,5 +183,4 @@ def convert_to_grayscale(cv2im):
     im_max = np.percentile(grayscale_im, 99)
     im_min = np.min(grayscale_im)
     grayscale_im = (np.clip((grayscale_im - im_min) / (im_max - im_min), 0, 1))
-    grayscale_im = np.expand_dims(grayscale_im, axis=0)
     return grayscale_im

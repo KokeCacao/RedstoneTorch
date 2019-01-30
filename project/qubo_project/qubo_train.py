@@ -350,8 +350,9 @@ class QUBOEvaluation:
         # Guided Grad cam
         cam_gb = guided_grad_cam(cam, guided_grads)
         save_gradient_images(cam_gb, config.DIRECTORY_CSV+"_img.jpg")
-        grayscale_cam_gb = convert_to_grayscale(cam_gb)
-        tensorboardwriter.write_focus(self.writer, grayscale_cam_gb, labels_0, config.epoch, config.fold)
+        grayscale_im = convert_to_grayscale(cam_gb)
+        tensorboardwriter.write_focus(self.writer, grayscale_im, labels_0, config.epoch, config.fold)
+        # grayscale_cam_gb = np.expand_dims(grayscale_cam_im, axis=0)
         # save_gradient_images(grayscale_cam_gb, config.DIRECTORY_CSV + '_img_gray.jpg')
 
     def eval_fold(self, net, validation_loader):
