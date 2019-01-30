@@ -65,11 +65,10 @@ class QUBOTrain:
         self.dataset = QUBODataset(config.DIRECTORY_CSV, config.DIRECTORY_CSV, load_strategy="train", writer=self.writer, column='Target')
         self.folded_samplers = self.dataset.get_stratified_samplers(fold=config.MODEL_FOLD)
 
-        self.run()
-
-    def run(self):
         if config.DEBUG_LR_FINDER:
-            lr_finder = LRFinder(self.nets[0], self.optimizers[0], torch.nn.BCEWithLogitsLoss(), device="cuda")
+            net_ = qubo_net.nasnetamobile(num_classes=config.TRAIN_NUM_CLASS, pretrained="imagenet")
+            if config.TRAIN_GPU_ARG: net_ = torch.nn.DataParallel(net_, device_ids=config.TRAIN_GPU_LIST)
+            lr_finder = LRFinder(net_, torch.optim.Adadelta(params=net_.parameters(), lr=0.0001, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DEFAY), torch.nn.BCEWithLogitsLoss(), device="cuda")
             lr_finder.range_test(data.DataLoader(self.dataset,
                                            batch_size=config.MODEL_BATCH_SIZE,
                                            shuffle=False,
@@ -81,9 +80,13 @@ class QUBOTrain:
                                            drop_last=False,
                                            timeout=0,
                                            worker_init_fn=None,
-                                           ), end_lr=100, num_iter=100, step_mode="exp")
+                                           ), end_lr=10, num_iter=100, step_mode="exp")
             tensorboardwriter.write_plot(self.writer, lr_finder.plot(), "lr_finder")
 
+
+        self.run()
+
+    def run(self):
         try:
             for epoch in range(config.MODEL_EPOCHS):
                 self.step_epoch(nets=self.nets,
@@ -383,7 +386,7 @@ class QUBOEvaluation:
         self.worst_loss = []
 
         print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
-        for eval_index in range(4): # TODO: set to range(8)
+        for eval_index in range(1):
             config.eval_index = eval_index
             pbar = tqdm(validation_loader)
 
