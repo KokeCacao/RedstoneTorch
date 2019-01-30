@@ -68,6 +68,10 @@ class QUBOPreprocess:
             image = image.astype(np.uint8)
             if self.expected_img_size != image.shape: raise ValueError("Expected image size:{} is not equal to actual image size:{}".format(self.expected_img_size, image.shape))
             npy_dir = "{}_{}.npy".format(config.DIRECTORY_PREPROCESSED_IMG+subdir+name, count)
+
+            if not os.path.exists(config.DIRECTORY_PREPROCESSED_IMG + subdir):
+                os.makedirs(config.DIRECTORY_PREPROCESSED_IMG + subdir)
+
             np.save(npy_dir, image)
 
             success, image = vidcap.read()
