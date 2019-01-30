@@ -33,7 +33,7 @@ class QUBOPreprocess:
         with open(config.DIRECTORY_CSV, 'a') as csv:
             csv.write('Id,Target,Num\n')
         for video in pbar:
-            npy_dirs = self.to_image(video)
+            npy_dirs = self.to_image(video, pbar)
 
             if "/bins/" in video:
                 classes = "1"
@@ -53,10 +53,10 @@ class QUBOPreprocess:
                 #     csv.write('{},{},{}\n'.format(npy_dir, classes, len(npy_dirs)))
                 csv.write('{},{},{}\n'.format(npy_dirs[0].replace("_0.npy", "_{}.npy"), classes, len(npy_dirs)))
 
-    def to_image(self, dir):
+    def to_image(self, dir, pbar):
         subdir = dir.split("/")[-2]+"/"
         name = dir.split("/")[-1]
-        print("Reading {}".format(dir))
+        pbar.set_description_str("Reading {}".format(dir))
         vidcap = cv2.VideoCapture(dir)
         success, image = vidcap.read()
         count = 0
@@ -64,7 +64,7 @@ class QUBOPreprocess:
         dirs = []
 
         while success:
-            cv2.imwrite("{}_{}.png".format(config.DIRECTORY_PREPROCESSED_IMG+subdir+name, count), image)
+            # cv2.imwrite("{}_{}.png".format(config.DIRECTORY_PREPROCESSED_IMG+subdir+name, count), image)
             image = image.astype(np.uint8)
             if self.expected_img_size != image.shape: raise ValueError("Expected image size:{} is not equal to actual image size:{}".format(self.expected_img_size, image.shape))
             npy_dir = "{}_{}.npy".format(config.DIRECTORY_PREPROCESSED_IMG+subdir+name, count)
@@ -75,9 +75,9 @@ class QUBOPreprocess:
             np.save(npy_dir, image)
 
             success, image = vidcap.read()
-            print('Reading: {}, Saved: {}, Success: {}'.format(dir, "{}_{}.npy".format(config.DIRECTORY_PREPROCESSED_IMG+subdir+name, count), success))
+            pbar.set_description_str('Reading: {}, Saved: {}, Success: {}'.format(dir, "{}_{}.npy".format(config.DIRECTORY_PREPROCESSED_IMG+subdir+name, count), success))
             count += 1
 
             dirs.append(npy_dir)
-        print("Finished. Count = {}".format(count))
+            pbar.set_description_str("Finished. Count = {}".format(count))
         return dirs
