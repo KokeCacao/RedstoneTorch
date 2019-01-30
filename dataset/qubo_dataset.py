@@ -416,7 +416,7 @@ def transform(ids, image_0, labels_0, train, val):
     """
     if not val and train:
         TRAIN_TRANSFORM = transforms.Compose([
-            strong_aug(),
+            # strong_aug(),
             lambda x: x['image'],
             lambda x: np.clip(x, a_min=0, a_max=255),
             transforms.ToTensor(),
