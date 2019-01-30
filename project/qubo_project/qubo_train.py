@@ -66,9 +66,7 @@ class QUBOTrain:
         self.folded_samplers = self.dataset.get_stratified_samplers(fold=config.MODEL_FOLD)
 
         if config.DEBUG_LR_FINDER:
-            net_ = qubo_net.nasnetamobile(num_classes=config.TRAIN_NUM_CLASS, pretrained="imagenet")
-            if config.TRAIN_GPU_ARG: net_ = torch.nn.DataParallel(net_, device_ids=config.TRAIN_GPU_LIST)
-            lr_finder = LRFinder(net_, torch.optim.Adadelta(params=net_.parameters(), lr=0.00001, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DEFAY), torch.nn.BCEWithLogitsLoss(), device="cuda")
+            lr_finder = LRFinder(self.nets[0], self.optimizers[0], torch.nn.BCEWithLogitsLoss(), device="cuda")
             lr_finder.range_test(data.DataLoader(self.dataset,
                                            batch_size=config.MODEL_BATCH_SIZE,
                                            shuffle=False,
@@ -80,8 +78,20 @@ class QUBOTrain:
                                            drop_last=False,
                                            timeout=0,
                                            worker_init_fn=None,
-                                           ), end_lr=10, num_iter=500, step_mode="exp")
-            tensorboardwriter.write_plot(self.writer, lr_finder.plot(), "lr_finder")
+                                           ), val_loader=data.DataLoader(self.dataset,
+                                                                         batch_size=config.MODEL_BATCH_SIZE,
+                                                                         shuffle=False,
+                                                                         sampler=self.folded_samplers[config.fold]["val"],
+                                                                         batch_sampler=None,
+                                                                         num_workers=config.TRAIN_NUM_WORKER,
+                                                                         collate_fn=val_collate,
+                                                                         pin_memory=False,
+                                                                         drop_last=False,
+                                                                         timeout=0,
+                                                                         worker_init_fn=None,
+                                                                         ), end_lr=10, num_iter=500, step_mode="exp")
+            tensorboardwriter.write_plot(self.writer, lr_finder.plot(skip_end=0), "lr_finder")
+            lr_finder.reset()
 
 
         self.run()
