@@ -306,32 +306,33 @@ class TestImgAugTransform:
 def strong_aug(p=1):
     return Compose([
         lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB),
-        RandomRotate90(),
-        Flip(),
-        Transpose(),
-        OneOf([
-            IAAAdditiveGaussianNoise(),
-            GaussNoise(),
-            JpegCompression(quality_lower=5, quality_upper=100),
-        ], p=0.2),
-        OneOf([
-            MotionBlur(p=.2),
-            MedianBlur(blur_limit=3, p=0.1),
-            Blur(blur_limit=3, p=0.1),
-        ], p=0.2),
-        ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.7, rotate_limit=45, p=0.2),
-        OneOf([
-            OpticalDistortion(p=0.3),
-            GridDistortion(p=.1),
-            IAAPiecewiseAffine(p=0.3),
-        ], p=0.2),
-        OneOf([
-            CLAHE(clip_limit=2),
-            IAASharpen(),
-            IAAEmboss(),
-            RandomBrightnessContrast(),
-        ], p=0.3),
-        HueSaturationValue(p=0.3),
+        lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
+        # RandomRotate90(),
+        # Flip(),
+        # Transpose(),
+        # OneOf([
+        #     IAAAdditiveGaussianNoise(),
+        #     GaussNoise(),
+        #     JpegCompression(quality_lower=5, quality_upper=100),
+        # ], p=0.2),
+        # OneOf([
+        #     MotionBlur(p=.2),
+        #     MedianBlur(blur_limit=3, p=0.1),
+        #     Blur(blur_limit=3, p=0.1),
+        # ], p=0.2),
+        # ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.7, rotate_limit=45, p=0.2),
+        # OneOf([
+        #     OpticalDistortion(p=0.3),
+        #     GridDistortion(p=.1),
+        #     IAAPiecewiseAffine(p=0.3),
+        # ], p=0.2),
+        # OneOf([
+        #     CLAHE(clip_limit=2),
+        #     IAASharpen(),
+        #     IAAEmboss(),
+        #     RandomBrightnessContrast(),
+        # ], p=0.3),
+        # HueSaturationValue(p=0.3),
     ], p=p)
 
 def train_collate(batch):
@@ -399,7 +400,6 @@ def transform(ids, image_0, labels_0, train, val):
     if ids is None and labels_0 is None and train is False and val is False:  # predict.py
         image_aug_transform = PredictImgAugTransform().to_deterministic()
         PREDICT_TRANSFORM_IMG = transforms.Compose([
-            lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
             image_aug_transform,
             lambda x: x['image'],
             lambda x: np.clip(x, a_min=0, a_max=255),
@@ -415,22 +415,18 @@ def transform(ids, image_0, labels_0, train, val):
             STD1 = [0.00255578 0.00230547 0.00129955 0.00293934]
     """
     if not val and train:
-        image_aug_transform = strong_aug()
         TRAIN_TRANSFORM = transforms.Compose([
-            lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
-            image_aug_transform,
-            # lambda x: x['image'],
-            # lambda x: np.clip(x, a_min=0, a_max=255),
-            # transforms.ToTensor(),
-            # Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+            strong_aug(),
+            lambda x: x['image'],
+            lambda x: np.clip(x, a_min=0, a_max=255),
+            transforms.ToTensor(),
+            Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
         ])
         image = TRAIN_TRANSFORM(image_0)
         return (ids, image, labels_0, transforms.ToTensor()(image_0))
     elif not train and val:
-        image_aug_transform = strong_aug()
         PREDICT_TRANSFORM_IMG = transforms.Compose([
-            lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
-            image_aug_transform,
+            strong_aug(),
             lambda x: x['image'],
             lambda x: np.clip(x, a_min=0, a_max=255),
             transforms.ToTensor(),
