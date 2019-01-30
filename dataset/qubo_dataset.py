@@ -305,8 +305,8 @@ class TestImgAugTransform:
 
 def strong_aug(p=1):
     return Compose([
-        lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB),
-        lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
+        # lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB),
+        # lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
         # RandomRotate90(),
         # Flip(),
         # Transpose(),
