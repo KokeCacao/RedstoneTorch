@@ -303,7 +303,7 @@ class TestImgAugTransform:
         self.aug = self.aug.to_deterministic(n)
         return self
 
-def strong_aug(p=1):
+def strong_aug():
     return Compose([
         # lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB),
         # lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
@@ -333,7 +333,7 @@ def strong_aug(p=1):
         #     RandomBrightnessContrast(),
         # ], p=0.3),
         # HueSaturationValue(p=0.3),
-    ], p=p)
+    ])
 
 def train_collate(batch):
     """TRASNFORM"""
