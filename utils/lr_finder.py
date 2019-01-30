@@ -158,7 +158,6 @@ class LRFinder(object):
         outputs = self.model(inputs)
 
         """ Edit this to fit your dataset """
-        outputs = torch.nn.Softmax(outputs)
         loss = self.criterion(outputs, labels)
 
         # Backward pass
