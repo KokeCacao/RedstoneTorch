@@ -305,8 +305,6 @@ class TestImgAugTransform:
 
 def strong_aug():
     return Compose([
-        lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB),
-        lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
         RandomRotate90(),
         Flip(),
         Transpose(),
@@ -416,7 +414,9 @@ def transform(ids, image_0, labels_0, train, val):
     """
     if not val and train:
         TRAIN_TRANSFORM = transforms.Compose([
-            lambda x: strong_aug()(image=x),
+            lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB),
+            lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
+            lambda x: strong_aug()(image=x), # Yes, you have to use image=xxx
             lambda x: x['image'],
             lambda x: np.clip(x, a_min=0, a_max=255),
             transforms.ToTensor(),
@@ -426,6 +426,8 @@ def transform(ids, image_0, labels_0, train, val):
         return (ids, image, labels_0, transforms.ToTensor()(image_0))
     elif not train and val:
         PREDICT_TRANSFORM_IMG = transforms.Compose([
+            lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB),
+            lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
             lambda x: strong_aug()(image=x),
             lambda x: x['image'],
             lambda x: np.clip(x, a_min=0, a_max=255),
