@@ -87,7 +87,7 @@ class QUBOTrain:
                                                              timeout=0,
                                                              worker_init_fn=None,
                                                              ))
-        load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
+        if config.DIRECTORY_LOAD!=None: load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
         set_milestone(config.DIRECTORY_LOAD)
 
         """RESET LR"""

@@ -52,8 +52,7 @@ def load_checkpoint_all_fold(nets, optimizers, load_path):
         print("=> Loading checkpoint '{}'".format(load_path))
         checkpoint = torch.load(load_path)
         if 'state_dicts' not in checkpoint:
-            print("=> Checkpoint is broken, nothing loaded")
-            return
+            raise ValueError("=> Checkpoint is broken, nothing loaded")
         config.epoch = checkpoint['epoch']
         config.global_steps = checkpoint['global_steps']
         for fold, (net, optimizer) in enumerate(zip(nets, optimizers)):
@@ -72,8 +71,7 @@ def load_checkpoint_all_fold_without_optimizers(nets, load_path):
         print("=> Loading checkpoint '{}'".format(load_path))
         checkpoint = torch.load(load_path)
         if 'state_dicts' not in checkpoint:
-            print("=> Checkpoint is broken, nothing loaded")
-            return
+            raise ValueError("=> Checkpoint is broken, nothing loaded")
         config.epoch = checkpoint['epoch']
         config.global_steps = checkpoint['global_steps']
         for fold, net in enumerate(nets):
@@ -91,8 +89,7 @@ def load_checkpoint_one_fold(net, optimizer, fold, load_path):
         print("=> Loading checkpoint '{}'".format(load_path))
         checkpoint = torch.load(load_path)
         if 'state_dicts' not in checkpoint:
-            print("=> Checkpoint is broken, nothing loaded")
-            return
+            raise ValueError("=> Checkpoint is broken, nothing loaded")
         config.epoch = checkpoint['epoch']
         config.global_steps = checkpoint['global_steps']
         net.load_state_dict(checkpoint['state_dict'][fold])
