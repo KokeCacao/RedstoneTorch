@@ -20,7 +20,7 @@ python train.py --projecttag second --versiontag 23d1a59e --loaddir 2019-01-30-2
 
 python train.py --projecttag second --versiontag 23d1a59e --loaddir 2019-01-30-20-31-05-899748-second --loadfile 23d1a59e-CP222_F[1]_PTsecond_VT23d1a59e_LR0.1_BS32_IMG224.pth  --resume True
 
---resetlr 0.05
-
+python train.py --projecttag second --versiontag a27be4dd --loaddir 2019-01-30-20-31-05-899748-second --loadfile 23d1a59e-CP129_F[1]_PTsecond_VT23d1a59e_LR0.1_BS32_IMG224.pth  --resume True --resetlr 0.05
+reset lr
 
 ```
