@@ -20,7 +20,7 @@ from loss.focal import focalloss_sigmoid, focalloss_softmax
 from project.qubo_project import qubo_net
 from project.qubo_project.qubo_cam import GradCam, GuidedBackprop, guided_grad_cam, save_gradient_images, convert_to_grayscale
 from utils import encode, load
-from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx
+from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx, remove_checkpoint_fold
 from utils.lr_finder import LRFinder
 
 if os.environ.get('DISPLAY', '') == '':
@@ -105,8 +105,9 @@ class QUBOTrain:
                                 batch_size=config.MODEL_BATCH_SIZE
                                 )
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-                """SAVE"""
+                """SAVE AND DELETE"""
                 save_checkpoint_fold([x.state_dict() for x in self.nets], [x.state_dict() for x in self.optimizers])
+                remove_checkpoint_fold()
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
         except KeyboardInterrupt as e:

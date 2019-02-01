@@ -1,4 +1,6 @@
 import os
+from os import listdir
+from os.path import isfile, join
 
 import torch
 import torch.onnx
@@ -8,6 +10,18 @@ from torch.autograd import Variable
 import config
 import numpy as np
 
+from utils.backup import keep_things_at_day
+
+
+def remove_checkpoint_fold(a=2, b=3):
+    folder = config.DIRECTORY_CHECKPOINT
+    cps = [f for f in listdir(folder) if isfile(join(folder, f)) and os.path.splitext(f)[1] == ".pth"]
+    delete_nums = set(list(range(0, config.epoch))) - keep_things_at_day(config.epoch, a, b)
+    for cp in cps:
+        for delete_num in delete_nums:
+            if "_CP{}_".format(delete_num) in cp:
+                print('Removing CP: {}'.format(folder + os.remove(cp)))
+                os.remove(folder + os.remove(cp))
 
 def save_checkpoint_fold(state_dicts, optimizer_dicts, interupt=False):
     if interupt: print("WARNING: loading interupt models may be buggy")
