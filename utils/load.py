@@ -13,7 +13,7 @@ import numpy as np
 from utils.backup import keep_things_at_day
 
 def set_milestone(file):
-    if os.path.isfile(file) and os.path.splitext(file)[1] == ".pth" and "MILESTONE" not in os.path.splitext(file)[1]:
+    if os.path.isfile(file) and os.path.splitext(file)[1] == ".pth" and "-MILESTONE" not in os.path.splitext(file)[0]:
         new = os.path.splitext(file)[0]+"-MILESTONE"+os.path.splitext(file)[1]
         os.rename(file, new)
         print("Setting MILESTONE: {}".format(new))
