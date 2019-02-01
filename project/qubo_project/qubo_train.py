@@ -124,7 +124,7 @@ class QUBOTrain:
                                                                          drop_last=False,
                                                                          timeout=0,
                                                                          worker_init_fn=None,
-                                                                         ), end_lr=1, num_iter=100, step_mode="exp")
+                                                                         ), end_lr=1, num_iter=config.FIND_LR_RATIO, step_mode="exp")
             tensorboardwriter.write_plot(self.writer, lr_finder.plot(skip_end=0), "lr_finder")
             lr_finder.reset()
 
@@ -293,11 +293,11 @@ class QUBOTrain:
                 prob_predict = torch.nn.Softmax()(logits_predict)
 
                 """LOSS"""
-                focal = focalloss_softmax(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
+                focal = focalloss_softmax(alpha=0.25, gamma=2, eps=1e-7)(labels_0, logits_predict)
                 f1, precise, recall = differenciable_f1_softmax(beta=1)(labels_0, logits_predict)
                 bce = BCELoss()(prob_predict, labels_0)
                 positive_bce = BCELoss(weight=labels_0*20+1)(prob_predict, labels_0)
-                loss = f1
+                loss = focal
                 """BACKPROP"""
                 # lr_scheduler.step(f1.detach().cpu().numpy().mean(), epoch=config.global_steps[fold])
                 optimizer.zero_grad()

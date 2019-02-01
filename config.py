@@ -115,6 +115,7 @@ elif PROJECT_NAME == "QUBO":
     # TRAIN_TRY_LR_FORMULA = lambda x: x / (8 * np.mod(-x - 1, 600) + 0.1) - 0.000207 * x  # y=x/(8*\operatorname{mod}(-x-1,600)+0.1)-0.000207*x
     TRAIN_RATIO = 32
     EVAL_RATIO = 32
+    FIND_LR_RATIO = 64
 
     PROJECT_TAG = "test"
     PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + PROJECT_TAG
