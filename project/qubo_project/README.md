@@ -18,5 +18,7 @@ python train.py --projecttag second --versiontag 23d1a59e --loaddir 2019-01-30-2
 
 python train.py --projecttag second --versiontag 23d1a59e --loaddir 2019-01-30-20-31-05-899748-second --loadfile 23d1a59e-CP162_F[1]_PTsecond_VT23d1a59e_LR0.1_BS32_IMG224.pth --resume True
 
+python train.py --projecttag second --versiontag 23d1a59e --loaddir 2019-01-30-20-31-05-899748-second --loadfile 23d1a59e-CP222_F[1]_PTsecond_VT23d1a59e_LR0.1_BS32_IMG224.pth  --resume True
+
 
 ```

@@ -37,6 +37,10 @@ class QUBOTrain:
         self.lr_schedulers = []
         self.train_loader = []
         self.validation_loader = []
+
+        self.dataset = QUBODataset(config.DIRECTORY_CSV, config.DIRECTORY_CSV, load_strategy="train", writer=self.writer, column='Target')
+        self.folded_samplers = self.dataset.get_stratified_samplers(fold=config.MODEL_FOLD)
+
         for fold in range(config.MODEL_FOLD):
             if fold not in config.MODEL_TRAIN_FOLD:
                 print("     Skipping Fold: #{}".format(fold))
@@ -88,9 +92,6 @@ class QUBOTrain:
 
         print(self.nets[0])
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[0], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
-
-        self.dataset = QUBODataset(config.DIRECTORY_CSV, config.DIRECTORY_CSV, load_strategy="train", writer=self.writer, column='Target')
-        self.folded_samplers = self.dataset.get_stratified_samplers(fold=config.MODEL_FOLD)
 
         if config.DEBUG_LR_FINDER:
             lr_finder = LRFinder(self.nets[0], torch.optim.Adadelta(params=self.nets[0].parameters(), lr=0.000001, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DEFAY), torch.nn.BCEWithLogitsLoss(), device="cuda")
