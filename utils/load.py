@@ -12,12 +12,19 @@ import numpy as np
 
 from utils.backup import keep_things_at_day
 
+def set_milestone(file):
+    if os.path.isfile(file) and os.path.splitext(file)[1] == ".pth":
+        new = os.path.splitext(file)[0]+"-MILESTONE"+os.path.splitext(file)[1]
+        os.rename(file, new)
+        print("Setting MILESTONE: {}".format(new))
+
 
 def remove_checkpoint_fold(a=2, b=3):
     folder = config.DIRECTORY_CHECKPOINT
     cps = [f for f in listdir(folder) if isfile(join(folder, f)) and os.path.splitext(f)[1] == ".pth"]
     delete_nums = set(list(range(0, config.epoch))) - keep_things_at_day(config.epoch, a, b)
     for cp in cps:
+        if "-MILESTONE." in cp: continue
         for delete_num in delete_nums:
             if "_CP{}_".format(delete_num) in cp:
                 print('Removing CP: {}'.format(folder + os.remove(cp)))

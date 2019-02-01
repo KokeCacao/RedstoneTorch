@@ -20,7 +20,7 @@ from loss.focal import focalloss_sigmoid, focalloss_softmax
 from project.qubo_project import qubo_net
 from project.qubo_project.qubo_cam import GradCam, GuidedBackprop, guided_grad_cam, save_gradient_images, convert_to_grayscale
 from utils import encode, load
-from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx, remove_checkpoint_fold
+from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx, remove_checkpoint_fold, set_milestone
 from utils.lr_finder import LRFinder
 
 if os.environ.get('DISPLAY', '') == '':
@@ -58,6 +58,7 @@ class QUBOTrain:
                 #     if param.requires_grad:
                 #         print (name)
         load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
+        set_milestone(config.DIRECTORY_LOAD)
 
         print(self.nets[0])
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[0], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
