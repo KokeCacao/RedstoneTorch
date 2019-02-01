@@ -184,3 +184,21 @@ def convert_to_grayscale(cv2im):
     im_min = np.min(grayscale_im)
     grayscale_im = (np.clip((grayscale_im - im_min) / (im_max - im_min), 0, 1))
     return grayscale_im
+
+def cam(net, image, labels_0, target_layer=0):
+    # print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
+    gcv2 = GradCam(net, target_layer) # usually last conv layer
+    # Generate cam mask
+    cam = gcv2.generate_cam(image, labels_0)
+
+    # Guided backprop
+    GBP = GuidedBackprop(net)
+    # Get gradients
+    guided_grads = GBP.generate_gradients(image, labels_0)
+
+    # Guided Grad cam
+    cam_gb = guided_grad_cam(cam, guided_grads)
+    # save_gradient_images(cam_gb, config.DIRECTORY_CSV+"_img.jpg")
+    return convert_to_grayscale(cam_gb)
+    # grayscale_cam_gb = np.expand_dims(grayscale_cam_im, axis=0)
+    # save_gradient_images(grayscale_cam_gb, config.DIRECTORY_CSV + '_img_gray.jpg')

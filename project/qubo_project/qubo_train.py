@@ -18,7 +18,7 @@ from gpu import gpu_profile
 from loss.f1 import f1_macro, differenciable_f1_sigmoid, differenciable_f1_softmax
 from loss.focal import focalloss_sigmoid, focalloss_softmax
 from project.qubo_project import qubo_net
-from project.qubo_project.qubo_cam import GradCam, GuidedBackprop, guided_grad_cam, save_gradient_images, convert_to_grayscale
+from project.qubo_project.qubo_cam import GradCam, GuidedBackprop, guided_grad_cam, save_gradient_images, convert_to_grayscale, cam
 from utils import encode, load
 from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx, remove_checkpoint_fold, set_milestone
 from utils.lr_finder import LRFinder
@@ -103,7 +103,7 @@ class QUBOTrain:
         if config.DEBUG_LR_FINDER:
             lr_finder = LRFinder(self.nets[0], torch.optim.Adadelta(params=self.nets[0].parameters(), lr=0.000001, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DEFAY), torch.nn.BCEWithLogitsLoss(), device="cuda")
             lr_finder.range_test(data.DataLoader(self.dataset,
-                                           batch_size=1,
+                                           batch_size=config.MODEL_BATCH_SIZE,
                                            shuffle=False,
                                            sampler=self.folded_samplers[0]["train"],
                                            batch_sampler=None,
@@ -114,7 +114,7 @@ class QUBOTrain:
                                            timeout=0,
                                            worker_init_fn=None,
                                            ), val_loader=data.DataLoader(self.dataset,
-                                                                         batch_size=1,
+                                                                         batch_size=config.MODEL_BATCH_SIZE,
                                                                          shuffle=False,
                                                                          sampler=self.folded_samplers[0]["val"],
                                                                          batch_sampler=None,
@@ -143,6 +143,26 @@ class QUBOTrain:
                 """SAVE AND DELETE"""
                 save_checkpoint_fold([x.state_dict() for x in self.nets], [x.state_dict() for x in self.optimizers])
                 remove_checkpoint_fold()
+
+                pbar = tqdm(data.DataLoader(self.dataset,
+                                             batch_size=1,
+                                             shuffle=False,
+                                             sampler=self.folded_samplers[0]["val"],
+                                             batch_sampler=None,
+                                             num_workers=config.TRAIN_NUM_WORKER,
+                                             collate_fn=val_collate,
+                                             pin_memory=False,
+                                             drop_last=False,
+                                             timeout=0,
+                                             worker_init_fn=None,
+                                             ))
+                for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+                    tensorboardwriter.write_focus(self.writer, cam(self.nets[0], image, labels_0), image_for_display.transpose((1, 2, 0)), labels_0, config.epoch, config.fold)
+
+                    break
+
+
+
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
         except KeyboardInterrupt as e:
@@ -378,25 +398,6 @@ class QUBOEvaluation:
         self.epoch_pred = None
         self.epoch_label = None
 
-    def cam(self, net, image, labels_0, target_layer=0):
-        # print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
-        gcv2 = GradCam(net, target_layer) # usually last conv layer
-        # Generate cam mask
-        cam = gcv2.generate_cam(image, labels_0)
-
-        # Guided backprop
-        GBP = GuidedBackprop(net)
-        # Get gradients
-        guided_grads = GBP.generate_gradients(image, labels_0)
-
-        # Guided Grad cam
-        cam_gb = guided_grad_cam(cam, guided_grads)
-        save_gradient_images(cam_gb, config.DIRECTORY_CSV+"_img.jpg")
-        grayscale_im = convert_to_grayscale(cam_gb)
-        tensorboardwriter.write_focus(self.writer, grayscale_im, labels_0, config.epoch, config.fold)
-        # grayscale_cam_gb = np.expand_dims(grayscale_cam_im, axis=0)
-        # save_gradient_images(grayscale_cam_gb, config.DIRECTORY_CSV + '_img_gray.jpg')
-
     def eval_fold(self, net, validation_loader):
         focal_losses = np.array([])
         predict_total = None
@@ -418,9 +419,6 @@ class QUBOEvaluation:
                 if config.TRAIN_GPU_ARG:
                     image = image.cuda()
                     labels_0 = labels_0.cuda()
-
-                if batch_index == 0:
-                    self.cam(net, image, labels_0)
 
                 logits_predict = net(image)
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
