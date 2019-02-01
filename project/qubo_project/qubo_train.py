@@ -35,6 +35,8 @@ class QUBOTrain:
         self.optimizers = []
         self.nets = []
         self.lr_schedulers = []
+        self.train_loader = []
+        self.validation_loader = []
         for fold in range(config.MODEL_FOLD):
             if fold not in config.MODEL_TRAIN_FOLD:
                 print("     Skipping Fold: #{}".format(fold))
@@ -57,6 +59,30 @@ class QUBOTrain:
                 # for name, param in net.named_parameters():
                 #     if param.requires_grad:
                 #         print (name)
+            self.train_loader.append(data.DataLoader(self.dataset,
+                                           batch_size=config.MODEL_BATCH_SIZE,
+                                           shuffle=False,
+                                           sampler=self.folded_samplers[fold]["train"],
+                                           batch_sampler=None,
+                                           num_workers=config.TRAIN_NUM_WORKER,
+                                           collate_fn=train_collate,
+                                           pin_memory=True,
+                                           drop_last=False,
+                                           timeout=0,
+                                           worker_init_fn=None,
+                                           ))
+            self.validation_loader.append(data.DataLoader(self.dataset,
+                                                             batch_size=config.MODEL_BATCH_SIZE,
+                                                             shuffle=False,
+                                                             sampler=self.folded_samplers[fold]["val"],
+                                                             batch_sampler=None,
+                                                             num_workers=config.TRAIN_NUM_WORKER,
+                                                             collate_fn=val_collate,
+                                                             pin_memory=False,
+                                                             drop_last=False,
+                                                             timeout=0,
+                                                             worker_init_fn=None,
+                                                             ))
         load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
         set_milestone(config.DIRECTORY_LOAD)
 
@@ -71,7 +97,7 @@ class QUBOTrain:
             lr_finder.range_test(data.DataLoader(self.dataset,
                                            batch_size=config.MODEL_BATCH_SIZE,
                                            shuffle=False,
-                                           sampler=self.folded_samplers[config.fold]["train"],
+                                           sampler=self.folded_samplers[0]["train"],
                                            batch_sampler=None,
                                            num_workers=config.TRAIN_NUM_WORKER,
                                            collate_fn=train_collate,
@@ -82,7 +108,7 @@ class QUBOTrain:
                                            ), val_loader=data.DataLoader(self.dataset,
                                                                          batch_size=config.MODEL_BATCH_SIZE,
                                                                          shuffle=False,
-                                                                         sampler=self.folded_samplers[config.fold]["val"],
+                                                                         sampler=self.folded_samplers[0]["val"],
                                                                          batch_sampler=None,
                                                                          num_workers=config.TRAIN_NUM_WORKER,
                                                                          collate_fn=val_collate,
@@ -139,18 +165,7 @@ class QUBOTrain:
             optimizer = load.move_optimizer_to_cuda(optimizer)
             self.step_fold(fold, net, optimizer, lr_scheduler, batch_size)
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-            val_loss, val_f1 = evaluation.eval_fold(net, data.DataLoader(self.dataset,
-                                                                         batch_size=batch_size,
-                                                                         shuffle=False,
-                                                                         sampler=self.folded_samplers[config.fold]["val"],
-                                                                         batch_sampler=None,
-                                                                         num_workers=config.TRAIN_NUM_WORKER,
-                                                                         collate_fn=val_collate,
-                                                                         pin_memory=False,
-                                                                         drop_last=False,
-                                                                         timeout=0,
-                                                                         worker_init_fn=None,
-                                                                         ))
+            val_loss, val_f1 = evaluation.eval_fold(net, self.validation_loader[config.fold])
             print("""
             ValidLoss: {}, ValidF1: {}
             """.format(val_loss, val_f1))
@@ -225,99 +240,90 @@ class QUBOTrain:
 
         epoch_loss = 0
         epoch_f1 = 0
+        train_len = 1e-10
 
         # pin_memory: https://blog.csdn.net/tsq292978891/article/details/80454568
-        train_loader = data.DataLoader(self.dataset,
-                                       batch_size=batch_size,
-                                       shuffle=False,
-                                       sampler=self.folded_samplers[config.fold]["train"],
-                                       batch_sampler=None,
-                                       num_workers=config.TRAIN_NUM_WORKER,
-                                       collate_fn=train_collate,
-                                       pin_memory=True,
-                                       drop_last=False,
-                                       timeout=0,
-                                       worker_init_fn=None,
-                                       )
+        train_loader = self.train_loader[config.fold]
 
         print("Set Model Trainning mode to trainning=[{}]".format(net.train().training))
-        pbar = tqdm(train_loader)
-        train_len = len(train_loader) + 1e-10
-        for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
-            #1215MB -> 4997MB = 3782
+        for train_index in range(config.TRAIN_RATIO):
+            pbar = tqdm(train_loader)
+            train_len = train_len+ len(train_loader)
+            for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+                #1215MB -> 4997MB = 3782
 
-            # """UPDATE LR"""
-            # if config.global_steps[fold] == 2 * 46808 / 32 - 1: print("Perfect Place to Stop")
-            # optimizer.state['lr'] = config.TRAIN_TRY_LR_FORMULA(config.global_steps[fold]) if config.TRAIN_TRY_LR else config.TRAIN_COSINE(config.global_steps[fold])
+                # """UPDATE LR"""
+                # if config.global_steps[fold] == 2 * 46808 / 32 - 1: print("Perfect Place to Stop")
+                # optimizer.state['lr'] = config.TRAIN_TRY_LR_FORMULA(config.global_steps[fold]) if config.TRAIN_TRY_LR else config.TRAIN_COSINE(config.global_steps[fold])
 
-            """TRAIN NET"""
-            config.global_steps[fold] = config.global_steps[fold] + 1
-            if config.TRAIN_GPU_ARG:
-                image = image.cuda()
-                labels_0 = labels_0.cuda()
-            logits_predict = net(image)
-            prob_predict = torch.nn.Softmax()(logits_predict)
+                """TRAIN NET"""
+                config.global_steps[fold] = config.global_steps[fold] + 1
+                if config.TRAIN_GPU_ARG:
+                    image = image.cuda()
+                    labels_0 = labels_0.cuda()
+                logits_predict = net(image)
+                prob_predict = torch.nn.Softmax()(logits_predict)
 
-            """LOSS"""
-            focal = focalloss_softmax(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
-            f1, precise, recall = differenciable_f1_softmax(beta=1)(labels_0, logits_predict)
-            bce = BCELoss()(prob_predict, labels_0)
-            positive_bce = BCELoss(weight=labels_0*20+1)(prob_predict, labels_0)
-            loss = f1
-            """BACKPROP"""
-            # lr_scheduler.step(f1.detach().cpu().numpy().mean(), epoch=config.global_steps[fold])
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+                """LOSS"""
+                focal = focalloss_softmax(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
+                f1, precise, recall = differenciable_f1_softmax(beta=1)(labels_0, logits_predict)
+                bce = BCELoss()(prob_predict, labels_0)
+                positive_bce = BCELoss(weight=labels_0*20+1)(prob_predict, labels_0)
+                loss = f1
+                """BACKPROP"""
+                # lr_scheduler.step(f1.detach().cpu().numpy().mean(), epoch=config.global_steps[fold])
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
 
-            """DETATCH"""
-            focal = focal.detach().cpu().numpy().mean()
-            f1 = f1.detach().cpu().numpy().mean()
-            precise = precise.detach().cpu().numpy().mean()
-            recall = recall.detach().cpu().numpy().mean()
-            bce = bce.detach().cpu().numpy().mean()
-            positive_bce = positive_bce.detach().cpu().numpy().mean()
-            # weighted_bce = weighted_bce.detach().cpu().numpy().mean()
-            loss = loss.detach().cpu().numpy().mean()
-            labels_0 = labels_0.cpu().numpy()
-            logits_predict = logits_predict.detach().cpu().numpy()
-            prob_predict = prob_predict.detach().cpu().numpy()
-            # print(image)
+                """DETATCH"""
+                focal = focal.detach().cpu().numpy().mean()
+                f1 = f1.detach().cpu().numpy().mean()
+                precise = precise.detach().cpu().numpy().mean()
+                recall = recall.detach().cpu().numpy().mean()
+                bce = bce.detach().cpu().numpy().mean()
+                positive_bce = positive_bce.detach().cpu().numpy().mean()
+                # weighted_bce = weighted_bce.detach().cpu().numpy().mean()
+                loss = loss.detach().cpu().numpy().mean()
+                labels_0 = labels_0.cpu().numpy()
+                logits_predict = logits_predict.detach().cpu().numpy()
+                prob_predict = prob_predict.detach().cpu().numpy()
+                # print(image)
 
-            """SUM"""
-            epoch_loss = epoch_loss + loss.mean()
-            epoch_f1 = epoch_f1 + f1.mean()
-            # f1 = f1_macro(logits_predict, labels_0).mean()
+                """SUM"""
+                epoch_loss = epoch_loss + loss.mean()
+                epoch_f1 = epoch_f1 + f1.mean()
+                # f1 = f1_macro(logits_predict, labels_0).mean()
 
-            """DISPLAY"""
-            tensorboardwriter.write_memory(self.writer, "train")
+                """DISPLAY"""
+                tensorboardwriter.write_memory(self.writer, "train")
 
-            left = self.dataset.multilabel_binarizer.inverse_transform((np.expand_dims((np.array(labels_0).sum(0) < 1).astype(np.byte), axis=0)))[0]
-            label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
-            pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(logits_predict > config.EVAL_THRESHOLD)[0])
-            pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, left))
-            # pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.param_groups[0]['lr'], weighted_bce, bce))
-            # pbar.set_description_str("(E{}-F{}) Stp:{} Y:{}, y:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), labels_0, logits_predict))
+                left = self.dataset.multilabel_binarizer.inverse_transform((np.expand_dims((np.array(labels_0).sum(0) < 1).astype(np.byte), axis=0)))[0]
+                label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
+                pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(logits_predict > config.EVAL_THRESHOLD)[0])
+                pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, left))
+                # pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.param_groups[0]['lr'], weighted_bce, bce))
+                # pbar.set_description_str("(E{}-F{}) Stp:{} Y:{}, y:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), labels_0, logits_predict))
 
-            tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch,
-                                                       'LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold): optimizer.param_groups[0]['lr'],
-                                                       'Loss/{}'.format(config.fold): loss,
-                                                       'F1/{}'.format(config.fold): f1,
-                                                       'Focal/{}'.format(config.fold): focal,
-                                                       'PositiveBCE/{}'.format(config.fold): positive_bce,
-                                                       # 'WeightedBCE/{}'.format(config.fold): weighted_bce,
-                                                       'BCE/{}'.format(config.fold): bce,
-                                                       'Precision/{}'.format(config.fold): precise,
-                                                       'Recall/{}'.format(config.fold): recall,
-                                                       'PredictProbability/{}'.format(config.fold): logits_predict.mean(),
-                                                       'LabelProbability/{}'.format(config.fold): labels_0.mean(),
-                                                       }, config.global_steps[fold])
+                tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch,
+                                                           'LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold): optimizer.param_groups[0]['lr'],
+                                                           'Loss/{}'.format(config.fold): loss,
+                                                           'F1/{}'.format(config.fold): f1,
+                                                           'Focal/{}'.format(config.fold): focal,
+                                                           'PositiveBCE/{}'.format(config.fold): positive_bce,
+                                                           # 'WeightedBCE/{}'.format(config.fold): weighted_bce,
+                                                           'BCE/{}'.format(config.fold): bce,
+                                                           'Precision/{}'.format(config.fold): precise,
+                                                           'Recall/{}'.format(config.fold): recall,
+                                                           'PredictProbability/{}'.format(config.fold): logits_predict.mean(),
+                                                           'LabelProbability/{}'.format(config.fold): labels_0.mean(),
+                                                           }, config.global_steps[fold])
 
-            """CLEAN UP"""
-            del ids, image, image_for_display
-            del focal, f1, precise, recall, bce, positive_bce, loss, labels_0, logits_predict, prob_predict
-            if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
-        del train_loader, pbar
+                """CLEAN UP"""
+                del ids, image, image_for_display
+                del focal, f1, precise, recall, bce, positive_bce, loss, labels_0, logits_predict, prob_predict
+                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
+            del pbar
 
         train_loss = epoch_loss / train_len
         epoch_f1 = epoch_f1 / train_len
@@ -394,7 +400,7 @@ class QUBOEvaluation:
         self.worst_loss = []
 
         print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
-        for eval_index in range(1):
+        for eval_index in range(config.EVAL_RATIO):
             config.eval_index = eval_index
             pbar = tqdm(validation_loader)
 
