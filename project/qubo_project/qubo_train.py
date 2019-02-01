@@ -303,7 +303,7 @@ class QUBOTrain:
                 f1, precise, recall = differenciable_f1_softmax(beta=1)(labels_0, logits_predict)
                 bce = BCELoss()(prob_predict, labels_0)
                 positive_bce = BCELoss(weight=labels_0*20+1)(prob_predict, labels_0)
-                loss = focal.sum()
+                loss = focal.mean()
                 """BACKPROP"""
                 # lr_scheduler.step(f1.detach().cpu().numpy().mean(), epoch=config.global_steps[fold])
                 optimizer.zero_grad()
