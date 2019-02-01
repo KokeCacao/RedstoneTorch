@@ -106,7 +106,7 @@ elif PROJECT_NAME == "QUBO":
     TRAIN_GPU_LIST = [int(i) for i in TRAIN_GPU_ARG.split(",")]
     TRAIN_DATA_PERCENT = 1.0
     TRAIN_SEED = 19
-    TRAIN_NUM_WORKER = 16
+    TRAIN_NUM_WORKER = 6
     TRAIN_NUM_GPU = len(TRAIN_GPU_LIST)
     TRAIN_RESUME = True
     TRAIN_NUM_CLASS = 5
@@ -147,8 +147,6 @@ elif PROJECT_NAME == "QUBO":
 
     AUGMENTATION_IMG_ORIGINAL_SIZE = (640, 480)
     AUGMENTATION_RESIZE = 224
-    # AUGMENTATION_RESIZE = 384
-    # AUGMENTATION_RESIZE = 512
 
     eval_index = 0
     start_time = time.time()

@@ -10,4 +10,8 @@ python train.py --projecttag second --versiontag 23d1a59e
 
 python train.py --projecttag second --versiontag 23d1a59e --loaddir 2019-01-30-20-31-05-899748-second --loadfile 23d1a59e-CP18_F[1]_PT2019-01-30-20-31-05-899748-second_VT23d1a59e_LR0.1_BS32_IMG224.pth --resume True
 python train.py --projecttag second --versiontag 23d1a59e --loaddir 2019-01-30-20-31-05-899748-second --loadfile 23d1a59e-CP122_F[1]_PTsecond_VT23d1a59e_LR0.1_BS32_IMG224.pth --resume True
+The loss goes up at 1.25k, I don't know its because the way I use video as augmentation of one image or other reason
+The loss seems go down at 1.438k, looks good. The lr=1.5e-6
+
+python train.py --projecttag second --versiontag 23d1a59e --loaddir 2019-01-30-20-31-05-899748-second --loadfile 23d1a59e-CP122_F[1]_PTsecond_VT23d1a59e_LR0.1_BS32_IMG224.pth --resume True
 ```
