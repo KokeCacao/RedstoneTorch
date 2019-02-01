@@ -13,7 +13,7 @@ import numpy as np
 from utils.backup import keep_things_at_day
 
 def set_milestone(file):
-    if os.path.isfile(file) and os.path.splitext(file)[1] == ".pth":
+    if os.path.isfile(file) and os.path.splitext(file)[1] == ".pth" and "MILESTONE" not in os.path.splitext(file)[1]:
         new = os.path.splitext(file)[0]+"-MILESTONE"+os.path.splitext(file)[1]
         os.rename(file, new)
         print("Setting MILESTONE: {}".format(new))
@@ -28,8 +28,8 @@ def remove_checkpoint_fold(a=2, b=3):
         if "-MILESTONE." in cp: continue
         for delete_num in delete_nums:
             if "-CP{}_".format(delete_num) in cp:
-                print('Removing CP: {}'.format(folder + os.remove(cp)))
-                os.remove(folder + os.remove(cp))
+                print('Removing CP: {}'.format(folder + cp))
+                os.remove(folder + cp)
 
 def save_checkpoint_fold(state_dicts, optimizer_dicts, interupt=False):
     if interupt: print("WARNING: loading interupt models may be buggy")

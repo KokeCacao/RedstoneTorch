@@ -20,11 +20,12 @@ from reproduceability import reproduceability
 
 def get_args():
     parser = OptionParser()
-    parser.add_option('--projecttag', dest='projecttag', default=False, help='tag you want to load')
-    parser.add_option('--versiontag', dest='versiontag', default="", help='tag for tensorboard-log')
-    parser.add_option('--loadfile', dest='loadfile', default=False, help='file you want to load')
-    parser.add_option('--loaddir', dest='loaddir', default=False, help='file you want to load')
-    parser.add_option('--resume', dest='resume', default=False, help='resume or create a new folder')
+    parser.add_option('--projecttag', type="string", dest='projecttag', default=False, help='tag you want to load')
+    parser.add_option('--versiontag', type="string", dest='versiontag', default="", help='tag for tensorboard-log')
+    parser.add_option('--loadfile', type="string", dest='loadfile', default=False, help='file you want to load')
+    parser.add_option('--loaddir', type="string", dest='loaddir', default=False, help='file you want to load')
+    parser.add_option('--resume', type="string", dest='resume', default=False, help='resume or create a new folder')
+    parser.add_option('--resetlr', type="float", dest='resetlr', default=0., help='reset the learning rate')
 
     (options, args) = parser.parse_args()
     return options
@@ -41,6 +42,7 @@ def load_args():
         if config.TRAIN_RESUME:
             config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/" + args.loadfile
             config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/"
+            config.resetlr = args.resetlr
         else:
             config.PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + config.PROJECT_TAG
             config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/" + args.loadfile

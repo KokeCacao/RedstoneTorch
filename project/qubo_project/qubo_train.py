@@ -90,6 +90,13 @@ class QUBOTrain:
         load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
         set_milestone(config.DIRECTORY_LOAD)
 
+        """RESET LR"""
+        if config.resetlr != 0:
+            print("Reset Learning Rate to {}".format(config.resetlr))
+            for optim in self.optimizers:
+                for g in optim.param_groups:
+                    g['lr'] = config.resetlr
+
         print(self.nets[0])
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[0], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 

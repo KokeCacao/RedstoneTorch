@@ -85,7 +85,7 @@ elif PROJECT_NAME == "QUBO":
     DEBUG_TEST_CODE = False
     DEBUG_AUTO_SHUTDOWN = True
 
-    DEBUG_LR_FINDER = False
+    DEBUG_LR_FINDER = True
 
     MODEL_EPOCHS = 100
     MODEL_BATCH_SIZE = 32
@@ -157,3 +157,4 @@ elif PROJECT_NAME == "QUBO":
     epoch = 0
     fold = 0
     versiontag = ""
+    resetlr = 0
