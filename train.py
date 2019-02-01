@@ -65,6 +65,7 @@ if __name__ == '__main__':
     # loss = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(label, tensor)
     # print(loss)
 
+    os.system("sudo shutdown -c")
     config.DEBUG_TEST_CODE = False
     config.DEBUG_LAPTOP = False
     if not config.DEBUG_TEST_CODE:
