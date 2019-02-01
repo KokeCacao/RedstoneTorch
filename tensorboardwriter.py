@@ -49,7 +49,7 @@ def write_pr_curve(writer, label, predicted, epoch, fold):
 
 
 def write_image(writer, msg, F, epoch):
-    writer.add_figure("eval/image/{}".format(msg), F, epoch)
+    writer.add_figure("eval/image/{}".format(msg), F, 0)
 
 
 def write_predict_image(writer, msg, F, epoch):

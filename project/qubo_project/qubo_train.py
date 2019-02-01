@@ -552,6 +552,6 @@ class QUBOEvaluation:
             plt.imshow(transfered.transpose((1, 2, 0)))
             plt.title("Mask_Trans; f1:{}".format(loss))
             plt.grid(False)
-            tensorboardwriter.write_image(self.writer, "e{}-{}-{}".format(config.epoch, fold, id), F, config.epoch)
+            tensorboardwriter.write_image(self.writer, "{}-{}".format(fold, id), F, config.epoch)
 
 
