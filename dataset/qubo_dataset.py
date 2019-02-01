@@ -311,14 +311,14 @@ def strong_aug():
         OneOf([
             IAAAdditiveGaussianNoise(),
             GaussNoise(),
-            JpegCompression(quality_lower=5, quality_upper=100),
         ], p=0.2),
         OneOf([
             MotionBlur(p=.2),
             MedianBlur(blur_limit=3, p=0.1),
             Blur(blur_limit=3, p=0.1),
+            JpegCompression(quality_lower=50, quality_upper=100),
         ], p=0.2),
-        ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.7, rotate_limit=45, p=0.2),
+        ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.01, rotate_limit=5, p=0.2),
         OneOf([
             OpticalDistortion(p=0.3),
             GridDistortion(p=.1),
@@ -328,9 +328,23 @@ def strong_aug():
             CLAHE(clip_limit=2),
             IAASharpen(),
             IAAEmboss(),
-            RandomBrightnessContrast(),
+            RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1),
         ], p=0.3),
-        HueSaturationValue(p=0.3),
+        HueSaturationValue(hue_shift_limit=4, sat_shift_limit=6, val_shift_limit=4, p=0.3),
+    ])
+def weak_aug():
+    return Compose([
+        OneOf([
+            IAAAdditiveGaussianNoise(),
+            GaussNoise(),
+        ], p=0.2),
+        OneOf([
+            MotionBlur(p=.2),
+            MedianBlur(blur_limit=3, p=0.1),
+            Blur(blur_limit=3, p=0.1),
+            JpegCompression(quality_lower=80, quality_upper=100),
+        ], p=0.2),
+        ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.01, rotate_limit=5, p=0.2),
     ])
 
 def train_collate(batch):
@@ -428,7 +442,7 @@ def transform(ids, image_0, labels_0, train, val):
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB),
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
-            lambda x: strong_aug()(image=x),
+            lambda x: weak_aug()(image=x),
             lambda x: x['image'],
             lambda x: np.clip(x, a_min=0, a_max=255),
             transforms.ToTensor(),

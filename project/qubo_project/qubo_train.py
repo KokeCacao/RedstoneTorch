@@ -254,7 +254,7 @@ class QUBOTrain:
         train_loader = self.train_loader[config.fold]
 
         print("Set Model Trainning mode to trainning=[{}]".format(net.train().training))
-        for train_index in range(config.TRAIN_RATIO):
+        for train_index in tqdm(range(config.TRAIN_RATIO)):
             pbar = tqdm(train_loader)
             train_len = train_len+ len(train_loader)
             for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
@@ -408,7 +408,7 @@ class QUBOEvaluation:
         self.worst_loss = []
 
         print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
-        for eval_index in range(config.EVAL_RATIO):
+        for eval_index in tqdm(range(config.EVAL_RATIO)):
             config.eval_index = eval_index
             pbar = tqdm(validation_loader)
 
