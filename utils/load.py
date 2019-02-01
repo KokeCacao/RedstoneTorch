@@ -23,10 +23,11 @@ def remove_checkpoint_fold(a=2, b=3):
     folder = config.DIRECTORY_CHECKPOINT
     cps = [f for f in listdir(folder) if isfile(join(folder, f)) and os.path.splitext(f)[1] == ".pth"]
     delete_nums = set(list(range(0, config.epoch))) - keep_things_at_day(config.epoch, a, b)
+    print("Check for CP removal: cps={}, delete_nums={}".format(cps, delete_nums))
     for cp in cps:
         if "-MILESTONE." in cp: continue
         for delete_num in delete_nums:
-            if "_CP{}_".format(delete_num) in cp:
+            if "-CP{}_".format(delete_num) in cp:
                 print('Removing CP: {}'.format(folder + os.remove(cp)))
                 os.remove(folder + os.remove(cp))
 
