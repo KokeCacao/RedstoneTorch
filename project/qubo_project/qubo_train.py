@@ -156,12 +156,18 @@ class QUBOTrain:
                                              timeout=0,
                                              worker_init_fn=None,
                                              ))
+
+                """CAM"""
+                if config.TRAIN_GPU_ARG: self.nets[0].cuda()
                 for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+                    if config.TRAIN_GPU_ARG:
+                        image = image.cuda()
+                        labels_0 = labels_0.cuda()
                     tensorboardwriter.write_focus(self.writer, cam(self.nets[0], image, labels_0), image_for_display.transpose((1, 2, 0)), labels_0, config.epoch, config.fold)
-
+                    del image, labels_0
                     break
-
-
+                self.nets[0].cpu()
+                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
