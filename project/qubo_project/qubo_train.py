@@ -134,6 +134,18 @@ class QUBOTrain:
     def run(self):
         try:
             for epoch in range(config.MODEL_EPOCHS):
+                """CAM"""
+                if config.TRAIN_GPU_ARG: self.nets[0].cuda()
+                for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+                    if config.TRAIN_GPU_ARG:
+                        image = image.cuda()
+                        labels_0 = labels_0.cuda()
+                    tensorboardwriter.write_focus(self.writer, cam(self.nets[0], image, labels_0), image_for_display[0].transpose((1, 2, 0)), labels_0, config.epoch, config.fold)
+                    del image, labels_0
+                    break
+                self.nets[0].cpu()
+                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                
                 self.step_epoch(nets=self.nets,
                                 optimizers=self.optimizers,
                                 lr_schedulers=self.lr_schedulers,
@@ -157,17 +169,6 @@ class QUBOTrain:
                                              worker_init_fn=None,
                                              ))
 
-                """CAM"""
-                if config.TRAIN_GPU_ARG: self.nets[0].cuda()
-                for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
-                    if config.TRAIN_GPU_ARG:
-                        image = image.cuda()
-                        labels_0 = labels_0.cuda()
-                    tensorboardwriter.write_focus(self.writer, cam(self.nets[0], image, labels_0), image_for_display.transpose((1, 2, 0)), labels_0, config.epoch, config.fold)
-                    del image, labels_0
-                    break
-                self.nets[0].cpu()
-                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
