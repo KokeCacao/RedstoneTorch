@@ -175,7 +175,7 @@ class QUBOTrain:
         except KeyboardInterrupt as e:
             print(e)
             self.writer.close()
-            print("To Resume: python train.py --versiontag 'test' --projecttag " + config.PROJECT_TAG + "--loadfile " + config.lastsave)
+            print("To Resume: python train.py --versiontag 'test' --projecttag " + config.PROJECT_TAG + " --loadfile " + config.lastsave)
             try:
                 sys.exit(0)
             except SystemExit:
@@ -229,7 +229,7 @@ class QUBOTrain:
         report = classification_report(np.amax(evaluation.epoch_label, axis=1), np.amax(evaluation.epoch_pred, axis=1), target_names=["gate", "bins", "buoy", "empty", "torpedo"])
         print(report)
         tensorboardwriter.write_text(self.writer, report, config.epoch)
-        
+
         max_names = max(f1_dict.items(), key=operator.itemgetter(1))
         min_names = min(f1_dict.items(), key=operator.itemgetter(1))
         print("""

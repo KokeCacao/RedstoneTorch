@@ -108,7 +108,7 @@ class differenciable_f1_softmax(nn.Module):
 
     def forward(self, labels, logits):
         batch_size = logits.size()[0]
-        p = torch.nn.Softmax(dim=0)(logits)
+        p = torch.nn.Softmax(dim=1)(logits)
         l = labels
         num_pos = torch.sum(p, 1) + self.eps
         num_pos_hat = torch.sum(l, 1) + self.eps

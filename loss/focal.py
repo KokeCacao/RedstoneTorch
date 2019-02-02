@@ -100,7 +100,7 @@ class focalloss_softmax(nn.Module):
         # gamma = 2
 
         # softmax layer
-        y_pred = torch.nn.Softmax(dim=0)(y_pred) # TODO: dim really = 1?
+        y_pred = torch.nn.Softmax(dim=1)(y_pred) # TODO: dim really = 1?
 
         # To avoid divided by zero
         y_pred = y_pred + self.eps
