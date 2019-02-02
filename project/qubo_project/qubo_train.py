@@ -7,6 +7,7 @@ import matplotlib as mpl
 import numpy as np
 import torch
 from sklearn import metrics
+from sklearn.metrics import classification_report
 from torch.nn import BCELoss
 from torch.utils import data
 from tqdm import tqdm
@@ -224,6 +225,11 @@ class QUBOTrain:
         f1_2 = metrics.f1_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), average='macro')  # sklearn does not automatically import matrics.
         f1_dict = dict(("Class-{}".format(i), x) for i, x in enumerate(metrics.f1_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), average=None)))
         f1_dict.update({"EvalF1": f1, "Sklearn": f1_2})
+
+        report = classification_report(np.amax(evaluation.epoch_label, axis=1), np.amax(evaluation.epoch_pred, axis=1), target_names=["gate", "bins", "buoy", "empty", "torpedo"])
+        print(report)
+        tensorboardwriter.write_text(self.writer, report, config.epoch)
+        
         max_names = max(f1_dict.items(), key=operator.itemgetter(1))
         min_names = min(f1_dict.items(), key=operator.itemgetter(1))
         print("""
