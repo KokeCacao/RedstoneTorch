@@ -226,7 +226,7 @@ class QUBOTrain:
         f1_dict = dict(("Class-{}".format(i), x) for i, x in enumerate(metrics.f1_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), average=None)))
         f1_dict.update({"EvalF1": f1, "Sklearn": f1_2})
 
-        report = classification_report(np.amax(evaluation.epoch_label, axis=1), np.amax(evaluation.epoch_pred, axis=1), target_names=["gate", "bins", "buoy", "empty", "torpedo"])
+        report = classification_report(np.argmax(evaluation.epoch_label, axis=1), np.argmax(evaluation.epoch_pred, axis=1), target_names=["gate", "bins", "buoy", "empty", "torpedo"])
         print(report)
         tensorboardwriter.write_text(self.writer, report, config.epoch)
 
