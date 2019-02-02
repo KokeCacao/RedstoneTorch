@@ -152,7 +152,7 @@ class QUBOTrain:
                     if config.TRAIN_GPU_ARG:
                         image = image.cuda()
                         labels_0 = labels_0.cuda()
-                    tensorboardwriter.write_focus(self.writer, cam(self.nets[0], image, labels_0), image_for_display[0].transpose(1, 2, 0), labels_0, config.epoch, config.fold)
+                    tensorboardwriter.write_focus(self.writer, cam(self.nets[0], image, labels_0), image_for_display[0].numpy().transpose((1, 2, 0)), labels_0, config.epoch, config.fold)
                     del image, labels_0
                     break
                 self.nets[0].cpu()
