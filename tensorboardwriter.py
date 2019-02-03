@@ -71,7 +71,7 @@ def write_best_img(writer, img, label, id, loss, fold):
     plt.grid(False)
     writer.add_figure("worst/{}".format(fold), F, 0)
 
-def write_focus(writer, cam, img, label, n, fold):
+def write_focus(writer, cam, img, label, pred, n, fold):
     F = plt.figure()
     plt.imshow(cam)
     plt.title("Id:{} label:{}".format(id, label))

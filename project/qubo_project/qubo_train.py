@@ -153,7 +153,12 @@ class QUBOTrain:
                     if config.TRAIN_GPU_ARG:
                         image = image.cuda()
                         labels_0 = labels_0.cuda()
-                    tensorboardwriter.write_focus(self.writer, cam(self.nets[0], image, labels_0), image_for_display[0].numpy().transpose((1, 2, 0)), labels_0, batch_index, config.fold)
+
+                    cam_img = cam(self.nets[0], image, labels_0)
+                    logits_predict = self.nets[0](image)
+                    prob_predict = torch.nn.Softmax()(logits_predict)[0]
+
+                    tensorboardwriter.write_focus(self.writer, cam_img, image_for_display[0].numpy().transpose((1, 2, 0)), np.argmax(labels_0, axis=1), np.argmax(prob_predict, axis=1), batch_index, config.fold)
                     del image, labels_0
                     if batch_index > 50: break
                 self.nets[0].cpu()
