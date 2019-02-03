@@ -82,7 +82,7 @@ def write_focus(writer, cam, img, label, n, fold):
     plt.imshow(img)
     plt.title("Id:{} label:{}".format(id, label))
     plt.grid(False)
-    writer.add_figure("focus/{}-img".format(fold), F, 0)
+    writer.add_figure("focus/{}-img-#{}".format(fold, n), F, 0)
 
 def write_plot(writer, F, message):
     writer.add_figure("figure/{}".format(message), F, 0)
