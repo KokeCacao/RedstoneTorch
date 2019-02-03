@@ -71,12 +71,12 @@ def write_best_img(writer, img, label, id, loss, fold):
     plt.grid(False)
     writer.add_figure("worst/{}".format(fold), F, 0)
 
-def write_focus(writer, cam, img, label, epoch, fold):
+def write_focus(writer, cam, img, label, n, fold):
     F = plt.figure()
     plt.imshow(cam)
     plt.title("Id:{} label:{}".format(id, label))
     plt.grid(False)
-    writer.add_figure("focus/{}-cam".format(fold), F, 0)
+    writer.add_figure("focus/{}-cam-#{}".format(fold, n), F, 0)
 
     F = plt.figure()
     plt.imshow(img)
