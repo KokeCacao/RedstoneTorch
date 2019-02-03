@@ -135,17 +135,6 @@ class QUBOTrain:
     def run(self):
         try:
             for epoch in range(config.MODEL_EPOCHS):
-                self.step_epoch(nets=self.nets,
-                                optimizers=self.optimizers,
-                                lr_schedulers=self.lr_schedulers,
-                                batch_size=config.MODEL_BATCH_SIZE
-                                )
-                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-                """SAVE AND DELETE"""
-                save_checkpoint_fold([x.state_dict() for x in self.nets], [x.state_dict() for x in self.optimizers])
-                remove_checkpoint_fold()
-
-
                 """CAM"""
                 pbar = tqdm(data.DataLoader(self.dataset,
                                              batch_size=1,
@@ -166,9 +155,19 @@ class QUBOTrain:
                         labels_0 = labels_0.cuda()
                     tensorboardwriter.write_focus(self.writer, cam(self.nets[0], image, labels_0), image_for_display[0].numpy().transpose((1, 2, 0)), labels_0, config.epoch, config.fold)
                     del image, labels_0
-                    break
+                    if batch_index > 50: break
                 self.nets[0].cpu()
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+
+                self.step_epoch(nets=self.nets,
+                                optimizers=self.optimizers,
+                                lr_schedulers=self.lr_schedulers,
+                                batch_size=config.MODEL_BATCH_SIZE
+                                )
+                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                """SAVE AND DELETE"""
+                save_checkpoint_fold([x.state_dict() for x in self.nets], [x.state_dict() for x in self.optimizers])
+                remove_checkpoint_fold()
 
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
