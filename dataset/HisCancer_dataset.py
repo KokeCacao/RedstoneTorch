@@ -16,21 +16,6 @@ from torch._six import string_classes, int_classes
 from torch.utils import data
 from torch.utils.data import SubsetRandomSampler
 from sklearn.preprocessing import MultiLabelBinarizer
-# from albumentations import (
-#     HorizontalFlip, IAAPerspective, ShiftScaleRotate, CLAHE, RandomRotate90,
-#     Transpose, ShiftScaleRotate, Blur, OpticalDistortion, GridDistortion, HueSaturationValue,
-#     IAAAdditiveGaussianNoise, GaussNoise, MotionBlur, MedianBlur, IAAPiecewiseAffine,
-#     IAASharpen, IAAEmboss, RandomContrast, RandomBrightness, Flip, OneOf, Compose
-# )
-
-## https://discuss.pytorch.org/t/feedback-on-pytorch-for-kaggle-competitions/2252/3
-## https://discuss.pytorch.org/t/questions-about-imagefolder/774
-## https://github.com/pytorch/tutorials/issues/78
-## https://www.kaggle.com/mratsim/planet-understanding-the-amazon-from-space/starting-kit-for-pytorch-deep-learning
-## http://pytorch.org/docs/_modules/torch/utils/data/dataset.html
-## https://www.kaggle.com/mratsim/planet-understanding-the-amazon-from-space/starting-kit-for-pytorch-deep-learning/notebook
-## https://devhub.io/repos/pytorch-vision
-## https://github.com/ClementPinard/FlowNetPytorch/blob/master/balancedsampler.py
 from torch.utils.data.dataloader import numpy_type_map, default_collate
 from torchvision.transforms import transforms, Normalize
 
@@ -49,7 +34,7 @@ if os.environ.get('DISPLAY', '') == '':
 from matplotlib import pyplot as plt
 
 
-class QUBODataset(data.Dataset):
+class HisCancerDataset(data.Dataset):
 
     def __init__(self, train_csv_dir, test_csv_dir, load_strategy="train", writer=None, column='Target'):
         self.writer = writer
@@ -168,8 +153,7 @@ class QUBODataset(data.Dataset):
         return self.get_load_image_by_id(id, suffix)
 
     def get_load_image_by_id(self, id, suffix=".npy"):
-        rand = randint(0, self.train_dataframe.at[id, 'Num']-1)
-        return np.load(id.format(rand))
+        return np.load(id)
 
     def get_load_label_by_indice(self, indice):
         """

@@ -6,7 +6,7 @@ import os
 from sklearn.preprocessing import MultiLabelBinarizer
 
 
-if __name__ == '__main__':
+if __$name__ == '__main__':
     dataframe = pd.read_csv('augment.csv', engine='python').set_index('Id')
     multilabel_binarizer = MultiLabelBinarizer().fit([list(range(28))])
     labelframe = multilabel_binarizer.transform([(int(i) for i in s.split()) for s in dataframe['Target']])
