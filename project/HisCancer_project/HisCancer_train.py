@@ -40,7 +40,7 @@ class HisCancerTrain:
         self.train_loader = []
         self.validation_loader = []
 
-        self.dataset = HisCancerDataset(config.DIRECTORY_CSV, config.DIRECTORY_CSV, load_strategy="train", writer=self.writer, column='Target')
+        self.dataset = HisCancerDataset(config.DIRECTORY_CSV, config.DIRECTORY_SAMPLE_CSV, load_strategy="train", writer=self.writer, column='Target')
         self.folded_samplers = self.dataset.get_stratified_samplers(fold=config.MODEL_FOLD)
 
         for fold in range(config.MODEL_FOLD):
@@ -99,7 +99,11 @@ class HisCancerTrain:
                 for g in optim.param_groups:
                     g['lr'] = config.resetlr
 
-        print(self.nets[0])
+        for child_counter, child in enumerate(self.nets[0].children()):
+            print("=======================Start Child Number #{}=======================".format(child_counter))
+            print("{}".format(child))
+            print("=======================End Child Number #{}=======================".format(child_counter))
+
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[0], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
         if config.DEBUG_LR_FINDER:

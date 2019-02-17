@@ -60,10 +60,10 @@ class HisCancerDataset(data.Dataset):
 
         print("""
             Load Dir:       {}, {}
-            Data Size:      {}/{}
+            ID Size:      {}/{}
             Data Percent:   {}
             Label Size:     {}
-            File Size:      {}/{}
+            Frame Size:      {}/{}
         """.format(train_csv_dir, test_csv_dir, self.id_len, "?", config.TRAIN_DATA_PERCENT, len(self.labelframe), len(id), "?"))
 
     def __len__(self):
