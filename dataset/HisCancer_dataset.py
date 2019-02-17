@@ -1,9 +1,7 @@
 import collections
 import os
 import re
-from random import randint
 
-import imgaug
 import matplotlib as mpl
 import torch
 import cv2

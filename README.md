@@ -20,25 +20,25 @@ After you upload your `cookie.txt` file to your remote server, use command(provi
 
 Please run the following command in your ~/RedstoneTorch directory
 ```commandline
-cd ~/RedstoneTorch
-wget -x -c --load-cookies cookies.txt -P data -nH --cut-dirs=5 https://www.kaggle.com/c/DATASET/train.bson
-wget -x -c --load-cookies cookies.txt -P data -nH --cut-dirs=5 https://www.kaggle.com/c/DATASET/download-all
+cd ~/RedstoneTorch/data/DATASET
+wget -x --load-cookies ~/cookies.txt -nH --cut-dirs=5 LINK
+
 ```
 The `DATASET` can be replaced with `human-protein-atlas-image-classification`  
 The command above will create a file named `data` and put your file `download-all` in it.  
 So you need to unzip the `doanload-all`  
 To do so, run the following command
 ```commandline
-unzip ~/RedstoneTorch/data/download-all -d ~/RedstoneTorch/data
+unzip ~/RedstoneTorch/data/download-all -d ~/RedstoneTorch/data/DATASET
 ```
 and then you need to unzip the `train.zip` and `test.zip`
 ```commandline
-unzip ~/RedstoneTorch/data/train.zip -d ~/RedstoneTorch/data/train
-unzip ~/RedstoneTorch/data/test.zip -d ~/RedstoneTorch/data/test
+unzip ~/RedstoneTorch/data/DATASET/train.zip -d ~/RedstoneTorch/data/DATASET/train
+unzip ~/RedstoneTorch/data/DATASET/test.zip -d ~/RedstoneTorch/data/DATASET/test
 ```
 Please use `sudo` in front of these command if the terminal says that you don't have permissions to do so
 
-However, you may not have the full permission to read doanloaded file, use
+However, you may not have the full permission to read download file, use
 ```commandline
 sudo chmod -R a+rwx train.csv
 ```

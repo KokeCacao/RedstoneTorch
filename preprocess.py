@@ -4,7 +4,7 @@ from datetime import datetime
 from optparse import OptionParser
 
 import config
-import project.qubo_project.qubo_preprocess
+import project.HisCancer_project.HisCancer_preprocess
 from gpu import gpu_profile
 from reproduceability import reproduceability
 
@@ -53,5 +53,5 @@ if __name__ == '__main__':
         print("=> Current Directory: " + str(os.getcwd()))
         # print("=> Loading neuronetwork...")
 
-        preprocess = project.qubo_project.qubo_preprocess.QUBOPreprocess()
-
+        # preprocess = project.qubo_project.qubo_preprocess.QUBOPreprocess()
+        preprocess = project.HisCancer_project.HisCancer_preprocess.HisCancerPreprocess()

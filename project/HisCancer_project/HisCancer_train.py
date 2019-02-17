@@ -194,7 +194,7 @@ class HisCancerTrain:
                    ):
         config.epoch = config.epoch + 1
 
-        evaluation = QUBOEvaluation(self.writer, self.dataset.multilabel_binarizer)
+        evaluation = HisCancerEvaluation(self.writer, self.dataset.multilabel_binarizer)
         for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
             # import pdb; pdb.set_trace() #1357Mb -> 1215Mb
             """Switch Optimizers"""
@@ -387,7 +387,7 @@ class HisCancerTrain:
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
 
 
-class QUBOEvaluation:
+class HisCancerEvaluation:
     def __init__(self, writer, binarlizer):
         self.writer = writer
         self.binarlizer = binarlizer
