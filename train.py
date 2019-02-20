@@ -22,7 +22,7 @@ def get_args():
     parser = OptionParser()
     parser.add_option('--projecttag', type="string", dest='projecttag', default=False, help='tag you want to load')
     parser.add_option('--versiontag', type="string", dest='versiontag', default="", help='tag for tensorboard-log')
-    parser.add_option('--loadfile', type="string", dest='loadfile', default=False, help='file you want to load')
+    parser.add_option('--loadfile', action="store_true", dest='loadfile', default=False, help='file you want to load')
     parser.add_option('--loaddir', type="string", dest='loaddir', default=False, help='file you want to load')
     parser.add_option('--resume', type="string", dest='resume', default=False, help='resume or create a new folder')
     parser.add_option('--resetlr', type="float", dest='resetlr', default=0., help='reset the learning rate')
@@ -49,7 +49,7 @@ def load_args():
             config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
     else:
         config.PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + config.PROJECT_TAG
-        config.DIRECTORY_LOAD = None
+        config.DIRECTORY_LOAD = False
         config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
 
 if __name__ == '__main__':

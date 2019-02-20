@@ -38,8 +38,12 @@ class HisCancerDataset(data.Dataset):
         self.writer = writer
         self.load_strategy = load_strategy
         print("     Reading Data with [test={}]".format(self.load_strategy))
+
+        """Make sure the labels of your dataset is correct"""
         self.train_dataframe = pd.read_csv(train_csv_dir, delimiter=',', encoding="utf-8-sig", engine='python').set_index('Id').sample(frac=1)
         self.test_dataframe = pd.read_csv(test_csv_dir, delimiter=',', encoding="utf-8-sig", engine='python').set_index('Id').sample(frac=1)
+
+
         self.multilabel_binarizer = MultiLabelBinarizer().fit([list(range(config.TRAIN_NUM_CLASS))])
         # self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in s.split()) for s in self.train_dataframe[column]])
         self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in str(s).split()) for s in self.train_dataframe[column]])

@@ -13,7 +13,7 @@ def get_args():
     parser = OptionParser()
     parser.add_option('--projecttag', dest='projecttag', default=False, help='tag you want to load')
     parser.add_option('--versiontag', dest='versiontag', default="", help='tag for tensorboard-log')
-    parser.add_option('--loadfile', dest='loadfile', default=False, help='file you want to load')
+    parser.add_option('--loadfile', action="store_true", dest='loadfile', default=False, help='file you want to load')
     parser.add_option('--resume', dest='resume', default=False, help='resume or create a new folder')
 
     (options, args) = parser.parse_args()
@@ -35,7 +35,7 @@ def load_args():
             config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
     else:
         config.PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + config.PROJECT_TAG
-        config.DIRECTORY_LOAD = None
+        config.DIRECTORY_LOAD = False
         config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
 
 if __name__ == '__main__':
