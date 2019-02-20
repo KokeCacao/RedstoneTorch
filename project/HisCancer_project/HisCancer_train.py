@@ -45,7 +45,7 @@ class HisCancerTrain:
 
         for fold in range(config.MODEL_FOLD):
             if fold not in config.MODEL_TRAIN_FOLD:
-                print("     Skipping Fold: #{}".format(fold))
+                print("     Skipping Fdataset = HisCancerDataset(config.DIRECTORY_CSV,old: #{}".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))
                 net = qubo_net.nasnetamobile(num_classes=config.TRAIN_NUM_CLASS, pretrained="imagenet")

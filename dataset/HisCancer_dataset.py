@@ -170,112 +170,11 @@ class HisCancerDataset(data.Dataset):
         """
         return np.float32(self.labelframe[self.id_to_indices[id]])
 
-
-class TrainImgAugTransform:
-    def __init__(self):
-        self.aug = iaa.Sequential([
-            iaa.CropAndPad(percent=(0, 0.1), pad_mode=["constant", "reflect"], pad_cval=0),
-            iaa.OneOf([
-                iaa.Noop(),
-                iaa.PiecewiseAffine(scale=(0.00, 0.02), nb_rows=4, nb_cols=4, mode=["constant", "reflect", "wrap"], cval=0),
-                iaa.Affine(rotate=(-10, 10), mode=["constant", "reflect"], cval=0),
-                iaa.Affine(shear=(-10, 10), mode=["constant", "reflect"], cval=0),
-            ]),
-            iaa.PiecewiseAffine(scale=(0.00, 0.05), nb_rows=4, nb_cols=4, mode=["constant", "reflect", "wrap"], cval=0),
-            iaa.ContrastNormalization((1.0, 1.01)),
-            iaa.Scale({"height": config.AUGMENTATION_RESIZE, "width": config.AUGMENTATION_RESIZE}, interpolation=['nearest', 'linear', 'area', 'cubic']),
-            iaa.WithChannels([0,1,2], iaa.Sequential([
-                iaa.OneOf([
-                    iaa.Noop(),
-                    iaa.EdgeDetect(alpha=(0.0, 0.1)),
-                    iaa.Multiply((0.2, 1.3), per_channel=1.0),
-                    iaa.ContrastNormalization((0.95, 1.05))
-                ]),
-                iaa.OneOf(
-                    iaa.CoarseDropout((0.0, 0.02), size_percent=(0.005, 0.005), per_channel=1.0),
-                ),
-                iaa.Sharpen(alpha=(0.0, 0.25), lightness=(0.0, 0.45)),
-                ])),
-
-        ], random_order=False)
-        chance = config.epoch / 8
-        if chance == 0:
-            pass
-        elif chance == 1:
-            self.aug.add(iaa.Fliplr(1))
-        elif chance == 2:
-            self.aug.add(iaa.Fliplr(1))
-            self.aug.add(iaa.Flipud(1))
-        elif chance == 3:
-            self.aug.add(iaa.Flipud(1))
-        elif chance == 4:
-            self.aug.add(iaa.Affine(rotate=90))
-        elif chance == 5:
-            self.aug.add(iaa.Affine(rotate=90))
-            self.aug.add(iaa.Fliplr(1))
-        elif chance == 6:
-            self.aug.add(iaa.Affine(rotate=90))
-            self.aug.add(iaa.Fliplr(1))
-            self.aug.add(iaa.Flipud(1))
-        elif chance == 7:
-            self.aug.add(iaa.Affine(rotate=90))
-            self.aug.add(iaa.Flipud(1))
-        else:
-            raise ValueError("Chance cannot equal to other number other than [0, 7]")
-
-
-    def __call__(self, img):
-        img = np.array(img)
-        return self.aug.augment_image(img)
-
-    def to_deterministic(self, n=None):
-        self.aug = self.aug.to_deterministic(n)
-        return self
-
 class PredictImgAugTransform:
     def __init__(self):
         self.aug = iaa.Sequential([
             iaa.Scale({"height": config.AUGMENTATION_RESIZE, "width": config.AUGMENTATION_RESIZE}),
         ], random_order=False)
-
-    def __call__(self, img):
-        img = np.array(img)
-        return self.aug.augment_image(img)
-
-    def to_deterministic(self, n=None):
-        self.aug = self.aug.to_deterministic(n)
-        return self
-
-
-class TestImgAugTransform:
-    def __init__(self):
-        self.aug = iaa.Sequential([
-            iaa.Scale({"height": config.AUGMENTATION_RESIZE, "width": config.AUGMENTATION_RESIZE}),
-        ], random_order=False)
-        chance = config.eval_index / 8
-        if chance == 0:
-            pass
-        elif chance == 1:
-            self.aug.add(iaa.Fliplr(1))
-        elif chance == 2:
-            self.aug.add(iaa.Fliplr(1))
-            self.aug.add(iaa.Flipud(1))
-        elif chance == 3:
-            self.aug.add(iaa.Flipud(1))
-        elif chance == 4:
-            self.aug.add(iaa.Affine(rotate=90))
-        elif chance == 5:
-            self.aug.add(iaa.Affine(rotate=90))
-            self.aug.add(iaa.Fliplr(1))
-        elif chance == 6:
-            self.aug.add(iaa.Affine(rotate=90))
-            self.aug.add(iaa.Fliplr(1))
-            self.aug.add(iaa.Flipud(1))
-        elif chance == 7:
-            self.aug.add(iaa.Affine(rotate=90))
-            self.aug.add(iaa.Flipud(1))
-        else:
-            raise ValueError("Chance cannot equal to other number other than [0, 7]")
 
     def __call__(self, img):
         img = np.array(img)
@@ -402,15 +301,19 @@ def transform(ids, image_0, labels_0, train, val):
         ])
         return PREDICT_TRANSFORM_IMG(image_0)
 
+    """ https://stackoverflow.com/questions/23853632/which-kind-of-interpolation-best-for-resizing-image
+    If you are enlarging the image, you should prefer to use INTER_LINEAR or INTER_CUBIC interpolation. If you are shrinking the image, you should prefer to use INTER_AREA interpolation.
+    Cubic interpolation is computationally more complex, and hence slower than linear interpolation. However, the quality of the resulting image will be higher.
+    """
     if not val and train:
         TRAIN_TRANSFORM = transforms.Compose([
             lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB), # and don't put them in strong_aug()
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
             lambda x: strong_aug()(image=x), # Yes, you have to use image=xxx
-            lambda x: x['image'],
-            lambda x: np.clip(x, a_min=0, a_max=255),
+            lambda x: x['image'], # abstract the actual image acter the augmentation
+            lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
             transforms.ToTensor(),
-            Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+            Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]), # this needs to be set accordingly
         ])
         image = TRAIN_TRANSFORM(image_0)
         return (ids, image, labels_0, transforms.ToTensor()(image_0))
