@@ -48,10 +48,11 @@ def save_checkpoint_fold(state_dicts, optimizer_dicts, interupt=False):
 
 
 def load_checkpoint_all_fold(nets, optimizers, load_path):
-    if load_path == None:
+    if not load_path or load_path == "False":
         config.epoch = 0
         config.global_steps = np.zeros(len(nets))
         print("=> Nothing loaded because no specify loadfile")
+        return
     if load_path and os.path.isfile(load_path):
         print("=> Loading checkpoint '{}'".format(load_path))
         checkpoint = torch.load(load_path)
@@ -69,10 +70,11 @@ def load_checkpoint_all_fold(nets, optimizers, load_path):
         raise ValueError("=> Nothing loaded because of invalid directory: {}".format(load_path))
 
 def load_checkpoint_all_fold_without_optimizers(nets, load_path):
-    if load_path == None:
+    if not load_path or load_path == "False":
         config.epoch = 0
         config.global_steps = np.zeros(len(nets))
         print("=> Nothing loaded because no specify loadfile")
+        return
     if load_path and os.path.isfile(load_path):
         print("=> Loading checkpoint '{}'".format(load_path))
         checkpoint = torch.load(load_path)
@@ -89,7 +91,7 @@ def load_checkpoint_all_fold_without_optimizers(nets, load_path):
 
 
 def load_checkpoint_one_fold(net, optimizer, fold, load_path):
-    if load_path == None:
+    if not load_path or load_path == "False":
         config.epoch = 0
         config.global_steps = np.zeros(1)
         print("=> Nothing loaded because no specify loadfile")
