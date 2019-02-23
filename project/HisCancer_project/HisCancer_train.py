@@ -106,10 +106,11 @@ class HisCancerTrain:
                 for g in optim.param_groups:
                     g['lr'] = config.resetlr
 
-        for child_counter, child in enumerate(self.nets[0].children()[0].children()):
-            print("=======================Start Child Number #{} Grad: {}=======================".format(child_counter, child.parameters()[0].requires_grad))
-            print("{}".format(child))
-            print("=======================End Child Number #{} Grad: {}=======================".format(child_counter, child.parameters()[0].requires_grad))
+        for c in self.nets[0].children():
+            for child_counter, child in enumerate(c.children()):
+                print("=======================Start Child Number #{} Grad: {}=======================".format(child_counter, child.parameters()[0].requires_grad))
+                print("{}".format(child))
+                print("=======================End Child Number #{} Grad: {}=======================".format(child_counter, child.parameters()[0].requires_grad))
 
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[0], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
