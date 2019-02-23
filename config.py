@@ -184,7 +184,7 @@ elif PROJECT_NAME == "HisCancer":
     }
     TRAIN_GPU_ARG = TRAIN_GPU_DICT[socket.gethostname()]
     TRAIN_GPU_LIST = [int(i) for i in TRAIN_GPU_ARG.split(",")]
-    TRAIN_DATA_PERCENT = 0.01
+    TRAIN_DATA_PERCENT = 1.0
     TRAIN_SEED = 19
     TRAIN_NUM_WORKER = 6
     TRAIN_NUM_GPU = len(TRAIN_GPU_LIST)
