@@ -50,10 +50,11 @@ class HisCancerTrain:
                 print("     Creating Fold: #{}".format(fold))
                 net = qubo_net.nasnetamobile(num_classes=config.TRAIN_NUM_CLASS, pretrained="imagenet")
 
-                for child_counter, child in enumerate(net.children()[0].children()):
-                    if child_counter not in config.MODEL_NO_GRAD: continue
-                    for paras in child.parameters():
-                        paras.requires_grad = False
+                for c in net.children():
+                    for child_counter, child in enumerate(c.children()):
+                        if child_counter not in config.MODEL_NO_GRAD: continue
+                        for paras in child.parameters():
+                            paras.requires_grad = False
 
                 if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
