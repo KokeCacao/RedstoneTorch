@@ -109,8 +109,8 @@ class HisCancerTrain:
         for c in self.nets[0].children():
             for child_counter, child in enumerate(c.children()):
                 req_grad = True
-                for c_ in child:
-                    if c_.parameters().requires_grad:
+                for p in child.parameters():
+                    if p.requires_grad:
                         req_grad = False
                         break
                 print("=======================Start Child Number #{} Grad: {}=======================".format(child_counter, req_grad))
