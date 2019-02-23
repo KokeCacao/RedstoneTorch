@@ -165,7 +165,7 @@ elif PROJECT_NAME == "HisCancer":
     DEBUG_TEST_CODE = False
     DEBUG_AUTO_SHUTDOWN = True
 
-    DEBUG_LR_FINDER = False
+    DEBUG_LR_FINDER = True
 
     MODEL_EPOCHS = 100
     MODEL_BATCH_SIZE = 64

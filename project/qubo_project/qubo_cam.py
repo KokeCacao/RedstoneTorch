@@ -186,7 +186,6 @@ def convert_to_grayscale(cv2im):
     return grayscale_im
 
 def cam(net, image, labels_0, target_layer=0):
-    print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
     gcv2 = GradCam(net, target_layer) # usually last conv layer
     # Generate cam mask
     cam = gcv2.generate_cam(image, labels_0)

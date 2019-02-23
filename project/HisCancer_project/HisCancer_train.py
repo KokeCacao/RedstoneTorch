@@ -154,6 +154,8 @@ class HisCancerTrain:
                                              worker_init_fn=None,
                                              ))
                 if config.TRAIN_GPU_ARG: self.nets[0].cuda()
+
+                print("Set Model Trainning mode to trainning=[{}]".format(self.nets[0].eval().training))
                 for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
                     if config.TRAIN_GPU_ARG:
                         image = image.cuda()
