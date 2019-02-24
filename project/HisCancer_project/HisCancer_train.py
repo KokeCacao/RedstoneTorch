@@ -50,9 +50,10 @@ class HisCancerTrain:
                 print("     Creating Fold: #{}".format(fold))
                 net = qubo_net.nasnetamobile(num_classes=config.TRAIN_NUM_CLASS, pretrained="imagenet")
 
-                for c in net.children():
-                    for child_counter, child in enumerate(list(c.modules())):
-                        if child_counter in config.MODEL_NO_GRAD:
+                for i, c in enumerate(net.children()):
+                    list = config.MODEL_NO_GRAD[i]
+                    for child_counter, child in enumerate(list(c.children())):
+                        if child_counter in list:
                             print("Disable Gradient for child_counter: {}".format(child_counter))
                             for paras in child.parameters():
                                 paras.requires_grad = False
