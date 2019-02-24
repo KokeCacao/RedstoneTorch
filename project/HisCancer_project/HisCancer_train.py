@@ -51,7 +51,7 @@ class HisCancerTrain:
                 net = qubo_net.nasnetamobile(num_classes=config.TRAIN_NUM_CLASS, pretrained="imagenet")
 
                 for c in net.children():
-                    for child_counter, child in enumerate(c.children()):
+                    for child_counter, (child) in enumerate(c.children()):
                         if child_counter in config.MODEL_NO_GRAD:
                             print("Disable Gradient for child_counter: {}".format(child_counter))
                             for paras in child.parameters():
