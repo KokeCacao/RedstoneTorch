@@ -45,13 +45,13 @@ class HisCancerTrain:
 
         for fold in range(config.MODEL_FOLD):
             if fold not in config.MODEL_TRAIN_FOLD:
-                print("     Skipping Fdataset = HisCancerDataset(config.DIRECTORY_CSV,old: #{}".format(fold))
+                print("     Skipping dataset = HisCancerDataset(config.DIRECTORY_CSV,old: #{})".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))
                 net = qubo_net.nasnetamobile(num_classes=config.TRAIN_NUM_CLASS, pretrained="imagenet")
 
                 for c in net.children():
-                    for child_counter, child in enumerate(list(c.children())):
+                    for child_counter, child in enumerate(list(c.modules())):
                         if child_counter in config.MODEL_NO_GRAD:
                             print("Disable Gradient for child_counter: {}".format(child_counter))
                             for paras in child.parameters():
