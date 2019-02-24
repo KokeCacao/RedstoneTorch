@@ -114,7 +114,7 @@ class HisCancerTrain:
             for child_counter, child in enumerate(c.children()):
                 req_grad = True
                 for p in child.parameters():
-                    if p.requires_grad:
+                    if not p.requires_grad:
                         req_grad = False
                         break
                 print("=======================Start Child Number #{} Grad: {}=======================".format(child_counter, req_grad))
