@@ -51,13 +51,13 @@ class HisCancerTrain:
                 net = qubo_net.nasnetamobile(num_classes=config.TRAIN_NUM_CLASS, pretrained="imagenet")
 
                 for c in net.children():
-                    child_counter = -1
-                    for child in c.children():
-                        child_counter=child_counter+1
+                    for child_counter, child in enumerate(list(c.children())):
                         if child_counter in config.MODEL_NO_GRAD:
                             print("Disable Gradient for child_counter: {}".format(child_counter))
                             for paras in child.parameters():
                                 paras.requires_grad = False
+                        else:
+                            print("Enable Gradient for child_counter: {}".format(child_counter))
 
                 if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
