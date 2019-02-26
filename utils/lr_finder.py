@@ -108,7 +108,8 @@ class LRFinder(object):
 
         # Create an iterator to get data batch by batch
         iterator = iter(train_loader)
-        for iteration in tqdm(range(num_iter)):
+        pbar = tqdm(range(num_iter))
+        for iteration in pbar:
             # Get a new set of inputs and labels
             """ Edit this to fit your dataset """
             try:
@@ -139,6 +140,7 @@ class LRFinder(object):
 
             # Check if the loss has diverged; if it has, stop the test
             self.history["loss"].append(loss)
+            pbar.set_description_str("Finding Learning Rate... LR={}, Loss={}".format(lr_schedule.get_lr()[0], loss))
             if loss > diverge_th * self.best_loss:
                 print("Stopping early, the loss has diverged")
                 break
