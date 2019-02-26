@@ -219,6 +219,9 @@ def strong_aug():
     ])
 def weak_aug():
     return Compose([
+        RandomRotate90(),
+        Flip(),
+        Transpose(),
         OneOf([
             IAAAdditiveGaussianNoise(),
             GaussNoise(),

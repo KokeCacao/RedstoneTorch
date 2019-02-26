@@ -170,12 +170,12 @@ elif PROJECT_NAME == "HisCancer":
     MODEL_EPOCHS = 1000
     MODEL_BATCH_SIZE = 64
     MODEL_INIT_LEARNING_RATE = 0.1
-    MODEL_MIN_LEARNING_RATE = 0.01
+    MODEL_MIN_LEARNING_RATE = 0.001
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DEFAY = 0.02
     MODEL_FOLD = 10
     MODEL_TRAIN_FOLD = [1]
-    MODEL_NO_GRAD = [[], []]
+    MODEL_NO_GRAD = [[0,1,2,3,4,5,6,7,8,9,10,11,12], []]
 
     TRAIN_GPU_DICT = {
         "kokecacao-ThinkPad-P50-Ubuntu": "0",
@@ -186,7 +186,7 @@ elif PROJECT_NAME == "HisCancer":
     }
     TRAIN_GPU_ARG = TRAIN_GPU_DICT[socket.gethostname()]
     TRAIN_GPU_LIST = [int(i) for i in TRAIN_GPU_ARG.split(",")]
-    TRAIN_DATA_PERCENT = 0.0001
+    TRAIN_DATA_PERCENT = 1.0
     TRAIN_SEED = 19
     TRAIN_NUM_WORKER = 6
     TRAIN_NUM_GPU = len(TRAIN_GPU_LIST)
