@@ -207,7 +207,7 @@ elif PROJECT_NAME == "HisCancer":
 
     EVAL_IF_THRESHOLD_TEST = True
     EVAL_TRY_THRESHOLD = np.linspace(0.0, 1.0, 1000)
-    EVAL_THRESHOLD = 0.2
+    EVAL_THRESHOLD = 0.5
 
     DIRECTORY_PREFIX = "" # remember to add '/' at the end
     # DIRECTORY_PREFIX = "/home/koke_cacao/Documents/Koke_Cacao/Python/WorkSpace/RedstoneTorch/" # remember to add '/' at the end
