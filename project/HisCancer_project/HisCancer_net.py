@@ -271,7 +271,8 @@ class SENet(nn.Module):
         )
         self.avg_pool = nn.AvgPool2d(7, stride=1)
         self.dropout = nn.Dropout(dropout_p) if dropout_p is not None else None
-        self.last_linear = nn.Linear(512 * block.expansion, num_classes)
+        # self.last_linear = nn.Linear(512 * block.expansion, num_classes)
+        self.last_linear = nn.Linear(512*14*14, num_classes) # removed avg pool
 
     def _make_layer(self, block, planes, blocks, groups, reduction, stride=1,
                     downsample_kernel_size=1, downsample_padding=0):
