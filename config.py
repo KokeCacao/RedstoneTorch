@@ -176,7 +176,7 @@ elif PROJECT_NAME == "HisCancer":
     MODEL_WEIGHT_DEFAY = 0.02
     MODEL_FOLD = 10
     MODEL_TRAIN_FOLD = [1]
-    MODEL_NO_GRAD = [[], []]
+    MODEL_NO_GRAD = [[], [], [], [], [], [], [], []]
 
     TRAIN_GPU_DICT = {
         "kokecacao-ThinkPad-P50-Ubuntu": "0",
