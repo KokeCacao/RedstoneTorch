@@ -134,7 +134,11 @@ class SEResNeXtBottleneck(Bottleneck):
     def __init__(self, inplanes, planes, groups, reduction, stride=1,
                  downsample=None, base_width=4):
         super(SEResNeXtBottleneck, self).__init__()
-        width = math.floor(planes * (base_width / 64)) * groups
+
+        # https://www.jianshu.com/p/749439fb026d
+        width = math.floor(planes * (base_width // 64)) * groups
+        # width = math.floor(planes * (base_width / 64)) * groups
+        
         self.conv1 = nn.Conv2d(inplanes, width, kernel_size=1, bias=False,
                                stride=1)
         self.bn1 = nn.BatchNorm2d(width)
