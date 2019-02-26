@@ -158,35 +158,36 @@ class HisCancerTrain:
         try:
             for epoch in range(config.MODEL_EPOCHS):
                 """CAM"""
-                pbar = tqdm(data.DataLoader(self.dataset,
-                                             batch_size=1,
-                                             shuffle=False,
-                                             sampler=self.folded_samplers[0]["val"],
-                                             batch_sampler=None,
-                                             num_workers=config.TRAIN_NUM_WORKER,
-                                             collate_fn=val_collate,
-                                             pin_memory=False,
-                                             drop_last=False,
-                                             timeout=0,
-                                             worker_init_fn=None,
-                                             ))
-                if config.TRAIN_GPU_ARG: self.nets[0].cuda()
+                if np.array(config.MODEL_NO_GRAD).flatten() == []:
+                    pbar = tqdm(data.DataLoader(self.dataset,
+                                                 batch_size=1,
+                                                 shuffle=False,
+                                                 sampler=self.folded_samplers[0]["val"],
+                                                 batch_sampler=None,
+                                                 num_workers=config.TRAIN_NUM_WORKER,
+                                                 collate_fn=val_collate,
+                                                 pin_memory=False,
+                                                 drop_last=False,
+                                                 timeout=0,
+                                                 worker_init_fn=None,
+                                                 ))
+                    if config.TRAIN_GPU_ARG: self.nets[0].cuda()
 
-                print("Set Model Trainning mode to trainning=[{}]".format(self.nets[0].eval().training))
-                for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
-                    if config.TRAIN_GPU_ARG:
-                        image = image.cuda()
-                        labels_0 = labels_0.cuda()
+                    print("Set Model Trainning mode to trainning=[{}]".format(self.nets[0].eval().training))
+                    for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+                        if config.TRAIN_GPU_ARG:
+                            image = image.cuda()
+                            labels_0 = labels_0.cuda()
 
-                    cam_img = cam(self.nets[0], image, labels_0)
-                    logits_predict = self.nets[0](image)
-                    prob_predict = torch.nn.Softmax()(logits_predict).detach().cpu().numpy()
+                        cam_img = cam(self.nets[0], image, labels_0)
+                        logits_predict = self.nets[0](image)
+                        prob_predict = torch.nn.Softmax()(logits_predict).detach().cpu().numpy()
 
-                    tensorboardwriter.write_focus(self.writer, ids[0].split("/")[-1], cam_img, image_for_display[0].numpy().transpose((1, 2, 0)), np.argmax(labels_0.cpu().numpy(), axis=1), np.argmax(prob_predict, axis=1), batch_index, config.fold)
-                    del image, labels_0
-                    if batch_index > 50: break
-                self.nets[0].cpu()
-                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                        tensorboardwriter.write_focus(self.writer, ids[0].split("/")[-1], cam_img, image_for_display[0].numpy().transpose((1, 2, 0)), np.argmax(labels_0.cpu().numpy(), axis=1), np.argmax(prob_predict, axis=1), batch_index, config.fold)
+                        del image, labels_0
+                        if batch_index > 50: break
+                    self.nets[0].cpu()
+                    if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
                 self.step_epoch(nets=self.nets,
                                 optimizers=self.optimizers,
