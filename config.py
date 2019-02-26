@@ -169,13 +169,13 @@ elif PROJECT_NAME == "HisCancer":
 
     MODEL_EPOCHS = 1000
     MODEL_BATCH_SIZE = 64
-    MODEL_INIT_LEARNING_RATE = 0.1
+    MODEL_INIT_LEARNING_RATE = 0.01
     MODEL_MIN_LEARNING_RATE = 0.001
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DEFAY = 0.02
     MODEL_FOLD = 10
     MODEL_TRAIN_FOLD = [1]
-    MODEL_NO_GRAD = [[0,1,2,3,4,5,6,7,8,9,10,11,12], []]
+    MODEL_NO_GRAD = [[0,1,2,3], []]
 
     TRAIN_GPU_DICT = {
         "kokecacao-ThinkPad-P50-Ubuntu": "0",
