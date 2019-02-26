@@ -340,6 +340,6 @@ def se_resnext50_32x4d(num_classes=1000, pretrained='imagenet'):
                   downsample_kernel_size=1, downsample_padding=0,
                   num_classes=num_classes)
     if pretrained is not None:
-        settings = pretrained_settings['se_resnext101_32x4d'][pretrained]
+        settings = pretrained_settings['se_resnext50_32x4d'][pretrained]
         modified_initialize_pretrained_model(model, num_classes, settings)
     return model
