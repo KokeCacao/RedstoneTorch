@@ -70,7 +70,7 @@ class HisCancerTrain:
                 self.optimizers.append(optimizer)
                 self.nets.append(net)
                 # lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=4*int(27964.8/config.MODEL_BATCH_SIZE), verbose=False, threshold=1e-4, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-8)
-                lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=4, verbose=False, threshold=1e-4, threshold_mode='rel', cooldown=0, min_lr=0.001, eps=1e-8)
+                lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=10, verbose=False, threshold=1e-4, threshold_mode='rel', cooldown=0, min_lr=config.MODEL_MIN_LEARNING_RATE, eps=1e-8)
                 self.lr_schedulers.append(lr_scheduler)
 
                 # for name, param in net.named_parameters():
