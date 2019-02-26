@@ -168,14 +168,15 @@ elif PROJECT_NAME == "HisCancer":
     DEBUG_LR_FINDER = True
 
     MODEL_EPOCHS = 1000
-    MODEL_BATCH_SIZE = 64
+    MODEL_BATCH_SIZE = 256
     MODEL_INIT_LEARNING_RATE = 0.01
-    MODEL_MIN_LEARNING_RATE = 0.001
+    MODEL_MIN_LEARNING_RATE = 0.00007
+    MODEL_COS_LEARNING_RATE_PERIOD = 1000
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DEFAY = 0.02
     MODEL_FOLD = 10
     MODEL_TRAIN_FOLD = [1]
-    MODEL_NO_GRAD = [[0,1,2,3], []]
+    MODEL_NO_GRAD = [[], []]
 
     TRAIN_GPU_DICT = {
         "kokecacao-ThinkPad-P50-Ubuntu": "0",
@@ -196,7 +197,7 @@ elif PROJECT_NAME == "HisCancer":
     # TRAIN_TRY_LR = False
     # TRAIN_TRY_LR_FORMULA = lambda x: x / (8 * np.mod(-x - 1, 600) + 0.1) - 0.000207 * x  # y=x/(8*\operatorname{mod}(-x-1,600)+0.1)-0.000207*x
     TRAIN_RATIO = 1
-    EVAL_RATIO = 1
+    EVAL_RATIO = 4
     FIND_LR_RATIO = 1
 
     PROJECT_TAG = "test"
@@ -232,6 +233,8 @@ elif PROJECT_NAME == "HisCancer":
 
     AUGMENTATION_IMG_ORIGINAL_SIZE = (96, 96)
     AUGMENTATION_RESIZE = 224
+    AUGMENTATION_MEAN = [0.485, 0.456, 0.406]
+    AUGMENTATION_STD = [0.229, 0.224, 0.225]
 
     eval_index = 0
     start_time = time.time()

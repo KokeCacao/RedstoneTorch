@@ -19,6 +19,7 @@ from dataset.HisCancer_dataset import train_collate, val_collate
 from gpu import gpu_profile
 from loss.f1 import f1_macro, differenciable_f1_sigmoid, differenciable_f1_softmax
 from loss.focal import focalloss_sigmoid, focalloss_softmax
+from project.HisCancer_project import HisCancer_net
 from project.qubo_project import qubo_net
 from project.qubo_project.qubo_cam import GradCam, GuidedBackprop, guided_grad_cam, save_gradient_images, convert_to_grayscale, cam
 from utils import encode, load
@@ -48,7 +49,7 @@ class HisCancerTrain:
                 print("     Skipping dataset = HisCancerDataset(config.DIRECTORY_CSV,old: #{})".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))
-                net = qubo_net.nasnetamobile(num_classes=config.TRAIN_NUM_CLASS, pretrained="imagenet")
+                net = HisCancer_net.se_resnext50_32x4d(config.TRAIN_NUM_CLASS, pretrained="imagenet")
 
                 for i, c in enumerate(net.children()):
                     l = config.MODEL_NO_GRAD[i]
@@ -70,7 +71,7 @@ class HisCancerTrain:
                 self.optimizers.append(optimizer)
                 self.nets.append(net)
                 # lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=4*int(27964.8/config.MODEL_BATCH_SIZE), verbose=False, threshold=1e-4, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-8)
-                lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=3, eta_min=config.MODEL_MIN_LEARNING_RATE, last_epoch=-1)
+                lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=config.MODEL_COS_LEARNING_RATE_PERIOD, eta_min=config.MODEL_MIN_LEARNING_RATE, last_epoch=-1)
                 self.lr_schedulers.append(lr_scheduler)
 
                 # for name, param in net.named_parameters():
@@ -157,38 +158,38 @@ class HisCancerTrain:
     def run(self):
         try:
             for epoch in range(config.MODEL_EPOCHS):
-                """CAM"""
-                if np.array(config.MODEL_NO_GRAD).flatten() == []:
-                    pbar = tqdm(data.DataLoader(self.dataset,
-                                                 batch_size=1,
-                                                 shuffle=False,
-                                                 sampler=self.folded_samplers[0]["val"],
-                                                 batch_sampler=None,
-                                                 num_workers=config.TRAIN_NUM_WORKER,
-                                                 collate_fn=val_collate,
-                                                 pin_memory=False,
-                                                 drop_last=False,
-                                                 timeout=0,
-                                                 worker_init_fn=None,
-                                                 ))
-                    if config.TRAIN_GPU_ARG: self.nets[0].cuda()
-
-                    print("Set Model Trainning mode to trainning=[{}]".format(self.nets[0].eval().training))
-                    for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
-                        if config.TRAIN_GPU_ARG:
-                            image = image.cuda()
-                            labels_0 = labels_0.cuda()
-
-                        cam_img = cam(self.nets[0], image, labels_0)
-                        logits_predict = self.nets[0](image)
-                        prob_predict = torch.nn.Softmax()(logits_predict).detach().cpu().numpy()
-                        pbar.set_description_str("Cam...")
-
-                        tensorboardwriter.write_focus(self.writer, ids[0].split("/")[-1], cam_img, image_for_display[0].numpy().transpose((1, 2, 0)), np.argmax(labels_0.cpu().numpy(), axis=1), np.argmax(prob_predict, axis=1), batch_index, config.fold)
-                        del image, labels_0
-                        if batch_index > 50: break
-                    self.nets[0].cpu()
-                    if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                # """CAM"""
+                # if np.array(config.MODEL_NO_GRAD).flatten() == []:
+                #     pbar = tqdm(data.DataLoader(self.dataset,
+                #                                  batch_size=1,
+                #                                  shuffle=False,
+                #                                  sampler=self.folded_samplers[0]["val"],
+                #                                  batch_sampler=None,
+                #                                  num_workers=config.TRAIN_NUM_WORKER,
+                #                                  collate_fn=val_collate,
+                #                                  pin_memory=False,
+                #                                  drop_last=False,
+                #                                  timeout=0,
+                #                                  worker_init_fn=None,
+                #                                  ))
+                #     if config.TRAIN_GPU_ARG: self.nets[0].cuda()
+                #
+                #     print("Set Model Trainning mode to trainning=[{}]".format(self.nets[0].eval().training))
+                #     for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+                #         if config.TRAIN_GPU_ARG:
+                #             image = image.cuda()
+                #             labels_0 = labels_0.cuda()
+                #
+                #         cam_img = cam(self.nets[0], image, labels_0)
+                #         logits_predict = self.nets[0](image)
+                #         prob_predict = torch.nn.Softmax()(logits_predict).detach().cpu().numpy()
+                #         pbar.set_description_str("Cam...")
+                #
+                #         tensorboardwriter.write_focus(self.writer, ids[0].split("/")[-1], cam_img, image_for_display[0].numpy().transpose((1, 2, 0)), np.argmax(labels_0.cpu().numpy(), axis=1), np.argmax(prob_predict, axis=1), batch_index, config.fold)
+                #         del image, labels_0
+                #         if batch_index > 50: break
+                #     self.nets[0].cpu()
+                #     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
                 self.step_epoch(nets=self.nets,
                                 optimizers=self.optimizers,

@@ -21,7 +21,7 @@ from albumentations import (
     HorizontalFlip, IAAPerspective, ShiftScaleRotate, CLAHE, RandomRotate90,
     Transpose, ShiftScaleRotate, Blur, OpticalDistortion, GridDistortion, HueSaturationValue,
     IAAAdditiveGaussianNoise, GaussNoise, MotionBlur, MedianBlur, RandomBrightnessContrast, IAAPiecewiseAffine,
-    IAASharpen, IAAEmboss, Flip, OneOf, Compose, JpegCompression
+    IAASharpen, IAAEmboss, Flip, OneOf, Compose, JpegCompression, Normalize
 )
 
 import tensorboardwriter
@@ -193,29 +193,8 @@ def strong_aug():
         RandomRotate90(),
         Flip(),
         Transpose(),
-        OneOf([
-            IAAAdditiveGaussianNoise(),
-            GaussNoise(),
-        ], p=0.2),
-        OneOf([
-            MotionBlur(p=.2),
-            MedianBlur(blur_limit=3, p=0.1),
-            Blur(blur_limit=3, p=0.1),
-            JpegCompression(quality_lower=50, quality_upper=100),
-        ], p=0.2),
-        ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.01, rotate_limit=5, p=0.2),
-        OneOf([
-            OpticalDistortion(p=0.3),
-            GridDistortion(p=.1),
-            IAAPiecewiseAffine(p=0.3),
-        ], p=0.2),
-        OneOf([
-            CLAHE(clip_limit=2),
-            IAASharpen(),
-            IAAEmboss(),
-            RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1),
-        ], p=0.3),
-        HueSaturationValue(hue_shift_limit=4, sat_shift_limit=6, val_shift_limit=4, p=0.3),
+        OneOf([CLAHE(clip_limit=2), IAASharpen(), IAAEmboss(), RandomBrightnessContrast(), JpegCompression(), Blur(), GaussNoise()], p=0.5),
+        HueSaturationValue(p=0.5), ShiftScaleRotate(shift_limit=0.15, scale_limit=0.15, rotate_limit=45, p=0.5),
     ])
 def weak_aug():
     return Compose([
@@ -304,7 +283,7 @@ def transform(ids, image_0, labels_0, train, val):
             lambda x: x['image'],
             lambda x: np.clip(x, a_min=0, a_max=255),
             transforms.ToTensor(),
-            Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+            Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD),
         ])
         return PREDICT_TRANSFORM_IMG(image_0)
 
@@ -316,11 +295,11 @@ def transform(ids, image_0, labels_0, train, val):
         TRAIN_TRANSFORM = transforms.Compose([
             lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB), # and don't put them in strong_aug()
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
-            lambda x: weak_aug()(image=x), # Yes, you have to use image=xxx
+            lambda x: strong_aug()(image=x), # Yes, you have to use image=xxx
             lambda x: x['image'], # abstract the actual image acter the augmentation
             lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
             transforms.ToTensor(),
-            Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]), # this needs to be set accordingly
+            Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD), # this needs to be set accordingly
         ])
         image = TRAIN_TRANSFORM(image_0)
         return (ids, image, labels_0, transforms.ToTensor()(image_0))
@@ -332,7 +311,7 @@ def transform(ids, image_0, labels_0, train, val):
             lambda x: x['image'],
             lambda x: np.clip(x, a_min=0, a_max=255),
             transforms.ToTensor(),
-            Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+            Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD),
         ])
         image = PREDICT_TRANSFORM_IMG(image_0)
         return (ids, image, labels_0, transforms.ToTensor()(image_0))
