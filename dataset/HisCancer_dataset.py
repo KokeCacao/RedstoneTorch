@@ -21,8 +21,8 @@ from albumentations import (
     HorizontalFlip, IAAPerspective, ShiftScaleRotate, CLAHE, RandomRotate90,
     Transpose, ShiftScaleRotate, Blur, OpticalDistortion, GridDistortion, HueSaturationValue,
     IAAAdditiveGaussianNoise, GaussNoise, MotionBlur, MedianBlur, RandomBrightnessContrast, IAAPiecewiseAffine,
-    IAASharpen, IAAEmboss, Flip, OneOf, Compose, JpegCompression, Normalize
-)
+    IAASharpen, IAAEmboss, Flip, OneOf, Compose, JpegCompression
+) # don't import Normalize from albumentations
 
 import tensorboardwriter
 
