@@ -197,7 +197,7 @@ elif PROJECT_NAME == "HisCancer":
     # TRAIN_TRY_LR = False
     # TRAIN_TRY_LR_FORMULA = lambda x: x / (8 * np.mod(-x - 1, 600) + 0.1) - 0.000207 * x  # y=x/(8*\operatorname{mod}(-x-1,600)+0.1)-0.000207*x
     TRAIN_RATIO = 1
-    EVAL_RATIO = 4
+    EVAL_RATIO = 4 # to 8 when needed
     FIND_LR_RATIO = 1
 
     PROJECT_TAG = "test"

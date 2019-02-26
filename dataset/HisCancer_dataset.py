@@ -18,11 +18,11 @@ from torch.utils.data.dataloader import numpy_type_map, default_collate
 from torchvision.transforms import transforms, Normalize
 
 from albumentations import (
-    HorizontalFlip, IAAPerspective, ShiftScaleRotate, CLAHE, RandomRotate90,
+    HorizontalFlip, VerticalFlip, IAAPerspective, ShiftScaleRotate, CLAHE, RandomRotate90,
     Transpose, ShiftScaleRotate, Blur, OpticalDistortion, GridDistortion, HueSaturationValue,
     IAAAdditiveGaussianNoise, GaussNoise, MotionBlur, MedianBlur, RandomBrightnessContrast, IAAPiecewiseAffine,
     IAASharpen, IAAEmboss, Flip, OneOf, Compose, JpegCompression
-) # don't import Normalize from albumentations
+)# don't import Normalize from albumentations
 
 import tensorboardwriter
 
@@ -188,19 +188,20 @@ class PredictImgAugTransform:
         self.aug = self.aug.to_deterministic(n)
         return self
 
-def strong_aug():
+def trian_aug():
+    term = config.epoch % 8
     return Compose([
-        RandomRotate90(),
-        Flip(),
-        Transpose(),
+        lambda x: RandomRotate90()(img=x, factor=term % 4),
+        Transpose(p=term % 2),
         OneOf([CLAHE(clip_limit=2), IAASharpen(), IAAEmboss(), RandomBrightnessContrast(), JpegCompression(), Blur(), GaussNoise()], p=0.5),
-        HueSaturationValue(p=0.5), ShiftScaleRotate(shift_limit=0.15, scale_limit=0.15, rotate_limit=45, p=0.5),
+        HueSaturationValue(p=0.5),
+        ShiftScaleRotate(shift_limit=0.15, scale_limit=0.15, rotate_limit=45, p=0.5),
     ])
-def weak_aug():
+def eval_aug():
+    term = config.eval_index % 8
     return Compose([
-        RandomRotate90(),
-        Flip(),
-        Transpose(),
+        lambda x: RandomRotate90()(img=x, factor=term % 4),
+        Transpose(p=term % 2),
         OneOf([
             IAAAdditiveGaussianNoise(),
             GaussNoise(),
@@ -295,7 +296,7 @@ def transform(ids, image_0, labels_0, train, val):
         TRAIN_TRANSFORM = transforms.Compose([
             lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB), # and don't put them in strong_aug()
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
-            lambda x: strong_aug()(image=x), # Yes, you have to use image=xxx
+            lambda x: trian_aug()(image=x), # Yes, you have to use image=xxx
             lambda x: x['image'], # abstract the actual image acter the augmentation
             lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
             transforms.ToTensor(),
@@ -307,7 +308,7 @@ def transform(ids, image_0, labels_0, train, val):
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB),
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
-            lambda x: weak_aug()(image=x),
+            lambda x: eval_aug()(image=x),
             lambda x: x['image'],
             lambda x: np.clip(x, a_min=0, a_max=255),
             transforms.ToTensor(),
