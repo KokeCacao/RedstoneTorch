@@ -47,7 +47,7 @@ class HisCancerPrediction:
                     print("WARNING: delete file '{}'".format(pred_path))
 
                 with open(pred_path, 'a') as pred_file:
-                    pred_file.write('Id,Predicted\n')
+                    pred_file.write('Id,Label\n')
 
                     test_loader = data.DataLoader(self.test_dataset,
                                                   batch_size=config.MODEL_BATCH_SIZE,
@@ -69,8 +69,12 @@ class HisCancerPrediction:
                         predicts = self.nets[0](image)
                         predicts = torch.nn.Softmax()(predicts).detach().cpu().numpy()
                         encodeds = list(self.test_dataset.multilabel_binarizer.inverse_transform(predicts > threshold))
-                        pbar.set_description("Thres:{} Id:{} Certainty:{} Out:{}".format(threshold, ids[0], np.absolute(predicts-0.5).mean()+0.5, encodeds[0]))
 
+                        pbar.set_description("Thres:{} Id:{} Certainty:{} Out:{}".format(threshold, ids[0].replace("data/HisCancer_dataset/test/", "").replace(".npy", ""), np.absolute(predicts-0.5).mean()+0.5, encodeds[0]))
+
+                        for id, encoded, predict in zip(ids, encodeds, predicts):
+                            id = id.replace("data/HisCancer_dataset/test/", "").replace(".npy", "")
+                            pred_file.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
 
                         del ids, image, labels_0, image_for_display, predicts, encodeds
                         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
