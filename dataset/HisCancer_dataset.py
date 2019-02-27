@@ -292,7 +292,7 @@ def transform(ids, image_0, labels_0, train, val):
         TEST_TRANSFORM = transforms.Compose([
             lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB), # and don't put them in strong_aug()
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
-            # lambda x: RandomRotate90()(img=x, factor=term % 4), # pull it out from test_aug because test_aug's Compose cannot contain any lambda
+            lambda x: RandomRotate90().apply(img=x, factor=term % 4), # pull it out from test_aug because test_aug's Compose cannot contain any lambda
             lambda x: test_aug(term)(image=x), # Yes, you have to use image=xxx
             lambda x: x['image'], # abstract the actual image acter the augmentation
             lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
@@ -311,7 +311,7 @@ def transform(ids, image_0, labels_0, train, val):
         TRAIN_TRANSFORM = transforms.Compose([
             lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB), # and don't put them in strong_aug()
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
-            # lambda x: RandomRotate90()(img=x, factor=term % 4),
+            lambda x: RandomRotate90().apply(img=x, factor=term % 4),
             lambda x: train_aug(term)(image=x), # Yes, you have to use image=xxx
             lambda x: x['image'], # abstract the actual image acter the augmentation
             lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
@@ -325,7 +325,7 @@ def transform(ids, image_0, labels_0, train, val):
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB),
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
-            # lambda x: RandomRotate90()(img=x, factor=term % 4),
+            lambda x: RandomRotate90().apply(img=x, factor=term % 4),
             lambda x: eval_aug(term)(image=x),
             lambda x: x['image'],
             lambda x: np.clip(x, a_min=0, a_max=255),

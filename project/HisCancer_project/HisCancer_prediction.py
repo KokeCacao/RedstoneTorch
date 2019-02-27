@@ -73,7 +73,7 @@ class HisCancerPrediction:
                         pbar.set_description("Thres:{} Id:{} Certainty:{} Out:{}".format(threshold, ids[0].replace("data/HisCancer_dataset/test/", "").replace(".npy", ""), np.absolute(predicts-0.5).mean()+0.5, encodeds[0]))
 
                         for id, encoded, predict in zip(ids, encodeds, predicts):
-                            id = id.replace("data/HisCancer_dataset/test/", "").replace(".npy", "")
+                            # id = id.replace("data/HisCancer_dataset/test/", "").replace(".npy", "")
                             pred_file.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
 
                         del ids, image, labels_0, image_for_display, predicts, encodeds
