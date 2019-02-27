@@ -45,12 +45,13 @@ class HisCancerDataset(data.Dataset):
 
 
         self.multilabel_binarizer = MultiLabelBinarizer().fit([list(range(config.TRAIN_NUM_CLASS))])
-        # self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in s.split()) for s in self.train_dataframe[column]])
-        self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in str(s).split()) for s in self.train_dataframe[column]])
+        self.labelframe = None
 
         if self.load_strategy == "train":
+            self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in str(s).split()) for s in self.train_dataframe[column]])
             id = self.train_dataframe.index.tolist()
         elif self.load_strategy == "test" or self.load_strategy == "predict":
+            self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in str(s).split()) for s in self.test_dataframe[column]])
             id = self.test_dataframe.index.tolist()
         else:
             raise ValueError("the argument [load_strategy] recieved and undefined value: [{}], which is not one of 'train', 'test', 'predict'".format(load_strategy))
