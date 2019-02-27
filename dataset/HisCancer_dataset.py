@@ -245,7 +245,7 @@ def test_collate(batch):
     """TRASNFORM"""
     new_batch = []
     for id, image_0, labels_0 in batch:
-        new_batch.append(transform(id, image_0, labels_0, train=False, val=True))
+        new_batch.append(transform(id, image_0, labels_0, train=False, val=False))
     batch = new_batch
     return collate(batch)
 
