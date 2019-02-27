@@ -54,4 +54,4 @@ if __name__ == '__main__':
         # print("=> Loading neuronetwork...")
 
         # preprocess = project.qubo_project.qubo_preprocess.QUBOPreprocess()
-        preprocess = project.HisCancer_project.HisCancer_preprocess.HisCancerPreprocess()
+        preprocess = project.HisCancer_project.HisCancer_preprocess.HisCancerPreprocess(from_dir=config.DIRECTORY_TEST, to_dir=config.DIRECTORY_TEST)
