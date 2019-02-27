@@ -191,19 +191,15 @@ class PredictImgAugTransform:
         self.aug = self.aug.to_deterministic(n)
         return self
 
-def train_aug():
-    term = config.epoch % 8
+def train_aug(term):
     return Compose([
-        # lambda x: RandomRotate90()(img=x, factor=term % 4),
         Transpose(p=term % 2),
         OneOf([CLAHE(clip_limit=2), IAASharpen(), IAAEmboss(), RandomBrightnessContrast(), JpegCompression(), Blur(), GaussNoise()], p=0.5),
         HueSaturationValue(p=0.5),
         ShiftScaleRotate(shift_limit=0.15, scale_limit=0.15, rotate_limit=45, p=0.5),
     ])
-def eval_aug():
-    term = config.eval_index % 8
+def eval_aug(term):
     return Compose([
-        # lambda x: RandomRotate90()(img=x, factor=term % 4),
         Transpose(p=term % 2),
         OneOf([
             IAAAdditiveGaussianNoise(),
@@ -217,10 +213,8 @@ def eval_aug():
         ], p=0.2),
         ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.01, rotate_limit=5, p=0.2),
     ])
-def test_aug():
-    term = config.eval_index % 8
+def test_aug(term):
     return Compose([
-        # lambda x: RandomRotate90()(img=x, factor=term % 4),
         Transpose(p=term % 2),
     ])
 
@@ -294,10 +288,12 @@ def transform(ids, image_0, labels_0, train, val):
     """
 
     if train is False and val is False:
+        term = config.eval_index % 8
         TEST_TRANSFORM = transforms.Compose([
             lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB), # and don't put them in strong_aug()
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
-            lambda x: test_aug()(image=x), # Yes, you have to use image=xxx
+            lambda x: RandomRotate90()(img=x, factor=term % 4), # pull it out from test_aug because test_aug's Compose cannot contain any lambda
+            lambda x: test_aug(term)(image=x), # Yes, you have to use image=xxx
             lambda x: x['image'], # abstract the actual image acter the augmentation
             lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
             transforms.ToTensor(),
@@ -311,10 +307,12 @@ def transform(ids, image_0, labels_0, train, val):
     Cubic interpolation is computationally more complex, and hence slower than linear interpolation. However, the quality of the resulting image will be higher.
     """
     if not val and train:
+        term = config.epoch % 8
         TRAIN_TRANSFORM = transforms.Compose([
             lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB), # and don't put them in strong_aug()
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
-            lambda x: train_aug()(image=x), # Yes, you have to use image=xxx
+            lambda x: RandomRotate90()(img=x, factor=term % 4),
+            lambda x: train_aug(term)(image=x), # Yes, you have to use image=xxx
             lambda x: x['image'], # abstract the actual image acter the augmentation
             lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
             transforms.ToTensor(),
@@ -323,10 +321,12 @@ def transform(ids, image_0, labels_0, train, val):
         image = TRAIN_TRANSFORM(image_0)
         return (ids, image, labels_0, transforms.ToTensor()(image_0))
     elif not train and val:
+        term = config.eval_index % 8
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB),
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
-            lambda x: eval_aug()(image=x),
+            lambda x: RandomRotate90()(img=x, factor=term % 4),
+            lambda x: eval_aug(term)(image=x),
             lambda x: x['image'],
             lambda x: np.clip(x, a_min=0, a_max=255),
             transforms.ToTensor(),
