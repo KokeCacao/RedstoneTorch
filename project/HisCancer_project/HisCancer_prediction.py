@@ -2,6 +2,7 @@ import os
 
 import torch
 import numpy as np
+import pandas as pd
 from torch.utils import data
 from torch.utils.data import SubsetRandomSampler
 from tqdm import tqdm
@@ -74,3 +75,15 @@ class HisCancerPrediction:
                         del ids, image, labels_0, image_for_display, predicts, encodeds
                         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
                 """TURNING THRESHOLD"""
+
+
+                """ORGANIZE"""
+                def sort(dir_sample, dir_save):
+                    f1 = pd.read_csv(dir_sample)
+                    f1.drop('Predicted', axis=1, inplace=True)
+                    f2 = pd.read_csv(dir_save)
+                    f1 = f1.merge(f2, left_on='Id', right_on='Id', how='outer')
+                    os.remove(dir_save)
+                    f1.to_csv(dir_save, index=False)
+                sort(config.DIRECTORY_SAMPLE_CSV, pred_path)
+                print("Pred_path: {}".format(pred_path))
