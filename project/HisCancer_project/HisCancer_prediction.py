@@ -80,7 +80,7 @@ class HisCancerPrediction:
                 """ORGANIZE"""
                 def sort(dir_sample, dir_save):
                     f1 = pd.read_csv(dir_sample)
-                    f1.drop('Predicted', axis=1, inplace=True)
+                    f1.drop('Label', axis=1, inplace=True)
                     f2 = pd.read_csv(dir_save)
                     f1 = f1.merge(f2, left_on='Id', right_on='Id', how='outer')
                     os.remove(dir_save)
