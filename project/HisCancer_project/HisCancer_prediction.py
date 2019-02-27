@@ -8,7 +8,7 @@ from torch.utils.data import SubsetRandomSampler
 from tqdm import tqdm
 
 import config
-from dataset.HisCancer_dataset import HisCancerDataset, val_collate
+from dataset.HisCancer_dataset import HisCancerDataset, test_collate
 from project.HisCancer_project import HisCancer_net
 from utils.load import load_checkpoint_all_fold_without_optimizers, save_onnx
 
@@ -55,7 +55,7 @@ class HisCancerPrediction:
                                                   sampler=SubsetRandomSampler(self.test_dataset.indices),
                                                   batch_sampler=None,
                                                   num_workers=config.TRAIN_NUM_WORKER,
-                                                  collate_fn=val_collate,
+                                                  collate_fn=test_collate,
                                                   pin_memory=True,
                                                   drop_last=False,
                                                   timeout=0,
