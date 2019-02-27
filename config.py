@@ -219,6 +219,7 @@ elif PROJECT_NAME == "HisCancer":
     # DIRECTORY_IMG = DIRECTORY_PREFIX + "data/train/"
     DIRECTORY_PREPROCESSED_IMG = DIRECTORY_PREFIX + "data/HisCancer_dataset/preprocessed/"
     DIRECTORY_SELECTED_IMG = DIRECTORY_PREFIX + "data/HisCancer_dataset/selected/"
+    DIRECTORY_TEST = DIRECTORY_PREFIX + 'data/HisCancer_dataset/test/'
     # DIRECTORY_LOAD = None
     DIRECTORY_CSV = DIRECTORY_PREFIX + 'data/HisCancer_dataset/train.csv'
     DIRECTORY_SAMPLE_CSV = DIRECTORY_PREFIX + 'data/HisCancer_dataset/sample_submission.csv'
