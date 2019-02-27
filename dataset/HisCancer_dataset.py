@@ -292,12 +292,16 @@ def transform(ids, image_0, labels_0, train, val):
     :param val:
     :return:
     """
+    def p(x):
+        print(x)
+        return x
 
     if train is False and val is False:
         TEST_TRANSFORM = transforms.Compose([
             lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB), # and don't put them in strong_aug()
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
-            lambda x: test_aug()(x), # Yes, you have to use image=xxx
+            lambda x: p(x),
+            lambda x: test_aug()(image=x), # Yes, you have to use image=xxx
             lambda x: x['image'], # abstract the actual image acter the augmentation
             lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
             transforms.ToTensor(),
