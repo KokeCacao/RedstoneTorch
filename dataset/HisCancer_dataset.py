@@ -48,9 +48,11 @@ class HisCancerDataset(data.Dataset):
         self.labelframe = None
 
         if self.load_strategy == "train":
+            print("Training Dataframe: {}".format(self.train_dataframe.head()))
             self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in str(s).split()) for s in self.train_dataframe[column]])
             id = self.train_dataframe.index.tolist()
         elif self.load_strategy == "test" or self.load_strategy == "predict":
+            print("Predicting Dataframe: {}".format(self.test_dataframe.head()))
             self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in str(s).split()) for s in self.test_dataframe[column]])
             id = self.test_dataframe.index.tolist()
         else:
