@@ -4,7 +4,7 @@ from optparse import OptionParser
 from tensorboardX import SummaryWriter
 
 import config
-import project.hpa_project.hpa_prediction
+import project.HisCancer_project.HisCancer_prediction
 from gpu import gpu_profile
 from reproduceability import reproduceability
 from utils.memory import memory_thread
@@ -48,5 +48,6 @@ if __name__ == '__main__':
 
         reproduceability()
 
-        test = project.hpa_project.hpa_prediction.HPATest(writer)
+        # test = project.hpa_project.hpa_prediction.HPATest(writer)
         # prediction = project.hpa_project.hpa_prediction.HPAPrediction(writer)
+        prediction = project.HisCancer_project.HisCancer_prediction.HisCancerPrediction(writer)

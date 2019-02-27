@@ -386,7 +386,8 @@ class HisCancerTrain:
                                                            'BCE/{}'.format(config.fold): bce,
                                                            'Precision/{}'.format(config.fold): precise,
                                                            'Recall/{}'.format(config.fold): recall,
-                                                           'PredictProbability/{}'.format(config.fold): logits_predict.mean(),
+                                                           'LogitsProbability/{}'.format(config.fold): logits_predict.mean(),
+                                                           'PredictProbability/{}'.format(config.fold): prob_predict.mean(),
                                                            'LabelProbability/{}'.format(config.fold): labels_0.mean(),
                                                            }, config.global_steps[fold])
 
@@ -400,7 +401,7 @@ class HisCancerTrain:
         epoch_f1 = epoch_f1 / train_len
         print("""
             Epoch: {}, Fold: {}
-            TrainLoss: {}, TrainF1: {}
+            TrainLoss: {}, F1Loss: {}
         """.format(config.epoch, config.fold, train_loss, epoch_f1))
         # lr_scheduler.step(epoch_f1, epoch=config.epoch)
 
