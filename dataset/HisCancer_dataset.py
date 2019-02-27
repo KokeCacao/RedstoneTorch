@@ -191,7 +191,7 @@ class PredictImgAugTransform:
         self.aug = self.aug.to_deterministic(n)
         return self
 
-def trian_aug():
+def train_aug():
     term = config.epoch % 8
     return Compose([
         lambda x: RandomRotate90()(img=x, factor=term % 4),
@@ -217,6 +217,12 @@ def eval_aug():
         ], p=0.2),
         ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.01, rotate_limit=5, p=0.2),
     ])
+def test_aug():
+    term = config.eval_index % 8
+    return Compose([
+        lambda x: RandomRotate90()(img=x, factor=term % 4),
+        Transpose(p=term % 2),
+    ])
 
 def train_collate(batch):
     """TRASNFORM"""
@@ -235,6 +241,13 @@ def val_collate(batch):
     batch = new_batch
     return collate(batch)
 
+def test_collate(batch):
+    """TRASNFORM"""
+    new_batch = []
+    for id, image_0, labels_0 in batch:
+        new_batch.append(transform(id, image_0, labels_0, train=False, val=True))
+    batch = new_batch
+    return collate(batch)
 
 def collate(batch):
     error_msg = "batch must contain tensors, numbers, dicts or lists; found {}"
@@ -280,16 +293,18 @@ def transform(ids, image_0, labels_0, train, val):
     :return:
     """
 
-    if ids is None and labels_0 is None and train is False and val is False:  # predict.py
-        image_aug_transform = PredictImgAugTransform().to_deterministic()
-        PREDICT_TRANSFORM_IMG = transforms.Compose([
-            image_aug_transform,
-            lambda x: x['image'],
-            lambda x: np.clip(x, a_min=0, a_max=255),
+    if train is False and val is False:
+        TEST_TRANSFORM = transforms.Compose([
+            lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB), # and don't put them in strong_aug()
+            lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
+            lambda x: test_aug()(image=x), # Yes, you have to use image=xxx
+            lambda x: x['image'], # abstract the actual image acter the augmentation
+            lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
             transforms.ToTensor(),
-            Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD),
+            Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD), # this needs to be set accordingly
         ])
-        return PREDICT_TRANSFORM_IMG(image_0)
+        image = TEST_TRANSFORM(image_0)
+        return (ids, image, labels_0, transforms.ToTensor()(image_0))
 
     """ https://stackoverflow.com/questions/23853632/which-kind-of-interpolation-best-for-resizing-image
     If you are enlarging the image, you should prefer to use INTER_LINEAR or INTER_CUBIC interpolation. If you are shrinking the image, you should prefer to use INTER_AREA interpolation.
@@ -299,7 +314,7 @@ def transform(ids, image_0, labels_0, train, val):
         TRAIN_TRANSFORM = transforms.Compose([
             lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB), # and don't put them in strong_aug()
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
-            lambda x: trian_aug()(image=x), # Yes, you have to use image=xxx
+            lambda x: train_aug()(image=x), # Yes, you have to use image=xxx
             lambda x: x['image'], # abstract the actual image acter the augmentation
             lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
             transforms.ToTensor(),
