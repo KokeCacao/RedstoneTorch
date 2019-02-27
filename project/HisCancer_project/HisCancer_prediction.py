@@ -32,7 +32,7 @@ class HisCancerPrediction:
                 self.nets.append(net)
         load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
 
-        self.test_dataset = HisCancerDataset(config.DIRECTORY_CSV, config.DIRECTORY_SAMPLE_CSV, load_strategy="predict", writer=self.writer, column='label')
+        self.test_dataset = HisCancerDataset(config.DIRECTORY_CSV, config.DIRECTORY_SAMPLE_CSV, load_strategy="predict", writer=self.writer, column='Label')
 
         self.run()
 
