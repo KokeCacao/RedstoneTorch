@@ -66,12 +66,14 @@ class HisCancerTrain:
                 # for module_pos, module in net.module._modules.items():
                 #     print("#{} -> {}".format(module_pos, module))
 
-                # self.optimizers.append(torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY))
-                optimizer = torch.optim.Adadelta(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DEFAY)
+                # optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY)
+                # optimizer = torch.optim.Adadelta(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DEFAY)
+                optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
                 self.optimizers.append(optimizer)
                 self.nets.append(net)
+                lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=2, verbose=False, threshold=1e-4, threshold_mode='abs', cooldown=1, min_lr=0, eps=1e-8)
                 # lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=4*int(27964.8/config.MODEL_BATCH_SIZE), verbose=False, threshold=1e-4, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-8)
-                lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=config.MODEL_COS_LEARNING_RATE_PERIOD, eta_min=config.MODEL_MIN_LEARNING_RATE, last_epoch=-1)
+                # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=config.MODEL_COS_LEARNING_RATE_PERIOD, eta_min=config.MODEL_MIN_LEARNING_RATE, last_epoch=-1)
                 self.lr_schedulers.append(lr_scheduler)
 
                 # for name, param in net.named_parameters():
@@ -125,7 +127,7 @@ class HisCancerTrain:
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[0], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
         if config.DEBUG_LR_FINDER:
-            lr_finder = LRFinder(self.nets[0], torch.optim.Adadelta(params=self.nets[0].parameters(), lr=0.0001, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DEFAY), torch.nn.BCEWithLogitsLoss(), device="cuda")
+            lr_finder = LRFinder(self.nets[0], torch.optim.Adadelta(params=self.nets[0].parameters(), lr=0.0001, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DECAY), torch.nn.BCEWithLogitsLoss(), device="cuda")
             lr_finder.range_test(data.DataLoader(self.dataset,
                                            batch_size=config.MODEL_BATCH_SIZE,
                                            shuffle=False,
@@ -256,8 +258,18 @@ class HisCancerTrain:
         f1_2 = metrics.f1_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), average='macro')  # sklearn does not automatically import matrics.
         f1_dict = dict(("Class-{}".format(i), x) for i, x in enumerate(metrics.f1_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), average=None)))
         f1_dict.update({"EvalF1": f1, "Sklearn": f1_2})
+        soft_auc_macro = metrics.roc_auc_score(evaluation.epoch_label, evaluation.epoch_pred)
+        hard_auc_macro = metrics.roc_auc_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred>config.EVAL_THRESHOLD).astype(np.byte))
+        soft_auc_micro = metrics.roc_auc_score(evaluation.epoch_label, evaluation.epoch_pred, average='micro')
+        hard_auc_micro = metrics.roc_auc_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred>config.EVAL_THRESHOLD).astype(np.byte), average='micro')
 
         report = classification_report(np.argmax(evaluation.epoch_label, axis=1), np.argmax(evaluation.epoch_pred, axis=1), target_names=["Yes", "No"])
+        report = report + """
+        Soft AUC Macro: {}
+        Hard AUC Macro: {}
+        Soft AUC Micro: {}
+        Hard AUC Micro: {}
+        """.format(soft_auc_macro, hard_auc_macro, soft_auc_micro, hard_auc_micro)
         print(report)
         tensorboardwriter.write_text(self.writer, report, config.epoch)
 
@@ -317,10 +329,15 @@ class HisCancerTrain:
         train_loader = self.train_loader[config.fold]
 
         print("Set Model Trainning mode to trainning=[{}]".format(net.train().training))
-        for train_index in tqdm(range(config.TRAIN_RATIO)):
+
+        ratio = int(config.TRAIN_RATIO) if config.TRAIN_RATIO >= 1 else 1
+        for train_index in tqdm(range(ratio)):
             pbar = tqdm(train_loader)
             train_len = train_len+ len(train_loader)
             for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+                if train_len < 1 and config.epoch % (1/config.TRAIN_RATIO) != batch_index % (1/config.TRAIN_RATIO):
+                    continue
+
                 #1215MB -> 4997MB = 3782
 
                 # """UPDATE LR"""
@@ -370,8 +387,13 @@ class HisCancerTrain:
                 tensorboardwriter.write_memory(self.writer, "train")
 
                 left = self.dataset.multilabel_binarizer.inverse_transform((np.expand_dims((np.array(labels_0).sum(0) < 1).astype(np.byte), axis=0)))[0]
-                label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
-                pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(logits_predict > config.EVAL_THRESHOLD)[0])
+                label = self.dataset.multilabel_binarizer.inverse_transform(labels_0)
+                pred = self.dataset.multilabel_binarizer.inverse_transform(logits_predict > config.EVAL_THRESHOLD)
+                soft_auc_macro = metrics.roc_auc_score(label, pred)
+                soft_auc_micro = metrics.roc_auc_score(label, pred, average='micro')
+                label = np.array(label[0])
+                pred = np.array(pred[0])
+
                 pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, left))
                 # pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.param_groups[0]['lr'], weighted_bce, bce))
                 # pbar.set_description_str("(E{}-F{}) Stp:{} Y:{}, y:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), labels_0, logits_predict))
@@ -389,6 +411,8 @@ class HisCancerTrain:
                                                            'LogitsProbability/{}'.format(config.fold): logits_predict.mean(),
                                                            'PredictProbability/{}'.format(config.fold): prob_predict.mean(),
                                                            'LabelProbability/{}'.format(config.fold): labels_0.mean(),
+                                                           'AUCMacro/{}'.format(config.fold): soft_auc_macro,
+                                                           'AUCMicro/{}'.format(config.fold): soft_auc_micro,
                                                            }, config.global_steps[fold])
 
                 """CLEAN UP"""

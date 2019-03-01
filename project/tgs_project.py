@@ -31,7 +31,7 @@ class TGSProject():
                          pretrained=True, is_deconv=True)  # don't init weights, don't give depth
         if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
-        self.optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY)  # all parameter learnable
+        self.optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DECAY)  # all parameter learnable
         load_checkpoint(net, self.optimizer, config.DIRECTORY_LOAD)
         self.net = cuda(net)
 

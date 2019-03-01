@@ -16,7 +16,7 @@ if PROJECT_NAME == "HPA":
     MODEL_BATCH_SIZE = 1
     MODEL_INIT_LEARNING_RATE = 0.1
     MODEL_MOMENTUM = 0.9
-    MODEL_WEIGHT_DEFAY = 0.0001
+    MODEL_WEIGHT_DECAY = 0.0001
     MODEL_FOLD = 10
     MODEL_TRAIN_FOLD = [1]
 
@@ -91,7 +91,7 @@ elif PROJECT_NAME == "QUBO":
     MODEL_BATCH_SIZE = 32
     MODEL_INIT_LEARNING_RATE = 0.1
     MODEL_MOMENTUM = 0.9
-    MODEL_WEIGHT_DEFAY = 0.0001
+    MODEL_WEIGHT_DECAY = 0.0001
     MODEL_FOLD = 10
     MODEL_TRAIN_FOLD = [1]
 
@@ -165,7 +165,7 @@ elif PROJECT_NAME == "HisCancer":
     DEBUG_TEST_CODE = False
     DEBUG_AUTO_SHUTDOWN = True
 
-    DEBUG_LR_FINDER = True
+    DEBUG_LR_FINDER = False
 
     MODEL_EPOCHS = 1000
     MODEL_BATCH_SIZE = 64
@@ -173,7 +173,7 @@ elif PROJECT_NAME == "HisCancer":
     MODEL_MIN_LEARNING_RATE = 0.00007
     MODEL_COS_LEARNING_RATE_PERIOD = 1000
     MODEL_MOMENTUM = 0.9
-    MODEL_WEIGHT_DEFAY = 0.02
+    MODEL_WEIGHT_DECAY = 0.0001
     MODEL_FOLD = 10
     MODEL_TRAIN_FOLD = [1]
     MODEL_NO_GRAD = [[], [], [], [], [], [], [], []]
@@ -196,8 +196,8 @@ elif PROJECT_NAME == "HisCancer":
     # TRAIN_COSINE = lambda global_step: (0.1 / 2) * (np.cos(np.pi * (np.mod(global_step, 20 * 46808 / 64) / (20 * 46808 / 64))) + 1)  # y=(0.01/2)*(cos(pi*(mod(x-1,10000)/(10000)))+1)
     # TRAIN_TRY_LR = False
     # TRAIN_TRY_LR_FORMULA = lambda x: x / (8 * np.mod(-x - 1, 600) + 0.1) - 0.000207 * x  # y=x/(8*\operatorname{mod}(-x-1,600)+0.1)-0.000207*x
-    TRAIN_RATIO = 1
-    EVAL_RATIO = 4 # to 8 when needed
+    TRAIN_RATIO = 0.5
+    EVAL_RATIO = 8 # to 8 when needed
     FIND_LR_RATIO = 1
 
     PROJECT_TAG = "test"
