@@ -23,7 +23,7 @@ from project.HisCancer_project import HisCancer_net
 from project.qubo_project import qubo_net
 from project.qubo_project.qubo_cam import GradCam, GuidedBackprop, guided_grad_cam, save_gradient_images, convert_to_grayscale, cam
 from utils import encode, load
-from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx, remove_checkpoint_fold, set_milestone
+from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx, remove_checkpoint_fold, set_milestone, load_checkpoint_all_fold_without_optimizers
 from utils.lr_finder import LRFinder
 
 if os.environ.get('DISPLAY', '') == '':
@@ -103,7 +103,8 @@ class HisCancerTrain:
                                                              timeout=0,
                                                              worker_init_fn=None,
                                                              ))
-        load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
+        if config.TRAIN_LOAD_OPTIMIZER: load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
+        else : load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
         set_milestone(config.DIRECTORY_LOAD)
 
         """RESET LR"""
