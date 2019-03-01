@@ -390,14 +390,11 @@ class HisCancerTrain:
                 tensorboardwriter.write_memory(self.writer, "train")
 
                 left = self.dataset.multilabel_binarizer.inverse_transform((np.expand_dims((np.array(labels_0).sum(0) < 1).astype(np.byte), axis=0)))[0]
-                label = self.dataset.multilabel_binarizer.inverse_transform(labels_0)
-                pred = self.dataset.multilabel_binarizer.inverse_transform(logits_predict > config.EVAL_THRESHOLD)
-                soft_auc_macro = metrics.roc_auc_score(label, pred)
-                soft_auc_micro = metrics.roc_auc_score(label, pred, average='micro')
-                label = np.array(label[0])
-                pred = np.array(pred[0])
-
-                pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, left))
+                label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0))
+                pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(logits_predict > config.EVAL_THRESHOLD))
+                soft_auc_macro = metrics.roc_auc_score(y_true=label, y_score=pred, average='macro')
+                soft_auc_micro = metrics.roc_auc_score(y_true=label, y_score=pred, average='micro')
+                pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label[0], pred[0], left))
                 # pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.param_groups[0]['lr'], weighted_bce, bce))
                 # pbar.set_description_str("(E{}-F{}) Stp:{} Y:{}, y:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), labels_0, logits_predict))
 
