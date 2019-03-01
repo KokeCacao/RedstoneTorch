@@ -56,6 +56,8 @@ def load_checkpoint_all_fold(nets, optimizers, load_path):
         config.global_steps = np.zeros(len(nets))
         print("=> Nothing loaded because no specify loadfile")
         return
+    if not load_path or not os.path.isfile(load_path):
+        load_path = os.path.splitext(load_path)[0]+"-MILESTONE"+os.path.splitext(load_path)[1]
     if load_path and os.path.isfile(load_path):
         print("=> Loading checkpoint '{}'".format(load_path))
         checkpoint = torch.load(load_path)
@@ -78,6 +80,8 @@ def load_checkpoint_all_fold_without_optimizers(nets, load_path):
         config.global_steps = np.zeros(len(nets))
         print("=> Nothing loaded because no specify loadfile")
         return
+    if not load_path or not os.path.isfile(load_path):
+        load_path = os.path.splitext(load_path)[0]+"-MILESTONE"+os.path.splitext(load_path)[1]
     if load_path and os.path.isfile(load_path):
         print("=> Loading checkpoint '{}'".format(load_path))
         checkpoint = torch.load(load_path)
