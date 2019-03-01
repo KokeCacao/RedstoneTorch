@@ -283,6 +283,10 @@ class HisCancerTrain:
         tensorboardwriter.write_epoch_loss(self.writer, f1_dict, config.epoch)
         tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
 
+        """STEP"""
+        for lr_scheduler in self.lr_schedulers:
+            lr_scheduler.step(f1_2)
+
         """THRESHOLD"""
         if config.EVAL_IF_THRESHOLD_TEST:
             best_threshold = 0.0
@@ -359,7 +363,6 @@ class HisCancerTrain:
                 positive_bce = BCELoss(weight=labels_0*20+1)(prob_predict, labels_0)
                 loss = bce.mean()
                 """BACKPROP"""
-                lr_scheduler.step()
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
