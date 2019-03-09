@@ -67,7 +67,7 @@ def write_epoch_loss(writer, loss_dict, epoch):
 def write_best_img(writer, img, label, id, loss, fold):
     F = plt.figure()
     plt.imshow(img)
-    plt.title("Id:{} label:{} loss:{}".format(id, label, loss))
+    plt.title("Id:{} label:{} loss:{}".format(id.split("/")[-1], label, loss))
     plt.grid(False)
     writer.add_figure("worst/{}".format(fold), F, 0)
 
@@ -90,7 +90,7 @@ def write_plot(writer, F, message):
 def write_worst_img(writer, img, label, id, loss, fold):
     F = plt.figure()
     plt.imshow(img)
-    plt.title("Id:{} label:{} loss:{}".format(id, label, loss))
+    plt.title("Id:{} label:{} loss:{}".format(id.split("/")[-1], label, loss))
     plt.grid(False)
     writer.add_figure("worst/{}".format(fold), F, 0)
 

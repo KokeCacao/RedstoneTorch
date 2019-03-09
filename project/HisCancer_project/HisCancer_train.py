@@ -71,7 +71,7 @@ class HisCancerTrain:
                 # optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
                 self.optimizers.append(optimizer)
                 self.nets.append(net)
-                lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=2, verbose=False, threshold=1e-4, threshold_mode='abs', cooldown=1, min_lr=0, eps=1e-8)
+                lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=1, verbose=False, threshold=1e-4, threshold_mode='abs', cooldown=0, min_lr=0, eps=1e-8)
                 # lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=4*int(27964.8/config.MODEL_BATCH_SIZE), verbose=False, threshold=1e-4, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-8)
                 # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=config.MODEL_COS_LEARNING_RATE_PERIOD, eta_min=config.MODEL_MIN_LEARNING_RATE, last_epoch=-1)
                 self.lr_schedulers.append(lr_scheduler)
@@ -104,7 +104,9 @@ class HisCancerTrain:
                                                              worker_init_fn=None,
                                                              ))
         if config.TRAIN_LOAD_OPTIMIZER: load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
-        else : load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
+        else :
+            load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
+            print("=> Warning: no optimizers loaded")
         set_milestone(config.DIRECTORY_LOAD)
 
         """RESET LR"""
@@ -264,23 +266,22 @@ class HisCancerTrain:
         soft_auc_micro = metrics.roc_auc_score(evaluation.epoch_label, evaluation.epoch_pred, average='micro')
         hard_auc_micro = metrics.roc_auc_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred>config.EVAL_THRESHOLD).astype(np.byte), average='micro')
 
-        report = classification_report(np.argmax(evaluation.epoch_label, axis=1), np.argmax(evaluation.epoch_pred, axis=1), target_names=["Yes", "No"])
+        report = classification_report(np.argmax(evaluation.epoch_label, axis=1), np.argmax(evaluation.epoch_pred, axis=1), target_names=["Negative", "Positive"])
+        max_names = max(f1_dict.items(), key=operator.itemgetter(1))
+        min_names = min(f1_dict.items(), key=operator.itemgetter(1))
         report = report + """
         Soft AUC Macro: {}
         Hard AUC Macro: {}
         Soft AUC Micro: {}
         Hard AUC Micro: {}
-        """.format(soft_auc_macro, hard_auc_macro, soft_auc_micro, hard_auc_micro)
+        """.format(soft_auc_macro, hard_auc_macro, soft_auc_micro, hard_auc_micro) + """
+        F1 by sklearn = {}
+        Max = {}, socre = {}
+        Min = {}, score = {}
+        """.format(f1_2, max_names[0], max_names[1], min_names[0], min_names[1])
         print(report)
         tensorboardwriter.write_text(self.writer, report, config.epoch)
 
-        max_names = max(f1_dict.items(), key=operator.itemgetter(1))
-        min_names = min(f1_dict.items(), key=operator.itemgetter(1))
-        print("""
-            F1 by sklearn = {}
-            Max = {}, socre = {}
-            Min = {}, score = {}
-        """.format(f1_2, max_names[0], max_names[1], min_names[0], min_names[1]))
         tensorboardwriter.write_epoch_loss(self.writer, f1_dict, config.epoch)
         tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
 
@@ -399,7 +400,7 @@ class HisCancerTrain:
                 # pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.param_groups[0]['lr'], weighted_bce, bce))
                 # pbar.set_description_str("(E{}-F{}) Stp:{} Y:{}, y:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), labels_0, logits_predict))
 
-                tensorboardwriter.write_loss(self.writer, {'Epoch/{}'.format(config.fold): config.epoch,
+                out_dict = {'Epoch/{}'.format(config.fold): config.epoch,
                                                            'LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold): optimizer.param_groups[0]['lr'],
                                                            'Loss/{}'.format(config.fold): loss,
                                                            'F1/{}'.format(config.fold): f1,
@@ -414,7 +415,11 @@ class HisCancerTrain:
                                                            'LabelProbability/{}'.format(config.fold): labels_0.mean(),
                                                            'AUCMacro/{}'.format(config.fold): soft_auc_macro,
                                                            'AUCMicro/{}'.format(config.fold): soft_auc_micro,
-                                                           }, config.global_steps[fold])
+                                                           }
+                for c in range(config.TRAIN_NUM_CLASS):
+                    out_dict['PredictProbability-Class-{}/{}'.format(c, config.fold)] = prob_predict[:][c]
+
+                tensorboardwriter.write_loss(self.writer, out_dict, config.global_steps[fold])
 
                 """CLEAN UP"""
                 del ids, image, image_for_display
@@ -481,6 +486,7 @@ class HisCancerEvaluation:
         for eval_index in tqdm(range(config.EVAL_RATIO)):
             config.eval_index = eval_index
             pbar = tqdm(validation_loader)
+            total_confidence = 0
 
             for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
 
@@ -534,11 +540,14 @@ class HisCancerEvaluation:
                 self.f1_losses = np.append(self.f1_losses, f1.mean())
                 focal_losses = np.append(focal_losses, focal_mean)
 
+                confidence = np.absolute(logits_predict - 0.5).mean() + 0.5
+                total_confidence = total_confidence + confidence
+
                 """PRINT"""
                 # label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
                 # pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(prob_predict>0.5)[0])
                 # pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(int(config.global_steps[fold]), label, pred, left))
-                pbar.set_description("(E{}F{}I{}) Focal:{} F1:{}".format(config.epoch, config.fold, config.eval_index, focal_mean, f1.mean()))
+                pbar.set_description("(E{}F{}I{}) Focal:{} F1:{} Confidence:{}".format(config.epoch, config.fold, config.eval_index, focal_mean, f1.mean(), total_confidence/(batch_index+1)))
                 # if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(focal.flatten())
                 predict_total = np.concatenate((predict_total, prob_predict), axis=0) if predict_total is not None else prob_predict
                 label_total = np.concatenate((label_total, labels_0), axis=0) if label_total is not None else labels_0

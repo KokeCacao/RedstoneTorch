@@ -5,10 +5,9 @@ from tqdm import tqdm
 
 import config
 
-"""Below are for the preprocess of testing images"""
+"""Below are for the transforming to .npy"""
 class HisCancerPreprocess:
-    def __init__(self, from_dir, to_dir, expected_img_size=(480, 640, 3)): # h, w, c
-        self.expected_img_size = expected_img_size
+    def __init__(self, from_dir, to_dir): # h, w, c
 
         # make directory for preprocessed image
         if not os.path.exists(to_dir):
@@ -31,3 +30,21 @@ class HisCancerPreprocess:
             pth=os.path.join(to_dir, dir.split("/")[-1].split(".")[0]+".npy")
             pbar.set_description_str("Saving .npy images in {}".format(pth))
             np.save(pth, cv2.imread(dir, cv2.IMREAD_COLOR).astype(np.uint8))
+
+"""Below are for counting the std and mean .npy"""
+class HisCancerPreprocess:
+    def __init__(self, from_dir): # h, w, c
+
+        # searching files that need to be processed
+        files = []
+        for path, subdirs, f in os.walk(from_dir):
+            print("Searching in {}, {}, {}".format(path, subdirs, files))
+            for name in f:
+                files.append(os.path.join(path, name))
+                print("Get Name: {}".format(name))
+
+        print("files in selected {} in path {}".format(files, from_dir))
+
+        pbar = tqdm(files)
+        for dir in pbar:
+            np.load(dir)
