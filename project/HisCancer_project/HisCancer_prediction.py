@@ -52,6 +52,7 @@ class HisCancerPrediction:
 
                 with open(pred_path, 'a') as pred_file, open(prob_path, 'a') as prob_file:
                     pred_file.write('Id,Label\n')
+                    pred_file.write('Id,True,False\n')
 
                     test_loader = data.DataLoader(self.test_dataset,
                                                   batch_size=config.MODEL_BATCH_SIZE,

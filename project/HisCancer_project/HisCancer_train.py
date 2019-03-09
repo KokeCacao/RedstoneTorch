@@ -330,6 +330,7 @@ class HisCancerTrain:
         epoch_loss = 0
         epoch_f1 = 0
         train_len = 1e-10
+        total_confidence = 0
 
         # pin_memory: https://blog.csdn.net/tsq292978891/article/details/80454568
         train_loader = self.train_loader[config.fold]
@@ -387,6 +388,8 @@ class HisCancerTrain:
                 epoch_loss = epoch_loss + loss.mean()
                 epoch_f1 = epoch_f1 + f1.mean()
                 # f1 = f1_macro(logits_predict, labels_0).mean()
+                confidence = np.absolute(prob_predict - 0.5).mean() + 0.5
+                total_confidence = total_confidence + confidence
 
                 """DISPLAY"""
                 tensorboardwriter.write_memory(self.writer, "train")
@@ -396,7 +399,8 @@ class HisCancerTrain:
                 left = self.dataset.multilabel_binarizer.inverse_transform((np.expand_dims((np.array(labels_0).sum(0) < 1).astype(np.byte), axis=0)))[0]
                 label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
                 pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(logits_predict > config.EVAL_THRESHOLD)[0])
-                pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, left))
+                pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Conf:{:.4f}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, total_confidence/(batch_index+1)))
+                # pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, left))
                 # pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.param_groups[0]['lr'], weighted_bce, bce))
                 # pbar.set_description_str("(E{}-F{}) Stp:{} Y:{}, y:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), labels_0, logits_predict))
 
