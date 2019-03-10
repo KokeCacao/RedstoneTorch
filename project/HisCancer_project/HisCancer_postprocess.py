@@ -27,7 +27,7 @@ class HisCancerPostprocess:
                     pbar = tqdm(self.test_dataset.id)
                     for id in pbar:
                         image = self.test_dataset.get_load_image_by_id(id)
-                        image = cv2.fromarray(image)
+                        # image = cv2.fromarray(image) --> don't need this line in opencv3
                         image = image[32:64, 32:64]
                         average = image.mean(axis=0).mean(axis=0)
 
