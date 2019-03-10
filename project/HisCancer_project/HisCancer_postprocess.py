@@ -31,7 +31,7 @@ class HisCancerPostprocess:
                         image = image[32:64, 32:64]
                         average = image.mean(axis=0).mean(axis=0)
 
-                        write = 0 if average[0]> 229.64312066 and average[1]>219.28200955 and average[2]>225.03200955 else 1
+                        write = 0 if average[0]> 240 and average[1]>240 and average[2]>240 else 1
                         count = count + write
                         pbar.set_description_str("Id:{} Write:{} Average:{}")
                         pred_file.write('{},{}\n'.format(id, write))
