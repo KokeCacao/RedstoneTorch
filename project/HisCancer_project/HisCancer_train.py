@@ -421,7 +421,7 @@ class HisCancerTrain:
                                                            'AUCMicro/{}'.format(config.fold): soft_auc_micro,
                                                            }
                 for c in range(config.TRAIN_NUM_CLASS):
-                    out_dict['PredictProbability-Class-{}/{}'.format(c, config.fold)] = prob_predict[:][c]
+                    out_dict['PredictProbability-Class-{}/{}'.format(c, config.fold)] = prob_predict[:][c].mean()
 
                 tensorboardwriter.write_loss(self.writer, out_dict, config.global_steps[fold])
 
