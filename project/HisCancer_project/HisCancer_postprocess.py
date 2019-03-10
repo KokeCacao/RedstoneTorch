@@ -15,7 +15,7 @@ class HisCancerPostprocess:
 
     def run(self):
             for threshold in self.thresholds:
-                pred_path = "postprocess.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, "#", threshold)
+                pred_path = config.DIRECTORY_PREFIX + "data/HisCancer_dataset/postprocess.csv"
                 if os.path.exists(pred_path):
                     os.remove(pred_path)
                     print("WARNING: delete file '{}'".format(pred_path))
