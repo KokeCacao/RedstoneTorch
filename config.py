@@ -175,7 +175,7 @@ elif PROJECT_NAME == "HisCancer":
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DECAY = 0.0001
     MODEL_FOLD = 10
-    MODEL_TRAIN_FOLD = [1]
+    MODEL_TRAIN_FOLD = [0]
     MODEL_NO_GRAD = [[], [], [], [], [], [], [], []]
 
     TRAIN_GPU_DICT = {
