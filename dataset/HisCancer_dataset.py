@@ -125,7 +125,7 @@ class HisCancerDataset(data.Dataset):
 
 
         dic = create_dict()
-        print("Train_dis: {}; cv_ids: {}".format(train_ids[0], cv_ids[0]))
+        print("Train_dis: {}; cv_ids: {}".format(np.array(train_ids[0]), np.array(cv_ids[0])))
         missing_ids = find_missing(train_ids[0], cv_ids[0])
         np.random.shuffle(missing_ids)
 
