@@ -106,7 +106,7 @@ class HisCancerDataset(data.Dataset):
             if wsi_dict.get(number) is None:
                 wsi_dict[number] = np.array([train_id])
             else:
-                wsi_dict[number].append(train_id)
+                wsi_dict[number] = np.append(wsi_dict[number], train_id)
 
         wsi_keys = list(wsi_dict.keys())
         np.random.shuffle(wsi_keys)
