@@ -104,9 +104,9 @@ class HisCancerDataset(data.Dataset):
             wsi_array = wsi.split('_')
             number = int(wsi_array[3])
             if wsi_dict.get(number) is None:
-                wsi_dict[number] = np.array([train_id])
+                wsi_dict[number] = [train_id]
             else:
-                wsi_dict[number] = np.append(wsi_dict[number], train_id)
+                wsi_dict[number].append(train_id)
 
         wsi_keys = list(wsi_dict.keys())
         np.random.shuffle(wsi_keys)
@@ -119,10 +119,12 @@ class HisCancerDataset(data.Dataset):
 
         for f, (train_index, test_index) in enumerate(kf.split(wsi_keys)):
             print("TRAIN:", train_index, "TEST:", test_index)
-            keys_for_train = np.array([wsi_keys[i] for i in train_index]) # one to one
-            keys_for_cv = np.array([wsi_keys[i] for i in test_index]) # one to one
-            train_ids[f] = np.hstack(np.array([wsi_dict[i] for i in keys_for_train])) # one to more
-            cv_ids[f] = np.hstack(np.array([wsi_dict[i] for i in keys_for_cv])) # one to more
+            keys_for_train = [wsi_keys[i] for i in train_index] # one to one
+            keys_for_cv = [wsi_keys[i] for i in test_index] # one to one
+            train_ids[f] = np.array([wsi_dict[i] for i in keys_for_train]).flatten() # one to more
+            cv_ids[f] = np.array([wsi_dict[i] for i in keys_for_cv]).flatten() # one to more
+
+        import pdb; pdb.set_trace()
 
         dic = create_dict()
         print(train_ids[0].shape, "and", cv_ids[0].shape)
@@ -136,8 +138,8 @@ class HisCancerDataset(data.Dataset):
         kf = KFold(n_splits=fold, random_state=None, shuffle=False)
         for f, (train_index, test_index) in enumerate(kf.split(missing_ids)):
             print("TRAIN:", train_index, "TEST:", test_index)
-            train_missing_ids[f] = np.hstack(np.array(missing_ids[i] for i in train_index))
-            cv_missing_ids[f] = np.hstack(np.array(missing_ids[i] for i in test_index))
+            train_missing_ids[f] = np.array(missing_ids[i] for i in train_index)
+            cv_missing_ids[f] = np.array(missing_ids[i] for i in test_index)
 
         for f in range(fold):
             folded_samplers[f]["train"] = SubsetRandomSampler(train_ids[f] + train_missing_ids[f])
