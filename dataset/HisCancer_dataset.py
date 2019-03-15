@@ -90,7 +90,6 @@ class HisCancerDataset(data.Dataset):
 
         def find_missing(train_ids, cv_ids):
             all_ids = set(pd.read_csv("~/RedstoneTorch/data/HisCancer_dataset/train.csv")['Id'].values)
-            import pdb; pdb.set_trace()
             wsi_ids = set(np.concatenate((train_ids, cv_ids)).flatten())
 
             missing_ids = list(all_ids - wsi_ids)
@@ -117,6 +116,8 @@ class HisCancerDataset(data.Dataset):
         train_ids = dict()
         cv_ids = dict()
         kf = KFold(n_splits=fold, random_state=None, shuffle=False)
+
+        import pdb; pdb.set_trace()
         for f, (train_index, test_index) in enumerate(kf.split(wsi_keys)):
             print("TRAIN:", train_index, "TEST:", test_index)
             keys_for_train = np.array([wsi_keys[i] for i in train_index]).flatten() # one to one
@@ -129,6 +130,8 @@ class HisCancerDataset(data.Dataset):
         print(train_ids[0].shape, "and", cv_ids[0].shape)
         missing_ids = find_missing(train_ids[0], cv_ids[0])
         np.random.shuffle(missing_ids)
+        # 9cac3cf71e777ba100541.npy'])],
+        #       dtype=object)
 
         train_missing_ids = dict()
         cv_missing_ids = dict()
