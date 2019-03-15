@@ -90,7 +90,7 @@ class HisCancerDataset(data.Dataset):
 
         def find_missing(train_ids, cv_ids):
             all_ids = set(pd.read_csv("~/RedstoneTorch/data/HisCancer_dataset/train.csv")['Id'].values)
-            wsi_ids = set(np.concatenate((train_ids, cv_ids), axis=0))
+            wsi_ids = set(np.concatenate((train_ids, cv_ids)).flatten())
 
             missing_ids = list(all_ids - wsi_ids)
             return missing_ids
