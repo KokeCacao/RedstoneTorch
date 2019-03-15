@@ -104,7 +104,7 @@ class HisCancerDataset(data.Dataset):
             wsi_array = wsi.split('_')
             number = int(wsi_array[3])
             if wsi_dict.get(number) is None:
-                wsi_dict[number] = [train_id]
+                wsi_dict[number] = np.array([train_id])
             else:
                 wsi_dict[number].append(train_id)
 
