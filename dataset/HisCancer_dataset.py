@@ -118,10 +118,10 @@ class HisCancerDataset(data.Dataset):
         kf = KFold(n_splits=fold, random_state=None, shuffle=False)
         for f, (train_index, test_index) in enumerate(kf.split(wsi_keys)):
             print("TRAIN:", train_index, "TEST:", test_index)
-            keys_for_train = [wsi_keys[i] for i in train_index]
-            keys_for_cv = [wsi_keys[i] for i in test_index]
-            train_ids[f] = [wsi_dict[i] for i in keys_for_train]
-            cv_ids[f] = [wsi_dict[i] for i in keys_for_cv]
+            keys_for_train = list(wsi_keys[i] for i in train_index)
+            keys_for_cv = list(wsi_keys[i] for i in test_index)
+            train_ids[f] = list(wsi_dict[i] for i in keys_for_train)
+            cv_ids[f] = list(wsi_dict[i] for i in keys_for_cv)
 
 
         dic = create_dict()
@@ -134,8 +134,8 @@ class HisCancerDataset(data.Dataset):
         kf = KFold(n_splits=fold, random_state=None, shuffle=False)
         for f, (train_index, test_index) in enumerate(kf.split(missing_ids)):
             print("TRAIN:", train_index, "TEST:", test_index)
-            train_missing_ids[f] = [missing_ids[i] for i in train_index]
-            cv_missing_ids[f] = [missing_ids[i] for i in test_index]
+            train_missing_ids[f] = list(missing_ids[i] for i in train_index)
+            cv_missing_ids[f] = list(missing_ids[i] for i in test_index)
 
         for f in range(fold):
             folded_samplers[f]["train"] = SubsetRandomSampler(train_ids[f] + train_missing_ids[f])
