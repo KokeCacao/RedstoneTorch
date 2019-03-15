@@ -118,10 +118,10 @@ class HisCancerDataset(data.Dataset):
         kf = KFold(n_splits=fold, random_state=None, shuffle=False)
         for f, (train_index, test_index) in enumerate(kf.split(wsi_keys)):
             print("TRAIN:", train_index, "TEST:", test_index)
-            keys_for_train = [wsi_keys[i] for i in train_index]
-            keys_for_cv = [wsi_keys[i] for i in test_index]
-            train_ids[f] = np.array([wsi_dict[i] for i in keys_for_train]).flatten()
-            cv_ids[f] = np.array([wsi_dict[i] for i in keys_for_cv]).flatten()
+            keys_for_train = np.array([wsi_keys[i] for i in train_index]).flatten()
+            keys_for_cv = np.array([wsi_keys[i] for i in test_index]).flatten()
+            train_ids[f] = np.array([wsi_dict[i] for i in keys_for_train])
+            cv_ids[f] = np.array([wsi_dict[i] for i in keys_for_cv])
 
 
         dic = create_dict()
