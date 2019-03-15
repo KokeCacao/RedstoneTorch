@@ -143,6 +143,7 @@ class HisCancerDataset(data.Dataset):
             cv_missing_ids[f] = [missing_ids[i] for i in test_index]
 
         for f in range(fold):
+            folded_samplers[f] = dict()
             folded_samplers[f]["train"] = SubsetRandomSampler(train_ids[f] + train_missing_ids[f])
             folded_samplers[f]["val"] = SubsetRandomSampler(cv_ids[f] + cv_missing_ids[f])
 
