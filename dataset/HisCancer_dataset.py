@@ -133,19 +133,16 @@ class HisCancerDataset(data.Dataset):
         import pdb; pdb.set_trace()
 
         dic = create_dict()
-        print(train_ids[0].shape, "and", cv_ids[0].shape)
         missing_ids = find_missing(train_ids[0], cv_ids[0])
         np.random.shuffle(missing_ids)
-        # 9cac3cf71e777ba100541.npy'])],
-        #       dtype=object)
 
         train_missing_ids = dict()
         cv_missing_ids = dict()
         kf = KFold(n_splits=fold, random_state=None, shuffle=False)
         for f, (train_index, test_index) in enumerate(kf.split(missing_ids)):
             print("TRAIN:", train_index, "TEST:", test_index)
-            train_missing_ids[f] = np.array(missing_ids[i] for i in train_index)
-            cv_missing_ids[f] = np.array(missing_ids[i] for i in test_index)
+            train_missing_ids[f] = [missing_ids[i] for i in train_index]
+            cv_missing_ids[f] = [missing_ids[i] for i in test_index]
 
         for f in range(fold):
             folded_samplers[f]["train"] = SubsetRandomSampler(train_ids[f] + train_missing_ids[f])
