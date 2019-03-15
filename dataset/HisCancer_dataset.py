@@ -139,23 +139,23 @@ class HisCancerDataset(data.Dataset):
             folded_samplers[f]["train"] = SubsetRandomSampler(train_ids[f] + train_missing_ids[f])
             folded_samplers[f]["val"] = SubsetRandomSampler(cv_ids[f] + cv_missing_ids[f])
 
-            print("########## Fold {} ##########".format(f))
-            train_labels = []
-            cv_labels = []
-            train_tumor = 0
-            for one_id in train_ids[f]:
-                temp = return_tumor_or_not(dic, one_id)
-                train_tumor += temp
-                train_labels.append(temp)
-            cv_tumor = 0
-            for one_id in cv_ids[f]:
-                temp = return_tumor_or_not(dic, one_id)
-                cv_tumor += temp
-                cv_labels.append(temp)
-            total = len(train_ids[f]) + len(cv_ids[f])
-            print("Amount of train labels: {}, {}/{}".format(len(train_ids[f]), train_tumor, len(train_ids[f]) - train_tumor))
-            print("Amount of cv labels: {}, {}/{}".format(len(cv_ids[f]), cv_tumor, len(cv_ids[f]) - cv_tumor))
-            print("Percentage of cv labels: {}".format(len(cv_ids[f]) / total))
+            # print("########## Fold {} ##########".format(f))
+            # train_labels = []
+            # cv_labels = []
+            # train_tumor = 0
+            # for one_id in train_ids[f]:
+            #     temp = return_tumor_or_not(dic, one_id)
+            #     train_tumor += temp
+            #     train_labels.append(temp)
+            # cv_tumor = 0
+            # for one_id in cv_ids[f]:
+            #     temp = return_tumor_or_not(dic, one_id)
+            #     cv_tumor += temp
+            #     cv_labels.append(temp)
+            # total = len(train_ids[f]) + len(cv_ids[f])
+            # print("Amount of train labels: {}, {}/{}".format(len(train_ids[f]), train_tumor, len(train_ids[f]) - train_tumor))
+            # print("Amount of cv labels: {}, {}/{}".format(len(cv_ids[f]), cv_tumor, len(cv_ids[f]) - cv_tumor))
+            # print("Percentage of cv labels: {}".format(len(cv_ids[f]) / total))
 
         return folded_samplers
 
