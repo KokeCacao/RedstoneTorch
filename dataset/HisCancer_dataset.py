@@ -130,8 +130,6 @@ class HisCancerDataset(data.Dataset):
             train_ids[f] = [ii for i in train_index for ii in wsi_dict[wsi_keys[i]]]
             cv_ids[f] = [ii for i in test_index for ii in wsi_dict[wsi_keys[i]]]
 
-        import pdb; pdb.set_trace()
-
         dic = create_dict()
         missing_ids = find_missing(train_ids[0], cv_ids[0])
         np.random.shuffle(missing_ids)
