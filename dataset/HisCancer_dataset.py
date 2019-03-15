@@ -119,16 +119,8 @@ class HisCancerDataset(data.Dataset):
 
         for f, (train_index, test_index) in enumerate(kf.split(wsi_keys)):
             print("TRAIN:", train_index, "TEST:", test_index)
-            # train_ids[f] = []
-            # for i in train_index:
-            #     for ii in wsi_dict[wsi_keys[i]]:
-            #         train_ids[f].append(ii)
-            # cv_ids[f] = []
-            # for i in test_index:
-            #     for ii in wsi_dict[wsi_keys[i]]:
-            #         train_ids[f].append(ii)
-            train_ids[f] = [ii for i in train_index for ii in wsi_dict[wsi_keys[i]]]
-            cv_ids[f] = [ii for i in test_index for ii in wsi_dict[wsi_keys[i]]]
+            train_ids[f] = [self.id_to_indices[ii] for i in train_index for ii in wsi_dict[wsi_keys[i]]]
+            cv_ids[f] = [self.id_to_indices[ii] for i in test_index for ii in wsi_dict[wsi_keys[i]]]
 
         dic = create_dict()
         missing_ids = find_missing(train_ids[0], cv_ids[0])
@@ -139,8 +131,8 @@ class HisCancerDataset(data.Dataset):
         kf = KFold(n_splits=fold, random_state=None, shuffle=False)
         for f, (train_index, test_index) in enumerate(kf.split(missing_ids)):
             print("TRAIN:", train_index, "TEST:", test_index)
-            train_missing_ids[f] = [missing_ids[i] for i in train_index]
-            cv_missing_ids[f] = [missing_ids[i] for i in test_index]
+            train_missing_ids[f] = [self.id_to_indices[missing_ids[i]] for i in train_index]
+            cv_missing_ids[f] = [self.id_to_indices[missing_ids[i]] for i in test_index]
 
         for f in range(fold):
             folded_samplers[f] = dict()
@@ -161,9 +153,9 @@ class HisCancerDataset(data.Dataset):
                 cv_tumor += temp
                 cv_labels.append(temp)
             total = len(train_ids[f]) + len(cv_ids[f])
-            print("Amount of train labels: {}, {}/{}".format(len(train_ids), train_tumor, len(train_ids) - train_tumor))
-            print("Amount of cv labels: {}, {}/{}".format(len(cv_ids), cv_tumor, len(cv_ids) - cv_tumor))
-            print("Percentage of cv labels: {}".format(len(cv_ids) / total))
+            print("Amount of train labels: {}, {}/{}".format(len(train_ids[f]), train_tumor, len(train_ids[f]) - train_tumor))
+            print("Amount of cv labels: {}, {}/{}".format(len(cv_ids[f]), cv_tumor, len(cv_ids[f]) - cv_tumor))
+            print("Percentage of cv labels: {}".format(len(cv_ids[f]) / total))
 
         return folded_samplers
 
