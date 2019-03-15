@@ -120,8 +120,8 @@ class HisCancerDataset(data.Dataset):
             print("TRAIN:", train_index, "TEST:", test_index)
             keys_for_train = [wsi_keys[i] for i in train_index]
             keys_for_cv = [wsi_keys[i] for i in test_index]
-            train_ids[f] = np.array(wsi_dict[i] for i in keys_for_train).flatten()
-            cv_ids[f] = np.array(wsi_dict[i] for i in keys_for_cv).flatten()
+            train_ids[f] = np.array([wsi_dict[i] for i in keys_for_train]).flatten()
+            cv_ids[f] = np.array([wsi_dict[i] for i in keys_for_cv]).flatten()
 
 
         dic = create_dict()
