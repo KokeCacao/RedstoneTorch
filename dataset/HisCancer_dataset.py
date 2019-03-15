@@ -119,8 +119,8 @@ class HisCancerDataset(data.Dataset):
 
         for f, (train_index, test_index) in enumerate(kf.split(wsi_keys)):
             print("TRAIN:", train_index, "TEST:", test_index)
-            train_ids[f] = [iii for iii in wsi_dict[ii] for ii in wsi_keys[i] for i in train_index]
-            cv_ids[f] = [iii for iii in wsi_dict[ii] for ii in wsi_keys[i] for i in test_index]
+            train_ids[f] = [iii for i in train_index for ii in wsi_keys[i] for iii in wsi_dict[ii]]
+            cv_ids[f] = [iii for i in test_index for ii in wsi_keys[i] for iii in wsi_dict[ii]]
 
         import pdb; pdb.set_trace()
 
