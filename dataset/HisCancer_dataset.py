@@ -117,7 +117,6 @@ class HisCancerDataset(data.Dataset):
         cv_ids = dict()
         kf = KFold(n_splits=fold, random_state=None, shuffle=False)
 
-        import pdb; pdb.set_trace()
         for f, (train_index, test_index) in enumerate(kf.split(wsi_keys)):
             print("TRAIN:", train_index, "TEST:", test_index)
             keys_for_train = np.array([wsi_keys[i] for i in train_index]).flatten() # one to one
@@ -125,6 +124,7 @@ class HisCancerDataset(data.Dataset):
             train_ids[f] = np.array([wsi_dict[i] for i in keys_for_train]).flatten() # one to more
             cv_ids[f] = np.array([wsi_dict[i] for i in keys_for_cv]).flatten() # one to more
 
+        import pdb; pdb.set_trace()
 
         dic = create_dict()
         print(train_ids[0].shape, "and", cv_ids[0].shape)
