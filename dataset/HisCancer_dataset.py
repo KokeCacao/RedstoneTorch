@@ -118,13 +118,14 @@ class HisCancerDataset(data.Dataset):
         kf = KFold(n_splits=fold, random_state=None, shuffle=False)
         for f, (train_index, test_index) in enumerate(kf.split(wsi_keys)):
             print("TRAIN:", train_index, "TEST:", test_index)
-            keys_for_train = np.array([wsi_keys[i] for i in train_index]).flatten()
-            keys_for_cv = np.array([wsi_keys[i] for i in test_index]).flatten()
-            train_ids[f] = np.array([wsi_dict[i] for i in keys_for_train])
-            cv_ids[f] = np.array([wsi_dict[i] for i in keys_for_cv])
+            keys_for_train = np.array([wsi_keys[i] for i in train_index]).flatten() # one to one
+            keys_for_cv = np.array([wsi_keys[i] for i in test_index]).flatten() # one to one
+            train_ids[f] = np.array([wsi_dict[i] for i in keys_for_train]).flatten() # one to more
+            cv_ids[f] = np.array([wsi_dict[i] for i in keys_for_cv]).flatten() # one to more
 
 
         dic = create_dict()
+        print(train_ids[0].shape, "and", cv_ids[0].shape)
         missing_ids = find_missing(train_ids[0], cv_ids[0])
         np.random.shuffle(missing_ids)
 
