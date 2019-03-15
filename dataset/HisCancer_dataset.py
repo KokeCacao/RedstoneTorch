@@ -5,6 +5,8 @@ import re
 import matplotlib as mpl
 import torch
 import cv2
+from sklearn.model_selection import KFold
+
 import config
 import numpy as np
 import pandas as pd
@@ -73,6 +75,92 @@ class HisCancerDataset(data.Dataset):
             Frame Size:      {}/{}
         """.format(train_csv_dir, test_csv_dir, self.id_len, "?", config.TRAIN_DATA_PERCENT, len(self.labelframe), len(id), "?"))
 
+    def get_wsl_samples(self, fold=-1):
+        def return_tumor_or_not(dic, one_id):
+            return dic[one_id]
+
+        def create_dict():
+            df = pd.read_csv("../data/HisCancer_dataset/train.csv")
+            result_dict = {}
+            for index in range(df.shape[0]):
+                one_id = df.iloc[index, 0]
+                tumor_or_not = df.iloc[index, 1]
+                result_dict[one_id] = int(tumor_or_not)
+            return result_dict
+
+        def find_missing(train_ids, cv_ids):
+            all_ids = set(pd.read_csv("../data/HisCancer_dataset/train.csv")['Id'].values)
+            wsi_ids = set(train_ids + cv_ids)
+
+            missing_ids = list(all_ids - wsi_ids)
+            return missing_ids
+
+        ids = pd.read_csv("../data/HisCancer_dataset/patch_id_wsi.csv")
+
+        wsi_dict = dict()
+        for i in range(ids.shape[0]):
+            wsi = ids.iloc[i, 1]
+            train_id = ids.iloc[i, 0]
+            wsi_array = wsi.split('_')
+            number = int(wsi_array[3])
+            if wsi_dict.get(number) is None:
+                wsi_dict[number] = [train_id]
+            else:
+                wsi_dict[number].append(train_id)
+
+        wsi_keys = list(wsi_dict.keys())
+        np.random.shuffle(wsi_keys)
+
+        folded_samplers = dict()
+
+        train_ids = dict()
+        cv_ids = dict()
+        kf = KFold(n_splits=fold, random_state=None, shuffle=False)
+        for f, (train_index, test_index) in enumerate(kf.split(wsi_keys)):
+            print("TRAIN:", train_index, "TEST:", test_index)
+            keys_for_train = [wsi_keys[i] for i in train_index]
+            keys_for_cv = [wsi_keys[i] for i in test_index]
+            train_ids[f] = [wsi_dict[i] for i in keys_for_train]
+            cv_ids[f] = [wsi_dict[i] for i in keys_for_cv]
+
+
+        dic = create_dict()
+
+        missing_ids = find_missing(train_ids[0], cv_ids[0])
+        np.random.shuffle(missing_ids)
+
+        train_missing_ids = dict()
+        cv_missing_ids = dict()
+        kf = KFold(n_splits=fold, random_state=None, shuffle=False)
+        for f, (train_index, test_index) in enumerate(kf.split(missing_ids)):
+            print("TRAIN:", train_index, "TEST:", test_index)
+            train_missing_ids[f] = [missing_ids[i] for i in train_index]
+            cv_missing_ids[f] = [missing_ids[i] for i in test_index]
+
+        for f in range(fold):
+            folded_samplers[f]["train"] = SubsetRandomSampler(train_ids[f] + train_missing_ids[f])
+            folded_samplers[f]["val"] = SubsetRandomSampler(cv_ids[f] + cv_missing_ids[f])
+
+            print("########## Fold {} ##########".format_map(f))
+            train_labels = []
+            cv_labels = []
+            train_tumor = 0
+            for one_id in train_ids[f]:
+                temp = return_tumor_or_not(dic, one_id)
+                train_tumor += temp
+                train_labels.append(temp)
+            cv_tumor = 0
+            for one_id in cv_ids[f]:
+                temp = return_tumor_or_not(dic, one_id)
+                cv_tumor += temp
+                cv_labels.append(temp)
+            total = len(train_ids[f]) + len(cv_ids[f])
+            print("Amount of train labels: {}, {}/{}".format(len(train_ids), train_tumor, len(train_ids) - train_tumor))
+            print("Amount of cv labels: {}, {}/{}".format(len(cv_ids), cv_tumor, len(cv_ids) - cv_tumor))
+            print("Percentage of cv labels: {}".format(len(cv_ids) / total))
+
+        return folded_samplers
+
     def __len__(self):
         return self.id_len
 
@@ -102,7 +190,8 @@ class HisCancerDataset(data.Dataset):
             # c = MultilabelStratifiedShuffleSplit(int(a), test_size=b, random_state=None).split(x_t, y_t)
             # folded_samplers[fold]['train'] = iter(c[0])
             folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)  # y[test_index]
-            if self.writer:
+
+            def write_cv_distribution(writer, y_t, y_e):
                 y_t_dict = np.bincount((y_t.astype(np.int8) * np.array(list(range(config.TRAIN_NUM_CLASS)))).flatten())
                 y_e_dict = np.bincount((y_e.astype(np.int8) * np.array(list(range(config.TRAIN_NUM_CLASS)))).flatten())
                 # F, (ax1, ax2) = plt.subplots(1, 2, figsize=(4, 2), sharey='none')
@@ -117,8 +206,7 @@ class HisCancerDataset(data.Dataset):
                 for i, v in enumerate(y_t_dict): ax.text(i - 0.2, v + 3, str(v), color='red', fontweight='bold')
                 for i, v in enumerate(y_e_dict): ax.text(i + 0.2, v + 3, str(v), color='blue', fontweight='bold')
                 tensorboardwriter.write_data_distribution(self.writer, F, fold)
-
-
+            write_cv_distribution(self.writer, y_t, y_e)
             # gc.collect()
         return folded_samplers
 

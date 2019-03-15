@@ -42,7 +42,8 @@ class HisCancerTrain:
         self.validation_loader = []
 
         self.dataset = HisCancerDataset(config.DIRECTORY_CSV, config.DIRECTORY_SAMPLE_CSV, load_strategy="train", writer=self.writer, column='Target')
-        self.folded_samplers = self.dataset.get_stratified_samplers(fold=config.MODEL_FOLD)
+        # self.folded_samplers = self.dataset.get_stratified_samplers(fold=config.MODEL_FOLD)
+        self.folded_samplers = self.dataset.get_wsl_samples(fold=config.MODEL_FOLD)
 
         for fold in range(config.MODEL_FOLD):
             if fold not in config.MODEL_TRAIN_FOLD:
@@ -51,6 +52,7 @@ class HisCancerTrain:
                 print("     Creating Fold: #{}".format(fold))
                 net = HisCancer_net.se_resnext50_32x4d(config.TRAIN_NUM_CLASS, pretrained="imagenet")
 
+                """FREEZING LAYER"""
                 for i, c in enumerate(net.children()):
                     l = config.MODEL_NO_GRAD[i]
                     for child_counter, child in enumerate(list(c.children())):
@@ -116,6 +118,7 @@ class HisCancerTrain:
                 for g in optim.param_groups:
                     g['lr'] = config.resetlr
 
+        """FREEZE DETECT"""
         for c in self.nets[0].children():
             for child_counter, child in enumerate(c.children()):
                 req_grad = True
