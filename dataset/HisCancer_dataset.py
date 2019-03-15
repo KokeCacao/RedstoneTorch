@@ -80,7 +80,7 @@ class HisCancerDataset(data.Dataset):
             return dic[one_id]
 
         def create_dict():
-            df = pd.read_csv("../data/HisCancer_dataset/train.csv")
+            df = pd.read_csv("~/RedstoneTorch/data/HisCancer_dataset/train.csv")
             result_dict = {}
             for index in range(df.shape[0]):
                 one_id = df.iloc[index, 0]
@@ -89,13 +89,13 @@ class HisCancerDataset(data.Dataset):
             return result_dict
 
         def find_missing(train_ids, cv_ids):
-            all_ids = set(pd.read_csv("../data/HisCancer_dataset/train.csv")['Id'].values)
+            all_ids = set(pd.read_csv("~/RedstoneTorch/data/HisCancer_dataset/train.csv")['Id'].values)
             wsi_ids = set(train_ids + cv_ids)
 
             missing_ids = list(all_ids - wsi_ids)
             return missing_ids
 
-        ids = pd.read_csv("../data/HisCancer_dataset/patch_id_wsi.csv")
+        ids = pd.read_csv("~/RedstoneTorch/data/HisCancer_dataset/patch_id_wsi.csv")
 
         wsi_dict = dict()
         for i in range(ids.shape[0]):
