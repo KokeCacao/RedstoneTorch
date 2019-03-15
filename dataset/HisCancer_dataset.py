@@ -147,7 +147,7 @@ class HisCancerDataset(data.Dataset):
             folded_samplers[f]["train"] = SubsetRandomSampler(train_ids[f] + train_missing_ids[f])
             folded_samplers[f]["val"] = SubsetRandomSampler(cv_ids[f] + cv_missing_ids[f])
 
-            print("########## Fold {} ##########".format_map(f))
+            print("########## Fold {} ##########".format(f))
             train_labels = []
             cv_labels = []
             train_tumor = 0
