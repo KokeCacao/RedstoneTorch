@@ -453,8 +453,8 @@ class Densenet169(nn.Module):
         super(Densenet169, self).__init__()
         self.feature = DenseNet(num_init_features=96, growth_rate=48, block_config=(6, 12, 36, 24), num_classes=3070)
 
-        self.max_pool = nn.AdaptiveMaxPool2d((None, None), ceil_mode=True)
-        self.avg_pool = nn.AdaptiveAvgPool2d((None, None), ceil_mode=True)
+        # self.max_pool = nn.AdaptiveMaxPool2d((None, None))
+        # self.avg_pool = nn.AdaptiveAvgPool2d((None, None))
         self.linear_1 = nn.Linear(3070 + 2, 512, bias=True)
         self.linear_2 = nn.Linear(512, 256, bias=True)
         self.linear_3 = nn.Linear(256, 1, bias=True)
@@ -465,9 +465,14 @@ class Densenet169(nn.Module):
         self.elu = nn.ELU()
 
     def logits(self, x):
-        max_pool = self.max_pool(x)
-        avg_pool = self.avg_pool(x)
+        # max_pool = self.max_pool(x)
+        # avg_pool = self.avg_pool(x)
+        #
+        # print(max_pool.shape)
+        # print(avg_pool.shape)
 
+        max_pool, _ = torch.max(x, 1, keepdim=True)
+        avg_pool = torch.mean(x, 1, keepdim=True)
         x = x.view(x.size(0), -1)
         x = torch.cat([x, max_pool, avg_pool], 1)
 
