@@ -398,3 +398,14 @@ class Densenet169(nn.Module):
         x = self.logits(x)
 
         return x
+
+def densenet169():
+    model = Densenet169()
+    model_state = model.state_dict()
+
+    state_dict = model_zoo.load_url("https://download.pytorch.org/models/densenet169-b2777c0a.pth")
+
+    pretrained_state = {k: v for k, v in state_dict.items() if k in model_state and v.size() == model_state[k].size()}
+    model_state.update(pretrained_state)
+    model.load_state_dict(model_state, strict=False)
+    return model
