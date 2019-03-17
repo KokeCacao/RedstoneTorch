@@ -41,18 +41,13 @@ class HisCancerPrediction:
         """Used for Kaggle submission: predicts and encode all test images"""
         for fold, net in enumerate(self.nets):
             for threshold in self.thresholds:
-                pred_path = "{}-{}-F{}-T{}.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
-                if os.path.exists(pred_path):
-                    os.remove(pred_path)
-                    print("WARNING: delete file '{}'".format(pred_path))
                 prob_path = "{}-{}-F{}-T{}-Prob.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
                 if os.path.exists(prob_path):
                     os.remove(prob_path)
                     print("WARNING: delete file '{}'".format(prob_path))
 
-                with open(pred_path, 'a') as pred_file, open(prob_path, 'a') as prob_file:
-                    pred_file.write('Id,Label\n')
-                    prob_file.write('Id,True,Label\n')
+                with open(prob_path, 'a') as prob_file:
+                    prob_file.write('Id,Label\n')
 
                     test_loader = data.DataLoader(self.test_dataset,
                                                   batch_size=config.MODEL_BATCH_SIZE,
@@ -70,37 +65,31 @@ class HisCancerPrediction:
                     total_confidence = 0
 
                     print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
-                    for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
 
-                        if config.TRAIN_GPU_ARG: image = image.cuda()
-                        predicts = self.nets[0](image)
-                        predicts = torch.nn.Softmax()(predicts).detach().cpu().numpy()
-                        encodeds = list(self.test_dataset.multilabel_binarizer.inverse_transform(predicts > threshold))
+                    tta_list = []
+                    for tta in range(config.PREDICTION_TTA):
+                        tta_dict = []
+                        config.eval_index = config.eval_index + 1
+                        for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
 
-                        confidence = np.absolute(predicts-0.5).mean()+0.5
-                        total_confidence = total_confidence + confidence
-                        pbar.set_description("Thres:{} Id:{} Confidence:{}/{} Out:{}".format(threshold, ids[0].replace("data/HisCancer_dataset/test/", "").replace(".npy", ""), confidence, total_confidence/(batch_index+1), encodeds[0]))
+                            if config.TRAIN_GPU_ARG: image = image.cuda()
+                            predicts = self.nets[fold](image)
+                            predicts = torch.nn.Softmax()(predicts).detach().cpu().numpy()
 
-                        for id, encoded, predict in zip(ids, encodeds, predicts):
-                            # id = id.replace("data/HisCancer_dataset/test/", "").replace(".npy", "")
-                            pred_file.write('{},{}\n'.format(id, " ".join(str(x) for x in encoded)))
-                            prob_file.write('{},{}\n'.format(id, " ".join(str(x) for x in predict)))
+                            confidence = np.absolute(predicts-0.5).mean()+0.5
+                            total_confidence = total_confidence + confidence
+                            pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0].replace("data/HisCancer_dataset/test/", "").replace(".npy", ""), confidence, total_confidence/(batch_index+1)))
 
-                        del ids, image, labels_0, image_for_display, predicts, encodeds
-                        if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-                """TURNING THRESHOLD"""
+                            for id, predict in zip(ids, predicts):
+                                id = id.replace("data/HisCancer_dataset/test/", "").replace(".npy", "")
+                                tta_dict.append('{},{}\n'.format(id, str(predict[1])))
 
+                                # prob_file.write('{},{}\n'.format(id, " ".join(str(x) for x in predict)))
 
-                """ORGANIZE"""
-                def sort(dir_sample, dir_save):
-                    f1 = pd.read_csv(dir_sample)
-                    f1.drop('Label', axis=1, inplace=True)
-                    f2 = pd.read_csv(dir_save)
-                    f1 = f1.merge(f2, left_on='Id', right_on='Id', how='outer')
-                    os.remove(dir_save)
-                    f1.to_csv(dir_save, index=False)
+                            del ids, image, labels_0, image_for_display, predicts
+                            if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                        tta_list.append(tta_dict)
 
-                sort(config.DIRECTORY_SAMPLE_CSV, pred_path)
-                sort(config.DIRECTORY_SAMPLE_CSV, prob_path)
-                print("Pred_path: {}".format(pred_path))
-                print("Prob_path: {}".format(prob_path))
+                    for tta in tta_list:
+                        for item in tta:
+                            prob_file.write(item)
