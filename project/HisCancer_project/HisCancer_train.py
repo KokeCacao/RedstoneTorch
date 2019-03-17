@@ -247,9 +247,8 @@ class HisCancerTrain:
                                     paras.requires_grad = True
                 if config.MODEL_LEARNING_RATE_AFTER_UNFREEZE != 0:
                     print("Reset Learning Rate to {}".format(config.MODEL_LEARNING_RATE_AFTER_UNFREEZE))
-                    for optim in self.optimizers:
-                        for g in optim.param_groups:
-                            g['lr'] = config.MODEL_LEARNING_RATE_AFTER_UNFREEZE
+                    for g in optimizer.param_groups:
+                        g['lr'] = config.MODEL_LEARNING_RATE_AFTER_UNFREEZE
 
             # import pdb; pdb.set_trace() #1357Mb -> 1215Mb
             """Switch Optimizers"""
