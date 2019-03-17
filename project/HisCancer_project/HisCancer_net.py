@@ -469,12 +469,6 @@ class Densenet169(nn.Module):
         max_pool = self.max_pool(x).flatten(1)
         avg_pool = self.avg_pool(x).flatten(1)
 
-        print(max_pool.shape)
-        print(avg_pool.shape)
-        # print(x.shape)
-        # x = x.flatten(1)
-        # x = self.linear_pool(x)
-        # print(x.shape)
         x = torch.cat([max_pool, avg_pool], 1)
 
         x = self.bn_1(x)
