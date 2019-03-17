@@ -111,7 +111,7 @@ class HisCancerPrediction:
                     tta_list = []
                     tta_pbar = tqdm(range(config.PREDICTION_TTA))
                     for tta in tta_pbar:
-                        tta_dict = []
+                        tta_dict = dict()
                         config.eval_index = config.eval_index + 1
                         total_confidence = 0
                         pbar = tqdm(test_loader)
@@ -126,7 +126,7 @@ class HisCancerPrediction:
                             pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0].replace("data/HisCancer_dataset/test/", "").replace(".npy", ""), confidence, total_confidence/(batch_index+1)))
 
                             for id, predict in zip(ids, predicts):
-                                tta_dict.append('{},{}\n'.format(id.replace("data/HisCancer_dataset/test/", "").replace(".npy", ""), str(predict[1])))
+                                tta_dict[id.replace("data/HisCancer_dataset/test/", "").replace(".npy", "")]=('{}'.format(str(predict[1])))
 
                                 # prob_file.write('{},{}\n'.format(id, " ".join(str(x) for x in predict)))
 
@@ -135,9 +135,9 @@ class HisCancerPrediction:
                         tta_list.append(tta_dict)
 
 
-                    for tta in tta_list:
-                        for item in tta:
-                            prob_file.write(item)
+                    for item in tta_list[0].keys():
+                        pred = ",".join(tta_list[i][item] for i in range(len(tta_list)))
+                        prob_file.write("{},{}\n".format(item, pred))
 
                     print("TTA_path: {}".format(tta_path))
 
