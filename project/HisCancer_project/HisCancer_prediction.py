@@ -74,7 +74,7 @@ class HisCancerPrediction:
 
                     confidence = np.absolute(predicts - 0.5).mean() + 0.5
                     total_confidence = total_confidence + confidence
-                    pbar.set_description("Thres:{} Id:{} Confidence:{}/{} Out:{}".format(threshold, ids[0].replace("data/HisCancer_dataset/test/", "").replace(".npy", ""), confidence, total_confidence / (batch_index + 1), encodeds[0]))
+                    pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0].replace("data/HisCancer_dataset/test/", "").replace(".npy", ""), confidence, total_confidence / (batch_index + 1)))
 
                     for id, predict in zip(ids, predicts):
                         prob_file.write('{},{}\n'.format(id, " ".join(str(x) for x in predict)))
@@ -105,15 +105,16 @@ class HisCancerPrediction:
                                                   timeout=0,
                                                   worker_init_fn=None,
                                                   )
-                    pbar = tqdm(test_loader)
 
                     print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
 
                     tta_list = []
-                    for tta in range(config.PREDICTION_TTA):
+                    tta_pbar = tqdm(range(config.PREDICTION_TTA))
+                    for tta in tta_pbar:
                         tta_dict = []
                         config.eval_index = config.eval_index + 1
                         total_confidence = 0
+                        pbar = tqdm(test_loader)
                         for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
 
                             if config.TRAIN_GPU_ARG: image = image.cuda()
