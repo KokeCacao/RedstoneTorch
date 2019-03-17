@@ -82,13 +82,15 @@ class HisCancerPrediction:
                     del ids, image, labels_0, image_for_display, predicts
                     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
-                """TTA"""
-                prob_path = "{}-{}-F{}-T{}-Prob-TTA.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
-                if os.path.exists(prob_path):
-                    os.remove(prob_path)
-                    print("WARNING: delete file '{}'".format(prob_path))
+                print("Prob_path: {}".format(prob_path))
 
-                with open(prob_path, 'a') as prob_file:
+                """TTA"""
+                tta_path = "{}-{}-F{}-T{}-Prob-TTA.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
+                if os.path.exists(tta_path):
+                    os.remove(tta_path)
+                    print("WARNING: delete file '{}'".format(tta_path))
+
+                with open(tta_path, 'a') as prob_file:
                     prob_file.write('Id,Label\n')
 
                     test_loader = data.DataLoader(self.test_dataset,
@@ -136,4 +138,6 @@ class HisCancerPrediction:
                     for tta in tta_list:
                         for item in tta:
                             prob_file.write(item)
+
+                    print("TTA_path: {}".format(tta_path))
 
