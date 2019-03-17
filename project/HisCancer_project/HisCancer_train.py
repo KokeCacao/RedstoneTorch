@@ -234,23 +234,23 @@ class HisCancerTrain:
 
         evaluation = HisCancerEvaluation(self.writer, self.dataset.multilabel_binarizer)
         for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
-            """UNFREEZE"""
-            if config.epoch == config.MODEL_EPOCH_UNFREEZE_ALL:
-                for i, c in enumerate(net.children()):
-                    if len(config.MODEL_NO_GRAD) > i:
-                        l = config.MODEL_NO_GRAD[i]
-                        for child_counter, child in enumerate(list(c.children())):
-                            if child_counter in l or l == [-1]:
-                                print("Enable Gradient for child_counter: {}".format(child_counter))
-                                tensorboardwriter.write_text(self.writer, "Unfreeze all layers at epoch: {}".format(config.epoch), config.global_steps[fold])
-                                for paras in child.parameters():
-                                    paras.requires_grad = True
-                if config.MODEL_LEARNING_RATE_AFTER_UNFREEZE != 0:
-                    config.MODEL_BATCH_SIZE = config.MODEL_BATCH_SIZE/8
-                    print("Decrease batch size by 4, current batch size = {}".format(config.MODEL_BATCH_SIZE))
-                    print("Reset Learning Rate to {}".format(config.MODEL_LEARNING_RATE_AFTER_UNFREEZE))
-                    for g in optimizer.param_groups:
-                        g['lr'] = config.MODEL_LEARNING_RATE_AFTER_UNFREEZE
+            # """UNFREEZE"""
+            # if config.epoch == config.MODEL_EPOCH_UNFREEZE_ALL:
+            #     for i, c in enumerate(net.children()):
+            #         if len(config.MODEL_NO_GRAD) > i:
+            #             l = config.MODEL_NO_GRAD[i]
+            #             for child_counter, child in enumerate(list(c.children())):
+            #                 if child_counter in l or l == [-1]:
+            #                     print("Enable Gradient for child_counter: {}".format(child_counter))
+            #                     tensorboardwriter.write_text(self.writer, "Unfreeze all layers at epoch: {}".format(config.epoch), config.global_steps[fold])
+            #                     for paras in child.parameters():
+            #                         paras.requires_grad = True
+            #     if config.MODEL_LEARNING_RATE_AFTER_UNFREEZE != 0:
+            #         config.MODEL_BATCH_SIZE = config.MODEL_BATCH_SIZE/4
+            #         print("Decrease batch size by 4, current batch size = {}".format(config.MODEL_BATCH_SIZE))
+            #         print("Reset Learning Rate to {}".format(config.MODEL_LEARNING_RATE_AFTER_UNFREEZE))
+            #         for g in optimizer.param_groups:
+            #             g['lr'] = config.MODEL_LEARNING_RATE_AFTER_UNFREEZE
 
             # import pdb; pdb.set_trace() #1357Mb -> 1215Mb
             """Switch Optimizers"""
