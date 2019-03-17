@@ -49,38 +49,38 @@ class HisCancerPrediction:
                 with open(prob_path, 'a') as prob_file:
                     prob_file.write('Id,Label\n')
 
-                test_loader = data.DataLoader(self.test_dataset,
-                                              batch_size=config.MODEL_BATCH_SIZE,
-                                              shuffle=False,
-                                              sampler=SubsetRandomSampler(self.test_dataset.indices),
-                                              batch_sampler=None,
-                                              num_workers=config.TRAIN_NUM_WORKER,
-                                              collate_fn=test_collate,
-                                              pin_memory=True,
-                                              drop_last=False,
-                                              timeout=0,
-                                              worker_init_fn=None,
-                                              )
-                pbar = tqdm(test_loader)
-                total_confidence = 0
+                    test_loader = data.DataLoader(self.test_dataset,
+                                                  batch_size=config.MODEL_BATCH_SIZE,
+                                                  shuffle=False,
+                                                  sampler=SubsetRandomSampler(self.test_dataset.indices),
+                                                  batch_sampler=None,
+                                                  num_workers=config.TRAIN_NUM_WORKER,
+                                                  collate_fn=test_collate,
+                                                  pin_memory=True,
+                                                  drop_last=False,
+                                                  timeout=0,
+                                                  worker_init_fn=None,
+                                                  )
+                    pbar = tqdm(test_loader)
+                    total_confidence = 0
 
-                print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
+                    print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
 
-                for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+                    for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
 
-                    if config.TRAIN_GPU_ARG: image = image.cuda()
-                    predicts = self.nets[0](image)
-                    predicts = torch.nn.Softmax()(predicts).detach().cpu().numpy()
+                        if config.TRAIN_GPU_ARG: image = image.cuda()
+                        predicts = self.nets[0](image)
+                        predicts = torch.nn.Softmax()(predicts).detach().cpu().numpy()
 
-                    confidence = np.absolute(predicts - 0.5).mean() + 0.5
-                    total_confidence = total_confidence + confidence
-                    pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0].replace("data/HisCancer_dataset/test/", "").replace(".npy", ""), confidence, total_confidence / (batch_index + 1)))
+                        confidence = np.absolute(predicts - 0.5).mean() + 0.5
+                        total_confidence = total_confidence + confidence
+                        pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0].replace("data/HisCancer_dataset/test/", "").replace(".npy", ""), confidence, total_confidence / (batch_index + 1)))
 
-                    for id, predict in zip(ids, predicts):
-                        prob_file.write('{},{}\n'.format(id, " ".join(str(x) for x in predict)))
+                        for id, predict in zip(ids, predicts):
+                            prob_file.write('{},{}\n'.format(id, str(predict[1])))
 
-                    del ids, image, labels_0, image_for_display, predicts
-                    if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                        del ids, image, labels_0, image_for_display, predicts
+                        if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
                 print("Prob_path: {}".format(prob_path))
 
