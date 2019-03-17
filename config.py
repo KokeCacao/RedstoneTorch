@@ -170,13 +170,15 @@ elif PROJECT_NAME == "HisCancer":
     MODEL_EPOCHS = 1000
     MODEL_BATCH_SIZE = 64
     MODEL_INIT_LEARNING_RATE = 0.001
+    MODEL_LEARNING_RATE_AFTER_UNFREEZE = 0.0001
     MODEL_MIN_LEARNING_RATE = 0.00007
     MODEL_COS_LEARNING_RATE_PERIOD = 1000
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DECAY = 0.0001
     MODEL_FOLD = 10
     MODEL_TRAIN_FOLD = [0]
-    MODEL_NO_GRAD = [[], [], [], [], [], [], [], []]
+    MODEL_NO_GRAD = [[-1], [], [], [], [], [], [], []]
+    MODEL_EPOCH_UNFREEZE_ALL = 4
 
     TRAIN_GPU_DICT = {
         "kokecacao-ThinkPad-P50-Ubuntu": "0",

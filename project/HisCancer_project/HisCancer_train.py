@@ -47,21 +47,25 @@ class HisCancerTrain:
 
         for fold in range(config.MODEL_FOLD):
             if fold not in config.MODEL_TRAIN_FOLD:
-                print("     Skipping dataset = HisCancerDataset(config.DIRECTORY_CSV,old: #{})".format(fold))
+                print("     Skipping dataset = HisCancerDataset(config.DIRECTORY_CSV, fold: #{})".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))
-                net = HisCancer_net.se_resnext50_32x4d(config.TRAIN_NUM_CLASS, pretrained="imagenet", dropout_p=0.2)
+                # net = HisCancer_net.se_resnext50_32x4d(config.TRAIN_NUM_CLASS, pretrained="imagenet", dropout_p=0.2)
+                net = HisCancer_net.Densenet169()
 
                 """FREEZING LAYER"""
                 for i, c in enumerate(net.children()):
-                    l = config.MODEL_NO_GRAD[i]
-                    for child_counter, child in enumerate(list(c.children())):
-                        if child_counter in l:
-                            print("Disable Gradient for child_counter: {}".format(child_counter))
-                            for paras in child.parameters():
-                                paras.requires_grad = False
-                        else:
-                            print("Enable Gradient for child_counter: {}".format(child_counter))
+                    if len(config.MODEL_NO_GRAD) > i:
+                        l = config.MODEL_NO_GRAD[i]
+                        for child_counter, child in enumerate(list(c.children())):
+                            if child_counter in l or l == [-1]:
+                                print("Disable Gradient for child_counter: {}".format(child_counter))
+                                for paras in child.parameters():
+                                    paras.requires_grad = False
+                            else:
+                                print("Enable Gradient for child_counter: {}".format(child_counter))
+                    else:
+                        print("Enable Gradient for layer: {} (default)".format(i))
 
                 if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
@@ -230,6 +234,23 @@ class HisCancerTrain:
 
         evaluation = HisCancerEvaluation(self.writer, self.dataset.multilabel_binarizer)
         for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
+            """UNFREEZE"""
+            if config.epoch == config.MODEL_EPOCH_UNFREEZE_ALL:
+                for i, c in enumerate(net.children()):
+                    if len(config.MODEL_NO_GRAD) > i:
+                        l = config.MODEL_NO_GRAD[i]
+                        for child_counter, child in enumerate(list(c.children())):
+                            if child_counter in l or l == [-1]:
+                                print("Enable Gradient for child_counter: {}".format(child_counter))
+                                tensorboardwriter.write_text(self.writer, "Unfreeze all layers at epoch: {}".format(config.epoch), config.global_steps[fold])
+                                for paras in child.parameters():
+                                    paras.requires_grad = True
+                if config.MODEL_LEARNING_RATE_AFTER_UNFREEZE != 0:
+                    print("Reset Learning Rate to {}".format(config.MODEL_LEARNING_RATE_AFTER_UNFREEZE))
+                    for optim in self.optimizers:
+                        for g in optim.param_groups:
+                            g['lr'] = config.MODEL_LEARNING_RATE_AFTER_UNFREEZE
+
             # import pdb; pdb.set_trace() #1357Mb -> 1215Mb
             """Switch Optimizers"""
             # if config.epoch == 50:
@@ -547,14 +568,14 @@ class HisCancerEvaluation:
                 self.f1_losses = np.append(self.f1_losses, f1.mean())
                 focal_losses = np.append(focal_losses, focal_mean)
 
-                confidence = np.absolute(logits_predict - 0.5).mean() + 0.5
+                confidence = np.absolute(prob_predict - 0.5).mean() + 0.5
                 total_confidence = total_confidence + confidence
 
                 """PRINT"""
                 # label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
                 # pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(prob_predict>0.5)[0])
                 # pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(int(config.global_steps[fold]), label, pred, left))
-                pbar.set_description("(E{}F{}I{}) Focal:{} F1:{} Confidence:{}".format(config.epoch, config.fold, config.eval_index, focal_mean, f1.mean(), total_confidence/(batch_index+1)))
+                pbar.set_description("(E{}F{}I{}) Focal:{} F1:{} Conf:{}".format(config.epoch, config.fold, config.eval_index, focal_mean, f1.mean(), total_confidence/(batch_index+1)))
                 # if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(focal.flatten())
                 predict_total = np.concatenate((predict_total, prob_predict), axis=0) if predict_total is not None else prob_predict
                 label_total = np.concatenate((label_total, labels_0), axis=0) if label_total is not None else labels_0
