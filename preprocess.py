@@ -54,4 +54,14 @@ if __name__ == '__main__':
         # print("=> Loading neuronetwork...")
 
         # preprocess = project.qubo_project.qubo_preprocess.QUBOPreprocess()
-        preprocess = project.HisCancer_project.HisCancer_preprocess.HisCancerPreprocess(from_dir=config.DIRECTORY_TEST, to_dir=config.DIRECTORY_TEST)
+
+        try:
+            preprocess = project.HisCancer_project.HisCancer_preprocess.HisCancerPreprocess(from_dir=config.DIRECTORY_TEST, to_dir=config.DIRECTORY_TEST)
+        except Exception as e:
+            if not isinstance(e, KeyboardInterrupt):
+                os.system("sudo shutdown -P +20")
+                print("""
+                    WARNING: THE SYSTEM WILL SHUTDOWN
+                    Use command: sudo shutdown -c
+                """)
+            raise

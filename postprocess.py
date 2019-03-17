@@ -1,3 +1,4 @@
+import os
 import sys
 from optparse import OptionParser
 
@@ -48,4 +49,13 @@ if __name__ == '__main__':
 
         reproduceability()
 
-        postprocess = project.HisCancer_project.HisCancer_postprocess.HisCancerPostprocess(writer)
+        try:
+            postprocess = project.HisCancer_project.HisCancer_postprocess.HisCancerPostprocess(writer)
+        except Exception as e:
+            if not isinstance(e, KeyboardInterrupt):
+                os.system("sudo shutdown -P +20")
+                print("""
+                    WARNING: THE SYSTEM WILL SHUTDOWN
+                    Use command: sudo shutdown -c
+                """)
+            raise

@@ -77,7 +77,7 @@ class HisCancerPrediction:
                         pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0].replace("data/HisCancer_dataset/test/", "").replace(".npy", ""), confidence, total_confidence / (batch_index + 1)))
 
                         for id, predict in zip(ids, predicts):
-                            prob_file.write('{},{}\n'.format(id, str(predict[1])))
+                            prob_file.write('{},{}\n'.format(id.replace("data/HisCancer_dataset/test/", "").replace(".npy", ""), str(predict[1])))
 
                         del ids, image, labels_0, image_for_display, predicts
                         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
@@ -126,8 +126,7 @@ class HisCancerPrediction:
                             pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0].replace("data/HisCancer_dataset/test/", "").replace(".npy", ""), confidence, total_confidence/(batch_index+1)))
 
                             for id, predict in zip(ids, predicts):
-                                id = id.replace("data/HisCancer_dataset/test/", "").replace(".npy", "")
-                                tta_dict.append('{},{}\n'.format(id, str(predict[1])))
+                                tta_dict.append('{},{}\n'.format(id.replace("data/HisCancer_dataset/test/", "").replace(".npy", ""), str(predict[1])))
 
                                 # prob_file.write('{},{}\n'.format(id, " ".join(str(x) for x in predict)))
 

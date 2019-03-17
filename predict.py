@@ -1,3 +1,4 @@
+import os
 import sys
 from optparse import OptionParser
 
@@ -48,6 +49,13 @@ if __name__ == '__main__':
 
         reproduceability()
 
-        # test = project.hpa_project.hpa_prediction.HPATest(writer)
-        # prediction = project.hpa_project.hpa_prediction.HPAPrediction(writer)
-        prediction = project.HisCancer_project.HisCancer_prediction.HisCancerPrediction(writer)
+        try:
+            prediction = project.HisCancer_project.HisCancer_prediction.HisCancerPrediction(writer)
+        except Exception as e:
+            if not isinstance(e, KeyboardInterrupt):
+                os.system("sudo shutdown -P +20")
+                print("""
+                    WARNING: THE SYSTEM WILL SHUTDOWN
+                    Use command: sudo shutdown -c
+                """)
+            raise
