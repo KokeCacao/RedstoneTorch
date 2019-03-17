@@ -360,8 +360,8 @@ class Densenet169(nn.Module):
         super(Densenet169, self).__init__()
         self.feature = models.densenet169(pretrained=False, num_classes=3070)
 
-        self.max_pool = nn.AdaptiveMaxPool2d(None)
-        self.avg_pool = nn.AdaptiveAvgPool2d(None)
+        self.max_pool = nn.AdaptiveMaxPool2d((None, None))
+        self.avg_pool = nn.AdaptiveAvgPool2d((None, None))
         self.linear_1 = nn.Linear(3070 + 2, 512, bias=True)
         self.linear_2 = nn.Linear(512, 256, bias=True)
         self.linear_3 = nn.Linear(256, 1, bias=True)
