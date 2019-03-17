@@ -453,8 +453,8 @@ class Densenet169(nn.Module):
         super(Densenet169, self).__init__()
         self.feature = DenseNet(num_init_features=96, growth_rate=48, block_config=(6, 12, 36, 24), num_classes=3070)
 
-        self.max_pool = nn.AdaptiveMaxPool2d((None, None))
-        self.avg_pool = nn.AdaptiveAvgPool2d((None, None))
+        self.max_pool = nn.AdaptiveMaxPool2d((None, None), ceil_mode=True)
+        self.avg_pool = nn.AdaptiveAvgPool2d((None, None), ceil_mode=True)
         self.linear_1 = nn.Linear(3070 + 2, 512, bias=True)
         self.linear_2 = nn.Linear(512, 256, bias=True)
         self.linear_3 = nn.Linear(256, 1, bias=True)
