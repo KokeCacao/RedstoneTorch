@@ -246,7 +246,7 @@ class HisCancerTrain:
                                 for paras in child.parameters():
                                     paras.requires_grad = True
                 if config.MODEL_LEARNING_RATE_AFTER_UNFREEZE != 0:
-                    config.MODEL_BATCH_SIZE = config.MODEL_BATCH_SIZE/4
+                    config.MODEL_BATCH_SIZE = config.MODEL_BATCH_SIZE/8
                     print("Decrease batch size by 4, current batch size = {}".format(config.MODEL_BATCH_SIZE))
                     print("Reset Learning Rate to {}".format(config.MODEL_LEARNING_RATE_AFTER_UNFREEZE))
                     for g in optimizer.param_groups:
