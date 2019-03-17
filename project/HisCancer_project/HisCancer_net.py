@@ -455,8 +455,8 @@ class Densenet169(nn.Module):
 
         self.max_pool = nn.AdaptiveMaxPool2d(1)
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        self.linear_pool = nn.Linear(num_classes, 256, bias=True)
-        self.linear_1 = nn.Linear(num_classes+num_classes+256, 512, bias=True)
+        # self.linear_pool = nn.Linear(108192, 128, bias=True)
+        self.linear_1 = nn.Linear(num_classes+num_classes, 512, bias=True)
         self.linear_2 = nn.Linear(512, 256, bias=True)
         self.linear_3 = nn.Linear(256, 1, bias=True)
         self.bn_1 = nn.BatchNorm1d(3070 + 2)
@@ -471,11 +471,11 @@ class Densenet169(nn.Module):
 
         print(max_pool.shape)
         print(avg_pool.shape)
-        print(x.shape)
-        x = x.flatten(1)
-        x = self.linear_pool(x)
-        print(x.shape)
-        x = torch.cat([x, max_pool, avg_pool], 1)
+        # print(x.shape)
+        # x = x.flatten(1)
+        # x = self.linear_pool(x)
+        # print(x.shape)
+        x = torch.cat([max_pool, avg_pool], 1)
 
         x = self.bn_1(x)
         x = self.dropout(x)
