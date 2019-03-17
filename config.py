@@ -176,7 +176,7 @@ elif PROJECT_NAME == "HisCancer":
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DECAY = 0.0001
     MODEL_FOLD = 10
-    MODEL_TRAIN_FOLD = [0]
+    MODEL_TRAIN_FOLD = [1]
     MODEL_NO_GRAD = [[-1], [], [], [], [], [], [], []]
     MODEL_EPOCH_UNFREEZE_ALL = 4
 

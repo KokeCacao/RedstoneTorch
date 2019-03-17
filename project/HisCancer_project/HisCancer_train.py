@@ -50,8 +50,8 @@ class HisCancerTrain:
                 print("     Skipping dataset = HisCancerDataset(config.DIRECTORY_CSV, fold: #{})".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))
-                net = HisCancer_net.se_resnext50_32x4d(config.TRAIN_NUM_CLASS, pretrained="imagenet", dropout_p=0.2)
-                # net = HisCancer_net.Densenet169()
+                # net = HisCancer_net.se_resnext50_32x4d(config.TRAIN_NUM_CLASS, pretrained="imagenet", dropout_p=0.2)
+                net = HisCancer_net.Densenet169()
 
                 """FREEZING LAYER"""
                 for i, c in enumerate(net.children()):
