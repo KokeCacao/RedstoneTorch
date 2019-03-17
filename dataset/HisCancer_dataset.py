@@ -122,7 +122,7 @@ class HisCancerDataset(data.Dataset):
             train_indice[f] = [self.id_to_indices[ii] for i in train_index for ii in wsi_dict[wsi_keys[i]]]
             cv_indice[f] = [self.id_to_indices[ii] for i in test_index for ii in wsi_dict[wsi_keys[i]]]
             if f == 0:
-                print("Today, you lucky image is: {} and {}".format(train_indice[0][config.TRAIN_SEED], cv_indice[0][config.TRAIN_SEED]))
+                print("Today, you lucky number is: {} and {}".format(train_indice[0][config.TRAIN_SEED], cv_indice[0][config.TRAIN_SEED]))
                 _ = np.concatenate((train_indice[f], cv_indice[f])).flatten()
                 total_ids = set(self.indices_to_id[i] for i in _)
 
@@ -138,7 +138,7 @@ class HisCancerDataset(data.Dataset):
             # print("TRAIN:", train_index, "TEST:", test_index)
             train_missing_ids[f] = [self.id_to_indices[missing_ids[i]] for i in train_index]
             cv_missing_ids[f] = [self.id_to_indices[missing_ids[i]] for i in test_index]
-            if f == 0: print("Today, you lucky image is: {} and {}".format(train_indice[0][config.TRAIN_SEED], cv_indice[0][config.TRAIN_SEED]))
+            if f == 0: print("Today, you lucky number is: {} and {}".format(train_missing_ids[0][config.TRAIN_SEED], cv_missing_ids[0][config.TRAIN_SEED]))
 
         for f in range(fold):
             folded_samplers[f] = dict()
