@@ -6,8 +6,10 @@ from __future__ import print_function, division, absolute_import
 from collections import OrderedDict
 import math
 
+import torch
 import torch.nn as nn
 from torch.utils import model_zoo
+from torchvision import models
 
 __all__ = ['SENet',
            'se_resnext50_32x4d',]
@@ -269,10 +271,11 @@ class SENet(nn.Module):
             downsample_kernel_size=downsample_kernel_size,
             downsample_padding=downsample_padding
         )
-        self.avg_pool = nn.AvgPool2d(7, stride=1)
+        self.max_pool = nn.AdaptiveMaxPool2d(None)
+        self.avg_pool = nn.AdaptiveAvgPool2d(None)
+        self.bn = nn.BatchNorm1d(512*14*14+2)
         self.dropout = nn.Dropout(dropout_p) if dropout_p is not None else None
-        # self.last_linear = nn.Linear(512 * block.expansion, num_classes)
-        self.last_linear = nn.Linear(512*14*14, num_classes) # removed avg pool
+        self.classifier = nn.Linear(512*14*14+2, num_classes)
 
     def _make_layer(self, block, planes, blocks, groups, reduction, stride=1,
                     downsample_kernel_size=1, downsample_padding=0):
@@ -303,11 +306,17 @@ class SENet(nn.Module):
         return x
 
     def logits(self, x):
-        # x = self.avg_pool(x)
+        max_pool = self.max_pool(x)
+        avg_pool = self.avg_pool(x)
+
+        x = x.view(x.size(0), -1)
+        x = torch.cat((x, max_pool, avg_pool), 1)
+
+        x = self.bn(x)
         if self.dropout is not None:
             x = self.dropout(x)
-        x = x.view(x.size(0), -1)
-        x = self.last_linear(x)
+        x = self.classifier(x)
+
         return x
 
     def forward(self, x):
@@ -335,12 +344,55 @@ def modified_initialize_pretrained_model(model, num_classes, settings):
     model.load_state_dict(model_state, strict=False)
 
 
-def se_resnext50_32x4d(num_classes=1000, pretrained='imagenet'):
+def se_resnext50_32x4d(num_classes=1000, pretrained='imagenet', dropout_p=None):
     model = SENet(SEResNeXtBottleneck, [3, 4, 6, 3], groups=32, reduction=16,
-                  dropout_p=None, inplanes=64, input_3x3=False,
+                  dropout_p=dropout_p, inplanes=64, input_3x3=False,
                   downsample_kernel_size=1, downsample_padding=0,
                   num_classes=num_classes)
     if pretrained is not None:
         settings = pretrained_settings['se_resnext50_32x4d'][pretrained]
         modified_initialize_pretrained_model(model, num_classes, settings)
     return model
+
+
+class Densenet169(nn.Module):
+    def __init__(self):
+        super(Densenet169, self).__init__()
+        self.feature = models.densenet169(pretrained=True, num_classes=3070)
+
+        self.linear_1 = nn.Linear(3070 + 2, 512, bias=True)
+        self.linear_2 = nn.Linear(512, 256, bias=True)
+        self.linear_3 = nn.Linear(256, 1, bias=True)
+        self.bn_1 = nn.BatchNorm1d(3070 + 2)
+        self.bn_2 = nn.BatchNorm1d(512)
+        self.bn_3 = nn.BatchNorm1d(256)
+        self.dropout = nn.Dropout(0.8)
+        self.elu = nn.ELU()
+
+    def logits(self, x):
+        max_pool = self.max_pool(x)
+        avg_pool = self.avg_pool(x)
+
+        x = x.view(x.size(0), -1)
+        x = torch.cat((x, max_pool, avg_pool), 1)
+
+        x = self.bn_1(x)
+        x = self.dropout(x)
+        x = self.linear_1(x)
+        x = self.elu(x)
+
+        x = self.bn_2(x)
+        x = self.dropout(x)
+        x = self.linear_2(x)
+        x = self.elu(x)
+
+        x = self.bn_3(x)
+        x = self.dropout(x)
+        x = self.linear_3(x)
+        return x
+
+    def forward(self, x):
+        x = self.feature(x)
+        x = self.logits(x)
+
+        return x
