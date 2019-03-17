@@ -123,9 +123,8 @@ class HisCancerDataset(data.Dataset):
             cv_indice[f] = [self.id_to_indices[ii] for i in test_index for ii in wsi_dict[wsi_keys[i]]]
             if f == 0:
                 print("Today, you lucky image is: {} and {}".format(train_indice[0][config.TRAIN_SEED], cv_indice[0][config.TRAIN_SEED]))
-                total_ids = np.concatenate((train_indice[f], cv_indice[f])).flatten()
-                for i in total_ids:
-                    total_ids[i] = self.indices_to_id[i]
+                _ = np.concatenate((train_indice[f], cv_indice[f])).flatten()
+                total_ids = [self.indices_to_id[i] for i in _]
 
         # dic = create_dict()
         missing_ids = find_missing(total_ids)
