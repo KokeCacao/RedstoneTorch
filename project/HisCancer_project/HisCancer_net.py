@@ -469,7 +469,7 @@ class Densenet169(nn.Module):
         avg_pool = self.avg_pool(x)
 
         x = x.view(x.size(0), -1)
-        x = torch.cat((x, max_pool, avg_pool), 1)
+        x = torch.cat([x, max_pool, avg_pool], 1)
 
         x = self.bn_1(x)
         x = self.dropout(x)
