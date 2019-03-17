@@ -176,7 +176,7 @@ elif PROJECT_NAME == "HisCancer":
     MODEL_FOLD = 10
     MODEL_TRAIN_FOLD = [2]
     MODEL_NO_GRAD = [[-1], [], [], [], [], [], [], []]
-    MODEL_EPOCH_UNFREEZE_ALL = 5
+    MODEL_EPOCH_UNFREEZE_ALL = 6
 
     TRAIN_GPU_DICT = {
         "kokecacao-ThinkPad-P50-Ubuntu": "0",
