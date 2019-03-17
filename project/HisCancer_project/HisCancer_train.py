@@ -268,17 +268,17 @@ class HisCancerTrain:
             optimizer = load.move_optimizer_to_cpu(optimizer) #3299Mb
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache() #1215Mb
 
-        """DISPLAY"""
-        best_id, best_loss = evaluation.best()
-        worst_id, worst_loss = evaluation.worst()
-        for fold, (best_id, best_loss, worst_id, worst_loss) in enumerate(zip(best_id, best_loss, worst_id, worst_loss)):
-            best_img = self.dataset.get_load_image_by_id(best_id)
-            best_label = self.dataset.multilabel_binarizer.inverse_transform(np.expand_dims(self.dataset.get_load_label_by_id(best_id), axis=0))[0]
-            worst_img = self.dataset.get_load_image_by_id(worst_id)
-            worst_label = self.dataset.multilabel_binarizer.inverse_transform(np.expand_dims(self.dataset.get_load_label_by_id(worst_id), axis=0))[0]
-            # print("best_img.shape = {}".format(best_img.shape))
-            tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, fold=fold)
-            tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
+        # """DISPLAY"""
+        # best_id, best_loss = evaluation.best()
+        # worst_id, worst_loss = evaluation.worst()
+        # for fold, (best_id, best_loss, worst_id, worst_loss) in enumerate(zip(best_id, best_loss, worst_id, worst_loss)):
+        #     best_img = self.dataset.get_load_image_by_id(best_id)
+        #     best_label = self.dataset.multilabel_binarizer.inverse_transform(np.expand_dims(self.dataset.get_load_label_by_id(best_id), axis=0))[0]
+        #     worst_img = self.dataset.get_load_image_by_id(worst_id)
+        #     worst_label = self.dataset.multilabel_binarizer.inverse_transform(np.expand_dims(self.dataset.get_load_label_by_id(worst_id), axis=0))[0]
+        #     # print("best_img.shape = {}".format(best_img.shape))
+        #     tensorboardwriter.write_best_img(self.writer, img=best_img, label=best_label, id=best_id, loss=best_loss, fold=fold)
+        #     tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
 
         """LOSS"""
         f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
@@ -420,7 +420,7 @@ class HisCancerTrain:
 
                 soft_auc_macro = metrics.roc_auc_score(y_true=labels_0, y_score=prob_predict, average='macro')
                 soft_auc_micro = metrics.roc_auc_score(y_true=labels_0, y_score=prob_predict, average='micro')
-                left = self.dataset.multilabel_binarizer.inverse_transform((np.expand_dims((np.array(labels_0).sum(0) < 1).astype(np.byte), axis=0)))[0]
+                # left = self.dataset.multilabel_binarizer.inverse_transform((np.expand_dims((np.array(labels_0).sum(0) < 1).astype(np.byte), axis=0)))[0]
                 label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
                 pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(logits_predict > config.EVAL_THRESHOLD)[0])
                 pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Conf:{:.4f}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, total_confidence/(batch_index+1)))
@@ -492,10 +492,10 @@ class HisCancerEvaluation:
         # self.epoch_dict = np.array([]) # [fold_loss_dict]
         self.f1_losses = np.array([])
 
-        self.best_id = None
-        self.worst_id = None
-        self.best_loss = None
-        self.worst_loss = None
+        # self.best_id = None
+        # self.worst_id = None
+        # self.best_loss = None
+        # self.worst_loss = None
 
         self.epoch_pred = None
         self.epoch_label = None
@@ -505,10 +505,10 @@ class HisCancerEvaluation:
         predict_total = None
         label_total = None
 
-        self.best_id = []
-        self.worst_id = []
-        self.best_loss = []
-        self.worst_loss = []
+        # self.best_id = []
+        # self.worst_id = []
+        # self.best_loss = []
+        # self.worst_loss = []
 
         print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
         for eval_index in tqdm(range(config.EVAL_RATIO)):
@@ -533,19 +533,19 @@ class HisCancerEvaluation:
 
                 """EVALUATE LOSS"""
                 focal = focal.detach()
-                focal_min = focal.min().item()
-                focal_min_id = (focal == focal_min).nonzero()
-                focal_min_id = focal_min_id.view(focal_min_id.size(), -1)[0]
-                focal_min_id = ids[focal_min_id.cpu().numpy()[0]]
-                focal_max = focal.max().item()
-                focal_max_id = (focal == focal_max).nonzero()
-                focal_max_id = focal_max_id.view(focal_max_id.size(), -1)[0]
-                focal_max_id = ids[focal_max_id.cpu().numpy()[0]]
-                self.best_loss = np.append(self.best_loss, focal_min)
-                self.worst_loss = np.append(self.worst_loss, focal_max)
-                self.best_id = np.append(self.best_id, focal_min_id)
-                self.worst_id = np.append(self.worst_id, focal_max_id)
-                del focal_min, focal_min_id, focal_max, focal_max_id
+                # focal_min = focal.min().item()
+                # focal_min_id = (focal == focal_min).nonzero()
+                # focal_min_id = focal_min_id.view(focal_min_id.size(), -1)[0]
+                # focal_min_id = ids[focal_min_id.cpu().numpy()[0]]
+                # focal_max = focal.max().item()
+                # focal_max_id = (focal == focal_max).nonzero()
+                # focal_max_id = focal_max_id.view(focal_max_id.size(), -1)[0]
+                # focal_max_id = ids[focal_max_id.cpu().numpy()[0]]
+                # self.best_loss = np.append(self.best_loss, focal_min)
+                # self.worst_loss = np.append(self.worst_loss, focal_max)
+                # self.best_id = np.append(self.best_id, focal_min_id)
+                # self.worst_id = np.append(self.worst_id, focal_max_id)
+                # del focal_min, focal_min_id, focal_max, focal_max_id
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
                 """DETATCH"""
@@ -622,11 +622,11 @@ class HisCancerEvaluation:
     def f1_mean(self):
         return self.f1_losses.mean()
 
-    def best(self):
-        return (self.best_id, self.best_loss)
+    # def best(self):
+    #     return (self.best_id, self.best_loss)
 
-    def worst(self):
-        return (self.worst_id, self.worst_loss)
+    # def worst(self):
+    #     return (self.worst_id, self.worst_loss)
 
     def display(self, fold, ids, transfereds, untransfereds, labels, predicteds, losses):
         # tensorboardwriter.write_pr_curve(self.writer, labels, predicteds, config.global_steps[fold], fold)

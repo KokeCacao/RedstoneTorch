@@ -207,7 +207,7 @@ elif PROJECT_NAME == "HisCancer":
     PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + PROJECT_TAG
 
     DISPLAY_HISTOGRAM = False
-    DISPLAY_VISUALIZATION = True
+    DISPLAY_VISUALIZATION = False
     DISPLAY_SAVE_ONNX = False
 
     EVAL_IF_THRESHOLD_TEST = True
