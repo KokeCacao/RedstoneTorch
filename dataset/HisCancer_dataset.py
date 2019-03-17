@@ -76,17 +76,17 @@ class HisCancerDataset(data.Dataset):
         """.format(train_csv_dir, test_csv_dir, self.id_len, "?", config.TRAIN_DATA_PERCENT, len(self.labelframe), len(id), "?"))
 
     def get_wsl_samples(self, fold=-1):
-        def return_tumor_or_not(dic, one_id):
-            return dic[one_id]
-
-        def create_dict():
-            df = pd.read_csv("~/RedstoneTorch/data/HisCancer_dataset/train.csv")
-            result_dict = {}
-            for index in range(df.shape[0]):
-                one_id = df.iloc[index, 0]
-                tumor_or_not = df.iloc[index, 1]
-                result_dict[one_id] = int(tumor_or_not)
-            return result_dict
+        # def return_tumor_or_not(dic, one_id):
+        #     return dic[one_id]
+        #
+        # def create_dict():
+        #     df = pd.read_csv("~/RedstoneTorch/data/HisCancer_dataset/train.csv")
+        #     result_dict = {}
+        #     for index in range(df.shape[0]):
+        #         one_id = df.iloc[index, 0]
+        #         tumor_or_not = df.iloc[index, 1]
+        #         result_dict[one_id] = int(tumor_or_not)
+        #     return result_dict
 
         def find_missing(train_ids, cv_ids):
             all_ids = set(pd.read_csv("~/RedstoneTorch/data/HisCancer_dataset/train.csv")['Id'].values)
@@ -118,11 +118,12 @@ class HisCancerDataset(data.Dataset):
         kf = KFold(n_splits=fold, random_state=None, shuffle=False)
 
         for f, (train_index, test_index) in enumerate(kf.split(wsi_keys)):
-            print("TRAIN:", train_index, "TEST:", test_index)
+            # print("TRAIN:", train_index, "TEST:", test_index)
             train_ids[f] = [self.id_to_indices[ii] for i in train_index for ii in wsi_dict[wsi_keys[i]]]
             cv_ids[f] = [self.id_to_indices[ii] for i in test_index for ii in wsi_dict[wsi_keys[i]]]
+            if f == 0: print("Today, you lucky image is: {} and {}".format(train_ids[0][config.TRAIN_SEED], cv_ids[0][config.TRAIN_SEED]))
 
-        dic = create_dict()
+        # dic = create_dict()
         missing_ids = find_missing(train_ids[0], cv_ids[0])
         np.random.shuffle(missing_ids)
 
@@ -130,9 +131,10 @@ class HisCancerDataset(data.Dataset):
         cv_missing_ids = dict()
         kf = KFold(n_splits=fold, random_state=None, shuffle=False)
         for f, (train_index, test_index) in enumerate(kf.split(missing_ids)):
-            print("TRAIN:", train_index, "TEST:", test_index)
+            # print("TRAIN:", train_index, "TEST:", test_index)
             train_missing_ids[f] = [self.id_to_indices[missing_ids[i]] for i in train_index]
             cv_missing_ids[f] = [self.id_to_indices[missing_ids[i]] for i in test_index]
+            if f == 0: print("Today, you lucky image is: {} and {}".format(train_ids[0][config.TRAIN_SEED], cv_ids[0][config.TRAIN_SEED]))
 
         for f in range(fold):
             folded_samplers[f] = dict()
