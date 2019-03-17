@@ -465,16 +465,14 @@ class Densenet169(nn.Module):
         self.elu = nn.ELU()
 
     def logits(self, x):
-        # max_pool = self.max_pool(x)
-        # avg_pool = self.avg_pool(x)
-        #
-        # print(max_pool.shape)
-        # print(avg_pool.shape)
+        max_pool = self.max_pool(x)
+        avg_pool = self.avg_pool(x)
 
-        max_pool, _ = torch.max(x, 1, keepdim=True)
-        avg_pool = torch.mean(x, 1, keepdim=True)
-        x = x.view(x.size(0), -1)
+        print(max_pool.shape)
+        print(avg_pool.shape)
+        print(x.shape)
         x = torch.cat([x, max_pool, avg_pool], 1)
+        x = x.view(x.size(0), -1)
 
         x = self.bn_1(x)
         x = self.dropout(x)
