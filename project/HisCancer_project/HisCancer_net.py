@@ -358,7 +358,7 @@ def se_resnext50_32x4d(num_classes=1000, pretrained='imagenet', dropout_p=None):
 class Densenet169(nn.Module):
     def __init__(self):
         super(Densenet169, self).__init__()
-        self.feature = models.densenet169(pretrained=True, num_classes=3070)
+        self.feature = models.densenet169(pretrained=False, num_classes=3070)
 
         self.max_pool = nn.AdaptiveMaxPool2d(None)
         self.avg_pool = nn.AdaptiveAvgPool2d(None)
