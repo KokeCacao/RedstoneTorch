@@ -166,7 +166,7 @@ elif PROJECT_NAME == "HisCancer":
     DEBUG_LR_FINDER = False
 
     MODEL_EPOCHS = 1000
-    MODEL_BATCH_SIZE = 128
+    MODEL_BATCH_SIZE = 256
     MODEL_INIT_LEARNING_RATE = 0.001
     MODEL_LEARNING_RATE_AFTER_UNFREEZE = 0.0001
     MODEL_MIN_LEARNING_RATE = 0.00007
@@ -176,7 +176,7 @@ elif PROJECT_NAME == "HisCancer":
     MODEL_FOLD = 10
     MODEL_TRAIN_FOLD = [2]
     MODEL_NO_GRAD = [[-1], [], [], [], [], [], [], []]
-    MODEL_EPOCH_UNFREEZE_ALL = 4
+    MODEL_EPOCH_UNFREEZE_ALL = 8
 
     TRAIN_GPU_DICT = {
         "kokecacao-ThinkPad-P50-Ubuntu": "0",
