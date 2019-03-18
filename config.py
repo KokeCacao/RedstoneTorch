@@ -163,7 +163,7 @@ elif PROJECT_NAME == "HisCancer":
     DEBUG_TEST_CODE = False
     DEBUG_AUTO_SHUTDOWN = True
 
-    DEBUG_LR_FINDER = False
+    DEBUG_LR_FINDER = True
 
     MODEL_EPOCHS = 1000
     MODEL_BATCH_SIZE = 32
@@ -198,7 +198,7 @@ elif PROJECT_NAME == "HisCancer":
     # TRAIN_TRY_LR_FORMULA = lambda x: x / (8 * np.mod(-x - 1, 600) + 0.1) - 0.000207 * x  # y=x/(8*\operatorname{mod}(-x-1,600)+0.1)-0.000207*x
     TRAIN_RATIO = 1
     EVAL_RATIO = 1 # to 8 when needed
-    FIND_LR_RATIO = 20
+    FIND_LR_RATIO = 100
     FIND_LR_ON_VALIDATION = False
 
     PROJECT_TAG = "test"
