@@ -4,6 +4,8 @@ from tqdm.autonotebook import tqdm
 from torch.optim.lr_scheduler import _LRScheduler
 import matplotlib.pyplot as plt
 
+import tensorboardwriter
+
 
 class LRFinder(object):
     """Learning rate range test.
@@ -32,12 +34,13 @@ class LRFinder(object):
 
     """
 
-    def __init__(self, model, optimizer, criterion, device=None):
+    def __init__(self, model, optimizer, criterion, device=None, writer=None):
         self.model = model
         self.optimizer = optimizer
         self.criterion = criterion
         self.history = {"lr": [], "loss": []}
         self.best_loss = None
+        self.writer = writer
 
         # Save the original state of the model and optimizer so they can be restored if
         # needed
@@ -141,6 +144,7 @@ class LRFinder(object):
             # Check if the loss has diverged; if it has, stop the test
             self.history["loss"].append(loss)
             pbar.set_description_str("Finding Learning Rate... LR={}, Loss={}".format(lr_schedule.get_lr()[0], loss))
+            if self.writer: tensorboardwriter.write_find_lr(self.writer, loss,lr_schedule.get_lr()[0] )
             if loss > diverge_th * self.best_loss:
                 print("Stopping early, the loss has diverged")
                 break

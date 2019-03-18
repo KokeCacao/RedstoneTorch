@@ -25,6 +25,10 @@ def write_threshold(writer, classes, score, threshold, fold):
     writer.add_scalars('threshold/threshold_distribution/'.format(fold), {"Class/{}".format(classes): score}, threshold)
 
 
+def write_find_lr(writer, loss, lr):
+    writer.add_scalars('threshold/find_lr/', {"Find_LR": loss}, int(lr*100000))
+
+
 def write_best_threshold(writer, classes, score, threshold, epoch, fold):
     writer.add_scalars('threshold/best_threshold/{}'.format(fold), {"Threshold/{}".format(classes): threshold}, epoch)
 

@@ -163,7 +163,7 @@ elif PROJECT_NAME == "HisCancer":
     DEBUG_TEST_CODE = False
     DEBUG_AUTO_SHUTDOWN = True
 
-    DEBUG_LR_FINDER = True
+    DEBUG_LR_FINDER = False
 
     MODEL_EPOCHS = 1000
     MODEL_BATCH_SIZE = 32
@@ -199,6 +199,7 @@ elif PROJECT_NAME == "HisCancer":
     TRAIN_RATIO = 1
     EVAL_RATIO = 1 # to 8 when needed
     FIND_LR_RATIO = 20
+    FIND_LR_ON_VALIDATION = False
 
     PROJECT_TAG = "test"
     PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + PROJECT_TAG
