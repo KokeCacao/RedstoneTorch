@@ -138,7 +138,7 @@ class HisCancerTrain:
 
         if config.DEBUG_LR_FINDER:
             val_loader = data.DataLoader(self.dataset,
-                                         batch_size=config.MODEL_BATCH_SIZE,
+                                         batch_size=config.MODEL_BATCH_SIZE/2,
                                          shuffle=False,
                                          sampler=self.folded_samplers[0]["val"],
                                          batch_sampler=None,
@@ -151,7 +151,7 @@ class HisCancerTrain:
                                          ) if config.FIND_LR_ON_VALIDATION else None
             lr_finder = LRFinder(self.nets[0].cuda(), torch.optim.Adadelta(params=self.nets[0].parameters(), lr=0.00005, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DECAY), torch.nn.BCEWithLogitsLoss(), writer=self.writer)
             lr_finder.range_test(data.DataLoader(self.dataset,
-                                           batch_size=config.MODEL_BATCH_SIZE,
+                                           batch_size=config.MODEL_BATCH_SIZE/2,
                                            shuffle=False,
                                            sampler=self.folded_samplers[0]["train"],
                                            batch_sampler=None,
