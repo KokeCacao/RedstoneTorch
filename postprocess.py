@@ -33,6 +33,7 @@ if __name__ == '__main__':
     """
     PLAYGROUND
     """
+    os.system("sudo shutdown -c")
     config.DEBUG_TEST_CODE = False
     config.DEBUG_LAPTOP = False
     if not config.DEBUG_TEST_CODE:
