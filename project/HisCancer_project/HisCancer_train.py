@@ -149,7 +149,7 @@ class HisCancerTrain:
                                          timeout=0,
                                          worker_init_fn=None,
                                          ) if config.FIND_LR_ON_VALIDATION else None
-            lr_finder = LRFinder(self.nets[0].cuda(), torch.optim.Adadelta(params=self.nets[0].parameters(), lr=0.00005, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DECAY), torch.nn.BCEWithLogitsLoss(), writer=self.writer)
+            lr_finder = LRFinder(self.nets[0].cuda(), torch.optim.Adadelta(params=self.nets[0].parameters(), lr=0.00001, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DECAY), torch.nn.BCEWithLogitsLoss(), writer=self.writer)
             lr_finder.range_test(data.DataLoader(self.dataset,
                                            batch_size=config.MODEL_BATCH_SIZE/2,
                                            shuffle=False,
@@ -162,7 +162,7 @@ class HisCancerTrain:
                                            timeout=0,
                                            worker_init_fn=None,
                                            ), val_loader=val_loader, end_lr=1.0, num_iter=config.FIND_LR_RATIO, step_mode="exp")
-            tensorboardwriter.write_plot(self.writer, lr_finder.plot(skip_end=0), "lr_finder")
+            tensorboardwriter.write_plot(self.writer, lr_finder.plot(skip_start=0, skip_end=0, log_lr=False), "lr_finder")
             self.nets[0].cpu()
             lr_finder.reset()
 

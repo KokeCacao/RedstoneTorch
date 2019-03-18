@@ -26,7 +26,7 @@ def write_threshold(writer, classes, score, threshold, fold):
 
 
 def write_find_lr(writer, loss, lr):
-    writer.add_scalars('threshold/find_lr/', {"Find_LR": loss}, int(lr*100000))
+    writer.add_scalars('threshold/find_lr/', {"LRx100000": loss}, int(lr*100000))
 
 
 def write_best_threshold(writer, classes, score, threshold, epoch, fold):
