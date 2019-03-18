@@ -137,7 +137,7 @@ class HisCancerTrain:
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[0], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
         if config.DEBUG_LR_FINDER:
-            lr_finder = LRFinder(self.nets[0], torch.optim.Adadelta(params=self.nets[0].parameters(), lr=0.0001, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DECAY), torch.nn.BCEWithLogitsLoss(), device="cuda")
+            lr_finder = LRFinder(self.nets[0].cuda(), torch.optim.Adadelta(params=self.nets[0].parameters(), lr=0.00005, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DECAY), torch.nn.BCEWithLogitsLoss())
             lr_finder.range_test(data.DataLoader(self.dataset,
                                            batch_size=config.MODEL_BATCH_SIZE,
                                            shuffle=False,
@@ -162,6 +162,7 @@ class HisCancerTrain:
                                                                          worker_init_fn=None,
                                                                          ), end_lr=1.0, num_iter=config.FIND_LR_RATIO, step_mode="exp")
             tensorboardwriter.write_plot(self.writer, lr_finder.plot(skip_end=0), "lr_finder")
+            self.nets[0].cpu()
             lr_finder.reset()
 
 
