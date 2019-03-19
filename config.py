@@ -171,7 +171,7 @@ elif PROJECT_NAME == "HisCancer":
     MODEL_MIN_LEARNING_RATE = 0.00007
     MODEL_COS_LEARNING_RATE_PERIOD = 1000
     MODEL_MOMENTUM = 0.9
-    MODEL_WEIGHT_DECAY = 0.0001
+    MODEL_WEIGHT_DECAY = 0.001
     MODEL_FOLD = 5
     MODEL_TRAIN_FOLD = [0]
     MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], [-1], [], [], []]
@@ -197,7 +197,7 @@ elif PROJECT_NAME == "HisCancer":
     # TRAIN_TRY_LR = False
     # TRAIN_TRY_LR_FORMULA = lambda x: x / (8 * np.mod(-x - 1, 600) + 0.1) - 0.000207 * x  # y=x/(8*\operatorname{mod}(-x-1,600)+0.1)-0.000207*x
     TRAIN_RATIO = 1
-    EVAL_RATIO = 4 # to 8 when needed
+    EVAL_RATIO = 1 # to 8 when needed
     FIND_LR_ON_VALIDATION = False
     FIND_LR_RATIO = 20 if FIND_LR_ON_VALIDATION else 100
 
