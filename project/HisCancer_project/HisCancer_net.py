@@ -8,6 +8,7 @@ import math
 
 import torch
 import torch.nn as nn
+import torchvision
 from torch.utils import model_zoo
 import torch.nn.functional as F
 
@@ -157,7 +158,7 @@ class SEResNeXtBottleneck(Bottleneck):
 
 class SENet(nn.Module):
 
-    def __init__(self, block, layers, groups, reduction, dropout_p=0.2,
+    def __init__(self, block, layers, groups, reduction, dropout_p=0.9,
                  inplanes=128, input_3x3=True, downsample_kernel_size=3,
                  downsample_padding=1, num_classes=1000):
         """
@@ -271,11 +272,14 @@ class SENet(nn.Module):
             downsample_kernel_size=downsample_kernel_size,
             downsample_padding=downsample_padding
         )
-        self.max_pool = nn.AdaptiveMaxPool2d(None)
-        self.avg_pool = nn.AdaptiveAvgPool2d(None)
-        self.bn = nn.BatchNorm1d(512*14*14+2)
+        self.linear_1 = nn.Linear(512*14*14*2, 512, bias=True)
+        self.linear_2 = nn.Linear(512, 256, bias=True)
+        self.linear_3 = nn.Linear(256, num_classes, bias=True)
+        self.bn_1 = nn.BatchNorm1d(512*14*14*2)
+        self.bn_2 = nn.BatchNorm1d(512)
+        self.bn_3 = nn.BatchNorm1d(256)
         self.dropout = nn.Dropout(dropout_p) if dropout_p is not None else None
-        self.classifier = nn.Linear(512*14*14+2, num_classes)
+        self.elu = nn.ELU()
 
     def _make_layer(self, block, planes, blocks, groups, reduction, stride=1,
                     downsample_kernel_size=1, downsample_padding=0):
@@ -306,17 +310,25 @@ class SENet(nn.Module):
         return x
 
     def logits(self, x):
-        max_pool = self.max_pool(x)
-        avg_pool = self.avg_pool(x)
+        max_pool = self.max_pool(x).flatten(1)
+        avg_pool = self.avg_pool(x).flatten(1)
 
-        x = x.view(x.size(0), -1)
-        x = torch.cat((x, max_pool, avg_pool), 1)
+        # x = x.view(x.size(0), -1)
+        x = torch.cat([max_pool, avg_pool], 1)
 
-        x = self.bn(x)
-        if self.dropout is not None:
-            x = self.dropout(x)
-        x = self.classifier(x)
+        x = self.bn_1(x)
+        if self.dropout is not None: x = self.dropout(x)
+        x = self.linear_1(x)
+        x = self.elu(x)
 
+        x = self.bn_2(x)
+        if self.dropout is not None: x = self.dropout(x)
+        x = self.linear_2(x)
+        x = self.elu(x)
+
+        x = self.bn_3(x)
+        if self.dropout is not None: x = self.dropout(x)
+        x = self.linear_3(x)
         return x
 
     def forward(self, x):
@@ -502,3 +514,58 @@ def densenet169():
     model_state.update(pretrained_state)
     model.load_state_dict(model_state, strict=False)
     return model
+
+# class Densenet121(nn.Module):
+#     def __init__(self, num_classes=2):
+#         super(Densenet121, self).__init__()
+#         self.feature = DenseNet(num_init_features=64, growth_rate=32, block_config=(6, 12, 24, 16))
+#
+#         self.max_pool = nn.AdaptiveMaxPool2d(1)
+#         self.avg_pool = nn.AdaptiveAvgPool2d(1)
+#         # self.linear_pool = nn.Linear(108192, 128, bias=True)
+#         self.linear_1 = nn.Linear(2208+2208, 512, bias=True)
+#         self.linear_2 = nn.Linear(512, 256, bias=True)
+#         self.linear_3 = nn.Linear(256, num_classes, bias=True)
+#         self.bn_1 = nn.BatchNorm1d(2208+2208)
+#         self.bn_2 = nn.BatchNorm1d(512)
+#         self.bn_3 = nn.BatchNorm1d(256)
+#         self.dropout = nn.Dropout(0.8)
+#         self.elu = nn.ELU()
+#
+#     def logits(self, x):
+#         max_pool = self.max_pool(x).flatten(1)
+#         avg_pool = self.avg_pool(x).flatten(1)
+#
+#         x = torch.cat([max_pool, avg_pool], 1)
+#
+#         x = self.bn_1(x)
+#         x = self.dropout(x)
+#         x = self.linear_1(x)
+#         x = self.elu(x)
+#
+#         x = self.bn_2(x)
+#         x = self.dropout(x)
+#         x = self.linear_2(x)
+#         x = self.elu(x)
+#
+#         x = self.bn_3(x)
+#         x = self.dropout(x)
+#         x = self.linear_3(x)
+#         return x
+#
+#     def forward(self, x):
+#         x = self.feature(x)
+#         x = self.logits(x)
+#
+#         return x
+#
+# def densenet121():
+#     model = Densenet121()
+#     model_state = model.state_dict()
+#
+#     state_dict = model_zoo.load_url("https://download.pytorch.org/models/densenet121-a639ec97.pth")
+#
+#     pretrained_state = {k: v for k, v in state_dict.items() if k in model_state and v.size() == model_state[k].size()}
+#     model_state.update(pretrained_state)
+#     model.load_state_dict(model_state, strict=False)
+#     return model
