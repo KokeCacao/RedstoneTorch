@@ -23,8 +23,8 @@ class HisCancerPrediction:
                 print("     Junping Fold: #{}".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))
-                # net = HisCancer_net.se_resnext50_32x4d(config.TRAIN_NUM_CLASS, pretrained="imagenet")
-                net = HisCancer_net.densenet169()
+                net = HisCancer_net.se_resnext50_32x4d(config.TRAIN_NUM_CLASS, pretrained="imagenet")
+                # net = HisCancer_net.densenet169()
 
                 """ONNX"""
                 if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(net, (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
@@ -86,59 +86,60 @@ class HisCancerPrediction:
                 print("Prob_path: {}".format(prob_path))
 
                 """TTA"""
-                tta_path = "{}-{}-F{}-T{}-Prob-TTA.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
-                if os.path.exists(tta_path):
-                    os.remove(tta_path)
-                    print("WARNING: delete file '{}'".format(tta_path))
+                if config.PREDICTION_TTA != 0:
+                    tta_path = "{}-{}-F{}-T{}-Prob-TTA.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
+                    if os.path.exists(tta_path):
+                        os.remove(tta_path)
+                        print("WARNING: delete file '{}'".format(tta_path))
 
-                with open(tta_path, 'a') as prob_file:
-                    prob_file.write('Id,Label\n')
+                    with open(tta_path, 'a') as prob_file:
+                        prob_file.write('Id,Label\n')
 
-                    test_loader = data.DataLoader(self.test_dataset,
-                                                  batch_size=config.MODEL_BATCH_SIZE,
-                                                  shuffle=False,
-                                                  sampler=SubsetRandomSampler(self.test_dataset.indices),
-                                                  batch_sampler=None,
-                                                  num_workers=config.TRAIN_NUM_WORKER,
-                                                  collate_fn=train_collate,
-                                                  pin_memory=True,
-                                                  drop_last=False,
-                                                  timeout=0,
-                                                  worker_init_fn=None,
-                                                  )
+                        test_loader = data.DataLoader(self.test_dataset,
+                                                      batch_size=config.MODEL_BATCH_SIZE,
+                                                      shuffle=False,
+                                                      sampler=SubsetRandomSampler(self.test_dataset.indices),
+                                                      batch_sampler=None,
+                                                      num_workers=config.TRAIN_NUM_WORKER,
+                                                      collate_fn=train_collate,
+                                                      pin_memory=True,
+                                                      drop_last=False,
+                                                      timeout=0,
+                                                      worker_init_fn=None,
+                                                      )
 
-                    print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
+                        print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
 
-                    tta_list = []
-                    tta_pbar = tqdm(range(config.PREDICTION_TTA))
-                    for tta in tta_pbar:
-                        tta_dict = dict()
-                        config.eval_index = config.eval_index + 1
-                        total_confidence = 0
-                        pbar = tqdm(test_loader)
-                        for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+                        tta_list = []
+                        tta_pbar = tqdm(range(config.PREDICTION_TTA))
+                        for tta in tta_pbar:
+                            tta_dict = dict()
+                            config.eval_index = config.eval_index + 1
+                            total_confidence = 0
+                            pbar = tqdm(test_loader)
+                            for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
 
-                            if config.TRAIN_GPU_ARG: image = image.cuda()
-                            predicts = self.nets[fold](image)
-                            predicts = torch.nn.Softmax()(predicts).detach().cpu().numpy()
+                                if config.TRAIN_GPU_ARG: image = image.cuda()
+                                predicts = self.nets[fold](image)
+                                predicts = torch.nn.Softmax()(predicts).detach().cpu().numpy()
 
-                            confidence = np.absolute(predicts-0.5).mean()+0.5
-                            total_confidence = total_confidence + confidence
-                            pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0].replace("data/HisCancer_dataset/test/", "").replace(".npy", ""), confidence, total_confidence/(batch_index+1)))
+                                confidence = np.absolute(predicts-0.5).mean()+0.5
+                                total_confidence = total_confidence + confidence
+                                pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0].replace("data/HisCancer_dataset/test/", "").replace(".npy", ""), confidence, total_confidence/(batch_index+1)))
 
-                            for id, predict in zip(ids, predicts):
-                                tta_dict[id.replace("data/HisCancer_dataset/test/", "").replace(".npy", "")]=('{}'.format(str(predict[1])))
+                                for id, predict in zip(ids, predicts):
+                                    tta_dict[id.replace("data/HisCancer_dataset/test/", "").replace(".npy", "")]=('{}'.format(str(predict[1])))
 
-                                # prob_file.write('{},{}\n'.format(id, " ".join(str(x) for x in predict)))
+                                    # prob_file.write('{},{}\n'.format(id, " ".join(str(x) for x in predict)))
 
-                            del ids, image, labels_0, image_for_display, predicts
-                            if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-                        tta_list.append(tta_dict)
+                                del ids, image, labels_0, image_for_display, predicts
+                                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                            tta_list.append(tta_dict)
 
 
-                    for item in tta_list[0].keys():
-                        pred = ",".join(tta_list[i][item] for i in range(len(tta_list)))
-                        prob_file.write("{},{}\n".format(item, pred))
+                        for item in tta_list[0].keys():
+                            pred = ",".join(tta_list[i][item] for i in range(len(tta_list)))
+                            prob_file.write("{},{}\n".format(item, pred))
 
-                    print("TTA_path: {}".format(tta_path))
+                        print("TTA_path: {}".format(tta_path))
 
