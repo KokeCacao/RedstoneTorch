@@ -161,7 +161,7 @@ class HisCancerTrain:
                                            drop_last=False,
                                            timeout=0,
                                            worker_init_fn=None,
-                                           ), val_loader=val_loader, end_lr=1.0, num_iter=config.FIND_LR_RATIO, step_mode="exp")
+                                           ), val_loader=val_loader, end_lr=0.1, num_iter=config.FIND_LR_RATIO, step_mode="exp")
             tensorboardwriter.write_plot(self.writer, lr_finder.plot(skip_start=0, skip_end=0, log_lr=False), "lr_finder-Linear")
             tensorboardwriter.write_plot(self.writer, lr_finder.plot(skip_start=0, skip_end=0, log_lr=True), "lr_finder-Log")
             lr_finder.reset()
