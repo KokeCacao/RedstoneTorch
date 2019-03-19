@@ -163,7 +163,7 @@ elif PROJECT_NAME == "HisCancer":
     DEBUG_TEST_CODE = False
     DEBUG_AUTO_SHUTDOWN = True
 
-    DEBUG_LR_FINDER = False # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
+    DEBUG_LR_FINDER = True # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
 
     MODEL_EPOCHS = 1000
     MODEL_BATCH_SIZE = 32
@@ -174,7 +174,7 @@ elif PROJECT_NAME == "HisCancer":
     MODEL_WEIGHT_DECAY = 0.0001
     MODEL_FOLD = 5
     MODEL_TRAIN_FOLD = [0]
-    MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], [-1], [], [], []]
+    MODEL_NO_GRAD = [[], [], [], [], [], [], [], []]
     # MODEL_EPOCH_UNFREEZE_ALL = 6
 
     TRAIN_GPU_DICT = {
@@ -197,7 +197,7 @@ elif PROJECT_NAME == "HisCancer":
     # TRAIN_TRY_LR = False
     # TRAIN_TRY_LR_FORMULA = lambda x: x / (8 * np.mod(-x - 1, 600) + 0.1) - 0.000207 * x  # y=x/(8*\operatorname{mod}(-x-1,600)+0.1)-0.000207*x
     TRAIN_RATIO = 1
-    EVAL_RATIO = 1 # to 8 when needed
+    EVAL_RATIO = 4 # to 8 when needed
     FIND_LR_ON_VALIDATION = False
     FIND_LR_RATIO = 20 if FIND_LR_ON_VALIDATION else 100
 
