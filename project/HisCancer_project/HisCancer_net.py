@@ -280,6 +280,7 @@ class SENet(nn.Module):
         self.bn_1 = nn.BatchNorm1d(4096)
         self.bn_2 = nn.BatchNorm1d(512)
         self.bn_3 = nn.BatchNorm1d(256)
+        self.cnn_dropout = nn.Dropout(0.2)
         self.dropout = nn.Dropout(dropout_p) if dropout_p is not None else None
         self.elu = nn.ELU()
 
@@ -306,8 +307,11 @@ class SENet(nn.Module):
     def features(self, x):
         x = self.layer0(x)
         x = self.layer1(x)
+        x = self.cnn_dropout(x)
         x = self.layer2(x)
+        x = self.cnn_dropout(x)
         x = self.layer3(x)
+        x = self.cnn_dropout(x)
         x = self.layer4(x)
         return x
 
