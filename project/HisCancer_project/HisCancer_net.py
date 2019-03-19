@@ -274,10 +274,10 @@ class SENet(nn.Module):
         )
         self.max_pool = nn.AdaptiveMaxPool2d(1)
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        self.linear_1 = nn.Linear(512*14*14*2, 512, bias=True)
+        self.linear_1 = nn.Linear(4096, 512, bias=True)
         self.linear_2 = nn.Linear(512, 256, bias=True)
         self.linear_3 = nn.Linear(256, num_classes, bias=True)
-        self.bn_1 = nn.BatchNorm1d(512*14*14*2)
+        self.bn_1 = nn.BatchNorm1d(4096)
         self.bn_2 = nn.BatchNorm1d(512)
         self.bn_3 = nn.BatchNorm1d(256)
         self.dropout = nn.Dropout(dropout_p) if dropout_p is not None else None
