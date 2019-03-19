@@ -163,7 +163,7 @@ elif PROJECT_NAME == "HisCancer":
     DEBUG_TEST_CODE = False
     DEBUG_AUTO_SHUTDOWN = True
 
-    DEBUG_LR_FINDER = False # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network
+    DEBUG_LR_FINDER = True # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network
 
     MODEL_EPOCHS = 1000
     MODEL_BATCH_SIZE = 32
@@ -172,9 +172,9 @@ elif PROJECT_NAME == "HisCancer":
     MODEL_COS_LEARNING_RATE_PERIOD = 1000
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DECAY = 0.0001
-    MODEL_FOLD = 10
-    MODEL_TRAIN_FOLD = [2]
-    MODEL_NO_GRAD = [[], [], [], [], [], [], [], []]
+    MODEL_FOLD = 5
+    MODEL_TRAIN_FOLD = [0]
+    MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], [-1], [], [], []]
     # MODEL_EPOCH_UNFREEZE_ALL = 6
 
     TRAIN_GPU_DICT = {
