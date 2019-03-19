@@ -272,6 +272,8 @@ class SENet(nn.Module):
             downsample_kernel_size=downsample_kernel_size,
             downsample_padding=downsample_padding
         )
+        self.max_pool = nn.AdaptiveMaxPool2d(1)
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.linear_1 = nn.Linear(512*14*14*2, 512, bias=True)
         self.linear_2 = nn.Linear(512, 256, bias=True)
         self.linear_3 = nn.Linear(256, num_classes, bias=True)
