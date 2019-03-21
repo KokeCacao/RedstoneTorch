@@ -170,7 +170,7 @@ class PlateauCyclicRestart(object):
                 self.scale_mode = 'iterations'
             elif self.mode == 'plateau_cyclic':
                 self.scale_fn = self._loss_fn
-                self.scale_mode = 'iterations'
+                self.scale_mode = 'cycle'
         else:
             self.scale_fn = scale_fn
             self.scale_mode = scale_mode
@@ -247,10 +247,10 @@ class PlateauCyclicRestart(object):
     #                 print('Epoch {:5d}: reducing learning rate'
     #                       ' of group {} to {:.4e}.'.format(epoch, i, new_lr))
 
-    def _set_lr(self, lr):
+    def _set_lr(self, lrs):
         # for i, param_group in enumerate(self.optimizer.param_groups):
         #     param_group['lr'] = lr
-        for param_group, lr in zip(self.optimizer.param_groups, self.get_lr()):
+        for param_group, lr in zip(self.optimizer.param_groups, lrs):
             param_group['lr'] = lr
 
     def update_lr(self):
