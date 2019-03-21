@@ -389,6 +389,7 @@ class HisCancerTrain:
                 positive_bce = BCELoss(weight=labels_0*20+1)(prob_predict, labels_0)
                 loss = bce.mean()
                 """BACKPROP"""
+                optimizer.update_lr()
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
