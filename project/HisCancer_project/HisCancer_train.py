@@ -306,7 +306,7 @@ class HisCancerTrain:
         """.format(f1_2, max_names[0], max_names[1], min_names[0], min_names[1])
         print(report)
         for lr_scheduler in lr_schedulers:
-            lr_scheduler.step(soft_auc_macro, epoch=config.epoch)
+            lr_scheduler.step(metrics=soft_auc_macro, epoch=config.epoch)
         tensorboardwriter.write_text(self.writer, report, config.epoch)
 
         tensorboardwriter.write_epoch_loss(self.writer, f1_dict, config.epoch)
@@ -389,7 +389,7 @@ class HisCancerTrain:
                 positive_bce = BCELoss(weight=labels_0*20+1)(prob_predict, labels_0)
                 loss = bce.mean()
                 """BACKPROP"""
-                lr_scheduler.step(config.epoch, config.global_steps)
+                lr_scheduler.step(0, config.epoch, config.global_steps)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()

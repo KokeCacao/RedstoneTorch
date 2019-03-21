@@ -175,7 +175,7 @@ class PlateauCyclicRestart(object):
             self.scale_fn = scale_fn
             self.scale_mode = scale_mode
 
-        self.batch_step(last_batch_iteration + 1)
+        self.step(metrics=0, epoch=None, batch_iteration=last_batch_iteration + 1)
         self.last_batch_iteration = last_batch_iteration
 
         self.patience = patience
@@ -201,7 +201,14 @@ class PlateauCyclicRestart(object):
         self.cooldown_counter = 0
         self.num_bad_epochs = 0
 
-    def step(self, metrics, epoch=None, batch_iteration=None):
+    def step(self, metrics=None, epoch=None, batch_iteration=None):
+        if metrics == None or metrics<=0:
+            if batch_iteration is None:
+                batch_iteration = self.last_batch_iteration + 1
+            self.last_batch_iteration = batch_iteration
+            self.update_lr()
+            return
+
         current = metrics
         if epoch is None:
             epoch = self.last_epoch = self.last_epoch + 1
@@ -225,8 +232,8 @@ class PlateauCyclicRestart(object):
                 self.cooldown_counter = self.cooldown
                 self.num_bad_epochs = 0
         elif epoch == self.last_epoch:
-            if batch_iteration is None:
-                batch_iteration = self.last_batch_iteration + 1
+            # if batch_iteration is None:
+            #     batch_iteration = self.last_batch_iteration + 1
             self.last_batch_iteration = batch_iteration
             self.update_lr()
 
