@@ -150,7 +150,7 @@ class PlateauCyclicRestart(object):
 
         self.step_size = step_size
 
-        if mode not in ['triangular', 'triangular2', 'exp_range'] \
+        if mode not in ['triangular', 'triangular2', 'exp_range', 'plateau_cyclic'] \
                 and scale_fn is None:
             raise ValueError('mode is invalid and scale_fn is None')
 
