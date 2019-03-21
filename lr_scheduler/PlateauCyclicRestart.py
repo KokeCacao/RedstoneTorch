@@ -123,6 +123,7 @@ class PlateauCyclicRestart(object):
                  step_size=2000, mode='plateau_cyclic', gamma=1.,
                  scale_fn=None, scale_mode='cycle', last_batch_iteration=-1):
 
+        self.coef = 1.
         if factor >= 1.0:
             raise ValueError('Factor should be < 1.0.')
         self.factor = factor
@@ -176,7 +177,6 @@ class PlateauCyclicRestart(object):
 
         self.batch_step(last_batch_iteration + 1)
         self.last_batch_iteration = last_batch_iteration
-        self.coef = 1.
 
         self.patience = patience
         self.verbose = verbose
