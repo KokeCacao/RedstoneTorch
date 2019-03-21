@@ -251,7 +251,7 @@ class PlateauCyclicRestart(object):
         # for i, param_group in enumerate(self.optimizer.param_groups):
         #     param_group['lr'] = lr
         for param_group, lr in zip(self.optimizer.param_groups, lrs):
-            # lr = torch.tensor(lr)
+            lr = np.asscalar(lr) # IMPORTANTCE
             param_group['lr'] = lr
 
     def update_lr(self):
