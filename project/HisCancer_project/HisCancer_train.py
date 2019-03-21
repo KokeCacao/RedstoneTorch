@@ -19,6 +19,7 @@ from dataset.HisCancer_dataset import train_collate, val_collate
 from gpu import gpu_profile
 from loss.f1 import f1_macro, differenciable_f1_sigmoid, differenciable_f1_softmax
 from loss.focal import focalloss_sigmoid, focalloss_softmax
+from lr_scheduler.PlateauCyclicRestart import PlateauCyclicRestart
 from project.HisCancer_project import HisCancer_net
 from project.qubo_project import qubo_net
 from project.qubo_project.qubo_cam import GradCam, GuidedBackprop, guided_grad_cam, save_gradient_images, convert_to_grayscale, cam
@@ -71,13 +72,12 @@ class HisCancerTrain:
 
                 # for module_pos, module in net.module._modules.items():
                 #     print("#{} -> {}".format(module_pos, module))
-
                 optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DECAY)
                 # optimizer = torch.optim.Adadelta(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DECAY)
                 # optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
                 self.optimizers.append(optimizer)
                 self.nets.append(net)
-                lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=1, verbose=False, threshold=1e-4, threshold_mode='abs', cooldown=0, min_lr=0, eps=1e-8)
+                lr_scheduler = PlateauCyclicRestart(optimizer, eval_mode='max', factor=0.2, patience=0, verbose=False, threshold=1e-4, threshold_mode='abs', cooldown=0, eps=1e-8, base_lr=5e-4, max_lr=6e-3, step_size=220025/config.MODEL_FOLD*(config.MODEL_FOLD-1)/config.MODEL_BATCH_SIZE, mode='plateau_cyclic', gamma=1., scale_mode='cycle')
                 # lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=4*int(27964.8/config.MODEL_BATCH_SIZE), verbose=False, threshold=1e-4, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-8)
                 # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=config.MODEL_COS_LEARNING_RATE_PERIOD, eta_min=config.MODEL_MIN_LEARNING_RATE, last_epoch=-1)
                 self.lr_schedulers.append(lr_scheduler)
@@ -129,7 +129,6 @@ class HisCancerTrain:
                 for p in child.parameters():
                     if not p.requires_grad:
                         req_grad = False
-                        break
                 print("=======================Start Child Number #{} Grad: {}=======================".format(child_counter, req_grad))
                 print("{}".format(child))
                 print("=======================End Child Number #{} Grad: {}=======================".format(child_counter, req_grad))
@@ -237,23 +236,21 @@ class HisCancerTrain:
 
         evaluation = HisCancerEvaluation(self.writer, self.dataset.multilabel_binarizer)
         for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
-            # """UNFREEZE"""
-            # if config.epoch == config.MODEL_EPOCH_UNFREEZE_ALL:
-            #     for i, c in enumerate(net.children()):
-            #         if len(config.MODEL_NO_GRAD) > i:
-            #             l = config.MODEL_NO_GRAD[i]
-            #             for child_counter, child in enumerate(list(c.children())):
-            #                 if child_counter in l or l == [-1]:
-            #                     print("Enable Gradient for child_counter: {}".format(child_counter))
-            #                     tensorboardwriter.write_text(self.writer, "Unfreeze all layers at epoch: {}".format(config.epoch), config.global_steps[fold])
-            #                     for paras in child.parameters():
-            #                         paras.requires_grad = True
-            #     if config.MODEL_LEARNING_RATE_AFTER_UNFREEZE != 0:
-            #         config.MODEL_BATCH_SIZE = config.MODEL_BATCH_SIZE/4
-            #         print("Decrease batch size by 4, current batch size = {}".format(config.MODEL_BATCH_SIZE))
-            #         print("Reset Learning Rate to {}".format(config.MODEL_LEARNING_RATE_AFTER_UNFREEZE))
-            #         for g in optimizer.param_groups:
-            #             g['lr'] = config.MODEL_LEARNING_RATE_AFTER_UNFREEZE
+            """UNFREEZE"""
+            if config.epoch > config.MODEL_FREEZE_EPOCH:
+                for i, c in enumerate(net.children()):
+                    if len(config.MODEL_NO_GRAD) > i:
+                        l = config.MODEL_NO_GRAD[i]
+                        for child_counter, child in enumerate(list(c.children())):
+                            if child_counter in l or l == [-1]:
+                                print("Enable Gradient for child_counter: {}".format(child_counter))
+                                tensorboardwriter.write_text(self.writer, "Unfreeze {} layers at epoch: {}".format(child_counter, config.epoch), config.global_steps[fold])
+                                for paras in child.parameters():
+                                    paras.requires_grad = True
+                # if config.MODEL_LEARNING_RATE_AFTER_UNFREEZE != 0:
+                #     print("Reset Learning Rate to {}".format(config.MODEL_LEARNING_RATE_AFTER_UNFREEZE))
+                #     for g in optimizer.param_groups:
+                #         g['lr'] = config.MODEL_LEARNING_RATE_AFTER_UNFREEZE
 
             # import pdb; pdb.set_trace() #1357Mb -> 1215Mb
             """Switch Optimizers"""
@@ -308,14 +305,12 @@ class HisCancerTrain:
         Min = {}, score = {}
         """.format(f1_2, max_names[0], max_names[1], min_names[0], min_names[1])
         print(report)
+        for lr_scheduler in lr_schedulers:
+            lr_scheduler.step(soft_auc_macro, epoch=config.epoch)
         tensorboardwriter.write_text(self.writer, report, config.epoch)
 
         tensorboardwriter.write_epoch_loss(self.writer, f1_dict, config.epoch)
         tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
-
-        """STEP"""
-        for lr_scheduler in self.lr_schedulers:
-            lr_scheduler.step(f1_2)
 
         """THRESHOLD"""
         if config.EVAL_IF_THRESHOLD_TEST:
