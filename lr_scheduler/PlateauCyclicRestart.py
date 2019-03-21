@@ -238,7 +238,9 @@ class PlateauCyclicRestart(object):
     #                       ' of group {} to {:.4e}.'.format(epoch, i, new_lr))
 
     def _set_lr(self, lr):
-        for i, param_group in enumerate(self.optimizer.param_groups):
+        # for i, param_group in enumerate(self.optimizer.param_groups):
+        #     param_group['lr'] = lr
+        for param_group, lr in zip(self.optimizer.param_groups, self.get_lr()):
             param_group['lr'] = lr
 
     def update_lr(self):
@@ -323,6 +325,7 @@ class PlateauCyclicRestart(object):
                 lr = base_lr + base_height * self.scale_fn(self.last_batch_iteration)
             lrs.append(lr)
         return lrs
+        # return self.base_lr + self.base_height * self.scale_fn(cycle) else self.base_lr + self.base_height * self.scale_fn(self.last_batch_iteration)
 
 # This code is from https://github.com/thomasjpfan/pytorch/blob/401ec389db2c9d2978917a6e4d1101b20340d7e7/torch/optim/lr_scheduler.py
 # This code is under review at PyTorch and is to be merged eventually to make CLR available to all.
