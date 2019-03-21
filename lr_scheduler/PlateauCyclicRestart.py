@@ -252,6 +252,7 @@ class PlateauCyclicRestart(object):
         #     param_group['lr'] = lr
         for param_group, lr in zip(self.optimizer.param_groups, lrs):
             param_group['lr'] = lr
+            print(lr)
 
     def update_lr(self):
         self._set_lr(self.get_lr())
