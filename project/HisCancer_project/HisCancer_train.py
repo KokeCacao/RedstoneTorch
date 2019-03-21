@@ -389,10 +389,10 @@ class HisCancerTrain:
                 positive_bce = BCELoss(weight=labels_0*20+1)(prob_predict, labels_0)
                 loss = bce.mean()
                 """BACKPROP"""
-                lr_scheduler.step(0, config.epoch, config.global_steps)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
+                lr_scheduler.step(0, config.epoch, config.global_steps)
 
                 """DETATCH"""
                 focal = focal.detach().cpu().numpy().mean()
