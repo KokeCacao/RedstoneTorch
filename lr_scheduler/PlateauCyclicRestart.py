@@ -248,10 +248,10 @@ class PlateauCyclicRestart(object):
     #                       ' of group {} to {:.4e}.'.format(epoch, i, new_lr))
 
     def _set_lr(self, lrs):
-        # for i, param_group in enumerate(self.optimizer.param_groups):
+        for i, param_group in enumerate(self.optimizer.param_groups):
+            param_group['lr'] = lrs[0]
+        # for param_group, lr in zip(self.optimizer.param_groups, lrs):
         #     param_group['lr'] = lr
-        for param_group, lr in zip(self.optimizer.param_groups, lrs):
-            param_group['lr'] = lr
 
     def update_lr(self):
         self._set_lr(self.get_lr())
