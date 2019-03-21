@@ -224,6 +224,8 @@ class PlateauCyclicRestart(object):
                 self._set_lr(self.get_lr())
                 self.cooldown_counter = self.cooldown
                 self.num_bad_epochs = 0
+        elif epoch == self.last_epoch:
+            self._set_lr(self.get_lr())
 
     # def _reduce_lr(self, epoch):
     #     for i, param_group in enumerate(self.optimizer.param_groups):
