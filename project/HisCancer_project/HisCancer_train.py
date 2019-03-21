@@ -389,7 +389,7 @@ class HisCancerTrain:
                 positive_bce = BCELoss(weight=labels_0*20+1)(prob_predict, labels_0)
                 loss = bce.mean()
                 """BACKPROP"""
-                lr_scheduler.update_lr()
+                lr_scheduler.step(config.epoch, config.global_steps)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()

@@ -201,7 +201,7 @@ class PlateauCyclicRestart(object):
         self.cooldown_counter = 0
         self.num_bad_epochs = 0
 
-    def step(self, metrics, epoch=None):
+    def step(self, metrics, epoch=None, batch_iteration=None):
         current = metrics
         if epoch is None:
             epoch = self.last_epoch = self.last_epoch + 1
@@ -225,6 +225,9 @@ class PlateauCyclicRestart(object):
                 self.cooldown_counter = self.cooldown
                 self.num_bad_epochs = 0
         elif epoch == self.last_epoch:
+            if batch_iteration is None:
+                batch_iteration = self.last_batch_iteration + 1
+            self.last_batch_iteration = batch_iteration
             self.update_lr()
 
     # def _reduce_lr(self, epoch):
@@ -284,19 +287,6 @@ class PlateauCyclicRestart(object):
     def load_state_dict(self, state_dict):
         self.__dict__.update(state_dict)
         self._init_is_better(eval_mode=self.eval_mode, threshold=self.threshold, threshold_mode=self.threshold_mode)
-
-
-
-
-
-
-
-    def batch_step(self, batch_iteration=None):
-        if batch_iteration is None:
-            batch_iteration = self.last_batch_iteration + 1
-        self.last_batch_iteration = batch_iteration
-        for param_group, lr in zip(self.optimizer.param_groups, self.get_lr()):
-            param_group['lr'] = lr
 
     def _triangular_scale_fn(self, x):
         return 1.
