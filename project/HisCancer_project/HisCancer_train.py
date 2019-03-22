@@ -49,6 +49,9 @@ class HisCancerTrain:
         for fold in range(config.MODEL_FOLD):
             if fold not in config.MODEL_TRAIN_FOLD:
                 print("     Skipping dataset = HisCancerDataset(config.DIRECTORY_CSV, fold: #{})".format(fold))
+                self.optimizers.append(None)
+                self.nets.append(None)
+                self.lr_schedulers.append(None)
             else:
                 print("     Creating Fold: #{}".format(fold))
                 net = HisCancer_net.se_resnext50_32x4d(config.TRAIN_NUM_CLASS, pretrained="imagenet", dropout_p=0.9)
@@ -124,7 +127,7 @@ class HisCancerTrain:
                     g['lr'] = config.resetlr
 
         """FREEZE DETECT"""
-        for c in self.nets[0].children():
+        for c in self.nets[config.MODEL_TRAIN_FOLD[0]].children():
             for child_counter, child in enumerate(c.children()):
                 req_grad = True
                 for p in child.parameters():
@@ -134,13 +137,13 @@ class HisCancerTrain:
                 print("{}".format(child))
                 print("=======================End Child Number #{} Grad: {}=======================".format(child_counter, req_grad))
 
-        if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[0], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
+        if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[config.MODEL_TRAIN_FOLD[0]], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
         if config.DEBUG_LR_FINDER:
             val_loader = data.DataLoader(self.dataset,
                                          batch_size=config.MODEL_BATCH_SIZE,
                                          shuffle=False,
-                                         sampler=self.folded_samplers[0]["val"],
+                                         sampler=self.folded_samplers[config.MODEL_TRAIN_FOLD[0]]["val"],
                                          batch_sampler=None,
                                          num_workers=config.TRAIN_NUM_WORKER,
                                          collate_fn=val_collate,
@@ -149,11 +152,11 @@ class HisCancerTrain:
                                          timeout=0,
                                          worker_init_fn=None,
                                          ) if config.FIND_LR_ON_VALIDATION else None
-            lr_finder = LRFinder(self.nets[0], self.optimizers[0], torch.nn.BCEWithLogitsLoss(), writer=self.writer, device="cuda")
+            lr_finder = LRFinder(self.nets[config.MODEL_TRAIN_FOLD[0]], self.optimizers[config.MODEL_TRAIN_FOLD[0]], torch.nn.BCEWithLogitsLoss(), writer=self.writer, device="cuda")
             lr_finder.range_test(data.DataLoader(self.dataset,
                                            batch_size=config.MODEL_BATCH_SIZE,
                                            shuffle=False,
-                                           sampler=self.folded_samplers[0]["train"],
+                                           sampler=self.folded_samplers[config.MODEL_TRAIN_FOLD[0]]["train"],
                                            batch_sampler=None,
                                            num_workers=config.TRAIN_NUM_WORKER,
                                            collate_fn=train_collate,
@@ -237,6 +240,9 @@ class HisCancerTrain:
 
         evaluation = HisCancerEvaluation(self.writer, self.dataset.multilabel_binarizer)
         for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
+            if net == None or optimizer == None or lr_scheduler == None:
+                continue
+
             """UNFREEZE"""
             if config.epoch > config.MODEL_FREEZE_EPOCH:
                 updated_children = []
@@ -311,6 +317,8 @@ class HisCancerTrain:
         """.format(f1_2, max_names[0], max_names[1], min_names[0], min_names[1])
         print(report)
         for lr_scheduler in lr_schedulers:
+            if lr_scheduler == None:
+                continue
             lr_scheduler.step(metrics=soft_auc_macro, epoch=config.epoch)
         tensorboardwriter.write_text(self.writer, report, config.epoch)
 
