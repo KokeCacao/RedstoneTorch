@@ -53,7 +53,7 @@ def load_args():
         config.DIRECTORY_LOAD = False
         config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
 
-    if args.fold != -1 and args.fold < config.MODEL_FOLD:
+    if args.fold and args.fold != -1 and args.fold < config.MODEL_FOLD:
         config.MODEL_TRAIN_FOLD = [int(args.fold)]
         print("=> Set training fold to: {}".format(config.MODEL_TRAIN_FOLD))
 
