@@ -227,6 +227,11 @@ class PlateauCyclicRestart(object):
                 self.num_bad_epochs = 0  # ignore any bad epochs in cooldown
 
             if self.num_bad_epochs > self.patience:
+                print("""
+                Current: {}, Best: {}
+                NumBadEpoch: {} > {}
+                Coef: {} -> {}
+                """.format(current, self.best, self.num_bad_epochs, self.patience, self.coef, self.coef*self.factor))
                 self.coef = self.coef * self.factor
                 self.update_lr()
                 self.cooldown_counter = self.cooldown

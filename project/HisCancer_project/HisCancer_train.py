@@ -238,15 +238,19 @@ class HisCancerTrain:
         for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
             """UNFREEZE"""
             if config.epoch > config.MODEL_FREEZE_EPOCH:
+                updated_children = []
                 for i, c in enumerate(net.children()):
                     if len(config.MODEL_NO_GRAD) > i:
                         l = config.MODEL_NO_GRAD[i]
                         for child_counter, child in enumerate(list(c.children())):
                             if child_counter in l or l == [-1]:
-                                print("Enable Gradient for child_counter: {}".format(child_counter))
-                                tensorboardwriter.write_text(self.writer, "Unfreeze {} layers at epoch: {}".format(child_counter, config.epoch), config.global_steps[fold])
                                 for paras in child.parameters():
-                                    paras.requires_grad = True
+                                    if not paras.requires_grad:
+                                        updated_children.append(child_counter)
+                                        paras.requires_grad = True
+                if len(updated_children) !=0:
+                    print("Enable Gradient for child_counter: {}".format(updated_children))
+                    tensorboardwriter.write_text(self.writer, "Unfreeze {} layers at epoch: {}".format(updated_children, config.epoch), config.global_steps[fold])
                 # if config.MODEL_LEARNING_RATE_AFTER_UNFREEZE != 0:
                 #     print("Reset Learning Rate to {}".format(config.MODEL_LEARNING_RATE_AFTER_UNFREEZE))
                 #     for g in optimizer.param_groups:
