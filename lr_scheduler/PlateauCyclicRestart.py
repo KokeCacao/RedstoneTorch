@@ -117,13 +117,16 @@ class PlateauCyclicRestart(object):
     .. _bckenstler/CLR: https://github.com/bckenstler/CLR
     """
 
-    def __init__(self, optimizer, eval_mode='min', factor=0.2, patience=0,
+    def __init__(self, optimizer, eval_mode='min', factor=0.2, patience=1,
                  verbose=False, threshold=1e-4, threshold_mode='abs',
                  cooldown=0, eps=1e-8, base_lr=1e-3, max_lr=6e-3,
                  step_size=2000, mode='plateau_cyclic', gamma=1.,
-                 scale_fn=None, scale_mode='cycle', last_batch_iteration=-1):
+                 scale_fn=None, scale_mode='cycle', last_batch_iteration=-1, reduce_restart=4):
 
         self.coef = 1.
+        self.reduce_restart = reduce_restart
+        self.times_reduce = 0
+
         if factor >= 1.0:
             raise ValueError('Factor should be < 1.0.')
         self.factor = factor
@@ -227,12 +230,18 @@ class PlateauCyclicRestart(object):
                 self.num_bad_epochs = 0  # ignore any bad epochs in cooldown
 
             if self.num_bad_epochs > self.patience:
+                self.times_reduce = self.times_reduce+1
                 print("""
-                Current: {}, Best: {}
-                NumBadEpoch: {} > {}
-                Coef: {} -> {}
-                """.format(current, self.best, self.num_bad_epochs, self.patience, self.coef, self.coef*self.factor))
-                self.coef = self.coef * self.factor
+            Current: {}, Best: {}
+            NumBadEpoch: {} > {}
+            Coef: {} -> {}
+            Times Reduce = {}
+                """.format(current, self.best, self.num_bad_epochs, self.patience, self.coef, self.coef*self.factor, self.times_reduce))
+                if self.times_reduce == self.reduce_restart:
+                    self.times_reduce = 0
+                    self.coef = 1
+                else:
+                    self.coef = self.coef * self.factor
                 self.update_lr()
                 self.cooldown_counter = self.cooldown
                 self.num_bad_epochs = 0
