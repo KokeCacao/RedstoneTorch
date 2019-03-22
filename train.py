@@ -26,6 +26,7 @@ def get_args():
     parser.add_option('--loaddir', type="string", dest='loaddir', default=False, help='file you want to load')
     parser.add_option('--resume', type="string", dest='resume', default=False, help='resume or create a new folder')
     parser.add_option('--resetlr', type="float", dest='resetlr', default=0., help='reset the learning rate')
+    parser.add_option('--fold', type="float", dest='resetlr', default=-1., help='set training fold')
 
     (options, args) = parser.parse_args()
     return options
@@ -51,6 +52,10 @@ def load_args():
         config.PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + config.PROJECT_TAG
         config.DIRECTORY_LOAD = False
         config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
+
+    if args.fold != -1 and args.fold < config.MODEL_FOLD:
+        config.MODEL_TRAIN_FOLD = [int(args.fold)]
+        print("=> Set training fold to: {}".format(config.MODEL_TRAIN_FOLD))
 
 if __name__ == '__main__':
     """

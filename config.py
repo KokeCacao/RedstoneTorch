@@ -165,7 +165,7 @@ elif PROJECT_NAME == "HisCancer":
 
     DEBUG_LR_FINDER = False # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
 
-    MODEL_EPOCHS = 1000
+    MODEL_EPOCHS = 13
     MODEL_BATCH_SIZE = 64
     MODEL_INIT_LEARNING_RATE = 0.005
     MODEL_MIN_LEARNING_RATE = 0.00007
@@ -173,7 +173,7 @@ elif PROJECT_NAME == "HisCancer":
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DECAY = 0.0001
     MODEL_FOLD = 5
-    MODEL_TRAIN_FOLD = [0]
+    MODEL_TRAIN_FOLD = [1]
     MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], [-1], [-1], [-1], [-1]]
     MODEL_LEARNING_RATE_AFTER_UNFREEZE = 0.001
     MODEL_FREEZE_EPOCH = 4
