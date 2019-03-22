@@ -72,9 +72,9 @@ class HisCancerTrain:
 
                 # for module_pos, module in net.module._modules.items():
                 #     print("#{} -> {}".format(module_pos, module))
-                # optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DECAY)
+                optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DECAY)
                 # optimizer = torch.optim.Adadelta(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DECAY)
-                optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
+                # optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
                 self.optimizers.append(optimizer)
                 self.nets.append(net)
                 lr_scheduler = PlateauCyclicRestart(optimizer, eval_mode='max', factor=0.2, patience=0, verbose=False, threshold=1e-4, threshold_mode='abs', cooldown=0, eps=1e-8, base_lr=5e-4, max_lr=6e-3, step_size=220025/config.MODEL_FOLD*(config.MODEL_FOLD-1)/config.MODEL_BATCH_SIZE, mode='plateau_cyclic', gamma=1., scale_mode='cycle')
