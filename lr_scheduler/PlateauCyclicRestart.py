@@ -323,17 +323,17 @@ class PlateauCyclicRestart(object):
 
     def get_lr(self):
         step_size = float(self.step_size)
-        cycle = np.floor(1 + self.last_batch_iteration / (2 * step_size))
-        x = np.abs(self.last_batch_iteration / step_size - 2 * cycle + 1)
+        cycle = (np.floor(1 + self.last_batch_iteration / (2 * step_size))).item()
+        x = (np.abs(self.last_batch_iteration / step_size - 2 * cycle + 1)).item()
 
         lrs = []
         param_lrs = zip(self.optimizer.param_groups, self.base_lrs, self.max_lrs)
         for param_group, base_lr, max_lr in param_lrs:
             base_height = (max_lr - base_lr) * np.maximum(0, (1 - x))
             if self.scale_mode == 'cycle':
-                lr = (base_lr + base_height * self.scale_fn(cycle)).item()
+                lr = base_lr + base_height * self.scale_fn(cycle)
             else:
-                lr = (base_lr + base_height * self.scale_fn(self.last_batch_iteration)).item()
+                lr = base_lr + base_height * self.scale_fn(self.last_batch_iteration)
             lrs.append(lr)
         return lrs
         # return self.base_lr + self.base_height * self.scale_fn(cycle) else self.base_lr + self.base_height * self.scale_fn(self.last_batch_iteration)
