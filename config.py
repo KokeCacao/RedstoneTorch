@@ -163,7 +163,7 @@ elif PROJECT_NAME == "HisCancer":
     DEBUG_TEST_CODE = False
     DEBUG_AUTO_SHUTDOWN = True
 
-    DEBUG_LR_FINDER = False # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
+    DEBUG_LR_FINDER = True # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
 
     MODEL_EPOCHS = 13
     MODEL_BATCH_SIZE = 64
@@ -188,7 +188,7 @@ elif PROJECT_NAME == "HisCancer":
     TRAIN_GPU_ARG = TRAIN_GPU_DICT[socket.gethostname()]
     TRAIN_GPU_LIST = [int(i) for i in TRAIN_GPU_ARG.split(",")]
     TRAIN_DATA_PERCENT = 1.0
-    TRAIN_SEED = 19
+    TRAIN_SEED = 19*MODEL_TRAIN_FOLD[0]
     TRAIN_NUM_WORKER = 8
     TRAIN_NUM_GPU = len(TRAIN_GPU_LIST)
     TRAIN_RESUME = True
