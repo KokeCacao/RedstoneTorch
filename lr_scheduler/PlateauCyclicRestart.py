@@ -323,7 +323,7 @@ class PlateauCyclicRestart(object):
 
     def get_lr(self):
         step_size = float(self.step_size)
-        print(self.last_batch_iteration, step_size)
+        print(self.last_batch_iteration)
         cycle = (np.floor(1 + self.last_batch_iteration / (2 * step_size))).item()
         x = (np.abs(self.last_batch_iteration / step_size - 2 * cycle + 1)).item()
 
