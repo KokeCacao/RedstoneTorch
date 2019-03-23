@@ -129,21 +129,29 @@ class HisCancerDataset(data.Dataset):
         # dic = create_dict()
         missing_ids = find_missing(total_ids)
         print("Found {} missing ids and {} WSI ids".format(len(missing_ids), len(total_ids)))
-        np.random.shuffle(missing_ids)
 
-        train_missing_ids = dict()
-        cv_missing_ids = dict()
-        kf = KFold(n_splits=fold, random_state=None, shuffle=False)
-        for f, (train_index, test_index) in enumerate(kf.split(missing_ids)):
-            # print("TRAIN:", train_index, "TEST:", test_index)
-            train_missing_ids[f] = [self.id_to_indices[missing_ids[i]] for i in train_index]
-            cv_missing_ids[f] = [self.id_to_indices[missing_ids[i]] for i in test_index]
-            if f == 0: print("Today, you lucky number is: {} and {}".format(train_missing_ids[0][config.TRAIN_SEED], cv_missing_ids[0][config.TRAIN_SEED]))
+        if len(missing_ids) > config.MODEL_FOLD:
+            np.random.shuffle(missing_ids)
 
-        for f in range(fold):
-            folded_samplers[f] = dict()
-            folded_samplers[f]["train"] = SubsetRandomSampler(train_indice[f] + train_missing_ids[f])
-            folded_samplers[f]["val"] = SubsetRandomSampler(cv_indice[f] + cv_missing_ids[f])
+            train_missing_ids = dict()
+            cv_missing_ids = dict()
+            kf = KFold(n_splits=fold, random_state=None, shuffle=False)
+            for f, (train_index, test_index) in enumerate(kf.split(missing_ids)):
+                # print("TRAIN:", train_index, "TEST:", test_index)
+                train_missing_ids[f] = [self.id_to_indices[missing_ids[i]] for i in train_index]
+                cv_missing_ids[f] = [self.id_to_indices[missing_ids[i]] for i in test_index]
+                if f == 0: print("Today, you lucky number is: {} and {}".format(train_missing_ids[0][config.TRAIN_SEED], cv_missing_ids[0][config.TRAIN_SEED]))
+
+            for f in range(fold):
+                folded_samplers[f] = dict()
+                folded_samplers[f]["train"] = SubsetRandomSampler(train_indice[f] + train_missing_ids[f])
+                folded_samplers[f]["val"] = SubsetRandomSampler(cv_indice[f] + cv_missing_ids[f])
+        else:
+            print("There is no missing ids to split")
+            for f in range(fold):
+                folded_samplers[f] = dict()
+                folded_samplers[f]["train"] = SubsetRandomSampler(train_indice[f])
+                folded_samplers[f]["val"] = SubsetRandomSampler(cv_indice[f])
 
             # print("########## Fold {} ##########".format(f))
             # train_labels = []
