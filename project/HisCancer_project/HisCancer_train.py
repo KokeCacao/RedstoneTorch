@@ -215,7 +215,7 @@ class HisCancerTrain:
                                 )
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
                 """SAVE AND DELETE"""
-                save_checkpoint_fold([x.state_dict() for x in self.nets], [x.state_dict() for x in self.optimizers])
+                save_checkpoint_fold([x.state_dict() if x is not None else None for x in self.nets], [x.state_dict() if x is not None else None for x in self.optimizers if x is not None])
                 remove_checkpoint_fold()
 
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
