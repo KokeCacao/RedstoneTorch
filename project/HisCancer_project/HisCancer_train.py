@@ -386,7 +386,7 @@ class HisCancerTrain:
                 # if config.global_steps[fold] == 2 * 46808 / 32 - 1: print("Perfect Place to Stop")
                 # optimizer.state['lr'] = config.TRAIN_TRY_LR_FORMULA(config.global_steps[fold]) if config.TRAIN_TRY_LR else config.TRAIN_COSINE(config.global_steps[fold])
 
-                lr_scheduler.step(0, config.epoch, config.global_steps)
+                lr_scheduler.step(0, config.epoch, config.global_steps[fold])
                 """TRAIN NET"""
                 config.global_steps[fold] = config.global_steps[fold] + 1
                 if config.TRAIN_GPU_ARG:
