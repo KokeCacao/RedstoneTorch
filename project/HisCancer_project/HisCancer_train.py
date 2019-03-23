@@ -83,7 +83,7 @@ class HisCancerTrain:
                 # lr_scheduler = PlateauCyclicRestart(optimizer, eval_mode='max', factor=0.2, patience=0, verbose=False, threshold=1e-4, threshold_mode='abs', cooldown=0, eps=1e-8, base_lr=5e-4, max_lr=6e-3, step_size=220025/config.MODEL_FOLD*(config.MODEL_FOLD-1)/config.MODEL_BATCH_SIZE, mode='plateau_cyclic', gamma=1., scale_mode='cycle')
                 # lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=4*int(27964.8/config.MODEL_BATCH_SIZE), verbose=False, threshold=1e-4, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-8)
                 # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=config.MODEL_COS_LEARNING_RATE_PERIOD, eta_min=config.MODEL_MIN_LEARNING_RATE, last_epoch=-1)
-                self.lr_schedulers.append(PlateauCyclicRestart(optimizer, eval_mode='max', factor=0.2, patience=1, verbose=False, threshold=1e-4, threshold_mode='abs', cooldown=0, eps=1e-8, base_lr=5e-5, max_lr=6e-3, step_size=2705, mode='plateau_cyclic', gamma=1., scale_mode='cycle', last_batch_iteration=-1, reduce_restart=4))
+                self.lr_schedulers.append(PlateauCyclicRestart(optimizer, eval_mode='max', factor=0.2, patience=1, verbose=False, threshold=1e-4, threshold_mode='abs', cooldown=0, eps=1e-8, base_lr=5e-5, max_lr=1e-2, step_size=2705, mode='plateau_cyclic', gamma=1., scale_mode='cycle', last_batch_iteration=-1, reduce_restart=4))
 
                 # for name, param in net.named_parameters():
                 #     if param.requires_grad:
