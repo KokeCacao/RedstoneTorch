@@ -265,8 +265,7 @@ class PlateauCyclicRestart(object):
         # for i, param_group in enumerate(self.optimizer.param_groups):
         #     param_group['lr'] = lr
         for param_group, lr in zip(self.optimizer.param_groups, lrs):
-            print(lr)
-            lr = np.asscalar(lr[0]) # IMPORTANTCE
+            if isinstance(lr, (np.ndarray, np.generic) ): lr = np.asscalar(lr)
             param_group['lr'] = lr
 
     def update_lr(self):
