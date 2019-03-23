@@ -265,8 +265,7 @@ class PlateauCyclicRestart(object):
         # for i, param_group in enumerate(self.optimizer.param_groups):
         #     param_group['lr'] = lr
         for param_group, lr in zip(self.optimizer.param_groups, lrs):
-            print(lrs[0], lrs, lrs[0].size)
-            if isinstance(lr, (np.ndarray, np.generic) ): lr = np.asscalar(lrs[0]) #bad code
+            print(lr, lrs[0], lrs, lrs[0].size)
             param_group['lr'] = lr
 
     def update_lr(self):
@@ -333,9 +332,9 @@ class PlateauCyclicRestart(object):
         for param_group, base_lr, max_lr in param_lrs:
             base_height = (max_lr - base_lr) * np.maximum(0, (1 - x))
             if self.scale_mode == 'cycle':
-                lr = base_lr + base_height * self.scale_fn(cycle)
+                lr = (base_lr + base_height * self.scale_fn(cycle)).item()
             else:
-                lr = base_lr + base_height * self.scale_fn(self.last_batch_iteration)
+                lr = (base_lr + base_height * self.scale_fn(self.last_batch_iteration)).item()
             lrs.append(lr)
         return lrs
         # return self.base_lr + self.base_height * self.scale_fn(cycle) else self.base_lr + self.base_height * self.scale_fn(self.last_batch_iteration)
