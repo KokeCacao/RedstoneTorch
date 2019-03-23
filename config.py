@@ -163,7 +163,7 @@ elif PROJECT_NAME == "HisCancer":
     DEBUG_TEST_CODE = False
     DEBUG_AUTO_SHUTDOWN = True
 
-    DEBUG_LR_FINDER = True # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
+    DEBUG_LR_FINDER = False # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
 
     MODEL_EPOCHS = 13
     MODEL_BATCH_SIZE = 64
