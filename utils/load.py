@@ -92,7 +92,7 @@ def load_checkpoint_all_fold_without_optimizers(nets, load_path):
         config.epoch = checkpoint['epoch']
         config.global_steps = checkpoint['global_steps']
         for fold, net in enumerate(nets):
-            net.load_state_dict(checkpoint['state_dicts'][0])
+            net.load_state_dict(checkpoint['state_dicts'][2])
             print("=> Loading checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
         print("=> Loaded checkpoint {} epoch; {}-{} step".format(config.epoch, config.global_steps[0], config.global_steps[-1]))
     else:
