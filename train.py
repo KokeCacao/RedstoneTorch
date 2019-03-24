@@ -27,7 +27,7 @@ def get_args():
     parser.add_option('--resume', type="string", dest='resume', default=False, help='resume or create a new folder')
     parser.add_option('--resetlr', type="float", dest='resetlr', default=0., help='reset the learning rate')
     parser.add_option('--fold', type="float", dest='fold', default=-1., help='set training fold')
-    parser.add_option('--testlr', type="float", dest='testlr', default=False, help='test lr')
+    parser.add_option('--testlr', type="string", dest='testlr', default=False, help='test lr')
 
     (options, args) = parser.parse_args()
     return options
