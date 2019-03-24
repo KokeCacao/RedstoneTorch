@@ -66,7 +66,7 @@ def load_checkpoint_all_fold(nets, optimizers, load_path):
         config.epoch = checkpoint['epoch']
         config.global_steps = checkpoint['global_steps']
         for fold, (net, optimizer) in enumerate(zip(nets, optimizers)):
-            if net == None or optimizer == None:
+            if fold not in config.MODEL_TRAIN_FOLD:
                 continue
             net.load_state_dict(checkpoint['state_dicts'][fold])
             optimizer.load_state_dict(checkpoint['optimizers'][fold])
@@ -92,7 +92,9 @@ def load_checkpoint_all_fold_without_optimizers(nets, load_path):
         config.epoch = checkpoint['epoch']
         config.global_steps = checkpoint['global_steps']
         for fold, net in enumerate(nets):
-            net.load_state_dict(checkpoint['state_dicts'][2])
+            if fold not in config.MODEL_TRAIN_FOLD:
+                continue
+            net.load_state_dict(checkpoint['state_dicts'][fold])
             print("=> Loading checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
         print("=> Loaded checkpoint {} epoch; {}-{} step".format(config.epoch, config.global_steps[0], config.global_steps[-1]))
     else:

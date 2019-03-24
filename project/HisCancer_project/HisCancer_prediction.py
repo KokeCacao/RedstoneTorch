@@ -21,6 +21,7 @@ class HisCancerPrediction:
         for fold in range(config.MODEL_FOLD):
             if fold not in config.MODEL_TRAIN_FOLD:
                 print("     Junping Fold: #{}".format(fold))
+                self.nets.append(None)
             else:
                 print("     Creating Fold: #{}".format(fold))
                 net = HisCancer_net.se_resnext50_32x4d(config.TRAIN_NUM_CLASS, pretrained="imagenet")
@@ -41,6 +42,8 @@ class HisCancerPrediction:
         torch.no_grad()
         """Used for Kaggle submission: predicts and encode all test images"""
         for fold, net in enumerate(self.nets):
+            if net == None:
+                continue
             for threshold in self.thresholds:
                 prob_path = "{}-{}-F{}-T{}-Prob.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
                 if os.path.exists(prob_path):
@@ -70,7 +73,7 @@ class HisCancerPrediction:
                     for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
 
                         if config.TRAIN_GPU_ARG: image = image.cuda()
-                        predicts = self.nets[0](image)
+                        predicts = net(image)
                         predicts = torch.nn.Softmax()(predicts).detach().cpu().numpy()
 
                         confidence = np.absolute(predicts - 0.5).mean() + 0.5
