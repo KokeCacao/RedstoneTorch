@@ -122,19 +122,10 @@ class HisCancerTrain:
         if config.resetlr != 0:
             print("Reset Learning Rate to {}".format(config.resetlr))
             for optim in self.optimizers:
+                if optim == None:
+                    continue
                 for g in optim.param_groups:
                     g['lr'] = config.resetlr
-
-        """FREEZE DETECT"""
-        for c in self.nets[config.MODEL_TRAIN_FOLD[0]].children():
-            for child_counter, child in enumerate(c.children()):
-                req_grad = True
-                for p in child.parameters():
-                    if not p.requires_grad:
-                        req_grad = False
-                print("=======================Start Child Number #{} Grad: {}=======================".format(child_counter, req_grad))
-                print("{}".format(child))
-                print("=======================End Child Number #{} Grad: {}=======================".format(child_counter, req_grad))
 
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[config.MODEL_TRAIN_FOLD[0]], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
@@ -169,6 +160,17 @@ class HisCancerTrain:
             lr_finder.reset()
             return
 
+
+        """FREEZE DETECT"""
+        for c in self.nets[config.MODEL_TRAIN_FOLD[0]].children():
+            for child_counter, child in enumerate(c.children()):
+                req_grad = True
+                for p in child.parameters():
+                    if not p.requires_grad:
+                        req_grad = False
+                print("=======================Start Child Number #{} Grad: {}=======================".format(child_counter, req_grad))
+                print("{}".format(child))
+                print("=======================End Child Number #{} Grad: {}=======================".format(child_counter, req_grad))
 
         self.run()
 
