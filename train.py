@@ -27,6 +27,7 @@ def get_args():
     parser.add_option('--resume', type="string", dest='resume', default=False, help='resume or create a new folder')
     parser.add_option('--resetlr', type="float", dest='resetlr', default=0., help='reset the learning rate')
     parser.add_option('--fold', type="float", dest='fold', default=-1., help='set training fold')
+    parser.add_option('--testlr', type="float", dest='testlr', default=False, help='test lr')
 
     (options, args) = parser.parse_args()
     return options
@@ -56,6 +57,8 @@ def load_args():
     if args.fold and args.fold != -1 and args.fold < config.MODEL_FOLD:
         config.MODEL_TRAIN_FOLD = [int(args.fold)]
         print("=> Set training fold to: {}".format(config.MODEL_TRAIN_FOLD))
+
+    config.DEBUG_LR_FINDER = True if args.testlr == "True" else False
 
 if __name__ == '__main__':
     """
