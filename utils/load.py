@@ -69,7 +69,7 @@ def load_checkpoint_all_fold(nets, optimizers, load_path):
             if fold not in config.MODEL_TRAIN_FOLD:
                 continue
             net.load_state_dict(checkpoint['state_dicts'][fold])
-            if fold not in checkpoint['optimizers'].keys():
+            if fold >= len(checkpoint['optimizers']):
                 optimizer.load_state_dict(checkpoint['optimizers'][0]) # BAD CODE
                 print("No Optimizer for the fold found, loading checkpoint['optimizers'][0]")
             else:
