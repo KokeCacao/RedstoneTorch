@@ -67,6 +67,7 @@ class HisCancerPrediction:
                                                   )
                     pbar = tqdm(test_loader)
                     total_confidence = 0
+                    confidence_list = []
 
                     print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
 
@@ -76,8 +77,9 @@ class HisCancerPrediction:
                         predicts = net(image)
                         predicts = torch.nn.Softmax()(predicts).detach().cpu().numpy()
 
-                        confidence = np.absolute(predicts - 0.5).mean() + 0.5
+                        confidence = (np.absolute(predicts - 0.5).mean() + 0.5).item()
                         total_confidence = total_confidence + confidence
+                        confidence_list.append(confidence)
                         pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0].replace("data/HisCancer_dataset/test/", "").replace(".npy", ""), confidence, total_confidence / (batch_index + 1)))
 
                         for id, predict in zip(ids, predicts):
@@ -85,6 +87,7 @@ class HisCancerPrediction:
 
                         del ids, image, labels_0, image_for_display, predicts
                         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                print("Mean Confidence = {}, STD = {}".format(np.mean(confidence_list), np.std(confidence_list)))
 
                 print("Prob_path: {}".format(prob_path))
 
