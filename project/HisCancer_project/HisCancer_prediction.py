@@ -92,7 +92,7 @@ class HisCancerPrediction:
                         del ids, image, labels_0, image_for_display, predicts
                         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
-                left, right = st.t.interval(0.95, len(a)-1, loc=np.mean(a), scale=st.sem(a))
+                # left, right = st.t.interval(0.95, len(a)-1, loc=np.mean(a), scale=st.sem(a))
                 print("""
                 Mean Confidence = {}, STD = {}
                 """.format(np.mean(confidence_list), np.std(confidence_list)))
