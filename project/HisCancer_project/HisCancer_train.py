@@ -301,9 +301,11 @@ class HisCancerTrain:
             public_lb = set(np.random.choice(range(int(len(evaluation.epoch_pred)*0.5)), int(len(evaluation.epoch_pred)*0.5), replace=False))
             private_lb = set(range(len(evaluation.epoch_pred)))-public_lb
             public_lb = list(private_lb)
-            public_lb = metrics.roc_auc_score(evaluation.epoch_pred[public_lb], evaluation.epoch_label[public_lb])
+            if i == 0: print(public_lb)
+            public_lb = metrics.roc_auc_score(evaluation.epoch_label[public_lb], evaluation.epoch_pred[public_lb])
+            if i == 0: print(public_lb)
             private_lb = list(private_lb)
-            private_lb = metrics.roc_auc_score(evaluation.epoch_pred[private_lb], evaluation.epoch_label[private_lb])
+            private_lb = metrics.roc_auc_score(evaluation.epoch_label[private_lb], evaluation.epoch_pred[private_lb])
             score_diff = private_lb-public_lb
             shakeup[score_diff] = (public_lb, private_lb)
         shakeup_keys = sorted(shakeup)
