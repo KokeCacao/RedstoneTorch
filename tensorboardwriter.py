@@ -44,7 +44,7 @@ def write_shakeup(writer, dictionary, sorted_keys, epoch):
         public_lb, private_lb = dictionary[key]
         writer.add_scalars('threshold/Shakeup/', {"Public LB": public_lb}, i)
         writer.add_scalars('threshold/Shakeup/', {"Private LB": private_lb}, i)
-    writer.add_histogram("eval/loss_distribution", sorted_keys, epoch)
+    # writer.add_histogram("eval/loss_distribution", sorted_keys, epoch)
 
 
 def write_loss_distribution(writer, loss_list, epoch):
