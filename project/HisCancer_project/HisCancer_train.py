@@ -115,8 +115,6 @@ class HisCancerTrain:
         if config.TRAIN_LOAD_OPTIMIZER: load_checkpoint_all_fold(self.nets, self.optimizers, self.lr_schedulers, config.DIRECTORY_LOAD)
         set_milestone(config.DIRECTORY_LOAD)
 
-        save_checkpoint_fold([x.state_dict() if x is not None else None for x in self.nets], [x.state_dict() if x is not None else None for x in self.optimizers if x is not None], [x.state_dict() if x is not None else None for x in self.lr_schedulers if x is not None])
-
         """RESET LR"""
         if config.resetlr != 0:
             print("Reset Learning Rate to {}".format(config.resetlr))
