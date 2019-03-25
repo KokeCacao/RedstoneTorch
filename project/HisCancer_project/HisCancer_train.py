@@ -115,6 +115,8 @@ class HisCancerTrain:
         if config.TRAIN_LOAD_OPTIMIZER: load_checkpoint_all_fold(self.nets, self.optimizers, self.lr_schedulers, config.DIRECTORY_LOAD)
         set_milestone(config.DIRECTORY_LOAD)
 
+        save_checkpoint_fold([x.state_dict() if x is not None else None for x in self.nets], [x.state_dict() if x is not None else None for x in self.optimizers if x is not None], [x.state_dict() if x is not None else None for x in self.lr_schedulers if x is not None])
+
         """RESET LR"""
         if config.resetlr != 0:
             print("Reset Learning Rate to {}".format(config.resetlr))
@@ -213,7 +215,7 @@ class HisCancerTrain:
                                 )
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
                 """SAVE AND DELETE"""
-                save_checkpoint_fold(self.nets, self.optimizers, self.lr_schedulers)
+                save_checkpoint_fold([x.state_dict() if x is not None else None for x in self.nets], [x.state_dict() if x is not None else None for x in self.optimizers if x is not None], [x.state_dict() if x is not None else None for x in self.lr_schedulers if x is not None])
                 remove_checkpoint_fold()
 
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
@@ -301,9 +303,7 @@ class HisCancerTrain:
             public_lb = set(np.random.choice(range(int(len(evaluation.epoch_pred)*0.5)), int(len(evaluation.epoch_pred)*0.5), replace=False))
             private_lb = set(range(len(evaluation.epoch_pred)))-public_lb
             public_lb = list(private_lb)
-            if i == 0: print(public_lb)
             public_lb = metrics.roc_auc_score(evaluation.epoch_label[public_lb], evaluation.epoch_pred[public_lb])
-            if i == 0: print(public_lb)
             private_lb = list(private_lb)
             private_lb = metrics.roc_auc_score(evaluation.epoch_label[private_lb], evaluation.epoch_pred[private_lb])
             score_diff = private_lb-public_lb
