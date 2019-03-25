@@ -34,19 +34,20 @@ def remove_checkpoint_fold(a=2, b=3):
                 print('Removing CP: {}'.format(folder + cp))
                 os.remove(folder + cp)
 
-def save_checkpoint_fold(state_dicts, optimizer_dicts, lr_schedulers, interupt=False):
+def save_checkpoint_fold(state_dicts, optimizer_dicts, lr_schedulers_dicts, interupt=False):
     if interupt: print("WARNING: loading interupt models may be buggy")
     tag = config.versiontag + "-" if config.versiontag else ""
     interupt = "INTERUPT-" if interupt else ""
     if not os.path.exists(config.DIRECTORY_CHECKPOINT):
         os.makedirs(config.DIRECTORY_CHECKPOINT)
     config.lastsave = interupt + tag + config.DIRECTORY_CP_NAME.format(config.epoch, config.train_fold, config.PROJECT_TAG, config.versiontag, config.MODEL_INIT_LEARNING_RATE, config.MODEL_BATCH_SIZE, config.AUGMENTATION_RESIZE)
+    print(optimizer_dicts, lr_schedulers_dicts)
     torch.save({
         'epoch': config.epoch,
         'global_steps': config.global_steps,
         'state_dicts': state_dicts,
         'optimizers': optimizer_dicts,
-        'lr_schedulers': lr_schedulers,
+        'lr_schedulers': lr_schedulers_dicts,
     }, config.DIRECTORY_CHECKPOINT + config.lastsave)
     print('Checkpoint: {} epoch; {}-{} step; dir: {}'.format(config.epoch, config.global_steps[0], config.global_steps[-1], config.DIRECTORY_CHECKPOINT + config.lastsave))
 
