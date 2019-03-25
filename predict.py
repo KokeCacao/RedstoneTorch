@@ -16,6 +16,7 @@ def get_args():
     parser.add_option('--loaddir', dest='loaddir', default=False, help='tag you want to load')
     parser.add_option('--versiontag', dest='versiontag', default="predict", help='tag for tensorboard-log and prediction')
     parser.add_option('--loadfile', dest='loadfile', default=False, help='file you want to load')
+    parser.add_option('--fold', type="float", dest='fold', default=-1., help='set training fold')
 
     (options, args) = parser.parse_args()
     return options
@@ -28,6 +29,10 @@ def load_args():
         config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/" + args.loadfile
         config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/predict/"
     else: raise ValueError("You must set --loadfile directory in prediction mode")
+
+    if args.fold and args.fold != -1 and args.fold < config.MODEL_FOLD:
+        config.train_fold = [int(args.fold)]
+        print("=> Set training fold to: {}".format(config.train_fold))
 
 if __name__ == '__main__':
     """
