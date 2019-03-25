@@ -10,7 +10,7 @@ from tqdm import tqdm
 import config
 from dataset.HisCancer_dataset import HisCancerDataset, test_collate, train_collate
 from project.HisCancer_project import HisCancer_net
-from utils.load import load_checkpoint_all_fold_without_optimizers, save_onnx
+from utils.load import save_onnx, load_checkpoint_all_fold
 
 
 class HisCancerPrediction:
@@ -32,7 +32,10 @@ class HisCancerPrediction:
 
                 if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
                 self.nets.append(net)
-        load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
+
+        config.load_optimizers = False
+        config.load_lr_schedulers = False
+        load_checkpoint_all_fold(self.nets, None, None, config.DIRECTORY_LOAD)
 
         self.test_dataset = HisCancerDataset(config.DIRECTORY_CSV, config.DIRECTORY_SAMPLE_CSV, load_strategy="predict", writer=self.writer, column='Label')
         self.valid_dataset = HisCancerDataset(config.DIRECTORY_CSV, config.DIRECTORY_SAMPLE_CSV, load_strategy="train", writer=self.writer, column='Target')

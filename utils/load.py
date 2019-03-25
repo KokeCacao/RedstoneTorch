@@ -66,6 +66,9 @@ def load_checkpoint_all_fold(nets, optimizers, lr_schedulers, load_path):
             raise ValueError("=> Checkpoint is broken, nothing loaded")
         config.epoch = checkpoint['epoch']
         config.global_steps = checkpoint['global_steps']
+
+        optimizers = [None] * len(nets) if optimizers==None else optimizers
+        lr_schedulers = [None] * len(nets) if lr_schedulers==None else lr_schedulers
         for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
             if fold not in config.train_fold:
                 continue
