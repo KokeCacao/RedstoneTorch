@@ -75,10 +75,11 @@ def load_checkpoint_all_fold(nets, optimizers, lr_schedulers, load_path):
 
             if config.load_state_dicts:
                 if 'state_dicts' in checkpoint.keys():
-                    if fold >= len(checkpoint['state_dicts']) and checkpoint['state_dicts'][fold] != None:
+                    if fold >= len(checkpoint['state_dicts']):
                         net.load_state_dict(checkpoint['state_dicts'][0])
                         print("[WARNING] No state_dict for the fold found, loading checkpoint['state_dicts'][0]")
                     else:
+                        if checkpoint['state_dicts'][fold] is None: print("[ERROR] The fold number of your input is not correct or no fold found")
                         net.load_state_dict(checkpoint['state_dicts'][fold])
                 else:
                     print("[WARNING] No keys [state_dicts] detected from loading")
@@ -87,10 +88,11 @@ def load_checkpoint_all_fold(nets, optimizers, lr_schedulers, load_path):
 
             if config.load_optimizers:
                 if 'optimizers' in checkpoint.keys():
-                    if fold >= len(checkpoint['optimizers']) and checkpoint['optimizers'][fold] != None:
+                    if fold >= len(checkpoint['optimizers']):
                         optimizer.load_state_dict(checkpoint['optimizers'][0]) # BAD CODE
                         print("[WARNING] No optimizer for the fold found, loading checkpoint['optimizers'][0]")
                     else:
+                        if checkpoint['optimizers'][fold] is None: print("[ERROR] The fold number of your input is not correct or no fold found")
                         optimizer.load_state_dict(checkpoint['optimizers'][fold]) # BAD CODE
                 else:
                     print("[WARNING] No keys [optimizers] detected from loading")
@@ -99,10 +101,11 @@ def load_checkpoint_all_fold(nets, optimizers, lr_schedulers, load_path):
 
             if config.load_lr_schedulers:
                 if 'lr_schedulers' in checkpoint.keys():
-                    if fold >= len(checkpoint['lr_schedulers']) and checkpoint['lr_schedulers'][fold] != None:
+                    if fold >= len(checkpoint['lr_schedulers']):
                         lr_scheduler.load_state_dict(checkpoint['lr_schedulers'][0]) # BAD CODE
                         print("[WARNING] No lr_schedulers for the fold found, loading checkpoint['lr_schedulers'][0]")
                     else:
+                        if checkpoint['lr_schedulers'][fold] is None: print("[ERROR] The fold number of your input is not correct or no fold found")
                         lr_scheduler.load_state_dict(checkpoint['lr_schedulers'][fold]) # BAD CODE
                 else:
                     print("[WARNING] No keys [lr_schedulers] detected from loading")
