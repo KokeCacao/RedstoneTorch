@@ -10,7 +10,7 @@ from tqdm import tqdm
 import config
 from dataset.hpa_dataset import HPAData, train_collate
 from project.hpa_project.hpa_net import se_resnext101_32x4d_modified
-from utils.load import save_onnx, cuda, load_checkpoint_all_fold_without_optimizers
+from utils.load import save_onnx, cuda, load_checkpoint_all_fold
 
 
 class HPAPrediction:
@@ -30,7 +30,10 @@ class HPAPrediction:
 
                 if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
                 self.nets.append(cuda(net))
-        load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
+
+        config.load_optimizers = False
+        config.load_lr_schedulers = False
+        load_checkpoint_all_fold(self.nets, None, None, config.DIRECTORY_LOAD)
 
         self.test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir=config.DIRECTORY_PREPROCESSED_IMG, img_suffix=config.DIRECTORY_PREPROCESSED_SUFFIX_IMG, load_strategy="test", load_preprocessed_dir=True)
 
@@ -134,7 +137,10 @@ class HPATest:
 
                 if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
                 self.nets.append(cuda(net))
-        load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
+
+        config.load_optimizers = False
+        config.load_lr_schedulers = False
+        load_checkpoint_all_fold(self.nets, None, None, config.DIRECTORY_LOAD)
 
         self.test_dataset = HPAData(config.DIRECTORY_CSV, load_img_dir="scripts/images/selected/", img_suffix=".jpg", load_strategy="test", load_preprocessed_dir=False)
 
