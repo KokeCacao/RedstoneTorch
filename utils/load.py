@@ -75,7 +75,7 @@ def load_checkpoint_all_fold(nets, optimizers, lr_schedulers, load_path):
 
             if config.load_state_dicts:
                 if 'state_dicts' in checkpoint.keys():
-                    if fold >= len(checkpoint['state_dicts']) and checkpoint['state_dicts'][fold] is not None:
+                    if fold >= len(checkpoint['state_dicts']) and checkpoint['state_dicts'][fold] != None:
                         net.load_state_dict(checkpoint['state_dicts'][0])
                         print("[WARNING] No state_dict for the fold found, loading checkpoint['state_dicts'][0]")
                     else:
@@ -87,7 +87,7 @@ def load_checkpoint_all_fold(nets, optimizers, lr_schedulers, load_path):
 
             if config.load_optimizers:
                 if 'optimizers' in checkpoint.keys():
-                    if fold >= len(checkpoint['optimizers']) and checkpoint['optimizers'][fold] is not None:
+                    if fold >= len(checkpoint['optimizers']) and checkpoint['optimizers'][fold] != None:
                         optimizer.load_state_dict(checkpoint['optimizers'][0]) # BAD CODE
                         print("[WARNING] No optimizer for the fold found, loading checkpoint['optimizers'][0]")
                     else:
@@ -99,7 +99,7 @@ def load_checkpoint_all_fold(nets, optimizers, lr_schedulers, load_path):
 
             if config.load_lr_schedulers:
                 if 'lr_schedulers' in checkpoint.keys():
-                    if fold >= len(checkpoint['lr_schedulers']) and checkpoint['lr_schedulers'][fold] is not None:
+                    if fold >= len(checkpoint['lr_schedulers']) and checkpoint['lr_schedulers'][fold] != None:
                         lr_scheduler.load_state_dict(checkpoint['lr_schedulers'][0]) # BAD CODE
                         print("[WARNING] No lr_schedulers for the fold found, loading checkpoint['lr_schedulers'][0]")
                     else:
