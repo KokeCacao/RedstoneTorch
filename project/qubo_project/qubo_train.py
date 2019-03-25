@@ -43,7 +43,7 @@ class QUBOTrain:
         self.folded_samplers = self.dataset.get_stratified_samplers(fold=config.MODEL_FOLD)
 
         for fold in range(config.MODEL_FOLD):
-            if fold not in config.MODEL_TRAIN_FOLD:
+            if fold not in config.train_fold:
                 print("     Skipping Fold: #{}".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))

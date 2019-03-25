@@ -39,6 +39,13 @@ def write_data_distribution(writer, F, fold, unique=False):
         return
     writer.add_figure("data/fold_distribution/{}".format(fold), F, 0)
 
+def write_shakeup(writer, dictionary, sorted_keys, epoch):
+    for i, key in enumerate(sorted_keys):
+        public_lb, private_lb = dictionary[key]
+        writer.add_scalars('threshold/Shakeup/', {"Public LB": public_lb}, i)
+        writer.add_scalars('threshold/Shakeup/', {"Private LB": private_lb}, i)
+    writer.add_histogram("eval/loss_distribution", sorted_keys, epoch)
+
 
 def write_loss_distribution(writer, loss_list, epoch):
     writer.add_histogram("eval/loss_distribution", loss_list, epoch)

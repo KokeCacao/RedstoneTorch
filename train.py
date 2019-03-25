@@ -28,6 +28,9 @@ def get_args():
     parser.add_option('--resetlr', type="float", dest='resetlr', default=0., help='reset the learning rate')
     parser.add_option('--fold', type="float", dest='fold', default=-1., help='set training fold')
     parser.add_option('--testlr', type="string", dest='testlr', default=False, help='test lr')
+    parser.add_option('--state_dict', type="string", dest='state_dict', default=True, help='whether to load state_dicts')
+    parser.add_option('--optimizer', type="string", dest='optimizer', default=True, help='whether to load optimizers')
+    parser.add_option('--lr_scheduler', type="string", dest='lr_scheduler', default=True, help='whether to load lr_schedulers')
 
     (options, args) = parser.parse_args()
     return options
@@ -38,6 +41,10 @@ def load_args():
     if args.versiontag: config.versiontag = args.versiontag
     if args.projecttag: config.PROJECT_TAG = args.projecttag
     config.TRAIN_RESUME = True if args.resume == "True" else False
+    config.DEBUG_LR_FINDER = True if args.testlr == "True" else False
+    config.load_state_dicts = False if args.state_dict == "False" else True
+    config.load_optimizers = False if args.optimizer == "False" else True
+    config.load_lr_schedulers = False if args.lr_scheduler == "False" else True
 
     if args.loadfile:
         config.lastsave = args.loadfile
@@ -55,10 +62,8 @@ def load_args():
         config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
 
     if args.fold and args.fold != -1 and args.fold < config.MODEL_FOLD:
-        config.MODEL_TRAIN_FOLD = [int(args.fold)]
-        print("=> Set training fold to: {}".format(config.MODEL_TRAIN_FOLD))
-
-    config.DEBUG_LR_FINDER = True if args.testlr == "True" else False
+        config.train_fold = [int(args.fold)]
+        print("=> Set training fold to: {}".format(config.train_fold))
 
 if __name__ == '__main__':
     """

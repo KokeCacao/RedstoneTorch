@@ -19,7 +19,7 @@ class HPAPrediction:
         self.writer = writer
         self.nets = []
         for fold in range(config.MODEL_FOLD):
-            if fold not in config.MODEL_TRAIN_FOLD:
+            if fold not in config.train_fold:
                 print("     Junping Fold: #{}".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))
@@ -123,7 +123,7 @@ class HPATest:
         self.writer = writer
         self.nets = []
         for fold in range(config.MODEL_FOLD):
-            if fold not in config.MODEL_TRAIN_FOLD:
+            if fold not in config.train_fold:
                 print("     Junping Fold: #{}".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))

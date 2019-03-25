@@ -24,7 +24,7 @@ from project.HisCancer_project import HisCancer_net
 from project.qubo_project import qubo_net
 from project.qubo_project.qubo_cam import GradCam, GuidedBackprop, guided_grad_cam, save_gradient_images, convert_to_grayscale, cam
 from utils import encode, load
-from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx, remove_checkpoint_fold, set_milestone, load_checkpoint_all_fold_without_optimizers
+from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx, remove_checkpoint_fold, set_milestone
 from utils.lr_finder import LRFinder
 
 if os.environ.get('DISPLAY', '') == '':
@@ -47,7 +47,7 @@ class HisCancerTrain:
         self.folded_samplers = self.dataset.get_wsl_samples(fold=config.MODEL_FOLD)
 
         for fold in range(config.MODEL_FOLD):
-            if fold not in config.MODEL_TRAIN_FOLD:
+            if fold not in config.train_fold:
                 print("     Skipping dataset = HisCancerDataset(config.DIRECTORY_CSV, fold: #{})".format(fold))
                 self.optimizers.append(None)
                 self.nets.append(None)
@@ -112,10 +112,7 @@ class HisCancerTrain:
                                                              timeout=0,
                                                              worker_init_fn=None,
                                                              ))
-        if config.TRAIN_LOAD_OPTIMIZER: load_checkpoint_all_fold(self.nets, self.optimizers, config.DIRECTORY_LOAD)
-        else :
-            load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
-            print("=> Warning: no optimizers loaded")
+        if config.TRAIN_LOAD_OPTIMIZER: load_checkpoint_all_fold(self.nets, self.optimizers, self.lr_schedulers, config.DIRECTORY_LOAD)
         set_milestone(config.DIRECTORY_LOAD)
 
         """RESET LR"""
@@ -127,13 +124,13 @@ class HisCancerTrain:
                 for g in optim.param_groups:
                     g['lr'] = config.resetlr
 
-        if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[config.MODEL_TRAIN_FOLD[0]], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
+        if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[config.train_fold[0]], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
         if config.DEBUG_LR_FINDER:
             val_loader = data.DataLoader(self.dataset,
                                          batch_size=config.MODEL_BATCH_SIZE,
                                          shuffle=False,
-                                         sampler=self.folded_samplers[config.MODEL_TRAIN_FOLD[0]]["val"],
+                                         sampler=self.folded_samplers[config.train_fold[0]]["val"],
                                          batch_sampler=None,
                                          num_workers=config.TRAIN_NUM_WORKER,
                                          collate_fn=val_collate,
@@ -142,26 +139,26 @@ class HisCancerTrain:
                                          timeout=0,
                                          worker_init_fn=None,
                                          ) if config.FIND_LR_ON_VALIDATION else None
-            lr_finder = LRFinder(self.nets[config.MODEL_TRAIN_FOLD[0]], self.optimizers[config.MODEL_TRAIN_FOLD[0]], torch.nn.BCEWithLogitsLoss(), writer=self.writer, device="cuda")
+            lr_finder = LRFinder(self.nets[config.train_fold[0]], self.optimizers[config.train_fold[0]], torch.nn.BCEWithLogitsLoss(), writer=self.writer, device="cuda")
             lr_finder.range_test(data.DataLoader(self.dataset,
-                                           batch_size=config.MODEL_BATCH_SIZE,
-                                           shuffle=False,
-                                           sampler=self.folded_samplers[config.MODEL_TRAIN_FOLD[0]]["train"],
-                                           batch_sampler=None,
-                                           num_workers=config.TRAIN_NUM_WORKER,
-                                           collate_fn=train_collate,
-                                           pin_memory=True,
-                                           drop_last=False,
-                                           timeout=0,
-                                           worker_init_fn=None,
-                                           ), val_loader=val_loader, end_lr=0.1, num_iter=config.FIND_LR_RATIO, step_mode="exp")
+                                                 batch_size=config.MODEL_BATCH_SIZE,
+                                                 shuffle=False,
+                                                 sampler=self.folded_samplers[config.train_fold[0]]["train"],
+                                                 batch_sampler=None,
+                                                 num_workers=config.TRAIN_NUM_WORKER,
+                                                 collate_fn=train_collate,
+                                                 pin_memory=True,
+                                                 drop_last=False,
+                                                 timeout=0,
+                                                 worker_init_fn=None,
+                                                 ), val_loader=val_loader, end_lr=0.1, num_iter=config.FIND_LR_RATIO, step_mode="exp")
             tensorboardwriter.write_plot(self.writer, lr_finder.plot(skip_start=0, skip_end=0, log_lr=False), "lr_finder-Linear")
             tensorboardwriter.write_plot(self.writer, lr_finder.plot(skip_start=0, skip_end=0, log_lr=True), "lr_finder-Log")
             lr_finder.reset()
             return
 
         """FREEZE DETECT"""
-        for c in self.nets[config.MODEL_TRAIN_FOLD[0]].children():
+        for c in self.nets[config.train_fold[0]].children():
             for child_counter, child in enumerate(c.children()):
                 req_grad = True
                 for p in child.parameters():
@@ -216,7 +213,7 @@ class HisCancerTrain:
                                 )
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
                 """SAVE AND DELETE"""
-                save_checkpoint_fold([x.state_dict() if x is not None else None for x in self.nets], [x.state_dict() if x is not None else None for x in self.optimizers if x is not None])
+                save_checkpoint_fold(self.nets, self.optimizers, self.lr_schedulers)
                 remove_checkpoint_fold()
 
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
@@ -297,6 +294,22 @@ class HisCancerTrain:
         f1_2 = metrics.f1_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), average='macro')  # sklearn does not automatically import matrics.
         f1_dict = dict(("Class-{}".format(i), x) for i, x in enumerate(metrics.f1_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), average=None)))
         f1_dict.update({"EvalF1": f1, "Sklearn": f1_2})
+
+        # IT WILL MESS UP THE RANDOM SEED (CAREFUL)
+        shakeup = dict()
+        for i in range(100):
+            public_lb = set(np.random.choice(range(int(len(evaluation.epoch_pred)*0.5)), int(len(evaluation.epoch_pred)*0.5), replace=False).value())
+            private_lb = set(range(len(evaluation.epoch_pred)))-public_lb
+            public_lb = list(private_lb)
+            public_lb = metrics.roc_auc_score(evaluation.epoch_pred[public_lb], evaluation.epoch_label[public_lb])
+            private_lb = list(private_lb)
+            private_lb = metrics.roc_auc_score(evaluation.epoch_pred[private_lb], evaluation.epoch_label[private_lb])
+            score_diff = private_lb-public_lb
+            shakeup[score_diff] = (public_lb, private_lb)
+        shakeup_keys = sorted(shakeup)
+        shakeup_mean, shakeup_std = np.mean(shakeup_keys), np.std(shakeup_keys)
+        tensorboardwriter.write_shakeup(self.writer, shakeup, shakeup_keys, config.epoch)
+
         soft_auc_macro = metrics.roc_auc_score(evaluation.epoch_label, evaluation.epoch_pred)
         hard_auc_macro = metrics.roc_auc_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred>config.EVAL_THRESHOLD).astype(np.byte))
         soft_auc_micro = metrics.roc_auc_score(evaluation.epoch_label, evaluation.epoch_pred, average='micro')
@@ -306,6 +319,8 @@ class HisCancerTrain:
         max_names = max(f1_dict.items(), key=operator.itemgetter(1))
         min_names = min(f1_dict.items(), key=operator.itemgetter(1))
         report = report + """
+        Shakeup Mean: {}
+        Shakeup STD: {}""".format(shakeup_mean, shakeup_std) + """
         Soft AUC Macro: {}
         Hard AUC Macro: {}
         Soft AUC Micro: {}

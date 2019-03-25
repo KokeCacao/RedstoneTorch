@@ -34,23 +34,24 @@ def remove_checkpoint_fold(a=2, b=3):
                 print('Removing CP: {}'.format(folder + cp))
                 os.remove(folder + cp)
 
-def save_checkpoint_fold(state_dicts, optimizer_dicts, interupt=False):
+def save_checkpoint_fold(state_dicts, optimizer_dicts, lr_schedulers, interupt=False):
     if interupt: print("WARNING: loading interupt models may be buggy")
     tag = config.versiontag + "-" if config.versiontag else ""
     interupt = "INTERUPT-" if interupt else ""
     if not os.path.exists(config.DIRECTORY_CHECKPOINT):
         os.makedirs(config.DIRECTORY_CHECKPOINT)
-    config.lastsave = interupt + tag + config.DIRECTORY_CP_NAME.format(config.epoch, config.MODEL_TRAIN_FOLD, config.PROJECT_TAG, config.versiontag, config.MODEL_INIT_LEARNING_RATE, config.MODEL_BATCH_SIZE, config.AUGMENTATION_RESIZE)
+    config.lastsave = interupt + tag + config.DIRECTORY_CP_NAME.format(config.epoch, config.train_fold, config.PROJECT_TAG, config.versiontag, config.MODEL_INIT_LEARNING_RATE, config.MODEL_BATCH_SIZE, config.AUGMENTATION_RESIZE)
     torch.save({
         'epoch': config.epoch,
         'global_steps': config.global_steps,
         'state_dicts': state_dicts,
         'optimizers': optimizer_dicts,
+        'lr_schedulers': lr_schedulers,
     }, config.DIRECTORY_CHECKPOINT + config.lastsave)
     print('Checkpoint: {} epoch; {}-{} step; dir: {}'.format(config.epoch, config.global_steps[0], config.global_steps[-1], config.DIRECTORY_CHECKPOINT + config.lastsave))
 
 
-def load_checkpoint_all_fold(nets, optimizers, load_path):
+def load_checkpoint_all_fold(nets, optimizers, lr_schedulers, load_path):
     if not load_path or load_path == "False":
         config.epoch = 0
         config.global_steps = np.zeros(len(nets))
@@ -65,45 +66,51 @@ def load_checkpoint_all_fold(nets, optimizers, load_path):
             raise ValueError("=> Checkpoint is broken, nothing loaded")
         config.epoch = checkpoint['epoch']
         config.global_steps = checkpoint['global_steps']
-        for fold, (net, optimizer) in enumerate(zip(nets, optimizers)):
-            if fold not in config.MODEL_TRAIN_FOLD:
+        for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
+            if fold not in config.train_fold:
                 continue
-            net.load_state_dict(checkpoint['state_dicts'][fold])
-            if fold >= len(checkpoint['optimizers']):
-                optimizer.load_state_dict(checkpoint['optimizers'][0]) # BAD CODE
-                print("No Optimizer for the fold found, loading checkpoint['optimizers'][0]")
+
+            if config.load_state_dicts:
+                if 'state_dicts' in checkpoint.keys():
+                    if fold >= len(checkpoint['state_dicts']):
+                        net.load_state_dict(checkpoint['state_dicts'][0])
+                        print("[WARNING] No state_dict for the fold found, loading checkpoint['state_dicts'][0]")
+                    else:
+                        net.load_state_dict(checkpoint['state_dicts'][fold])
+                else:
+                    print("[WARNING] No keys [state_dicts] detected from loading")
             else:
-                optimizer.load_state_dict(checkpoint['optimizers'][fold]) # BAD CODE
+                print("[MESSAGE] No state_dicts loaded because of your settings")
+
+            if config.load_optimizers:
+                if 'optimizers' in checkpoint.keys():
+                    if fold >= len(checkpoint['optimizers']):
+                        optimizer.load_state_dict(checkpoint['optimizers'][0]) # BAD CODE
+                        print("[WARNING] No optimizer for the fold found, loading checkpoint['optimizers'][0]")
+                    else:
+                        optimizer.load_state_dict(checkpoint['optimizers'][fold]) # BAD CODE
+                else:
+                    print("[WARNING] No keys [optimizers] detected from loading")
+            else:
+                print("[MESSAGE] No optimizers loaded because of your settings")
+
+            if config.load_lr_schedulers:
+                if 'lr_schedulers' in checkpoint.keys():
+                    if fold >= len(checkpoint['lr_schedulers']):
+                        lr_scheduler.load_state_dict(checkpoint['lr_schedulers'][0]) # BAD CODE
+                        print("[WARNING] No lr_schedulers for the fold found, loading checkpoint['lr_schedulers'][0]")
+                    else:
+                        lr_scheduler.load_state_dict(checkpoint['lr_schedulers'][fold]) # BAD CODE
+                else:
+                    print("[WARNING] No keys [lr_schedulers] detected from loading")
+            else:
+                print("[MESSAGE] No lr_schedulers loaded because of your settings")
+
             # move_optimizer_to_cuda(optimizer)
             print("=> Loading checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
         print("=> Loaded checkpoint {} epoch; {}-{} step".format(config.epoch, config.global_steps[0], config.global_steps[-1]))
     else:
         raise ValueError("=> Nothing loaded because of invalid directory: {}".format(load_path))
-
-def load_checkpoint_all_fold_without_optimizers(nets, load_path):
-    if not load_path or load_path == "False":
-        config.epoch = 0
-        config.global_steps = np.zeros(len(nets))
-        print("=> Nothing loaded because no specify loadfile")
-        return
-    if not load_path or not os.path.isfile(load_path):
-        load_path = os.path.splitext(load_path)[0]+"-MILESTONE"+os.path.splitext(load_path)[1]
-    if load_path and os.path.isfile(load_path):
-        print("=> Loading checkpoint '{}'".format(load_path))
-        checkpoint = torch.load(load_path)
-        if 'state_dicts' not in checkpoint:
-            raise ValueError("=> Checkpoint is broken, nothing loaded")
-        config.epoch = checkpoint['epoch']
-        config.global_steps = checkpoint['global_steps']
-        for fold, net in enumerate(nets):
-            if fold not in config.MODEL_TRAIN_FOLD:
-                continue
-            net.load_state_dict(checkpoint['state_dicts'][fold])
-            print("=> Loading checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
-        print("=> Loaded checkpoint {} epoch; {}-{} step".format(config.epoch, config.global_steps[0], config.global_steps[-1]))
-    else:
-        raise ValueError("=> Nothing loaded because of invalid directory: {}".format(load_path))
-
 
 def load_checkpoint_one_fold(net, optimizer, fold, load_path):
     if not load_path or load_path == "False":

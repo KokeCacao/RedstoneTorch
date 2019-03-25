@@ -147,7 +147,7 @@ class HPATrain:
         self.nets = []
         self.lr_schedulers = []
         for fold in range(config.MODEL_FOLD):
-            if fold not in config.MODEL_TRAIN_FOLD:
+            if fold not in config.train_fold:
                 print("     Skipping Fold: #{}".format(fold))
             else:
                 print("     Creating Fold: #{}".format(fold))

@@ -18,7 +18,7 @@ if PROJECT_NAME == "HPA":
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DECAY = 0.0001
     MODEL_FOLD = 10
-    MODEL_TRAIN_FOLD = [1]
+    train_fold = [1]
 
     TRAIN_GPU_DICT = {
         "kokecacao-ThinkPad-P50-Ubuntu": "0",
@@ -92,7 +92,7 @@ elif PROJECT_NAME == "QUBO":
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DECAY = 0.0001
     MODEL_FOLD = 10
-    MODEL_TRAIN_FOLD = [1]
+    train_fold = [1]
 
     TRAIN_GPU_DICT = {
         "kokecacao-ThinkPad-P50-Ubuntu": "0",
@@ -173,7 +173,6 @@ elif PROJECT_NAME == "HisCancer":
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DECAY = 0.0001
     MODEL_FOLD = 5
-    MODEL_TRAIN_FOLD = [3]
     MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], [-1], [-1], [-1], [-1]]
     MODEL_LEARNING_RATE_AFTER_UNFREEZE = 0.001
     MODEL_FREEZE_EPOCH = 4
@@ -239,6 +238,10 @@ elif PROJECT_NAME == "HisCancer":
     AUGMENTATION_MEAN = [0.485, 0.456, 0.406]
     AUGMENTATION_STD = [0.229, 0.224, 0.225]
 
+    load_state_dicts = True
+    load_optimizers = True
+    load_lr_schedulers = True
+    train_fold = [3]
     eval_index = 0
     start_time = time.time()
     lastsave = None

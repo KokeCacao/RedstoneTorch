@@ -2,7 +2,7 @@ import os
 
 import torch
 import numpy as np
-import pandas as pd
+import scipy.stats as st
 from torch.utils import data
 from torch.utils.data import SubsetRandomSampler
 from tqdm import tqdm
@@ -19,7 +19,7 @@ class HisCancerPrediction:
         self.writer = writer
         self.nets = []
         for fold in range(config.MODEL_FOLD):
-            if fold not in config.MODEL_TRAIN_FOLD:
+            if fold not in config.train_fold:
                 print("     Junping Fold: #{}".format(fold))
                 self.nets.append(None)
             else:
@@ -35,6 +35,7 @@ class HisCancerPrediction:
         load_checkpoint_all_fold_without_optimizers(self.nets, config.DIRECTORY_LOAD)
 
         self.test_dataset = HisCancerDataset(config.DIRECTORY_CSV, config.DIRECTORY_SAMPLE_CSV, load_strategy="predict", writer=self.writer, column='Label')
+        self.valid_dataset = HisCancerDataset(config.DIRECTORY_CSV, config.DIRECTORY_SAMPLE_CSV, load_strategy="train", writer=self.writer, column='Target')
 
         self.run()
 
@@ -87,7 +88,11 @@ class HisCancerPrediction:
 
                         del ids, image, labels_0, image_for_display, predicts
                         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-                print("Mean Confidence = {}, STD = {}".format(np.mean(confidence_list), np.std(confidence_list)))
+
+                left, right = st.t.interval(0.95, len(a)-1, loc=np.mean(a), scale=st.sem(a))
+                print("""
+                Mean Confidence = {}, STD = {}
+                """.format(np.mean(confidence_list), np.std(confidence_list)))
 
                 print("Prob_path: {}".format(prob_path))
 
