@@ -175,6 +175,7 @@ class PlateauCyclicRestart(object):
                 self.scale_fn = self._loss_fn
                 self.scale_mode = 'cycle'
         else:
+            print("[WARNING] The state_dict cannot save your custom scale_fn")
             self.scale_fn = scale_fn
             self.scale_mode = scale_mode
 
@@ -306,11 +307,23 @@ class PlateauCyclicRestart(object):
         self.is_better = partial(self._cmp, eval_mode, threshold_mode, threshold)
 
     def state_dict(self):
-        return {key: value for key, value in self.__dict__.items() if key not in {'optimizer', 'is_better'}}
+        return {key: value for key, value in self.__dict__.items() if key not in {'optimizer', 'is_better', 'scale_fn'}}
 
     def load_state_dict(self, state_dict):
         self.__dict__.update(state_dict)
         self._init_is_better(eval_mode=self.eval_mode, threshold=self.threshold, threshold_mode=self.threshold_mode)
+        if self.mode == 'triangular':
+            self.scale_fn = self._triangular_scale_fn
+            self.scale_mode = 'cycle'
+        elif self.mode == 'triangular2':
+            self.scale_fn = self._triangular2_scale_fn
+            self.scale_mode = 'cycle'
+        elif self.mode == 'exp_range':
+            self.scale_fn = self._exp_range_scale_fn
+            self.scale_mode = 'iterations'
+        elif self.mode == 'plateau_cyclic':
+            self.scale_fn = self._loss_fn
+            self.scale_mode = 'cycle'
 
     def _triangular_scale_fn(self, x):
         return 1.
