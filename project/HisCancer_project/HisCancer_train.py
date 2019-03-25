@@ -298,7 +298,7 @@ class HisCancerTrain:
         # IT WILL MESS UP THE RANDOM SEED (CAREFUL)
         shakeup = dict()
         for i in range(100):
-            public_lb = set(np.random.choice(range(int(len(evaluation.epoch_pred)*0.5)), int(len(evaluation.epoch_pred)*0.5), replace=False).item())
+            public_lb = set(np.random.choice(range(int(len(evaluation.epoch_pred)*0.5)), int(len(evaluation.epoch_pred)*0.5), replace=False))
             private_lb = set(range(len(evaluation.epoch_pred)))-public_lb
             public_lb = list(private_lb)
             public_lb = metrics.roc_auc_score(evaluation.epoch_pred[public_lb], evaluation.epoch_label[public_lb])
