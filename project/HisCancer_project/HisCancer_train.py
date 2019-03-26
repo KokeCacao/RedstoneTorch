@@ -96,7 +96,7 @@ class HisCancerTrain:
                                            num_workers=config.TRAIN_NUM_WORKER,
                                            collate_fn=train_collate,
                                            pin_memory=True,
-                                           drop_last=False,
+                                           drop_last=True, # Last batch will mess up with batch norm
                                            timeout=0,
                                            worker_init_fn=None,
                                            ))
