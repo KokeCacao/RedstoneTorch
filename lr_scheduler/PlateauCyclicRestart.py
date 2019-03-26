@@ -205,12 +205,12 @@ class PlateauCyclicRestart(object):
         self.cooldown_counter = 0
         self.num_bad_epochs = 0
 
-    def step(self, metrics=None, epoch=None, batch_iteration=None):
+    def step(self, metrics=None, epoch=None, batch_iteration=None, step_size=None):
         if metrics == None or metrics<=0:
             if batch_iteration is None:
                 batch_iteration = self.last_batch_iteration + 1
             self.last_batch_iteration = batch_iteration
-            self.update_lr()
+            self.update_lr(step_size)
             return
 
         current = metrics
@@ -246,14 +246,14 @@ class PlateauCyclicRestart(object):
                 """)
                 else:
                     self.coef = self.coef * self.factor
-                self.update_lr()
+                self.update_lr(step_size)
                 self.cooldown_counter = self.cooldown
                 self.num_bad_epochs = 0
         elif epoch == self.last_epoch:
             # if batch_iteration is None:
             #     batch_iteration = self.last_batch_iteration + 1
             if batch_iteration != None: self.last_batch_iteration = batch_iteration
-            self.update_lr()
+            self.update_lr(step_size)
 
     # def _reduce_lr(self, epoch):
     #     for i, param_group in enumerate(self.optimizer.param_groups):
@@ -271,8 +271,8 @@ class PlateauCyclicRestart(object):
         for param_group, lr in zip(self.optimizer.param_groups, lrs):
             param_group['lr'] = lr
 
-    def update_lr(self):
-        self._set_lr(self.get_lr())
+    def update_lr(self, step_size=None):
+        self._set_lr(self.get_lr(step_size=step_size))
 
     @property
     def in_cooldown(self):
