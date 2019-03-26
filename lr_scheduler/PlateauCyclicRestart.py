@@ -337,8 +337,8 @@ class PlateauCyclicRestart(object):
     def _exp_range_scale_fn(self, x):
         return self.gamma**(x)
 
-    def get_lr(self):
-        step_size = float(self.step_size)
+    def get_lr(self, step_size=None):
+        if step_size is None: step_size = float(self.step_size)
         cycle = (np.floor(1 + self.last_batch_iteration / (2 * step_size))).item()
         x = (np.abs(self.last_batch_iteration / step_size - 2 * cycle + 1)).item()
 
