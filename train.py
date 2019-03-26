@@ -64,6 +64,8 @@ def load_args():
     if args.fold and args.fold != -1 and args.fold < config.MODEL_FOLD:
         config.train_fold = [int(args.fold)]
         print("=> Set training fold to: {}".format(config.train_fold))
+    else:
+        raise NotImplementedError("Please specify fold number")
 
 if __name__ == '__main__':
     """

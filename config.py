@@ -242,7 +242,7 @@ elif PROJECT_NAME == "HisCancer":
     load_state_dicts = True
     load_optimizers = True
     load_lr_schedulers = True
-    train_fold = [3]
+    train_fold = [-1]
     eval_index = 0
     start_time = time.time()
     lastsave = None

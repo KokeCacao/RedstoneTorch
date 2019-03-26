@@ -321,8 +321,10 @@ class HisCancerTrain:
         max_names = max(f1_dict.items(), key=operator.itemgetter(1))
         min_names = min(f1_dict.items(), key=operator.itemgetter(1))
         report = report + """
-        Shakeup Mean: {}
-        Shakeup STD: {}""".format(shakeup_mean, shakeup_std) + """
+        Shakeup Mean of Sample Mean: {}
+        Shakeup STD of Sample Mean: {}
+        Predicted Shakeup STD: {}
+        n={} --> n={} (<1.750261596x)""".format(shakeup_mean, shakeup_std, shakeup_std*np.sqrt(len(shakeup_keys))/np.sqrt(57459/2), len(shakeup_keys), int(57459/2)) + """
         Soft AUC Macro: {}
         Hard AUC Macro: {}
         Soft AUC Micro: {}
