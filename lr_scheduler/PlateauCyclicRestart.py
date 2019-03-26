@@ -252,7 +252,7 @@ class PlateauCyclicRestart(object):
         elif epoch == self.last_epoch:
             # if batch_iteration is None:
             #     batch_iteration = self.last_batch_iteration + 1
-            self.last_batch_iteration = batch_iteration
+            if batch_iteration != None: self.last_batch_iteration = batch_iteration
             self.update_lr()
 
     # def _reduce_lr(self, epoch):
