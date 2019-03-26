@@ -172,7 +172,7 @@ class HisCancerTrain:
 
     def run(self):
         try:
-            for epoch in range(1):
+            for epoch in range(config.MODEL_EPOCHS):
                 # """CAM"""
                 # if np.array(config.MODEL_NO_GRAD).flatten() == []:
                 #     pbar = tqdm(data.DataLoader(self.dataset,
@@ -233,6 +233,8 @@ class HisCancerTrain:
                    lr_schedulers,
                    batch_size
                    ):
+        config.epoch = config.epoch + 1
+
         evaluation = HisCancerEvaluation(self.writer, self.dataset.multilabel_binarizer)
         for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
             if net == None or optimizer == None or lr_scheduler == None:
@@ -295,15 +297,17 @@ class HisCancerTrain:
 
         # IT WILL MESS UP THE RANDOM SEED (CAREFUL)
         shakeup = dict()
-        for i in range(100):
+        pbar = tqdm(range(100))
+        for i in pbar:
             public_lb = set(np.random.choice(range(int(len(evaluation.epoch_pred)*0.5)), int(len(evaluation.epoch_pred)*0.5), replace=False))
             private_lb = set(range(len(evaluation.epoch_pred)))-public_lb
-            public_lb = list(public_lb)
+            public_lb = np.array(public_lb)
             public_lb = metrics.roc_auc_score(evaluation.epoch_label[public_lb], evaluation.epoch_pred[public_lb])
-            private_lb = list(private_lb)
+            private_lb = np.array(private_lb)
             private_lb = metrics.roc_auc_score(evaluation.epoch_label[private_lb], evaluation.epoch_pred[private_lb])
             score_diff = private_lb-public_lb
             shakeup[score_diff] = (public_lb, private_lb)
+            pbar.set_description_str("Public LB: {}, Private LB: {}, Difference: {}".format(public_lb, private_lb, score_diff))
         shakeup_keys = sorted(shakeup)
         shakeup_mean, shakeup_std = np.mean(shakeup_keys), np.std(shakeup_keys)
         tensorboardwriter.write_shakeup(self.writer, shakeup, shakeup_keys, config.epoch)
