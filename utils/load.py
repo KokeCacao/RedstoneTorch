@@ -41,7 +41,6 @@ def save_checkpoint_fold(state_dicts, optimizer_dicts, lr_schedulers_dicts, inte
     if not os.path.exists(config.DIRECTORY_CHECKPOINT):
         os.makedirs(config.DIRECTORY_CHECKPOINT)
     config.lastsave = interupt + tag + config.DIRECTORY_CP_NAME.format(config.epoch, config.train_fold, config.PROJECT_TAG, config.versiontag, config.MODEL_INIT_LEARNING_RATE, config.MODEL_BATCH_SIZE, config.AUGMENTATION_RESIZE)
-    print(optimizer_dicts, lr_schedulers_dicts)
     torch.save({
         'epoch': config.epoch,
         'global_steps': config.global_steps,
