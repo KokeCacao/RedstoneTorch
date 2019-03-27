@@ -172,7 +172,7 @@ class HisCancerTrain:
 
     def run(self):
         try:
-            for epoch in range(config.MODEL_EPOCHS):
+            while config.epoch < config.MODEL_EPOCHS:
                 # """CAM"""
                 # if np.array(config.MODEL_NO_GRAD).flatten() == []:
                 #     pbar = tqdm(data.DataLoader(self.dataset,
