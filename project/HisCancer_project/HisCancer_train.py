@@ -96,7 +96,7 @@ class HisCancerTrain:
                                            num_workers=config.TRAIN_NUM_WORKER,
                                            collate_fn=train_collate,
                                            pin_memory=True,
-                                           drop_last=True, # Last batch will mess up with batch norm
+                                           drop_last=True, # Last batch will mess up with batch norm https://github.com/pytorch/pytorch/issues/4534
                                            timeout=0,
                                            worker_init_fn=None,
                                            ))
@@ -324,7 +324,7 @@ class HisCancerTrain:
         Shakeup Mean of Sample Mean: {}
         Shakeup STD of Sample Mean: {}
         Predicted Shakeup STD: {}
-        n={} --> n={} (<1.750261596x)""".format(shakeup_mean, shakeup_std, shakeup_std*np.sqrt(len(shakeup_keys))/np.sqrt(57459/2), len(shakeup_keys), int(57459/2)) + """
+        n={} --> n={} (<1.750261596x)""".format(shakeup_mean, shakeup_std, shakeup_std*np.sqrt(len(evaluation.epoch_label))/np.sqrt(57459/2), len(evaluation.epoch_label), int(57459/2)) + """
         Soft AUC Macro: {}
         Hard AUC Macro: {}
         Soft AUC Micro: {}

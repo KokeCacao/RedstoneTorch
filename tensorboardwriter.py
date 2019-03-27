@@ -45,12 +45,9 @@ def write_shakeup(writer, dictionary, sorted_keys, epoch):
         writer.add_scalars('threshold/Shakeup/', {"Public LB": public_lb}, i)
         writer.add_scalars('threshold/Shakeup/', {"Private LB": private_lb}, i)
     try:
-        writer.add_histogram("eval/loss_distribution", sorted_keys, epoch)
+        writer.add_histogram("eval/loss_distribution", np.array(sorted_keys), epoch)
     except Exception as e:
         print("Having some trouble writing histogram: `writer.add_histogram(\"eval/loss_distribution\", sorted_keys, epoch)`")
-        print(e)
-        print(sorted_keys)
-        print(dictionary[sorted_keys[0]])
 
 
 def write_loss_distribution(writer, loss_list, epoch):
