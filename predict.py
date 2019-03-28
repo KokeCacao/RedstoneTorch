@@ -68,7 +68,7 @@ if __name__ == '__main__':
             prediction = project.HisCancer_project.HisCancer_prediction.HisCancerPrediction(writer)
         except Exception as e:
             if not isinstance(e, KeyboardInterrupt):
-                os.system("sudo shutdown -P +20")
+                os.system("sudo shutdown -P +1")
                 print("""
                     WARNING: THE SYSTEM WILL SHUTDOWN
                     Use command: sudo shutdown -c
