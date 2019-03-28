@@ -74,7 +74,7 @@ if __name__ == '__main__':
                     Use command: sudo shutdown -c
                 """)
             raise
-        os.system("sudo shutdown -P +20")
+        os.system("sudo shutdown -P +1")
         print("""
                             WARNING: THE SYSTEM WILL SHUTDOWN
                             Use command: sudo shutdown -c
