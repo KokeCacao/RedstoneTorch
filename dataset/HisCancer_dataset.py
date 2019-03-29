@@ -54,6 +54,14 @@ class HisCancerDataset(data.Dataset):
             print("Training Dataframe: {}".format(self.train_dataframe.head()))
             self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in str(s).split()) for s in self.train_dataframe[column]])
             id = self.train_dataframe.index.tolist()
+
+            """Presudo Labeling"""
+            self.presudo_dataframe = pd.read_csv(config.DIRECTORY_PRESUDO_CSV, delimiter=',', encoding="utf-8-sig", engine='python').set_index('Id')
+            for index in self.presudo_dataframe.index.tolist():
+                probability = self.presudo_dataframe.Label[index]
+                self.labelframe[index] = [1-probability, probability]
+                id.append('data/HisCancer_dataset/test/'+index)
+
         elif self.load_strategy == "test" or self.load_strategy == "predict":
             print("Predicting Dataframe: {}".format(self.test_dataframe.head()))
             self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in str(s).split()) for s in self.test_dataframe[column]])
@@ -88,13 +96,6 @@ class HisCancerDataset(data.Dataset):
         #         tumor_or_not = df.iloc[index, 1]
         #         result_dict[one_id] = int(tumor_or_not)
         #     return result_dict
-
-        def find_missing(total_ids):
-            all_ids = set(pd.read_csv("~/RedstoneTorch/data/HisCancer_dataset/train.csv")['Id'].values)
-
-            missing_ids = list(all_ids - total_ids)
-            return missing_ids
-
         ids = pd.read_csv("~/RedstoneTorch/data/HisCancer_dataset/patch_id_wsi.csv")
 
         wsi_dict = dict()
@@ -128,7 +129,9 @@ class HisCancerDataset(data.Dataset):
                 total_ids = set(self.indices_to_id[i] for i in _)
 
         # dic = create_dict()
-        missing_ids = find_missing(total_ids)
+
+        all_ids = set(self.id)
+        missing_ids = list(all_ids - total_ids)
         print("Found {} missing ids and {} WSI ids".format(len(missing_ids), len(total_ids)))
 
         if len(missing_ids) > config.MODEL_FOLD:
@@ -141,7 +144,7 @@ class HisCancerDataset(data.Dataset):
                 # print("TRAIN:", train_index, "TEST:", test_index)
                 train_missing_ids[f] = [self.id_to_indices[missing_ids[i]] for i in train_index]
                 cv_missing_ids[f] = [self.id_to_indices[missing_ids[i]] for i in test_index]
-                if f == 0: print("Today, you lucky number is: {} and {}".format(train_missing_ids[0][config.TRAIN_SEED], cv_missing_ids[0][config.TRAIN_SEED]))
+                if f == 0: print("Tomorrow, you lucky number is: {} and {}".format(train_missing_ids[0][config.TRAIN_SEED], cv_missing_ids[0][config.TRAIN_SEED]))
 
             for f in range(fold):
                 folded_samplers[f] = dict()

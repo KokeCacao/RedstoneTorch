@@ -224,6 +224,7 @@ elif PROJECT_NAME == "HisCancer":
     # DIRECTORY_LOAD = None
     DIRECTORY_CSV = DIRECTORY_PREFIX + 'data/HisCancer_dataset/train.csv'
     DIRECTORY_SAMPLE_CSV = DIRECTORY_PREFIX + 'data/HisCancer_dataset/sample_submission.csv'
+    DIRECTORY_PRESUDO_CSV = DIRECTORY_PREFIX + 'data/HisCancer_dataset/presudo_labels.csv'
     DIRECTORY_CHECKPOINT = DIRECTORY_PREFIX + "model/" + PROJECT_TAG + "/"
     DIRECTORY_CP_NAME = 'CP{}_F{}_PT{}_VT{}_LR{}_BS{}_IMG{}.pth'
 
@@ -234,8 +235,8 @@ elif PROJECT_NAME == "HisCancer":
     PREDICTION_TTA = 0
 
     AUGMENTATION_IMG_ORIGINAL_SIZE = (96, 96)
-    AUGMENTATION_RESIZE = 224
-    # AUGMENTATION_RESIZE = 128
+    # AUGMENTATION_RESIZE = 224
+    AUGMENTATION_RESIZE = 128
     AUGMENTATION_MEAN = [0.485, 0.456, 0.406]
     AUGMENTATION_STD = [0.229, 0.224, 0.225]
 
