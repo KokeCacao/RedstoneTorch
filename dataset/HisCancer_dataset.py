@@ -55,12 +55,12 @@ class HisCancerDataset(data.Dataset):
             self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in str(s).split()) for s in self.train_dataframe[column]]).tolist()
             id = self.train_dataframe.index.tolist()
 
-            """Presudo Labeling"""
-            self.presudo_dataframe = pd.read_csv(config.DIRECTORY_PRESUDO_CSV, delimiter=',', encoding="utf-8-sig", engine='python').set_index('Id')
-            for index in self.presudo_dataframe.index.tolist():
-                probability = self.presudo_dataframe.Label[index]
-                id.append('data/HisCancer_dataset/test/'+index+'.npy')
-                self.labelframe.append([1-probability, probability])
+            # """Presudo Labeling"""
+            # self.presudo_dataframe = pd.read_csv(config.DIRECTORY_PRESUDO_CSV, delimiter=',', encoding="utf-8-sig", engine='python').set_index('Id')
+            # for index in self.presudo_dataframe.index.tolist():
+            #     probability = self.presudo_dataframe.Label[index]
+            #     id.append('data/HisCancer_dataset/test/'+index+'.npy')
+            #     self.labelframe.append([1-probability, probability])
 
         elif self.load_strategy == "test" or self.load_strategy == "predict":
             print("Predicting Dataframe: {}".format(self.test_dataframe.head()))
