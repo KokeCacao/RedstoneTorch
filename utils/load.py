@@ -113,7 +113,8 @@ def load_checkpoint_all_fold(nets, optimizers, lr_schedulers, load_path):
                 print("[MESSAGE] No lr_schedulers loaded because of your settings")
 
             # move_optimizer_to_cuda(optimizer)
-            print("=> Loading checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
+            if fold < len(config.global_steps): print("=> Loading checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[fold]))
+            else: print("=> Loading checkpoint {} epoch; {} step".format(config.epoch, config.global_steps[0]))
         print("=> Loaded checkpoint {} epoch; {}-{} step".format(config.epoch, config.global_steps[0], config.global_steps[-1]))
     else:
         raise ValueError("=> Nothing loaded because of invalid directory: {}".format(load_path))

@@ -38,7 +38,6 @@ class HisCancerPrediction:
         load_checkpoint_all_fold(self.nets, None, None, config.DIRECTORY_LOAD)
 
         self.test_dataset = HisCancerDataset(config.DIRECTORY_CSV, config.DIRECTORY_SAMPLE_CSV, load_strategy="predict", writer=self.writer, column='Label')
-        self.valid_dataset = HisCancerDataset(config.DIRECTORY_CSV, config.DIRECTORY_SAMPLE_CSV, load_strategy="train", writer=self.writer, column='Target')
 
         self.run()
 
