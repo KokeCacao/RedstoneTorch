@@ -59,8 +59,8 @@ class HisCancerDataset(data.Dataset):
             self.presudo_dataframe = pd.read_csv(config.DIRECTORY_PRESUDO_CSV, delimiter=',', encoding="utf-8-sig", engine='python').set_index('Id')
             for index in self.presudo_dataframe.index.tolist():
                 probability = self.presudo_dataframe.Label[index]
-                self.labelframe[index] = [1-probability, probability]
                 id.append('data/HisCancer_dataset/test/'+index)
+                self.labelframe.append([1-probability, probability])
 
         elif self.load_strategy == "test" or self.load_strategy == "predict":
             print("Predicting Dataframe: {}".format(self.test_dataframe.head()))
