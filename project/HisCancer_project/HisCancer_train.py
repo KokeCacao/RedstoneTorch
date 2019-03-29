@@ -302,9 +302,11 @@ class HisCancerTrain:
             public_lb = set(np.random.choice(range(len(evaluation.epoch_pred)), int(len(evaluation.epoch_pred)*0.5), replace=False))
             private_lb = set(range(len(evaluation.epoch_pred)))-public_lb
             public_lb = np.array(list(public_lb)).astype(dtype=np.int)
-            public_lb = metrics.roc_auc_score(evaluation.epoch_label[public_lb], evaluation.epoch_pred[public_lb])
+            # public_lb = metrics.roc_auc_score(evaluation.epoch_label[public_lb], evaluation.epoch_pred[public_lb])
+            public_lb = metrics.log_loss(evaluation.epoch_label[public_lb], evaluation.epoch_pred[public_lb])
             private_lb = np.array(list(private_lb)).astype(dtype=np.int)
-            private_lb = metrics.roc_auc_score(evaluation.epoch_label[private_lb], evaluation.epoch_pred[private_lb])
+            # private_lb = metrics.roc_auc_score(evaluation.epoch_label[private_lb], evaluation.epoch_pred[private_lb])
+            private_lb = metrics.log_loss(evaluation.epoch_label[private_lb], evaluation.epoch_pred[private_lb])
             score_diff = private_lb-public_lb
             shakeup[score_diff] = (public_lb, private_lb)
             pbar.set_description_str("Public LB: {}, Private LB: {}, Difference: {}".format(public_lb, private_lb, score_diff))
@@ -312,33 +314,36 @@ class HisCancerTrain:
         shakeup_mean, shakeup_std = np.mean(shakeup_keys), np.std(shakeup_keys)
         tensorboardwriter.write_shakeup(self.writer, shakeup, shakeup_keys, config.epoch)
 
-        soft_auc_macro = metrics.roc_auc_score(evaluation.epoch_label, evaluation.epoch_pred)
-        hard_auc_macro = metrics.roc_auc_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred>config.EVAL_THRESHOLD).astype(np.byte))
-        soft_auc_micro = metrics.roc_auc_score(evaluation.epoch_label, evaluation.epoch_pred, average='micro')
-        hard_auc_micro = metrics.roc_auc_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred>config.EVAL_THRESHOLD).astype(np.byte), average='micro')
+        # soft_auc_macro = metrics.roc_auc_score(evaluation.epoch_label, evaluation.epoch_pred)
+        # hard_auc_macro = metrics.roc_auc_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred>config.EVAL_THRESHOLD).astype(np.byte))
+        # soft_auc_micro = metrics.roc_auc_score(evaluation.epoch_label, evaluation.epoch_pred, average='micro')
+        # hard_auc_micro = metrics.roc_auc_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred>config.EVAL_THRESHOLD).astype(np.byte), average='micro')
 
-        report = classification_report(np.argmax(evaluation.epoch_label, axis=1), np.argmax(evaluation.epoch_pred, axis=1), target_names=["Negative", "Positive"])
+        # report = classification_report(np.argmax(evaluation.epoch_label, axis=1), np.argmax(evaluation.epoch_pred, axis=1), target_names=["Negative", "Positive"])
+        report = ""
         max_names = max(f1_dict.items(), key=operator.itemgetter(1))
         min_names = min(f1_dict.items(), key=operator.itemgetter(1))
         report = report + """
         Shakeup Mean of Sample Mean: {}
         Shakeup STD of Sample Mean: {}
         Predicted Shakeup STD: {}
-        n={} --> n={} (<1.750261596x)""".format(shakeup_mean, shakeup_std, shakeup_std*np.sqrt(len(evaluation.epoch_label))/np.sqrt(57459/2), len(evaluation.epoch_label), int(57459/2)) + """
-        Soft AUC Macro: {}
-        Hard AUC Macro: {}
-        Soft AUC Micro: {}
-        Hard AUC Micro: {}
-        """.format(soft_auc_macro, hard_auc_macro, soft_auc_micro, hard_auc_micro) + """
+        n={} --> n={} (<1.750261596x)""".format(shakeup_mean, shakeup_std, shakeup_std*np.sqrt(len(evaluation.epoch_label))/np.sqrt(57459/2), len(evaluation.epoch_label), int(57459/2))\
+                 + """
         F1 by sklearn = {}
         Max = {}, socre = {}
         Min = {}, score = {}
         """.format(f1_2, max_names[0], max_names[1], min_names[0], min_names[1])
+        #          + """
+        # Soft AUC Macro: {}
+        # Hard AUC Macro: {}
+        # Soft AUC Micro: {}
+        # Hard AUC Micro: {}
+        # """.format(soft_auc_macro, hard_auc_macro, soft_auc_micro, hard_auc_micro)
         print(report)
         for lr_scheduler in lr_schedulers:
             if lr_scheduler == None:
                 continue
-            lr_scheduler.step(metrics=soft_auc_macro, epoch=config.epoch)
+            lr_scheduler.step(metrics=f1_2, epoch=config.epoch)
         tensorboardwriter.write_text(self.writer, report, config.epoch)
 
         tensorboardwriter.write_epoch_loss(self.writer, f1_dict, config.epoch)
@@ -450,8 +455,8 @@ class HisCancerTrain:
                 """DISPLAY"""
                 tensorboardwriter.write_memory(self.writer, "train")
 
-                soft_auc_macro = metrics.roc_auc_score(y_true=labels_0, y_score=prob_predict, average='macro')
-                soft_auc_micro = metrics.roc_auc_score(y_true=labels_0, y_score=prob_predict, average='micro')
+                # soft_auc_macro = metrics.roc_auc_score(y_true=labels_0, y_score=prob_predict, average='macro')
+                # soft_auc_micro = metrics.roc_auc_score(y_true=labels_0, y_score=prob_predict, average='micro')
                 # left = self.dataset.multilabel_binarizer.inverse_transform((np.expand_dims((np.array(labels_0).sum(0) < 1).astype(np.byte), axis=0)))[0]
                 label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
                 pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(prob_predict > config.EVAL_THRESHOLD)[0])
@@ -473,8 +478,8 @@ class HisCancerTrain:
                                                            'LogitsProbability/{}'.format(config.fold): logits_predict.mean(),
                                                            'PredictProbability/{}'.format(config.fold): prob_predict.mean(),
                                                            'LabelProbability/{}'.format(config.fold): labels_0.mean(),
-                                                           'AUCMacro/{}'.format(config.fold): soft_auc_macro,
-                                                           'AUCMicro/{}'.format(config.fold): soft_auc_micro,
+                                                           # 'AUCMacro/{}'.format(config.fold): soft_auc_macro,
+                                                           # 'AUCMicro/{}'.format(config.fold): soft_auc_micro,
                                                            }
                 for c in range(config.TRAIN_NUM_CLASS):
                     out_dict['PredictProbability-Class-{}/{}'.format(c, config.fold)] = prob_predict[:][c].mean()
