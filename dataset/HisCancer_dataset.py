@@ -52,7 +52,7 @@ class HisCancerDataset(data.Dataset):
 
         if self.load_strategy == "train":
             print("Training Dataframe: {}".format(self.train_dataframe.head()))
-            self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in str(s).split()) for s in self.train_dataframe[column]])
+            self.labelframe = self.multilabel_binarizer.transform([(int(i) for i in str(s).split()) for s in self.train_dataframe[column]]).item()
             id = self.train_dataframe.index.tolist()
 
             """Presudo Labeling"""
