@@ -165,7 +165,7 @@ elif PROJECT_NAME == "HisCancer":
 
     DEBUG_LR_FINDER = False # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
 
-    MODEL_EPOCHS = 12
+    MODEL_EPOCHS = 8
     MODEL_BATCH_SIZE = 64
     MODEL_INIT_LEARNING_RATE = 0.005
     MODEL_MIN_LEARNING_RATE = 0.00007
