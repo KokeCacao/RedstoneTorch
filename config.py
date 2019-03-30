@@ -183,6 +183,7 @@ elif PROJECT_NAME == "HisCancer":
         "ml-k80-4": "0",
         "ml-p100-1": "0",
         "presudo-0": "0",
+        "presudo-1": "0",
         "presudo-2": "0",
         "presudo-3": "0",
         "KokeCacao-Ubuntu": "0",
