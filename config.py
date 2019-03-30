@@ -182,6 +182,9 @@ elif PROJECT_NAME == "HisCancer":
         "ml-k80-3": "0",
         "ml-k80-4": "0",
         "ml-p100-1": "0",
+        "presudo-0": "0",
+        "presudo-2": "0",
+        "presudo-3": "0",
         "KokeCacao-Ubuntu": "0",
     }
     TRAIN_GPU_ARG = TRAIN_GPU_DICT[socket.gethostname()]
