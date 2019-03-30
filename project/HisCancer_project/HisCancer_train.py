@@ -303,10 +303,10 @@ class HisCancerTrain:
             private_lb = set(range(len(evaluation.epoch_pred)))-public_lb
             public_lb = np.array(list(public_lb)).astype(dtype=np.int)
             # public_lb = metrics.roc_auc_score(evaluation.epoch_label[public_lb], evaluation.epoch_pred[public_lb])
-            public_lb = metrics.log_loss(evaluation.epoch_label[public_lb], evaluation.epoch_pred[public_lb])
+            public_lb = f1_macro(evaluation.epoch_pred[public_lb], evaluation.epoch_label[public_lb])
             private_lb = np.array(list(private_lb)).astype(dtype=np.int)
             # private_lb = metrics.roc_auc_score(evaluation.epoch_label[private_lb], evaluation.epoch_pred[private_lb])
-            private_lb = metrics.log_loss(evaluation.epoch_label[private_lb], evaluation.epoch_pred[private_lb])
+            private_lb = f1_macro(evaluation.epoch_pred[private_lb], evaluation.epoch_label[private_lb])
             score_diff = private_lb-public_lb
             shakeup[score_diff] = (public_lb, private_lb)
             pbar.set_description_str("Public LB: {}, Private LB: {}, Difference: {}".format(public_lb, private_lb, score_diff))
