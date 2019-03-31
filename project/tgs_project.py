@@ -31,7 +31,7 @@ class TGSProject():
                          pretrained=True, is_deconv=True)  # don't init weights, don't give depth
         if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
-        self.optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DEFAY)  # all parameter learnable
+        self.optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-08, weight_decay=config.MODEL_WEIGHT_DECAY)  # all parameter learnable
         load_checkpoint(net, self.optimizer, config.DIRECTORY_LOAD)
         self.net = cuda(net)
 
@@ -195,7 +195,7 @@ def eval_net(net, validation_loader, visualization, writer, epoch_num=0):
         masks_pred = net(image)
         """return: shape(N, iou)"""
         ious = iou_score(masks_pred, true_mask, threshold=0.5)
-        if config.EVAL_THRESHOLD_TEST:
+        if config.EVAL_IF_THRESHOLD_TEST:
             for threshold in config.EVAL_TRY_THRESHOLD:
                 iou_temp = iou_score(masks_pred, true_mask, threshold).mean()
                 threshold_pre = thresold_dict.get(threshold)
@@ -239,7 +239,7 @@ def eval_net(net, validation_loader, visualization, writer, epoch_num=0):
 
                 plt.subplot(325)
                 if config.TRAIN_GPU_ARG:
-                    plt.imshow(tensor_to_PIL((masks_pred[index] > Variable(torch.Tensor([config.EVAL_CHOSEN_THRESHOLD])).cuda()).float() * 1))
+                    plt.imshow(tensor_to_PIL((masks_pred[index] > Variable(torch.Tensor([config.PREDICTION_CHOSEN_THRESHOLD])).cuda()).float() * 1))
                 else:
                     pass  # TODO
                 plt.title("Error: {}".format(ious[index]))
@@ -407,7 +407,7 @@ def submit(net, writer):
             mask_pred = predict(net, img_n).squeeze(0)  # reduce N
             """if config.TRAIN_GPU: """
             masks_pred_pil = config.PREDICT_TRANSFORM_BACK(mask_pred)  # return gray scale PIL
-            masks_pred_np = np.where(np.asarray(masks_pred_pil, order="F") > config.EVAL_CHOSEN_THRESHOLD, 1, 0)  # return tensor with (H, W) - proved
+            masks_pred_np = np.where(np.asarray(masks_pred_pil, order="F") > config.PREDICTION_CHOSEN_THRESHOLD, 1, 0)  # return tensor with (H, W) - proved
 
             enc = rle_encode(masks_pred_np)
             f.write('{},{}\n'.format(img_name.replace(config.DIRECTORY_SUFFIX_MASK, ""), enc))
@@ -427,7 +427,7 @@ def submit(net, writer):
                 plt.title("Predicted")
                 plt.grid(False)
                 plt.subplot(224)
-                plt.imshow(Image.fromarray(np.where(masks_pred_np > config.EVAL_CHOSEN_THRESHOLD, 255, 0), mode="L"))
+                plt.imshow(Image.fromarray(np.where(masks_pred_np > config.PREDICTION_CHOSEN_THRESHOLD, 255, 0), mode="L"))
                 plt.title("Encoded")
                 plt.grid(False)
                 writer.add_figure(config.PREDICTION_TAG + "/" + str(img_name), F, global_step=index)

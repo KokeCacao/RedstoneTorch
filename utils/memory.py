@@ -1,11 +1,11 @@
 import os
 import sys
 import threading
-import time
 
 import torch
 import psutil
 import subprocess
+import time
 
 import config
 
@@ -17,19 +17,26 @@ class memory_thread(threading.Thread):
         threading.Thread.__init__(self)
         self.threadID = threadID
         self.writer = writer
-        self.count = 0
 
     def run(self):
         while(True):
-            if config.TRAIN_GPU_ARG:
-                torch.cuda.empty_cache()  # release gpu memory
-                map = get_gpu_memory_map()
-                for key, value in get_gpu_memory_map().items():
-                    self.writer.add_scalars('memory/GPU', {"GPU-" + str(key): value}, self.count)
-            self.writer.add_scalars('memory/CPU', {"CPU Usage": psutil.cpu_percent()}, self.count)
-            # if psutil.virtual_memory() != None: self.writer.add_scalars('memory/Physical', {"Physical_Mem Usage": psutil.virtual_memory()}, self.count)
-            self.count = self.count + 1
+            write_memory(self.writer, "thread")
             time.sleep(1)
+
+def write_memory(writer, arg):
+    t = int(time.time()-config.start_time)
+    if config.TRAIN_GPU_ARG:
+        torch.cuda.empty_cache()  # release gpu memory
+        sum = 0
+        for key, value in get_gpu_memory_map().items():
+            writer.add_scalars('stats/GPU-Memory', {"GPU-{}-{}".format(str(key), arg): value}, t)
+            sum = sum + value
+        writer.add_scalars('stats/GPU-Memory', {"GPU-Sum-{}".format(arg): sum}, t)
+    writer.add_scalars('stats/CPU-Usage', {"CPU-Sum-{}".format(arg): psutil.cpu_percent()}, t)
+
+    cpu_mem = psutil.virtual_memory()[3]
+    # svmem(total=7708737536, available=324640768, percent=95.8, used=6051205120, free=206708736, active=6001467392, inactive=1033494528, buffers=36335616, cached=1414488064, shared=1066295296, slab=170074112)
+    writer.add_scalars('stats/CPU-Memory', {"CPU-Sum-{}".format(arg): cpu_mem}, t)
 
 def get_gpu_memory_map():
     """Get the current gpu usage.
@@ -46,7 +53,7 @@ def get_gpu_memory_map():
             [
                 'nvidia-smi', '--query-gpu=memory.used',
                 '--format=csv,nounits,noheader'
-            ])
+            ]) #nvidia-smi --query-gpu=memory.used --format=csv,nounits,noheader
         # Convert lines into a dictionary
         gpu_memory = [int(x) for x in result.strip().split('\n')]
         result = dict(zip(range(len(gpu_memory)), gpu_memory))

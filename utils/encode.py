@@ -1,31 +1,32 @@
 import numpy as np
-import pydensecrf.densecrf as dcrf
+# import pydensecrf.densecrf as dcrf
 from PIL import Image
 from torchvision.transforms import transforms
 
 
-def dense_crf(img, output_probs):
-    h = output_probs.shape[0]
-    w = output_probs.shape[1]
+# def dense_crf(img, output_probs):
+#     h = output_probs.shape[0]
+#     w = output_probs.shape[1]
+#
+#     output_probs = np.expand_dims(output_probs, 0)
+#     output_probs = np.append(1 - output_probs, output_probs, axis=0)
+#
+#     d = dcrf.DenseCRF2D(w, h, 2)
+#     U = -np.log(output_probs)
+#     U = U.reshape((2, -1))
+#     U = np.ascontiguousarray(U)
+#     img = np.ascontiguousarray(img)
+#
+#     d.setUnaryEnergy(U)
+#
+#     d.addPairwiseGaussian(sxy=20, compat=3)
+#     d.addPairwiseBilateral(sxy=30, srgb=20, rgbim=img, compat=10)
+#
+#     Q = d.inference(5)
+#     Q = np.argmax(np.array(Q), axis=0).reshape((h, w))
+#
+#     return Q
 
-    output_probs = np.expand_dims(output_probs, 0)
-    output_probs = np.append(1 - output_probs, output_probs, axis=0)
-
-    d = dcrf.DenseCRF2D(w, h, 2)
-    U = -np.log(output_probs)
-    U = U.reshape((2, -1))
-    U = np.ascontiguousarray(U)
-    img = np.ascontiguousarray(img)
-
-    d.setUnaryEnergy(U)
-
-    d.addPairwiseGaussian(sxy=20, compat=3)
-    d.addPairwiseBilateral(sxy=30, srgb=20, rgbim=img, compat=10)
-
-    Q = d.inference(5)
-    Q = np.argmax(np.array(Q), axis=0).reshape((h, w))
-
-    return Q
 
 def rle_encode(img):
     if len(img.shape) != 2 or img.shape[0] == 1:
@@ -44,12 +45,13 @@ def rle_encode(img):
     runs[1::2] = runs[1::2] - runs[:-1:2]
     return ' '.join(str(x) for x in runs)
 
+
 # def get_one_hot(targets, nb_classes):
 #     res = np.eye(nb_classes, dtype=np.float)[np.array(targets).reshape(-1)]
 #     return res.reshape(list(targets.shape) + [nb_classes])
 
-def inverse_to_tensor(tensor):
-    return 225* tensor.numpy()
+def to_numpy(tensor):
+    return 225 * tensor.numpy()
 
 
 def tensor_to_PIL(tensor):
@@ -64,30 +66,70 @@ def tensor_to_PIL(tensor):
     image = transforms.ToPILImage()(image)
     return image
 
-def tensor_to_np_four_channel_transarant(tensor):
+
+def tensor_to_np_four_channel_transarant(image):
     """
 
     :param tensor: tensor with channel of (r, g, b, y), shape of (4, W, H)
     :return: transparant image with mask in tensor[1], the output will put the cannel layer the last layer
     """
-    image = tensor.cpu().clone().numpy()
     # red = tensor[0]
     # green = tensor[1]
     # blue = tensor[2]
     # yellow = tensor[3]
-    ndarray = 255 * np.array([image[0], image[2], image[3], image[1]])
+    ndarray = 1.0 * np.array([image[0], image[2], image[3], image[1]])
     return ndarray.transpose((1, 2, 0))
 
 
-def tensor_to_np_four_channel_drop(tensor):
+def tensor_to_np_four_channel_drop(image):
     """
 
     :param tensor: tensor with channel of (r, g, b, y), shape of (4, W, H)
     :return: drop tensor[1], the output will put the cannel layer the last layer
     """
-    image = tensor.cpu().clone().numpy()
-    ndarray = 255 * np.array([image[0], image[2], image[3]])
+    ndarray = 1.0 * np.array([image[0], image[2], image[3]])
     return ndarray.transpose((1, 2, 0))
+
+
+def tensor_to_np_three_channel_with_green(image):
+    """
+
+    :param tensor: tensor with channel of (r, g, b, y), shape of (4, W, H)
+    :return: drop tensor[1], the output will put the cannel layer the last layer
+    """
+    ndarray = 1.25 * np.array([0.5 * image[0] + 0.25 * image[3], 0.5 * image[1] + 0.25 * image[3], 0.5 * image[2]])
+    return ndarray.transpose((1, 2, 0))
+
+
+def tensor_to_np_three_channel_without_green(image):
+    """
+
+    :param tensor: tensor with channel of (r, g, b, y), shape of (4, W, H)
+    :return: drop tensor[1], the output will put the cannel layer the last layer
+    """
+    ndarray = 1.25 * np.array([0.5 * image[0] + 0.25 * image[3], 0.25 * image[3], 0.5 * image[2]])
+    return ndarray.transpose((1, 2, 0))
+
 
 def ndarray_to_PIL(ndarray):
     return Image.fromarray(ndarray.astype('uint8'), 'RGB')
+
+
+def save_as_npy(from_dir, to_dir):
+    img = Image.open(from_dir)
+    data = np.array(img, dtype='uint8')
+    np.save(to_dir, data)
+
+
+def np_three_channel_with_green(image, shape, green_intensity=1, other_intensity=1):
+    """
+
+    :param image: ndarray with channel of (r, g, b, y), shape of (W, H, 4)
+    :return: np_three_channel_with_green for mpl display
+    """
+    image = image.transpose((2, 0, 1))
+    img = np.zeros(shape)
+    img[0] = other_intensity*(0.5*image[0] + 0.25*image[3])/0.75
+    img[1] = (green_intensity*0.5*image[1] + 0*image[3])/0.75
+    img[2] = other_intensity*image[2]
+    return np.stack(img/255., axis=-1)

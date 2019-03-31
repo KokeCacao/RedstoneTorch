@@ -1,31 +1,36 @@
 import os
-import random
 import sys
 from datetime import datetime
 from optparse import OptionParser
 
-import imgaug as ia
-import numpy as np
-import torch
 from tensorboardX import SummaryWriter
 
 import config
 # dir_prefix = 'drive/My Drive/ML/Pytorch-UNet/'
 from gpu import gpu_profile
-from project import hpa_project
-from utils.memory import memory_thread
+from project.hpa_project import hpa_train
 
 
 # def log_data(file_name, data):
 #     with open(file_name + ".txt", "a+") as file:
 #         file.write(data + "\n")
+from project.HisCancer_project import HisCancer_train
+from reproduceability import reproduceability
+
 
 def get_args():
     parser = OptionParser()
-    parser.add_option('--projecttag', dest='projecttag', default=False, help='tag you want to load')
-    parser.add_option('--versiontag', dest='versiontag', default="", help='tag for tensorboard-log')
-    parser.add_option('--loadfile', dest='loadfile', default=False, help='file you want to load')
-    parser.add_option('--resume', dest='resume', default=False, help='resume or create a new folder')
+    parser.add_option('--projecttag', type="string", dest='projecttag', default=False, help='tag you want to load')
+    parser.add_option('--versiontag', type="string", dest='versiontag', default="", help='tag for tensorboard-log')
+    parser.add_option('--loadfile', type="string", dest='loadfile', default=False, help='file you want to load')
+    parser.add_option('--loaddir', type="string", dest='loaddir', default=False, help='file you want to load')
+    parser.add_option('--resume', type="string", dest='resume', default=False, help='resume or create a new folder')
+    parser.add_option('--resetlr', type="float", dest='resetlr', default=0., help='reset the learning rate')
+    parser.add_option('--fold', type="float", dest='fold', default=-1., help='set training fold')
+    parser.add_option('--testlr', type="string", dest='testlr', default=False, help='test lr')
+    parser.add_option('--state_dict', type="string", dest='state_dict', default=True, help='whether to load state_dicts')
+    parser.add_option('--optimizer', type="string", dest='optimizer', default=True, help='whether to load optimizers')
+    parser.add_option('--lr_scheduler', type="string", dest='lr_scheduler', default=True, help='whether to load lr_schedulers')
 
     (options, args) = parser.parse_args()
     return options
@@ -34,46 +39,52 @@ def get_args():
 def load_args():
     args = get_args()
     if args.versiontag: config.versiontag = args.versiontag
+    if args.projecttag: config.PROJECT_TAG = args.projecttag
+    config.TRAIN_RESUME = True if args.resume == "True" else False
+    config.DEBUG_LR_FINDER = True if args.testlr == "True" else False
+    config.load_state_dicts = False if args.state_dict == "False" else True
+    config.load_optimizers = False if args.optimizer == "False" else True
+    config.load_lr_schedulers = False if args.lr_scheduler == "False" else True
+
     if args.loadfile:
-        config.TRAIN_RESUME = True if args.resume == "True" else False
+        config.lastsave = args.loadfile
         if config.TRAIN_RESUME:
-            config.PROJECT_TAG = args.projecttag
-            config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.projecttag + "/" + args.loadfile
-            config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
+            config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/" + args.loadfile
+            config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/"
+            config.resetlr = args.resetlr
         else:
-            config.PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + config.versiontag
-            config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.projecttag + "/" + args.loadfile
+            config.PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + config.PROJECT_TAG
+            config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/" + args.loadfile
             config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
+    else:
+        config.PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + config.PROJECT_TAG
+        config.DIRECTORY_LOAD = False
+        config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
 
-
-def reproduceability():
-    """
-        from ml-arsenal-public/blob/master/reproducibility.py
-        The main python module that is run should import random and call random.seed(n)
-        this is shared between all other imports of random as long as somewhere else doesn't reset the seed.
-    """
-    print('=> Setting random seed to {}.'.format(config.TRAIN_SEED))
-    print('')
-    ia.seed(config.TRAIN_SEED)
-    random.seed(config.TRAIN_SEED)
-    np.random.seed(config.TRAIN_SEED)
-    torch.manual_seed(config.TRAIN_SEED)
-    torch.cuda.manual_seed_all(config.TRAIN_SEED)
-
-    print('=> Enable torch.backends.cudnn...')
-    print('')
-    torch.backends.cudnn.benchmark = True  # uses the inbuilt cudnn auto-tuner to find the fastest convolution algorithms. -
-    torch.backends.cudnn.deterministic = True  # deterministic result
-    torch.backends.cudnn.enabled = True  # enable
-    print('=> Setting CUDA environment...')
-    print('     torch.__version__              = {}'.format(torch.__version__))
-    print('     torch.version.cuda             = {}'.format(torch.version.cuda))
-    print('     torch.backends.cudnn.version() = {}'.format(torch.backends.cudnn.version()))
+    if args.fold != -1 and args.fold < config.MODEL_FOLD:
+        config.train_fold = [int(args.fold)]
+        print("=> Set training fold to: {}".format(config.train_fold))
+    else:
+        raise NotImplementedError("Please specify fold number")
 
 if __name__ == '__main__':
     """
     PLAYGROUND
     """
+    # tensor = torch.Tensor([
+    #     [0.1, 0.9, 0.9, 0.1],
+    #     [0.1, 0.9, 0.1, 0.1],
+    # ])
+    # label = torch.Tensor([
+    #     [0, 1, 1, 1],
+    #     [0, 1, 1, 1],
+    # ])
+    # loss = Focal_Loss_from_git(alpha=0.25, gamma=2, eps=1e-7)(label, tensor)
+    # print(loss)
+
+    os.system("sudo shutdown -c")
+    config.DEBUG_TEST_CODE = False
+    config.DEBUG_LAPTOP = False
     if not config.DEBUG_TEST_CODE:
         if config.DEBUG_TRAISE_GPU: sys.settrace(gpu_profile)
         load_args()
@@ -83,11 +94,27 @@ if __name__ == '__main__':
 
         reproduceability()
 
-        memory = memory_thread(1, writer)
-        memory.setDaemon(True)
-        memory.start()
+        # memory = memory_thread(1, writer)
+        # memory.setDaemon(True)
+        # memory.start()
 
         print("=> Current Directory: " + str(os.getcwd()))
         print("=> Loading neuronetwork...")
-
-        project = hpa_project.HPAProject(writer)
+        try:
+            # project = hpa_train.HPATrain(writer)
+            project = HisCancer_train.HisCancerTrain(writer)
+        except Exception as e:
+            # with open('Exception.txt', 'a+') as f:
+            #     f.write(str(e))
+            if not isinstance(e, KeyboardInterrupt):
+                os.system("sudo shutdown -P +20")
+                print("""
+                    WARNING: THE SYSTEM WILL SHUTDOWN
+                    Use command: sudo shutdown -c
+                """)
+            raise
+        os.system("sudo shutdown -P +20")
+        print("""
+                            WARNING: THE SYSTEM WILL SHUTDOWN
+                            Use command: sudo shutdown -c
+                        """)

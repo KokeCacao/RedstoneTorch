@@ -3,3 +3,8 @@ __pycache__/
 SUBMISSION*
 data/*.zip
 .idea
+.orig
+.ipnb_checkpoints/
+*/xml
+*/images
+data/*
