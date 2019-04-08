@@ -178,7 +178,6 @@ class IMetDataset(data.Dataset):
         :param indice:
         :return: id, one hot encoded label, nparray image of (r, g, b, y) from 0~255 (['red', 'green', 'blue', 'yellow']) (4, W, H)
         """
-        print(self.indices_to_id[indice], self.get_load_image_by_indice(indice), self.get_load_label_by_indice(indice))
         return (self.indices_to_id[indice], self.get_load_image_by_indice(indice), self.get_load_label_by_indice(indice))
 
     def get_load_image_by_indice(self, indice, suffix=".npy"):
@@ -257,6 +256,7 @@ def train_collate(batch):
     """TRASNFORM"""
     new_batch = []
     for id, image_0, labels_0 in batch:
+        print(id, image_0.shape, labels_0.shape)
         new_batch.append(transform(id, image_0, labels_0, train=True, val=False))
     batch = new_batch
     return collate(batch)
