@@ -4,7 +4,8 @@ from datetime import datetime
 from optparse import OptionParser
 
 import config
-import project.HisCancer_project.HisCancer_preprocess
+# import project.HisCancer_project.HisCancer_preprocess
+import project.imet_project.imet_preprocess
 from gpu import gpu_profile
 from reproduceability import reproduceability
 
@@ -57,7 +58,8 @@ if __name__ == '__main__':
         # preprocess = project.qubo_project.qubo_preprocess.QUBOPreprocess()
 
         try:
-            preprocess = project.HisCancer_project.HisCancer_preprocess.HisCancerPreprocess(from_dir=config.DIRECTORY_TEST, to_dir=config.DIRECTORY_TEST)
+            # preprocess = project.HisCancer_project.HisCancer_preprocess.HisCancerPreprocess(from_dir=config.DIRECTORY_TEST, to_dir=config.DIRECTORY_TEST)
+            preprocess = project.imet_project.imet_preprocess.IMetPreprocess(from_dir=config.DIRECTORY_TEST, to_dir=config.DIRECTORY_TEST)
         except Exception as e:
             if not isinstance(e, KeyboardInterrupt):
                 os.system("sudo shutdown -P +20")
