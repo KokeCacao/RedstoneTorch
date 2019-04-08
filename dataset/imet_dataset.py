@@ -101,37 +101,10 @@ class IMetDataset(data.Dataset):
 
 
         if os.path.exists(config.DIRECTORY_SPLIT):
-            # config.DEBUG_WRITE_SPLIT_CSV = False
-            # print("WARNING: the split file '{}' already exist, turning off write split file".format(config.DIRECTORY_SPLIT))
-
-            # x_t_list = []
-            # y_t_list = []
-            # x_e_list = []
-            # y_e_list = []
-            # with open(config.DIRECTORY_SPLIT) as split_file:
-            #     line = split_file.readline()
-            #     while line:
-            #         s = line.strip().split(",")
-            #         x_t, y_t, x_e, y_e = s[0], s[1], s[2], s[3]
-            #
-            #         x_t = [int(x) for x in x_t.split(",")]
-            #         y_t = [int(x) for x in y_t.split(",")]
-            #         x_e = [int(x) for x in x_e.split(",")]
-            #         y_e = [int(x) for x in y_e.split(",")]
-            #
-            #         x_t_list.append(x_t)
-            #         y_t_list.append(y_t)
-            #         x_e_list.append(x_e)
-            #         y_e_list.append(y_e)
-            #
-            #         line = split_file.readline()
-
             os.remove(config.DIRECTORY_SPLIT)
             print("WARNING: the split file '{}' already exist, remove file".format(config.DIRECTORY_SPLIT))
-        if config.DEBUG_WRITE_SPLIT_CSV:
-            with open(config.DIRECTORY_SPLIT, 'a') as split_file:
-                split_file.write('fold,x_t,y_t,x_e,y_e\n')
 
+        fold_dict = dict()
         for fold, (train_index, test_index) in enumerate(mskf.split(X, y)):
             print("#{} TRAIN: {}, TEST: {}".format(fold, train_index, test_index))
             x_t = train_index
@@ -139,10 +112,7 @@ class IMetDataset(data.Dataset):
             x_e = test_index
             y_e = np.array([y[j] for j in test_index])
 
-            if config.DEBUG_WRITE_SPLIT_CSV:
-                with open(config.DIRECTORY_SPLIT, 'a') as split_file:
-                    split_file.write('{},{},{},{},{}\n'.format(fold, " ".join(str(x) for x in x_t), " ".join(str(x) for x in y_t), " ".join(str(x) for x in x_e), " ".join(str(x) for x in y_e)))
-
+            fold_dict[fold] = [x_t, y_t, x_e, y_e]
 
             folded_samplers[fold] = dict()
             folded_samplers[fold]["train"] = SubsetRandomSampler(x_t)
@@ -168,7 +138,10 @@ class IMetDataset(data.Dataset):
                 for i, v in enumerate(y_t_dict): ax.text(i - 0.2, v + 3, str(v), color='red', fontweight='bold')
                 for i, v in enumerate(y_e_dict): ax.text(i + 0.2, v + 3, str(v), color='blue', fontweight='bold')
                 tensorboardwriter.write_data_distribution(self.writer, F, fold)
-            write_cv_distribution(self.writer, y_t, y_e)
+
+            # write_cv_distribution(self.writer, y_t, y_e)
+            np.save(config.DIRECTORY_SPLIT, fold_dict)
+
             # gc.collect()
         return folded_samplers
 
@@ -279,7 +252,7 @@ def train_collate(batch):
     """TRASNFORM"""
     new_batch = []
     for id, image_0, labels_0 in batch:
-        if config.global_steps ==1: print(id, image_0.shape, labels_0.shape)
+        if config.global_steps[config.fold] ==1: print(id, image_0.shape, labels_0.shape)
         new_batch.append(transform(id, image_0, labels_0, train=True, val=False))
     batch = new_batch
     return collate(batch)
@@ -374,7 +347,7 @@ def transform(ids, image_0, labels_0, train, val):
         ])
         image = TEST_TRANSFORM(image_0)
         image_0 = REGULARIZATION_TRAINSFORM(image_0)
-        if config.global_steps == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
+        if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
         return (ids, image, labels_0, image_0)
 
     """ https://stackoverflow.com/questions/23853632/which-kind-of-interpolation-best-for-resizing-image
@@ -395,7 +368,7 @@ def transform(ids, image_0, labels_0, train, val):
         ])
         image = TRAIN_TRANSFORM(image_0)
         image_0 = REGULARIZATION_TRAINSFORM(image_0)
-        if config.global_steps == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
+        if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
         return (ids, image, labels_0, image_0)
     elif not train and val:
         term = config.eval_index % 8
@@ -411,7 +384,7 @@ def transform(ids, image_0, labels_0, train, val):
         ])
         image = PREDICT_TRANSFORM_IMG(image_0)
         image_0 = REGULARIZATION_TRAINSFORM(image_0)
-        if config.global_steps == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
+        if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
         return (ids, image, labels_0, image_0)
     elif train and val:
         term = config.eval_index % 8
@@ -427,5 +400,5 @@ def transform(ids, image_0, labels_0, train, val):
         ])
         image = TTA_TRANSFORM(image_0)
         image_0 = REGULARIZATION_TRAINSFORM(image_0)
-        if config.global_steps == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
+        if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
         return (ids, image, labels_0, image_0)

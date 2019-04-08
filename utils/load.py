@@ -1,4 +1,5 @@
 import os
+import pickle
 from os import listdir
 from os.path import isfile, join
 
@@ -204,3 +205,11 @@ def cuda(net):
         os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     # print('=> torch.cuda.device_count()      =', torch.cuda.device_count())
     return net
+
+def save_obj(obj, path):
+    with open(path, 'wb') as f:
+        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+def load_obj(path):
+    with open(path, 'rb') as f:
+        return pickle.load(f)
