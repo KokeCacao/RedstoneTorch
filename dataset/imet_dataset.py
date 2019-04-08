@@ -103,6 +103,29 @@ class IMetDataset(data.Dataset):
         if os.path.exists(config.DIRECTORY_SPLIT):
             # config.DEBUG_WRITE_SPLIT_CSV = False
             # print("WARNING: the split file '{}' already exist, turning off write split file".format(config.DIRECTORY_SPLIT))
+
+            # x_t_list = []
+            # y_t_list = []
+            # x_e_list = []
+            # y_e_list = []
+            # with open(config.DIRECTORY_SPLIT) as split_file:
+            #     line = split_file.readline()
+            #     while line:
+            #         s = line.strip().split(",")
+            #         x_t, y_t, x_e, y_e = s[0], s[1], s[2], s[3]
+            #
+            #         x_t = [int(x) for x in x_t.split(",")]
+            #         y_t = [int(x) for x in y_t.split(",")]
+            #         x_e = [int(x) for x in x_e.split(",")]
+            #         y_e = [int(x) for x in y_e.split(",")]
+            #
+            #         x_t_list.append(x_t)
+            #         y_t_list.append(y_t)
+            #         x_e_list.append(x_e)
+            #         y_e_list.append(y_e)
+            #
+            #         line = split_file.readline()
+
             os.remove(config.DIRECTORY_SPLIT)
             print("WARNING: the split file '{}' already exist, remove file".format(config.DIRECTORY_SPLIT))
         if config.DEBUG_WRITE_SPLIT_CSV:
@@ -256,7 +279,7 @@ def train_collate(batch):
     """TRASNFORM"""
     new_batch = []
     for id, image_0, labels_0 in batch:
-        print(id, image_0.shape, labels_0.shape)
+        if config.global_steps ==1: print(id, image_0.shape, labels_0.shape)
         new_batch.append(transform(id, image_0, labels_0, train=True, val=False))
     batch = new_batch
     return collate(batch)
@@ -330,6 +353,13 @@ def transform(ids, image_0, labels_0, train, val):
     :return:
     """
 
+    REGULARIZATION_TRAINSFORM = transforms.Compose([
+            lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB), # and don't put them in strong_aug()
+            lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
+            lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
+            transforms.ToTensor(),
+        ])
+
     if not train and not val:
         term = config.eval_index % 8
         TEST_TRANSFORM = transforms.Compose([
@@ -337,13 +367,15 @@ def transform(ids, image_0, labels_0, train, val):
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
             lambda x: RandomRotate90().apply(img=x, factor=term % 4), # pull it out from test_aug because test_aug's Compose cannot contain any lambda
             lambda x: test_aug(term)(image=x), # Yes, you have to use image=xxx
-            lambda x: x['image'], # abstract the actual image acter the augmentation
+            lambda x: x['image'], # abstract the actual image after the augmentation
             lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
             transforms.ToTensor(),
             Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD), # this needs to be set accordingly
         ])
         image = TEST_TRANSFORM(image_0)
-        return (ids, image, labels_0, transforms.ToTensor()(image_0))
+        image_0 = REGULARIZATION_TRAINSFORM(image_0)
+        if config.global_steps == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
+        return (ids, image, labels_0, image_0)
 
     """ https://stackoverflow.com/questions/23853632/which-kind-of-interpolation-best-for-resizing-image
     If you are enlarging the image, you should prefer to use INTER_LINEAR or INTER_CUBIC interpolation. If you are shrinking the image, you should prefer to use INTER_AREA interpolation.
@@ -356,13 +388,15 @@ def transform(ids, image_0, labels_0, train, val):
             lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
             lambda x: RandomRotate90().apply(img=x, factor=term % 4),
             lambda x: train_aug(term)(image=x), # Yes, you have to use image=xxx
-            lambda x: x['image'], # abstract the actual image acter the augmentation
+            lambda x: x['image'], # abstract the actual image after the augmentation
             lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
             transforms.ToTensor(),
             Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD), # this needs to be set accordingly
         ])
         image = TRAIN_TRANSFORM(image_0)
-        return (ids, image, labels_0, transforms.ToTensor()(image_0))
+        image_0 = REGULARIZATION_TRAINSFORM(image_0)
+        if config.global_steps == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
+        return (ids, image, labels_0, image_0)
     elif not train and val:
         term = config.eval_index % 8
         PREDICT_TRANSFORM_IMG = transforms.Compose([
@@ -376,7 +410,9 @@ def transform(ids, image_0, labels_0, train, val):
             Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD),
         ])
         image = PREDICT_TRANSFORM_IMG(image_0)
-        return (ids, image, labels_0, transforms.ToTensor()(image_0))
+        image_0 = REGULARIZATION_TRAINSFORM(image_0)
+        if config.global_steps == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
+        return (ids, image, labels_0, image_0)
     elif train and val:
         term = config.eval_index % 8
         TTA_TRANSFORM = transforms.Compose([
@@ -390,4 +426,6 @@ def transform(ids, image_0, labels_0, train, val):
             Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD), # this needs to be set accordingly
         ])
         image = TTA_TRANSFORM(image_0)
-        return (ids, image, labels_0, transforms.ToTensor()(image_0))
+        image_0 = REGULARIZATION_TRAINSFORM(image_0)
+        if config.global_steps == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
+        return (ids, image, labels_0, image_0)
