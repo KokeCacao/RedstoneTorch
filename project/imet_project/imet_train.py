@@ -469,8 +469,9 @@ class IMetTrain:
                                                            # 'AUCMacro/{}'.format(config.fold): soft_auc_macro,
                                                            # 'AUCMicro/{}'.format(config.fold): soft_auc_micro,
                                                            }
-                for c in range(config.TRAIN_NUM_CLASS):
-                    out_dict['PredictProbability-Class-{}/{}'.format(c, config.fold)] = prob_predict[:][c].mean()
+                # for c in range(config.TRAIN_NUM_CLASS):
+                #     out_dict['PredictProbability-Class-{}/{}'.format(c, config.fold)] = prob_predict[:][c].mean()
+                # TODO: the code above is wrong - IndexError: index 64 is out of bounds for axis 0 with size 64
 
                 tensorboardwriter.write_loss(self.writer, out_dict, config.global_steps[fold])
 
