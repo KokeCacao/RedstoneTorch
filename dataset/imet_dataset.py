@@ -101,8 +101,10 @@ class IMetDataset(data.Dataset):
 
 
         if os.path.exists(config.DIRECTORY_SPLIT):
-            config.DEBUG_WRITE_SPLIT_CSV = False
-            print("WARNING: the split file '{}' already exist, truning off write split file".format(config.DIRECTORY_SPLIT))
+            # config.DEBUG_WRITE_SPLIT_CSV = False
+            # print("WARNING: the split file '{}' already exist, turning off write split file".format(config.DIRECTORY_SPLIT))
+            os.remove(config.DIRECTORY_SPLIT)
+            print("WARNING: the split file '{}' already exist, remove file".format(config.DIRECTORY_SPLIT))
         if config.DEBUG_WRITE_SPLIT_CSV:
             with open(config.DIRECTORY_SPLIT, 'a') as split_file:
                 split_file.write('fold,x_t,y_t,x_e,y_e\n')
