@@ -320,9 +320,7 @@ elif PROJECT_NAME == "IMet":
     DIRECTORY_SUFFIX_IMG = ".png"
     DIRECTORY_PREPROCESSED_SUFFIX_IMG = ".npy"
     # DIRECTORY_IMG = DIRECTORY_PREFIX + "data/train/"
-    DIRECTORY_PREPROCESSED_IMG = DIRECTORY_PREFIX + "data/iMet_dataset/train/"
     # DIRECTORY_SELECTED_IMG = DIRECTORY_PREFIX + "data/iMet_dataset/selected/"
-    DIRECTORY_TEST = DIRECTORY_PREFIX + 'data/iMet_dataset/test/'
     # DIRECTORY_LOAD = None
     DIRECTORY_CSV = DIRECTORY_PREFIX + 'data/HisCancer_dataset/train.csv'
     DIRECTORY_SAMPLE_CSV = DIRECTORY_PREFIX + 'data/HisCancer_dataset/sample_submission.csv'
@@ -341,6 +339,15 @@ elif PROJECT_NAME == "IMet":
     AUGMENTATION_RESIZE = 128
     AUGMENTATION_MEAN = [0.485, 0.456, 0.406]
     AUGMENTATION_STD = [0.229, 0.224, 0.225]
+
+
+
+
+
+
+
+    DIRECTORY_TRAIN = DIRECTORY_PREFIX + "data/imet_dataset/train/"
+    DIRECTORY_TEST = DIRECTORY_PREFIX + 'data/imet_dataset/test/'
 
     load_state_dicts = True
     load_optimizers = True
