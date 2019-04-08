@@ -100,47 +100,62 @@ class IMetDataset(data.Dataset):
         folded_samplers = dict()
 
 
-        if os.path.exists(config.DIRECTORY_SPLIT):
-            os.remove(config.DIRECTORY_SPLIT)
-            print("WARNING: the split file '{}' already exist, remove file".format(config.DIRECTORY_SPLIT))
+        if config.DEBUG_WRITE_SPLIT_CSV or not os.path.exists(config.DIRECTORY_SPLIT):
+            if os.path.exists(config.DIRECTORY_SPLIT):
+                os.remove(config.DIRECTORY_SPLIT)
+                print("WARNING: the split file '{}' already exist, remove file".format(config.DIRECTORY_SPLIT))
 
-        fold_dict = dict()
-        for fold, (train_index, test_index) in enumerate(mskf.split(X, y)):
-            print("#{} TRAIN: {}, TEST: {}".format(fold, train_index, test_index))
-            x_t = train_index
-            y_t = np.array([y[j] for j in train_index])
-            x_e = test_index
-            y_e = np.array([y[j] for j in test_index])
+            fold_dict = []
+            for fold, (train_index, test_index) in enumerate(mskf.split(X, y)):
+                print("#{} TRAIN: {}, TEST: {}".format(fold, train_index, test_index))
+                x_t = train_index
+                y_t = np.array([y[j] for j in train_index])
+                x_e = test_index
+                y_e = np.array([y[j] for j in test_index])
 
-            fold_dict[fold] = [x_t, y_t, x_e, y_e]
+                fold_dict.append([x_t, x_e])
 
-            folded_samplers[fold] = dict()
-            folded_samplers[fold]["train"] = SubsetRandomSampler(x_t)
+                folded_samplers[fold] = dict()
+                folded_samplers[fold]["train"] = SubsetRandomSampler(x_t)
 
-            # a = int(len(x_t)/config.MODEL_BATCH_SIZE)
-            # b = 1-config.MODEL_BATCH_SIZE/x_t.shape[0]
-            # c = MultilabelStratifiedShuffleSplit(int(a), test_size=b, random_state=None).split(x_t, y_t)
-            # folded_samplers[fold]['train'] = iter(c[0])
-            folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)  # y[test_index]
+                # a = int(len(x_t)/config.MODEL_BATCH_SIZE)
+                # b = 1-config.MODEL_BATCH_SIZE/x_t.shape[0]
+                # c = MultilabelStratifiedShuffleSplit(int(a), test_size=b, random_state=None).split(x_t, y_t)
+                # folded_samplers[fold]['train'] = iter(c[0])
+                folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)  # y[test_index]
 
-            def write_cv_distribution(writer, y_t, y_e):
-                y_t_dict = np.bincount((y_t.astype(np.int8) * np.array(list(range(config.TRAIN_NUM_CLASS)))).flatten())
-                y_e_dict = np.bincount((y_e.astype(np.int8) * np.array(list(range(config.TRAIN_NUM_CLASS)))).flatten())
-                # F, (ax1, ax2) = plt.subplots(1, 2, figsize=(4, 2), sharey='none')
-                # ax1.bar(list(range(len(y_t_dict))), y_t_dict)
-                # ax2.bar(list(range(len(y_e_dict))), y_e_dict)
-                F = plt.figure()
-                ax = F.add_subplot(111)
-                tr = ax.bar(np.arange(len(y_t_dict)) -0.2, y_t_dict, width=0.4, color='tab:red', log=True)
-                ev = ax.bar(np.arange(len(y_e_dict)) +0.2, y_e_dict, width=0.4, color='tab:blue', log=True)
-                ax.legend((tr[0], ev[0]), ('trian', 'eval'))
-                ax.set_ylabel('exp', color='tab:blue')
-                for i, v in enumerate(y_t_dict): ax.text(i - 0.2, v + 3, str(v), color='red', fontweight='bold')
-                for i, v in enumerate(y_e_dict): ax.text(i + 0.2, v + 3, str(v), color='blue', fontweight='bold')
-                tensorboardwriter.write_data_distribution(self.writer, F, fold)
+                def write_cv_distribution(writer, y_t, y_e):
+                    y_t_dict = np.bincount((y_t.astype(np.int8) * np.array(list(range(config.TRAIN_NUM_CLASS)))).flatten())
+                    y_e_dict = np.bincount((y_e.astype(np.int8) * np.array(list(range(config.TRAIN_NUM_CLASS)))).flatten())
+                    # F, (ax1, ax2) = plt.subplots(1, 2, figsize=(4, 2), sharey='none')
+                    # ax1.bar(list(range(len(y_t_dict))), y_t_dict)
+                    # ax2.bar(list(range(len(y_e_dict))), y_e_dict)
+                    F = plt.figure()
+                    ax = F.add_subplot(111)
+                    tr = ax.bar(np.arange(len(y_t_dict)) -0.2, y_t_dict, width=0.4, color='tab:red', log=True)
+                    ev = ax.bar(np.arange(len(y_e_dict)) +0.2, y_e_dict, width=0.4, color='tab:blue', log=True)
+                    ax.legend((tr[0], ev[0]), ('trian', 'eval'))
+                    ax.set_ylabel('exp', color='tab:blue')
+                    for i, v in enumerate(y_t_dict): ax.text(i - 0.2, v + 3, str(v), color='red', fontweight='bold')
+                    for i, v in enumerate(y_e_dict): ax.text(i + 0.2, v + 3, str(v), color='blue', fontweight='bold')
+                    tensorboardwriter.write_data_distribution(self.writer, F, fold)
 
-            # write_cv_distribution(self.writer, y_t, y_e)
-            np.save(config.DIRECTORY_SPLIT, fold_dict)
+                # write_cv_distribution(self.writer, y_t, y_e)
+                np.save(config.DIRECTORY_SPLIT, fold_dict)
+            else:
+                fold_dict = np.load(config.DIRECTORY_SPLIT)
+                for items in fold_dict:
+                    x_t = items[0]
+                    x_e = items[1]
+
+                    folded_samplers[fold] = dict()
+                    folded_samplers[fold]["train"] = SubsetRandomSampler(x_t)
+
+                    # a = int(len(x_t)/config.MODEL_BATCH_SIZE)
+                    # b = 1-config.MODEL_BATCH_SIZE/x_t.shape[0]
+                    # c = MultilabelStratifiedShuffleSplit(int(a), test_size=b, random_state=None).split(x_t, y_t)
+                    # folded_samplers[fold]['train'] = iter(c[0])
+                    folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)  # y[test_index]
 
             # gc.collect()
         return folded_samplers

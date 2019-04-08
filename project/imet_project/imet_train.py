@@ -404,7 +404,7 @@ class IMetTrain:
                     image = image.cuda()
                     labels_0 = labels_0.cuda()
                 logits_predict = net(image)
-                prob_predict = torch.nn.Sigmoid(logits_predict)
+                prob_predict = torch.nn.Sigmoid()(logits_predict)
 
                 """LOSS"""
                 focal = focalloss_sigmoid(alpha=0.25, gamma=2, eps=1e-7)(labels_0, logits_predict)
