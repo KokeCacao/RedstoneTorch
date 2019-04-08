@@ -290,7 +290,7 @@ elif PROJECT_NAME == "IMet":
     DEBUG_LAPTOP = True
     DEBUG_TEST_CODE = False
     DEBUG_AUTO_SHUTDOWN = True
-    DEBUG_WRITE_SPLIT_CSV = True
+    DEBUG_WRITE_SPLIT_CSV = False
 
     DEBUG_LR_FINDER = False # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
 
