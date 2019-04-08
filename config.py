@@ -322,7 +322,7 @@ elif PROJECT_NAME == "IMet":
     TRAIN_NUM_WORKER = 8
     TRAIN_NUM_GPU = len(TRAIN_GPU_LIST)
     TRAIN_RESUME = True
-    TRAIN_NUM_CLASS = 2
+    TRAIN_NUM_CLASS = 1103
 
     TRAIN_RATIO = 1
     EVAL_RATIO = 1 # to 8 when needed

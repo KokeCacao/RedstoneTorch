@@ -45,7 +45,7 @@ class IMetTrain:
 
         for fold in range(config.MODEL_FOLD):
             if fold not in config.train_fold:
-                print("     Skipping dataset = HisCancerDataset(config.DIRECTORY_CSV, fold: #{})".format(fold))
+                print("     Skipping dataset = IMetDataset(config.DIRECTORY_CSV, fold: #{})".format(fold))
                 self.optimizers.append(None)
                 self.nets.append(None)
                 self.lr_schedulers.append(None)
@@ -221,7 +221,7 @@ class IMetTrain:
                    ):
         config.epoch = config.epoch + 1
 
-        evaluation = HisCancerEvaluation(self.writer, self.dataset.multilabel_binarizer)
+        evaluation = IMetEvaluation(self.writer, self.dataset.multilabel_binarizer)
         for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
             if net == None or optimizer == None or lr_scheduler == None:
                 continue
@@ -497,7 +497,7 @@ class IMetTrain:
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
 
 
-class HisCancerEvaluation:
+class IMetEvaluation:
     def __init__(self, writer, binarlizer):
         self.writer = writer
         self.binarlizer = binarlizer

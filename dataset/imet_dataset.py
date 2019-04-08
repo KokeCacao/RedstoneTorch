@@ -207,7 +207,6 @@ def train_aug(term):
         OneOf([CLAHE(clip_limit=2), IAASharpen(), IAAEmboss(), RandomBrightnessContrast(), JpegCompression(), Blur(), GaussNoise()], p=0.5),
         HueSaturationValue(p=0.5),
         ShiftScaleRotate(shift_limit=0.15, scale_limit=0.15, rotate_limit=45, p=0.5),
-        CenterCrop(44, 44, p=0.25),
         PadIfNeeded(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE),
     ])
 def eval_aug(term):
