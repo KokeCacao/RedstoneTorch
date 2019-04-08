@@ -18,9 +18,9 @@ class IMetPreprocess:
             print("Searching in {}, {}, {}".format(path, subdirs, files))
             for name in f:
                 files.append(os.path.join(path, name))
-                print("Get Name: {}".format(name))
+                # print("Get Name: {}".format(name))
 
-        print("files in selected {} in path {}".format(files, from_dir))
+        # print("files in selected {} in path {}".format(files, from_dir))
 
         pbar = tqdm(files)
         for dir in pbar:

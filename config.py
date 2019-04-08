@@ -256,6 +256,36 @@ elif PROJECT_NAME == "HisCancer":
     resetlr = 0
 elif PROJECT_NAME == "IMet":
 
+
+
+
+
+    DIRECTORY_PREFIX = "" # remember to add '/' at the end
+    # DIRECTORY_PREFIX = "/home/koke_cacao/Documents/Koke_Cacao/Python/WorkSpace/RedstoneTorch/" # remember to add '/' at the end
+    # ~/RedstoneTorch/data/qubo_dataset/preprocessed$ mv /home/k1412042720/qubo_dataset.zip ~/RedstoneTorch/data/qubo_dataset/preprocessed/
+    DIRECTORY_SUFFIX_IMG = ".png"
+    DIRECTORY_PREPROCESSED_SUFFIX_IMG = ".npy"
+    # DIRECTORY_IMG = DIRECTORY_PREFIX + "data/train/"
+    # DIRECTORY_SELECTED_IMG = DIRECTORY_PREFIX + "data/iMet_dataset/selected/"
+    # DIRECTORY_LOAD = None
+    PREDICTION_WRITER = False
+    PREDICTION_TAG = "test"
+    PREDICTION_LOAD_TAG = ""
+    PREDICTION_CHOSEN_THRESHOLD = [0.5]
+    PREDICTION_TTA = 0
+
+
+
+
+
+
+
+
+
+
+    PROJECT_TAG = "test"
+    PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + PROJECT_TAG
+
     DEBUG_TRAISE_GPU = False
     DEBUG_LAPTOP = True
     DEBUG_TEST_CODE = False
@@ -265,9 +295,6 @@ elif PROJECT_NAME == "IMet":
 
     MODEL_EPOCHS = 8
     MODEL_BATCH_SIZE = 64
-    MODEL_INIT_LEARNING_RATE = 0.005
-    MODEL_MIN_LEARNING_RATE = 0.00007
-    MODEL_COS_LEARNING_RATE_PERIOD = 1000
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DECAY = 0.0000
     MODEL_FOLD = 5
@@ -286,6 +313,7 @@ elif PROJECT_NAME == "IMet":
         "presudo-3": "0",
         "KokeCacao-Ubuntu": "0",
     }
+    TRAIN_LOAD_OPTIMIZER = True
     TRAIN_GPU_ARG = TRAIN_GPU_DICT[socket.gethostname()]
     TRAIN_GPU_LIST = [int(i) for i in TRAIN_GPU_ARG.split(",")]
     TRAIN_DATA_PERCENT = 1
@@ -294,17 +322,26 @@ elif PROJECT_NAME == "IMet":
     TRAIN_NUM_GPU = len(TRAIN_GPU_LIST)
     TRAIN_RESUME = True
     TRAIN_NUM_CLASS = 2
-    TRAIN_LOAD_OPTIMIZER = True
-    # TRAIN_COSINE = lambda global_step: (0.1 / 2) * (np.cos(np.pi * (np.mod(global_step, 20 * 46808 / 64) / (20 * 46808 / 64))) + 1)  # y=(0.01/2)*(cos(pi*(mod(x-1,10000)/(10000)))+1)
-    # TRAIN_TRY_LR = False
-    # TRAIN_TRY_LR_FORMULA = lambda x: x / (8 * np.mod(-x - 1, 600) + 0.1) - 0.000207 * x  # y=x/(8*\operatorname{mod}(-x-1,600)+0.1)-0.000207*x
+
     TRAIN_RATIO = 1
     EVAL_RATIO = 1 # to 8 when needed
     FIND_LR_ON_VALIDATION = False
     FIND_LR_RATIO = 20 if FIND_LR_ON_VALIDATION else 100
 
-    PROJECT_TAG = "test"
-    PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + PROJECT_TAG
+    DIRECTORY_CSV = DIRECTORY_PREFIX + 'data/imet_dataset/train.csv'
+    DIRECTORY_CSV_ID = 'id'
+    DIRECTORY_CSV_TARGET = 'attribute_ids'
+    DIRECTORY_SAMPLE_CSV = DIRECTORY_PREFIX + 'data/imet_dataset/sample_submission.csv'
+    DIRECTORY_TRAIN = DIRECTORY_PREFIX + "data/imet_dataset/train/"
+    DIRECTORY_TEST = DIRECTORY_PREFIX + 'data/imet_dataset/test/'
+    # DIRECTORY_PRESUDO_CSV = DIRECTORY_PREFIX + 'data/imet_dataset/presudo_labels.csv'
+    DIRECTORY_CHECKPOINT = DIRECTORY_PREFIX + "model/" + PROJECT_TAG + "/"
+    DIRECTORY_CP_NAME = 'CP{}_F{}_PT{}_VT{}_LR{}_BS{}_IMG{}.pth'
+
+    # AUGMENTATION_RESIZE = 224
+    AUGMENTATION_RESIZE = 128
+    AUGMENTATION_MEAN = [0.485, 0.456, 0.406]
+    AUGMENTATION_STD = [0.229, 0.224, 0.225]
 
     DISPLAY_HISTOGRAM = False
     DISPLAY_VISUALIZATION = False
@@ -314,40 +351,7 @@ elif PROJECT_NAME == "IMet":
     EVAL_TRY_THRESHOLD = np.linspace(0.0, 1.0, 1000)
     EVAL_THRESHOLD = 0.5
 
-    DIRECTORY_PREFIX = "" # remember to add '/' at the end
-    # DIRECTORY_PREFIX = "/home/koke_cacao/Documents/Koke_Cacao/Python/WorkSpace/RedstoneTorch/" # remember to add '/' at the end
-    # ~/RedstoneTorch/data/qubo_dataset/preprocessed$ mv /home/k1412042720/qubo_dataset.zip ~/RedstoneTorch/data/qubo_dataset/preprocessed/
-    DIRECTORY_SUFFIX_IMG = ".png"
-    DIRECTORY_PREPROCESSED_SUFFIX_IMG = ".npy"
-    # DIRECTORY_IMG = DIRECTORY_PREFIX + "data/train/"
-    # DIRECTORY_SELECTED_IMG = DIRECTORY_PREFIX + "data/iMet_dataset/selected/"
-    # DIRECTORY_LOAD = None
-    DIRECTORY_CSV = DIRECTORY_PREFIX + 'data/HisCancer_dataset/train.csv'
-    DIRECTORY_SAMPLE_CSV = DIRECTORY_PREFIX + 'data/HisCancer_dataset/sample_submission.csv'
-    DIRECTORY_PRESUDO_CSV = DIRECTORY_PREFIX + 'data/HisCancer_dataset/presudo_labels.csv'
-    DIRECTORY_CHECKPOINT = DIRECTORY_PREFIX + "model/" + PROJECT_TAG + "/"
-    DIRECTORY_CP_NAME = 'CP{}_F{}_PT{}_VT{}_LR{}_BS{}_IMG{}.pth'
-
-    PREDICTION_WRITER = False
-    PREDICTION_TAG = "test"
-    PREDICTION_LOAD_TAG = ""
-    PREDICTION_CHOSEN_THRESHOLD = [0.5]
-    PREDICTION_TTA = 0
-
-    AUGMENTATION_IMG_ORIGINAL_SIZE = (96, 96)
-    # AUGMENTATION_RESIZE = 224
-    AUGMENTATION_RESIZE = 128
-    AUGMENTATION_MEAN = [0.485, 0.456, 0.406]
-    AUGMENTATION_STD = [0.229, 0.224, 0.225]
-
-
-
-
-
-
-
-    DIRECTORY_TRAIN = DIRECTORY_PREFIX + "data/imet_dataset/train/"
-    DIRECTORY_TEST = DIRECTORY_PREFIX + 'data/imet_dataset/test/'
+    EVAL_SHAKEUP_RATIO = 100
 
     load_state_dicts = True
     load_optimizers = True

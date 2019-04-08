@@ -59,8 +59,8 @@ if __name__ == '__main__':
 
         try:
             # preprocess = project.HisCancer_project.HisCancer_preprocess.HisCancerPreprocess(from_dir=config.DIRECTORY_TEST, to_dir=config.DIRECTORY_TEST)
-            # preprocess = project.imet_project.imet_preprocess.IMetPreprocess(from_dir=config.DIRECTORY_TEST, to_dir=config.DIRECTORY_TEST)
-            preprocess = project.imet_project.imet_preprocess.IMetPreprocess(from_dir=config.DIRECTORY_TRAIN, to_dir=config.DIRECTORY_TRAIN)
+            preprocess = project.imet_project.imet_preprocess.IMetPreprocess(from_dir=config.DIRECTORY_TEST, to_dir=config.DIRECTORY_TEST)
+            # preprocess = project.imet_project.imet_preprocess.IMetPreprocess(from_dir=config.DIRECTORY_TRAIN, to_dir=config.DIRECTORY_TRAIN)
         except Exception as e:
             if not isinstance(e, KeyboardInterrupt):
                 os.system("sudo shutdown -P +20")
