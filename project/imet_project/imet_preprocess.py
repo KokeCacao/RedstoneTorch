@@ -27,4 +27,4 @@ class IMetPreprocess:
             pth=os.path.join(to_dir, dir.split("/")[-1].split(".")[0]+".npy")
             pbar.set_description_str("Saving .npy images in {}".format(pth))
             np.save(pth, cv2.imread(dir, cv2.IMREAD_COLOR).astype(np.uint8))
-            os.remove(pth)
+            os.remove(dir)
