@@ -14,7 +14,8 @@ from project.hpa_project import hpa_train
 # def log_data(file_name, data):
 #     with open(file_name + ".txt", "a+") as file:
 #         file.write(data + "\n")
-from project.HisCancer_project import HisCancer_train
+# from project.HisCancer_project import HisCancer_train
+from project.imet_project import imet_train
 from reproduceability import reproduceability
 
 
@@ -102,7 +103,8 @@ if __name__ == '__main__':
         print("=> Loading neuronetwork...")
         try:
             # project = hpa_train.HPATrain(writer)
-            project = HisCancer_train.HisCancerTrain(writer)
+            # project = HisCancer_train.HisCancerTrain(writer)
+            project = imet_train.IMetTrain(writer)
         except Exception as e:
             # with open('Exception.txt', 'a+') as f:
             #     f.write(str(e))
