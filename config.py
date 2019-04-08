@@ -290,6 +290,7 @@ elif PROJECT_NAME == "IMet":
     DEBUG_LAPTOP = True
     DEBUG_TEST_CODE = False
     DEBUG_AUTO_SHUTDOWN = True
+    DEBUG_WRITE_SPLIT_CSV = True
 
     DEBUG_LR_FINDER = False # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
 
@@ -335,6 +336,7 @@ elif PROJECT_NAME == "IMet":
     DIRECTORY_SAMPLE_CSV = DIRECTORY_PREFIX + 'data/imet_dataset/sample_submission.csv'
     DIRECTORY_TRAIN = DIRECTORY_PREFIX + "data/imet_dataset/train/"
     DIRECTORY_TEST = DIRECTORY_PREFIX + 'data/imet_dataset/test/'
+    DIRECTORY_SPLIT = DIRECTORY_PREFIX + 'data/imet_dataset/split.csv'
     # DIRECTORY_PRESUDO_CSV = DIRECTORY_PREFIX + 'data/imet_dataset/presudo_labels.csv'
     DIRECTORY_CHECKPOINT = DIRECTORY_PREFIX + "model/" + PROJECT_TAG + "/"
     DIRECTORY_CP_NAME = 'CP{}_F{}_PT{}_VT{}_LR{}_BS{}_IMG{}.pth'

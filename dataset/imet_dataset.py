@@ -98,12 +98,26 @@ class IMetDataset(data.Dataset):
 
         mskf = MultilabelStratifiedKFold(n_splits=fold, random_state=None)
         folded_samplers = dict()
+
+
+        if os.path.exists(config.DIRECTORY_SPLIT):
+            config.DEBUG_WRITE_SPLIT_CSV = False
+            print("WARNING: the split file '{}' already exist, truning off write split file".format(config.DIRECTORY_SPLIT))
+        if config.DEBUG_WRITE_SPLIT_CSV:
+            with open(config.DIRECTORY_SPLIT, 'a') as split_file:
+                split_file.write('fold,x_t,y_t,x_e,y_e\n')
+
         for fold, (train_index, test_index) in enumerate(mskf.split(X, y)):
             print("#{} TRAIN: {}, TEST: {}".format(fold, train_index, test_index))
             x_t = train_index
             y_t = np.array([y[j] for j in train_index])
             x_e = test_index
             y_e = np.array([y[j] for j in test_index])
+
+            if config.DEBUG_WRITE_SPLIT_CSV:
+                split_file.write('{},{},{},{},{}\n'.format(fold, " ".join(str(x) for x in x_t), " ".join(str(x) for x in y_t), " ".join(str(x) for x in x_e), " ".join(str(x) for x in y_e)))
+
+
             folded_samplers[fold] = dict()
             folded_samplers[fold]["train"] = SubsetRandomSampler(x_t)
 
@@ -161,6 +175,7 @@ class IMetDataset(data.Dataset):
         :param indice:
         :return: id, one hot encoded label, nparray image of (r, g, b, y) from 0~255 (['red', 'green', 'blue', 'yellow']) (4, W, H)
         """
+        print(self.indices_to_id[indice], self.get_load_image_by_indice(indice), self.get_load_label_by_indice(indice))
         return (self.indices_to_id[indice], self.get_load_image_by_indice(indice), self.get_load_label_by_indice(indice))
 
     def get_load_image_by_indice(self, indice, suffix=".npy"):
