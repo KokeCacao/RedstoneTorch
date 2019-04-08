@@ -109,20 +109,15 @@ class IMetDataset(data.Dataset):
             for fold, (train_index, test_index) in enumerate(mskf.split(X, y)):
                 print("#{} TRAIN: {}, TEST: {}".format(fold, train_index, test_index))
                 x_t = train_index
-                y_t = np.array([y[j] for j in train_index])
+                # y_t = np.array([y[j] for j in train_index])
                 x_e = test_index
-                y_e = np.array([y[j] for j in test_index])
+                # y_e = np.array([y[j] for j in test_index])
 
                 fold_dict.append([x_t, x_e])
 
                 folded_samplers[fold] = dict()
                 folded_samplers[fold]["train"] = SubsetRandomSampler(x_t)
-
-                # a = int(len(x_t)/config.MODEL_BATCH_SIZE)
-                # b = 1-config.MODEL_BATCH_SIZE/x_t.shape[0]
-                # c = MultilabelStratifiedShuffleSplit(int(a), test_size=b, random_state=None).split(x_t, y_t)
-                # folded_samplers[fold]['train'] = iter(c[0])
-                folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)  # y[test_index]
+                folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)
 
                 def write_cv_distribution(writer, y_t, y_e):
                     y_t_dict = np.bincount((y_t.astype(np.int8) * np.array(list(range(config.TRAIN_NUM_CLASS)))).flatten())
@@ -142,20 +137,15 @@ class IMetDataset(data.Dataset):
 
                 # write_cv_distribution(self.writer, y_t, y_e)
                 np.save(config.DIRECTORY_SPLIT, fold_dict)
-            else:
-                fold_dict = np.load(config.DIRECTORY_SPLIT)
-                for items in fold_dict:
-                    x_t = items[0]
-                    x_e = items[1]
+        else:
+            fold_dict = np.load(config.DIRECTORY_SPLIT)
+            for items in fold_dict:
+                x_t = items[0]
+                x_e = items[1]
 
-                    folded_samplers[fold] = dict()
-                    folded_samplers[fold]["train"] = SubsetRandomSampler(x_t)
-
-                    # a = int(len(x_t)/config.MODEL_BATCH_SIZE)
-                    # b = 1-config.MODEL_BATCH_SIZE/x_t.shape[0]
-                    # c = MultilabelStratifiedShuffleSplit(int(a), test_size=b, random_state=None).split(x_t, y_t)
-                    # folded_samplers[fold]['train'] = iter(c[0])
-                    folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)  # y[test_index]
+                folded_samplers[fold] = dict()
+                folded_samplers[fold]["train"] = SubsetRandomSampler(x_t)
+                folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)
 
             # gc.collect()
         return folded_samplers
