@@ -44,8 +44,8 @@ class IMetDataset(data.Dataset):
         print("     Reading Data with [test={}]".format(self.load_strategy))
 
         """Make sure the labels of your dataset is correct"""
-        self.train_dataframe = pd.read_csv(train_csv_dir, delimiter=',', encoding="utf-8-sig", engine='python').set_index(id_col).sample(frac=config.TRAIN_DATA_PERCENT_SAMPLE_CSV)
-        self.test_dataframe = pd.read_csv(test_csv_dir, delimiter=',', encoding="utf-8-sig", engine='python').set_index(id_col).sample(frac=config.TEST_DATA_PERCENT_SAMPLE_CSV)
+        self.train_dataframe = pd.read_csv(train_csv_dir, delimiter=',', encoding="utf-8-sig", engine='python').set_index(id_col).sample(frac=1)
+        self.test_dataframe = pd.read_csv(test_csv_dir, delimiter=',', encoding="utf-8-sig", engine='python').set_index(id_col).sample(frac=1)
 
         self.multilabel_binarizer = MultiLabelBinarizer().fit([list(range(config.TRAIN_NUM_CLASS))])
         self.labelframe = None
