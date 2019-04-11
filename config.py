@@ -292,15 +292,16 @@ elif PROJECT_NAME == "IMet":
     DEBUG_AUTO_SHUTDOWN = True
     DEBUG_WRITE_SPLIT_CSV = False
 
-    DEBUG_LR_FINDER = False # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
+    DEBUG_LR_FINDER = True # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
 
-    MODEL_EPOCHS = 8
+    MODEL_EPOCHS = 20
     MODEL_BATCH_SIZE = 64
     MODEL_MOMENTUM = 0.9
-    MODEL_WEIGHT_DECAY = 0.0000
+    MODEL_WEIGHT_DECAY = 0.0005
     MODEL_INIT_LEARNING_RATE = 0.1
     MODEL_FOLD = 5
-    MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], [-1], [-1], [-1], [-1]]
+    MODEL_NO_GRAD = [[],]
+    # MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], [-1], [-1], [-1], [-1]]
     MODEL_LEARNING_RATE_AFTER_UNFREEZE = 0.001
     MODEL_FREEZE_EPOCH = 4
 
@@ -341,8 +342,7 @@ elif PROJECT_NAME == "IMet":
     DIRECTORY_CHECKPOINT = DIRECTORY_PREFIX + "model/" + PROJECT_TAG + "/"
     DIRECTORY_CP_NAME = 'CP{}_F{}_PT{}_VT{}_LR{}_BS{}_IMG{}.pth'
 
-    # AUGMENTATION_RESIZE = 224
-    AUGMENTATION_RESIZE = 128
+    AUGMENTATION_RESIZE = 224
     AUGMENTATION_MEAN = [0.485, 0.456, 0.406]
     AUGMENTATION_STD = [0.229, 0.224, 0.225]
 
@@ -351,6 +351,7 @@ elif PROJECT_NAME == "IMet":
     DISPLAY_SAVE_ONNX = False
 
     EVAL_IF_THRESHOLD_TEST = False
+    EVAL_IF_PRED_DISTRIBUTION = False
     EVAL_TRY_THRESHOLD = np.linspace(0.0, 1.0, 1000)
     EVAL_THRESHOLD = 0.5
 

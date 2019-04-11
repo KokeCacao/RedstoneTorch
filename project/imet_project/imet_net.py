@@ -158,7 +158,7 @@ class SEResNeXtBottleneck(Bottleneck):
 
 class SENet(nn.Module):
 
-    def __init__(self, block, layers, groups, reduction, dropout_p=0.9,
+    def __init__(self, block, layers, groups, reduction, dropout_p=0.6,
                  inplanes=128, input_3x3=True, downsample_kernel_size=3,
                  downsample_padding=1, num_classes=1000):
         """
@@ -230,7 +230,7 @@ class SENet(nn.Module):
             ]
         # To preserve compatibility with Caffe weights `ceil_mode=True`
         # is used instead of `padding=1`.
-        # layer0_modules.append(('pool', nn.MaxPool2d(3, stride=2, ceil_mode=True)))
+        layer0_modules.append(('pool', nn.MaxPool2d(3, stride=2, ceil_mode=True)))
         self.layer0 = nn.Sequential(OrderedDict(layer0_modules))
         self.layer1 = self._make_layer(
             block,

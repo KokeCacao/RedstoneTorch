@@ -51,7 +51,7 @@ class IMetTrain:
                 self.lr_schedulers.append(None)
             else:
                 print("     Creating Fold: #{}".format(fold))
-                net = imet_net.se_resnext50_32x4d(config.TRAIN_NUM_CLASS, pretrained="imagenet", dropout_p=0.9)
+                net = imet_net.se_resnext50_32x4d(config.TRAIN_NUM_CLASS, pretrained="imagenet")
 
                 """FREEZING LAYER"""
                 for i, c in enumerate(net.children()):
@@ -72,7 +72,7 @@ class IMetTrain:
                 optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
                 self.optimizers.append(optimizer)
                 self.nets.append(net)
-                self.lr_schedulers.append(PlateauCyclicRestart(optimizer, eval_mode='max', factor=0.2, patience=1, verbose=False, threshold=1e-4, threshold_mode='abs', cooldown=0, eps=1e-8, base_lr=0.0023, max_lr=0.0069, step_size=2800, mode='plateau_cyclic', gamma=1., scale_mode='cycle', last_batch_iteration=-1, reduce_restart=3))
+                self.lr_schedulers.append(PlateauCyclicRestart(optimizer, eval_mode='max', factor=0.2, patience=1, verbose=False, threshold=1e-4, threshold_mode='abs', cooldown=0, eps=1e-8, base_lr=0.0023, max_lr=0.0069, step_size=1363*2, mode='plateau_cyclic', gamma=1., scale_mode='cycle', last_batch_iteration=-1, reduce_restart=3))
 
             self.train_loader.append(data.DataLoader(self.dataset,
                                            batch_size=config.MODEL_BATCH_SIZE,
@@ -279,7 +279,7 @@ class IMetTrain:
         f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
         f1_2 = metrics.f1_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), average='macro')  # sklearn does not automatically import matrics.
         f1_dict = dict(("Class-{}".format(i), x) for i, x in enumerate(metrics.f1_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), average=None)))
-        f1_dict.update({"EvalF1": f1, "Sklearn": f1_2})
+        tensorboardwriter.write_classwise_loss_distribution(self.writer, f1_dict.keys(), config.epoch)
 
         # IT WILL MESS UP THE RANDOM SEED (CAREFUL)
         shakeup = dict()
@@ -332,8 +332,8 @@ class IMetTrain:
             lr_scheduler.step(metrics=f1_2, epoch=config.epoch)
         tensorboardwriter.write_text(self.writer, report, config.epoch)
 
-        tensorboardwriter.write_epoch_loss(self.writer, f1_dict, config.epoch)
-        tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
+        tensorboardwriter.write_epoch_loss(self.writer, {"EvalF1": f1, "Sklearn": f1_2}, config.epoch)
+        if config.EVAL_IF_PRED_DISTRIBUTION: tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
 
         """THRESHOLD"""
         if config.EVAL_IF_THRESHOLD_TEST:

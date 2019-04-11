@@ -53,6 +53,9 @@ def write_shakeup(writer, dictionary, sorted_keys, epoch):
 def write_loss_distribution(writer, loss_list, epoch):
     writer.add_histogram("eval/loss_distribution", loss_list, epoch)
 
+def write_classwise_loss_distribution(writer, loss_list, epoch):
+    writer.add_histogram("eval/classwise_loss_distribution", loss_list, epoch)
+
 
 def write_pred_distribution(writer, pred_list, epoch):
     writer.add_histogram("eval/pred_distribution", pred_list, epoch)
