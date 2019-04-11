@@ -107,9 +107,8 @@ class IMetDataset(data.Dataset):
                 print("WARNING: the split file '{}' already exist, remove file".format(config.DIRECTORY_SPLIT))
 
             fold_dict = []
-            pbar = tqdm(mskf.split(X, y))
-            for fold, (train_index, test_index) in enumerate(pbar):
-                pbar.set_description_str("#{} TRAIN:{} TEST:{}".format(fold, train_index, test_index))
+            for fold, (train_index, test_index) in enumerate(mskf.split(X, y)):
+                print("#{} TRAIN:{} TEST:{}".format(fold, train_index, test_index))
                 x_t = train_index
                 # y_t = np.array([y[j] for j in train_index])
                 x_e = test_index
@@ -138,7 +137,7 @@ class IMetDataset(data.Dataset):
                     tensorboardwriter.write_data_distribution(self.writer, F, fold)
 
                 # write_cv_distribution(self.writer, y_t, y_e)
-                np.save(config.DIRECTORY_SPLIT, fold_dict)
+            np.save(config.DIRECTORY_SPLIT, fold_dict)
         else:
             fold_dict = np.load(config.DIRECTORY_SPLIT)
             pbar = tqdm(fold_dict)

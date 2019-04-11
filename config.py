@@ -255,11 +255,6 @@ elif PROJECT_NAME == "HisCancer":
     versiontag = ""
     resetlr = 0
 elif PROJECT_NAME == "IMet":
-
-
-
-
-
     DIRECTORY_PREFIX = "" # remember to add '/' at the end
     # DIRECTORY_PREFIX = "/home/koke_cacao/Documents/Koke_Cacao/Python/WorkSpace/RedstoneTorch/" # remember to add '/' at the end
     # ~/RedstoneTorch/data/qubo_dataset/preprocessed$ mv /home/k1412042720/qubo_dataset.zip ~/RedstoneTorch/data/qubo_dataset/preprocessed/
@@ -292,7 +287,7 @@ elif PROJECT_NAME == "IMet":
     DEBUG_AUTO_SHUTDOWN = True
     DEBUG_WRITE_SPLIT_CSV = False
 
-    DEBUG_LR_FINDER = True # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
+    DEBUG_LR_FINDER = None # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
 
     MODEL_EPOCHS = 20
     MODEL_BATCH_SIZE = 64
@@ -337,7 +332,7 @@ elif PROJECT_NAME == "IMet":
     DIRECTORY_SAMPLE_CSV = DIRECTORY_PREFIX + 'data/imet_dataset/sample_submission.csv'
     DIRECTORY_TRAIN = DIRECTORY_PREFIX + "data/imet_dataset/train/"
     DIRECTORY_TEST = DIRECTORY_PREFIX + 'data/imet_dataset/test/'
-    DIRECTORY_SPLIT = DIRECTORY_PREFIX + 'data/imet_dataset/split.csv'
+    DIRECTORY_SPLIT = DIRECTORY_PREFIX + 'data/imet_dataset/split.npy'
     # DIRECTORY_PRESUDO_CSV = DIRECTORY_PREFIX + 'data/imet_dataset/presudo_labels.csv'
     DIRECTORY_CHECKPOINT = DIRECTORY_PREFIX + "model/" + PROJECT_TAG + "/"
     DIRECTORY_CP_NAME = 'CP{}_F{}_PT{}_VT{}_LR{}_BS{}_IMG{}.pth'
