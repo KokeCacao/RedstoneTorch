@@ -6,6 +6,7 @@ import matplotlib as mpl
 import torch
 import cv2
 from sklearn.model_selection import KFold
+from tqdm import tqdm
 
 import config
 import numpy as np
@@ -106,8 +107,9 @@ class IMetDataset(data.Dataset):
                 print("WARNING: the split file '{}' already exist, remove file".format(config.DIRECTORY_SPLIT))
 
             fold_dict = []
-            for fold, (train_index, test_index) in enumerate(mskf.split(X, y)):
-                print("#{} TRAIN: {}, TEST: {}".format(fold, train_index, test_index))
+            pbar = tqdm(mskf.split(X, y))
+            for fold, (train_index, test_index) in enumerate(pbar):
+                pbar.set_description_str("#{} TRAIN:{} TEST:{}".format(fold, train_index, test_index))
                 x_t = train_index
                 # y_t = np.array([y[j] for j in train_index])
                 x_e = test_index
@@ -139,7 +141,9 @@ class IMetDataset(data.Dataset):
                 np.save(config.DIRECTORY_SPLIT, fold_dict)
         else:
             fold_dict = np.load(config.DIRECTORY_SPLIT)
-            for items in fold_dict:
+            pbar = tqdm(fold_dict)
+            for items in pbar:
+                pbar.set_description_str("Creating Folds from Dictionary")
                 x_t = items[0]
                 x_e = items[1]
 
@@ -343,7 +347,7 @@ def transform(ids, image_0, labels_0, train, val):
 
     REGULARIZATION_TRAINSFORM = transforms.Compose([
             lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB), # and don't put them in strong_aug()
-            # lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
+            lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
             lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
             transforms.ToTensor(),
         ])
