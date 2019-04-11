@@ -72,7 +72,7 @@ class IMetTrain:
                 optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
                 self.optimizers.append(optimizer)
                 self.nets.append(net)
-                self.lr_schedulers.append(PlateauCyclicRestart(optimizer, eval_mode='max', factor=0.2, patience=1, verbose=False, threshold=1e-4, threshold_mode='abs', cooldown=0, eps=1e-8, base_lr=0.0023, max_lr=0.0069, step_size=1363*2, mode='plateau_cyclic', gamma=1., scale_mode='cycle', last_batch_iteration=-1, reduce_restart=3))
+                self.lr_schedulers.append(PlateauCyclicRestart(optimizer, eval_mode='max', factor=config.MODEL_LR_SCHEDULER_REDUCE_FACTOR, patience=config.MODEL_LR_SCHEDULER_PATIENT, verbose=False, threshold=1e-4, threshold_mode='abs', cooldown=0, eps=1e-8, base_lr=config.MODEL_LR_SCHEDULER_BASELR, max_lr=config.MODEL_LR_SCHEDULER_MAXLR, step_size=config.MODEL_LR_SCHEDULER_STEP, mode='plateau_cyclic', gamma=1., scale_mode='cycle', last_batch_iteration=-1, reduce_restart=config.MODEL_LR_SCHEDULER_REDUCE_RESTART))
 
             self.train_loader.append(data.DataLoader(self.dataset,
                                            batch_size=config.MODEL_BATCH_SIZE,
