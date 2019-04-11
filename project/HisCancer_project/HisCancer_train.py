@@ -17,7 +17,7 @@ import tensorboardwriter
 from dataset.HisCancer_dataset import HisCancerDataset
 from dataset.HisCancer_dataset import train_collate, val_collate
 from gpu import gpu_profile
-from loss.f1 import f1_macro, differenciable_f1_sigmoid, differenciable_f1_softmax
+from loss.f1 import f1_macro, differenciable_f_sigmoid, differenciable_f_softmax
 from loss.focal import focalloss_sigmoid, focalloss_softmax
 from lr_scheduler.PlateauCyclicRestart import PlateauCyclicRestart
 from project.HisCancer_project import HisCancer_net
@@ -422,7 +422,7 @@ class HisCancerTrain:
 
                 """LOSS"""
                 focal = focalloss_softmax(alpha=0.25, gamma=2, eps=1e-7)(labels_0, logits_predict)
-                f1, precise, recall = differenciable_f1_softmax(beta=1)(labels_0, logits_predict)
+                f1, precise, recall = differenciable_f_softmax(beta=1)(labels_0, logits_predict)
                 bce = BCELoss()(prob_predict, labels_0)
                 positive_bce = BCELoss(weight=labels_0*20+1)(prob_predict, labels_0)
                 loss = bce.mean()
@@ -568,7 +568,7 @@ class HisCancerEvaluation:
 
                 """LOSS"""
                 focal = focalloss_softmax(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
-                f1, precise, recall = differenciable_f1_softmax(beta=1)(labels_0, logits_predict)
+                f1, precise, recall = differenciable_f_softmax(beta=1)(labels_0, logits_predict)
 
                 """EVALUATE LOSS"""
                 focal = focal.detach()

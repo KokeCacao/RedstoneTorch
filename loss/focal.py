@@ -41,7 +41,7 @@ class focalloss_sigmoid(nn.Module):
         # gamma = 2
 
         # softmax layer
-        y_pred = torch.sigmoid(y_pred) # TODO: dim really = 1?
+        y_pred = torch.sigmoid(y_pred)
 
         # To avoid divided by zero
         y_pred = y_pred + self.eps

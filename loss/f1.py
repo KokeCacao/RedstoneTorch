@@ -81,9 +81,9 @@ def f1_macro(y_preds, y_true, thresh=0.5, eps=1e-20):
     f1 = 2 * p * r / (p + r + eps)  # we calculate f1 on arrays
     return f1
 
-class differenciable_f1_sigmoid(nn.Module):
+class differenciable_f_sigmoid(nn.Module):
     def __init__(self, eps=1e-6, beta=1):
-        super(differenciable_f1_sigmoid, self).__init__()
+        super(differenciable_f_sigmoid, self).__init__()
         self.eps = eps
         self.beta = beta
 
@@ -100,9 +100,9 @@ class differenciable_f1_sigmoid(nn.Module):
         loss = fs.sum() / batch_size
         return (1 - loss), precise, recall
 
-class differenciable_f1_softmax(nn.Module):
+class differenciable_f_softmax(nn.Module):
     def __init__(self, eps=1e-6, beta=1):
-        super(differenciable_f1_softmax, self).__init__()
+        super(differenciable_f_softmax, self).__init__()
         self.eps = eps
         self.beta = beta
 

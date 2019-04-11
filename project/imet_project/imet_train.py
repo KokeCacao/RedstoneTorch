@@ -16,7 +16,7 @@ import tensorboardwriter
 from dataset.imet_dataset import IMetDataset
 from dataset.imet_dataset import train_collate, val_collate
 from gpu import gpu_profile
-from loss.f1 import f1_macro, differenciable_f1_sigmoid
+from loss.f1 import f1_macro, differenciable_f_sigmoid
 from loss.focal import focalloss_sigmoid
 from lr_scheduler.PlateauCyclicRestart import PlateauCyclicRestart
 from project.imet_project import imet_net
@@ -277,7 +277,7 @@ class IMetTrain:
 
         """LOSS"""
         f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
-        f1_2 = metrics.f1_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), average='macro')  # sklearn does not automatically import matrics.
+        f2_sklearn = metrics.f1_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), average='macro')  # sklearn does not automatically import matrics.
         f1_dict = dict(("Class-{}".format(i), x) for i, x in enumerate(metrics.f1_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), average=None)))
         tensorboardwriter.write_classwise_loss_distribution(self.writer, f1_dict.keys(), config.epoch)
 
@@ -315,10 +315,10 @@ class IMetTrain:
         Predicted Shakeup STD: {}
         n={} --> n={} (<1.750261596x)""".format(shakeup_mean, shakeup_std, shakeup_std*np.sqrt(len(evaluation.epoch_label))/np.sqrt(57459/2), len(evaluation.epoch_label), int(57459/2))\
                  + """
-        F1 by sklearn = {}
+        F2 sklearn = {}
         Max = {}, socre = {}
         Min = {}, score = {}
-        """.format(f1_2, max_names[0], max_names[1], min_names[0], min_names[1])
+        """.format(f2_sklearn, max_names[0], max_names[1], min_names[0], min_names[1])
         #          + """
         # Soft AUC Macro: {}
         # Hard AUC Macro: {}
@@ -329,10 +329,10 @@ class IMetTrain:
         for lr_scheduler in lr_schedulers:
             if lr_scheduler == None:
                 continue
-            lr_scheduler.step(metrics=f1_2, epoch=config.epoch)
+            lr_scheduler.step(metrics=f2_sklearn, epoch=config.epoch)
         tensorboardwriter.write_text(self.writer, report, config.epoch)
 
-        tensorboardwriter.write_epoch_loss(self.writer, {"EvalF1": f1, "Sklearn": f1_2}, config.epoch)
+        tensorboardwriter.write_epoch_loss(self.writer, {"EvalF1": f1, "F2Sklearn": f2_sklearn}, config.epoch)
         if config.EVAL_IF_PRED_DISTRIBUTION: tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
 
         """THRESHOLD"""
@@ -408,7 +408,7 @@ class IMetTrain:
 
                 """LOSS"""
                 focal = focalloss_sigmoid(alpha=0.25, gamma=2, eps=1e-7)(labels_0, logits_predict)
-                f1, precise, recall = differenciable_f1_sigmoid(beta=1)(labels_0, logits_predict)
+                f1, precise, recall = differenciable_f_sigmoid(beta=1)(labels_0, logits_predict)
                 bce = BCELoss()(prob_predict, labels_0)
                 positive_bce = BCELoss(weight=labels_0*20+1)(prob_predict, labels_0)
                 loss = bce.mean()
@@ -555,7 +555,7 @@ class IMetEvaluation:
 
                 """LOSS"""
                 focal = focalloss_sigmoid(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
-                f1, precise, recall = differenciable_f1_sigmoid(beta=1)(labels_0, logits_predict)
+                f1, precise, recall = differenciable_f_sigmoid(beta=1)(labels_0, logits_predict)
 
                 """EVALUATE LOSS"""
                 focal = focal.detach()
