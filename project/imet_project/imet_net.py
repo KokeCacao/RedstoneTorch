@@ -273,14 +273,16 @@ class SENet(nn.Module):
         )
         self.max_pool = nn.AdaptiveMaxPool2d(1)
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        self.linear_1 = nn.Linear(4096, 512, bias=True)
-        self.linear_2 = nn.Linear(512, 256, bias=True)
-        self.linear_3 = nn.Linear(256, num_classes, bias=True)
+        self.linear_1 = nn.Linear(4096, 2730, bias=True)
+        self.linear_2 = nn.Linear(2730, 1820, bias=True)
+        self.linear_3 = nn.Linear(1820, num_classes, bias=True)
         self.bn_1 = nn.BatchNorm1d(4096)
-        self.bn_2 = nn.BatchNorm1d(512)
-        self.bn_3 = nn.BatchNorm1d(256)
+        self.bn_2 = nn.BatchNorm1d(2730)
+        self.bn_3 = nn.BatchNorm1d(1820)
         self.cnn_dropout = nn.Dropout(0.2)
-        self.dropout = nn.Dropout(dropout_p) if dropout_p is not None else None
+        self.dropout_1 = nn.Dropout(0.6)
+        self.dropout_2 = nn.Dropout(0.6)
+        self.dropout_3 = nn.Dropout(0.4)
         self.elu = nn.ELU()
 
     def _make_layer(self, block, planes, blocks, groups, reduction, stride=1,
