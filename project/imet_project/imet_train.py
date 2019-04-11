@@ -279,7 +279,7 @@ class IMetTrain:
         f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
         f2_sklearn = metrics.f1_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), average='macro')  # sklearn does not automatically import matrics.
         f1_dict = dict(("Class-{}".format(i), x) for i, x in enumerate(metrics.f1_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), average=None)))
-        tensorboardwriter.write_classwise_loss_distribution(self.writer, f1_dict.keys(), config.epoch)
+        tensorboardwriter.write_classwise_loss_distribution(self.writer, np.array(f1_dict.values()), config.epoch)
 
         # IT WILL MESS UP THE RANDOM SEED (CAREFUL)
         shakeup = dict()
