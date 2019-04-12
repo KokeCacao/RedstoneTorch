@@ -158,7 +158,7 @@ class SEResNeXtBottleneck(Bottleneck):
 
 class SENet(nn.Module):
 
-    def __init__(self, block, layers, groups, reduction, dropout_p=0.6,
+    def __init__(self, block, layers, groups, reduction,
                  inplanes=128, input_3x3=True, downsample_kernel_size=3,
                  downsample_padding=1, num_classes=1000):
         """
@@ -324,17 +324,17 @@ class SENet(nn.Module):
         x = torch.cat([max_pool, avg_pool], 1)
 
         x = self.bn_1(x)
-        if self.dropout_1 is not None: x = self.dropout(x)
+        x = self.dropout_1(x)
         x = self.linear_1(x)
         x = self.elu(x)
 
         x = self.bn_2(x)
-        if self.dropout_2 is not None: x = self.dropout(x)
+        x = self.dropout_2(x)
         x = self.linear_2(x)
         x = self.elu(x)
 
         x = self.bn_3(x)
-        if self.dropout_3 is not None: x = self.dropout(x)
+        x = self.dropout_3(x)
         x = self.linear_3(x)
         return x
 
@@ -363,9 +363,8 @@ def modified_initialize_pretrained_model(model, num_classes, settings):
     model.load_state_dict(model_state, strict=False)
 
 
-def se_resnext50_32x4d(num_classes=1000, pretrained='imagenet', dropout_p=None):
-    model = SENet(SEResNeXtBottleneck, [3, 4, 6, 3], groups=32, reduction=16,
-                  dropout_p=dropout_p, inplanes=64, input_3x3=False,
+def se_resnext50_32x4d(num_classes=1000, pretrained='imagenet'):
+    model = SENet(SEResNeXtBottleneck, [3, 4, 6, 3], groups=32, reduction=16, inplanes=64, input_3x3=False,
                   downsample_kernel_size=1, downsample_padding=0,
                   num_classes=num_classes)
     if pretrained is not None:
