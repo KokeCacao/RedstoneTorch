@@ -29,6 +29,7 @@ from albumentations import (
 # don't import Normalize from albumentations
 
 import tensorboardwriter
+from augmentation import AdaptivePadIfNeeded, DoNothing
 
 if os.environ.get('DISPLAY', '') == '':
     print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')
@@ -223,48 +224,152 @@ class PredictImgAugTransform:
         return self
 
 def train_aug(term):
-    return Compose([
+    if term < config.MODEL_FREEZE_EPOCH +2:
+        return Compose([
         HorizontalFlip(p=term % 2),
-        ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.02, rotate_limit=20, p=0.5),
+        ShiftScaleRotate(shift_limit=0.00625, scale_limit=0.002, rotate_limit=2, p=0.5),
 
-        OneOf([CLAHE(clip_limit=2), IAASharpen(), IAAEmboss(), RandomBrightnessContrast(), JpegCompression(), Blur(), GaussNoise()], p=0.5),
-        OneOf([HueSaturationValue(), RandomGamma()], p=0.5),
+        # OneOf([CLAHE(clip_limit=2),
+        #        IAASharpen(alpha=(0.1, 0.2), lightness=(0.5, 1.)),
+        #        IAAEmboss(alpha=(0.1, 0.2), strength=(0.2, 0.7)),
+        #        RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1),
+        #        JpegCompression(quality_lower=99, quality_upper=100),
+        #        Blur(blur_limit=2),
+        #        GaussNoise()], p=0.5),
+        RandomGamma(gamma_limit=(90, 110), p=0.5),
 
-        Compose([PadIfNeeded(300, 300), RandomCrop(300, 300)], p=0.5),
+        OneOf([
+               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+               # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
+               # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
+               # DoNothing(p=1),
+              ],p=1),
+        # 10% force resize
+        # 20% black padding to biggest size
+        # 70% crop
+        Resize(224, 224, interpolation=cv2.INTER_CUBIC),
+    ])
+    else: return Compose([
+        HorizontalFlip(p=term % 2),
+        ShiftScaleRotate(shift_limit=0.00625, scale_limit=0.002, rotate_limit=2, p=0.5),
 
-        Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),
+        OneOf([CLAHE(clip_limit=2),
+               IAASharpen(alpha=(0.1, 0.2), lightness=(0.5, 1.)),
+               IAAEmboss(alpha=(0.1, 0.2), strength=(0.2, 0.7)),
+               RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1),
+               JpegCompression(quality_lower=99, quality_upper=100),
+               Blur(blur_limit=2),
+               GaussNoise()], p=0.5),
+        RandomGamma(gamma_limit=(90, 110), p=0.5),
+
+        OneOf([
+               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+               # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
+               # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
+               # DoNothing(p=1),
+              ],p=1),
+        # 10% force resize
+        # 20% black padding to biggest size
+        # 70% crop
+        Resize(224, 224, interpolation=cv2.INTER_CUBIC),
     ])
 def eval_aug(term):
     return Compose([
         HorizontalFlip(p=term % 2),
-        ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.02, rotate_limit=20, p=0.5),
-        OneOf([
-            IAAAdditiveGaussianNoise(),
-            GaussNoise(),
-        ], p=0.2),
-        OneOf([
-            MotionBlur(p=.2),
-            MedianBlur(blur_limit=3, p=0.1),
-            Blur(blur_limit=3, p=0.1),
-            JpegCompression(quality_lower=80, quality_upper=100),
-        ], p=0.2),
+        ShiftScaleRotate(shift_limit=0.00625, scale_limit=0.002, rotate_limit=2, p=0.5),
 
-        Compose([PadIfNeeded(300, 300), RandomCrop(300, 300)], p=0.5),
-        Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),
+        RandomGamma(gamma_limit=(90, 110), p=0.5),
+
+        OneOf([
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
+            # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
+            # DoNothing(p=1),
+        ], p=1),
+        # 10% force resize
+        # 20% black padding to biggest size
+        # 70% crop
+        Resize(224, 224, interpolation=cv2.INTER_CUBIC),
     ])
 def test_aug(term):
     return Compose([
         HorizontalFlip(p=term % 2),
+        ShiftScaleRotate(shift_limit=0.00625, scale_limit=0.002, rotate_limit=2, p=0.5),
+
+        OneOf([CLAHE(clip_limit=2),
+               IAASharpen(alpha=(0.1, 0.2), lightness=(0.5, 1.)),
+               IAAEmboss(alpha=(0.1, 0.2), strength=(0.2, 0.7)),
+               RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1),
+               JpegCompression(quality_lower=99, quality_upper=100),
+               Blur(blur_limit=2),
+               GaussNoise()], p=0.5),
+        RandomGamma(gamma_limit=(90, 110), p=0.5),
+
+        OneOf([
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
+            # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
+            # DoNothing(p=1),
+        ], p=1),
+        # 10% force resize
+        # 20% black padding to biggest size
+        # 70% crop
+        Resize(224, 224, interpolation=cv2.INTER_CUBIC),
     ])
 def tta_aug(term):
     return Compose([
         HorizontalFlip(p=term % 2),
-        OneOf([CLAHE(clip_limit=2), IAASharpen(), IAAEmboss(), RandomBrightnessContrast(), JpegCompression(), Blur(), GaussNoise()], p=0.5),
-        OneOf([HueSaturationValue(), RandomGamma()], p=0.5),
-        ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.02, rotate_limit=20, p=0.5),
+        ShiftScaleRotate(shift_limit=0.00625, scale_limit=0.002, rotate_limit=2, p=0.5),
 
-        Compose([PadIfNeeded(300, 300), RandomCrop(300, 300)], p=0.5),
-        Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),
+        OneOf([CLAHE(clip_limit=2),
+               IAASharpen(alpha=(0.1, 0.2), lightness=(0.5, 1.)),
+               IAAEmboss(alpha=(0.1, 0.2), strength=(0.2, 0.7)),
+               RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1),
+               JpegCompression(quality_lower=99, quality_upper=100),
+               Blur(blur_limit=2),
+               GaussNoise()], p=0.5),
+        RandomGamma(gamma_limit=(90, 110), p=0.5),
+
+        OneOf([
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
+            # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
+            # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
+            # DoNothing(p=1),
+        ], p=1),
+        # 10% force resize
+        # 20% black padding to biggest size
+        # 70% crop
+        Resize(224, 224, interpolation=cv2.INTER_CUBIC),
     ])
 def train_collate(batch):
     """TRASNFORM"""
@@ -355,7 +460,6 @@ def transform(ids, image_0, labels_0, train, val):
         term = config.eval_index % 8
         TEST_TRANSFORM = transforms.Compose([
             lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB), # and don't put them in strong_aug()
-            # lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
             lambda x: test_aug(term)(image=x), # Yes, you have to use image=xxx
             lambda x: x['image'], # abstract the actual image after the augmentation
             lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
@@ -375,7 +479,6 @@ def transform(ids, image_0, labels_0, train, val):
         term = config.epoch % 8
         TRAIN_TRANSFORM = transforms.Compose([
             lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB), # and don't put them in strong_aug()
-            # lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
             lambda x: train_aug(term)(image=x), # Yes, you have to use image=xxx
             lambda x: x['image'], # abstract the actual image after the augmentation
             lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
@@ -390,7 +493,6 @@ def transform(ids, image_0, labels_0, train, val):
         term = config.eval_index % 8
         PREDICT_TRANSFORM_IMG = transforms.Compose([
             lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB),
-            # lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
             lambda x: eval_aug(term)(image=x),
             lambda x: x['image'],
             lambda x: np.clip(x, a_min=0, a_max=255),
@@ -405,7 +507,6 @@ def transform(ids, image_0, labels_0, train, val):
         term = config.eval_index % 8
         TTA_TRANSFORM = transforms.Compose([
             lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2RGB), # and don't put them in strong_aug()
-            # lambda x: cv2.resize(x,(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC),
             lambda x: tta_aug(term)(image=x), # Yes, you have to use image=xxx
             lambda x: x['image'], # abstract the actual image acter the augmentation
             lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range

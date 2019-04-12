@@ -304,7 +304,7 @@ elif PROJECT_NAME == "IMet":
     # MODEL_NO_GRAD = [[],]
     MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], [-1], [-1], [-1], [-1]]
     MODEL_LEARNING_RATE_AFTER_UNFREEZE = 0.001
-    MODEL_FREEZE_EPOCH = 4
+    MODEL_FREEZE_EPOCH = 3
 
     TRAIN_GPU_DICT = {
         "kokecacao-ThinkPad-P50-Ubuntu": "0",
@@ -317,6 +317,7 @@ elif PROJECT_NAME == "IMet":
         "presudo-3": "0",
         "KokeCacao-Ubuntu": "0",
     }
+    TRAIN = True
     TRAIN_LOAD_OPTIMIZER = True
     TRAIN_GPU_ARG = TRAIN_GPU_DICT[socket.gethostname()]
     TRAIN_GPU_LIST = [int(i) for i in TRAIN_GPU_ARG.split(",")]

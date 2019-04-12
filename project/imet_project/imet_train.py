@@ -253,7 +253,7 @@ class IMetTrain:
             #     tensorboardwriter.write_text(self.writer, "Switch to torch.optim.SGD, weight_decay={}, momentum={}".format(config.MODEL_WEIGHT_DEFAY, config.MODEL_MOMENTUM), config.global_steps[fold])
             net = net.cuda()
             optimizer = load.move_optimizer_to_cuda(optimizer)
-            # self.step_fold(fold, net, optimizer, lr_scheduler, batch_size)
+            if config.TRAIN: self.step_fold(fold, net, optimizer, lr_scheduler, batch_size)
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             val_loss, val_f1 = evaluation.eval_fold(net, self.validation_loader[config.fold])
             print("""
