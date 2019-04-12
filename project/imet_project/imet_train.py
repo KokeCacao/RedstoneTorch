@@ -408,10 +408,10 @@ class IMetTrain:
 
                 """LOSS"""
                 focal = focalloss_sigmoid(alpha=0.25, gamma=2, eps=1e-7)(labels_0, logits_predict)
-                f1, precise, recall = differenciable_f_sigmoid(beta=1)(labels_0, logits_predict)
+                f1, precise, recall = differenciable_f_sigmoid(beta=2)(labels_0, logits_predict)
                 bce = BCELoss()(prob_predict, labels_0)
                 positive_bce = BCELoss(weight=labels_0*20+1)(prob_predict, labels_0)
-                loss = bce.mean()
+                loss = f1.mean()
                 """BACKPROP"""
                 optimizer.zero_grad()
                 loss.backward()
@@ -555,7 +555,7 @@ class IMetEvaluation:
 
                 """LOSS"""
                 focal = focalloss_sigmoid(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
-                f1, precise, recall = differenciable_f_sigmoid(beta=1)(labels_0, logits_predict)
+                f1, precise, recall = differenciable_f_sigmoid(beta=2)(labels_0, logits_predict)
 
                 """EVALUATE LOSS"""
                 focal = focal.detach()
