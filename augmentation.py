@@ -1,5 +1,6 @@
 from albumentations import DualTransform
 from albumentations.augmentations import functional as F
+import cv2
 
 class DoNothing(DualTransform):
     def __init__(self, always_apply=False, p=1.0):
