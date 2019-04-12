@@ -324,17 +324,17 @@ class SENet(nn.Module):
         x = torch.cat([max_pool, avg_pool], 1)
 
         x = self.bn_1(x)
-        if self.dropout is not None: x = self.dropout(x)
+        if self.dropout_1 is not None: x = self.dropout(x)
         x = self.linear_1(x)
         x = self.elu(x)
 
         x = self.bn_2(x)
-        if self.dropout is not None: x = self.dropout(x)
+        if self.dropout_2 is not None: x = self.dropout(x)
         x = self.linear_2(x)
         x = self.elu(x)
 
         x = self.bn_3(x)
-        if self.dropout is not None: x = self.dropout(x)
+        if self.dropout_3 is not None: x = self.dropout(x)
         x = self.linear_3(x)
         return x
 
