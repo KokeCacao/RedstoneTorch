@@ -412,7 +412,7 @@ class IMetTrain:
                 f1, precise, recall = differenciable_f_sigmoid(beta=2)(labels_0, logits_predict)
                 bce = BCELoss()(prob_predict, labels_0)
                 positive_bce = BCELoss(weight=labels_0*20+1)(prob_predict, labels_0)
-                loss = bce.mean()
+                loss = f1.mean()
                 """BACKPROP"""
                 optimizer.zero_grad()
                 loss.backward()
