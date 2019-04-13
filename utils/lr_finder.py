@@ -164,7 +164,9 @@ class LRFinder(object):
         outputs = self.model(inputs)
 
         """ Edit this to fit your dataset """
-        loss = self.criterion(outputs, labels)
+        # loss = self.criterion(outputs, labels)
+        loss = self.criterion(labels, outputs).mean()
+
 
         # Backward pass
         loss.backward()
