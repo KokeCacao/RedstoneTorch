@@ -109,6 +109,7 @@ class IMetTrain:
                     continue
                 for g in optim.param_groups:
                     g['lr'] = config.resetlr
+                    g['initial_lr'] = config.resetlr
 
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[config.train_fold[0]], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
