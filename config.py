@@ -293,7 +293,7 @@ elif PROJECT_NAME == "IMet":
     MODEL_BATCH_SIZE = 64
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DECAY = 0.0005
-    MODEL_INIT_LEARNING_RATE = 0.0001 # This is also the minimum learning rate for lr_finder!
+    MODEL_INIT_LEARNING_RATE = 0.0001 # this is useless for lr_schedulers
     MODEL_LR_SCHEDULER_REDUCE_FACTOR = 0.5
     MODEL_LR_SCHEDULER_PATIENT = 1
     MODEL_LR_SCHEDULER_BASELR = 0.04
