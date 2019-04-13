@@ -32,6 +32,7 @@ def get_args():
     parser.add_option('--state_dict', type="string", dest='state_dict', default=True, help='whether to load state_dicts')
     parser.add_option('--optimizer', type="string", dest='optimizer', default=True, help='whether to load optimizers')
     parser.add_option('--lr_scheduler', type="string", dest='lr_scheduler', default=True, help='whether to load lr_schedulers')
+    parser.add_option('--train', type="string", dest='train', default=True, help='whether to train')
 
     (options, args) = parser.parse_args()
     return options
@@ -46,6 +47,7 @@ def load_args():
     config.load_state_dicts = False if args.state_dict == "False" else True
     config.load_optimizers = False if args.optimizer == "False" else True
     config.load_lr_schedulers = False if args.lr_scheduler == "False" else True
+    config.TRAIN = False if args.train == "False" else True
     config.resetlr = args.resetlr
 
     if args.loadfile:

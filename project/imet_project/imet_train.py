@@ -279,7 +279,7 @@ class IMetTrain:
 
         """LOSS"""
         # f = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
-        f = fbeta_score_numpy(evaluation.epoch_label, evaluation.epoch_pred, beta=2, threshold=0.5)
+        f = fbeta_score_numpy(evaluation.epoch_label, evaluation.epoch_pred, beta=2, threshold=config.EVAL_THRESHOLD)
         f_sklearn = metrics.fbeta_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), beta=2, average='macro')  # sklearn does not automatically import matrics.
         f_dict = dict(("Class-{}".format(i), x) for i, x in enumerate(metrics.fbeta_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), beta=2, average=None)))
         tensorboardwriter.write_classwise_loss_distribution(self.writer, np.array(f_dict.values()), config.epoch)
@@ -292,10 +292,10 @@ class IMetTrain:
             private_lb = set(range(len(evaluation.epoch_pred))) - public_lb
             public_lb = np.array(list(public_lb)).astype(dtype=np.int)
             # public_lb = metrics.roc_auc_score(evaluation.epoch_label[public_lb], evaluation.epoch_pred[public_lb])
-            public_lb = fbeta_score_numpy(evaluation.epoch_label[public_lb], evaluation.epoch_pred[public_lb], beta=2, threshold=0.5)
+            public_lb = fbeta_score_numpy(evaluation.epoch_label[public_lb], evaluation.epoch_pred[public_lb], beta=2, threshold=config.EVAL_THRESHOLD)
             private_lb = np.array(list(private_lb)).astype(dtype=np.int)
             # private_lb = metrics.roc_auc_score(evaluation.epoch_label[private_lb], evaluation.epoch_pred[private_lb])
-            private_lb = fbeta_score_numpy(evaluation.epoch_label[private_lb], evaluation.epoch_pred[private_lb], beta=2, threshold=0.5)
+            private_lb = fbeta_score_numpy(evaluation.epoch_label[private_lb], evaluation.epoch_pred[private_lb], beta=2, threshold=config.EVAL_THRESHOLD)
             score_diff = private_lb - public_lb
             shakeup[score_diff] = (public_lb, private_lb)
             pbar.set_description_str("Public LB: {}, Private LB: {}, Difference: {}".format(public_lb, private_lb, score_diff))
@@ -361,7 +361,7 @@ class IMetTrain:
                 #     if score > best_val_dict[c]:
                 #         best_threshold_dict[c] = threshold
                 #         best_val_dict[c] = score
-
+            print("Best Threshold is: {}, with score: {}".format(best_threshold, best_val))
             tensorboardwriter.write_best_threshold(self.writer, -1, best_val, best_threshold, config.epoch, config.fold)
             # for c in range(config.TRAIN_NUM_CLASS): tensorboardwriter.write_best_threshold(self.writer, c, best_val_dict[c], best_threshold_dict[c], config.epoch, config.fold)
 
@@ -621,7 +621,7 @@ class IMetEvaluation:
             del pbar
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
         """LOSS"""
-        f = fbeta_score_numpy(label_total, predict_total, beta=2, threshold=0.5)
+        f = fbeta_score_numpy(label_total, predict_total, beta=2, threshold=config.EVAL_THRESHOLD)
         tensorboardwriter.write_eval_loss(self.writer, {"FoldFocal/{}".format(config.fold): focal_losses.mean(), "FoldF/{}".format(config.fold): f}, config.epoch)
         tensorboardwriter.write_pr_curve(self.writer, label_total, predict_total, config.epoch, config.fold)
         self.epoch_pred = np.concatenate((self.epoch_pred, predict_total), axis=0) if self.epoch_pred is not None else predict_total

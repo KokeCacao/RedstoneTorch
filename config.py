@@ -266,7 +266,7 @@ elif PROJECT_NAME == "IMet":
     PREDICTION_WRITER = False
     PREDICTION_TAG = "test"
     PREDICTION_LOAD_TAG = ""
-    PREDICTION_CHOSEN_THRESHOLD = [0.5]
+    PREDICTION_CHOSEN_THRESHOLD = [0.85]
     PREDICTION_TTA = 0
 
 
@@ -287,7 +287,6 @@ elif PROJECT_NAME == "IMet":
     DEBUG_AUTO_SHUTDOWN = True
     DEBUG_WRITE_SPLIT_CSV = False
 
-    DEBUG_LR_FINDER = None # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
 
     MODEL_EPOCHS = 20
     MODEL_BATCH_SIZE = 64
@@ -317,7 +316,6 @@ elif PROJECT_NAME == "IMet":
         "presudo-3": "0",
         "KokeCacao-Ubuntu": "0",
     }
-    TRAIN = False
     TRAIN_LOAD_OPTIMIZER = True
     TRAIN_GPU_ARG = TRAIN_GPU_DICT[socket.gethostname()]
     TRAIN_GPU_LIST = [int(i) for i in TRAIN_GPU_ARG.split(",")]
@@ -325,7 +323,6 @@ elif PROJECT_NAME == "IMet":
     TRAIN_SEED = 19
     TRAIN_NUM_WORKER = 8
     TRAIN_NUM_GPU = len(TRAIN_GPU_LIST)
-    TRAIN_RESUME = True
     TRAIN_NUM_CLASS = 1103
 
     TRAIN_RATIO = 1
@@ -359,6 +356,9 @@ elif PROJECT_NAME == "IMet":
 
     EVAL_SHAKEUP_RATIO = 100
 
+    TRAIN = True
+    TRAIN_RESUME = False
+    DEBUG_LR_FINDER = False # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
     load_state_dicts = True
     load_optimizers = True
     load_lr_schedulers = True
