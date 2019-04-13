@@ -15,7 +15,7 @@ import config
 import tensorboardwriter
 from dataset.hpa_dataset import HPAData, train_collate, val_collate
 from gpu import gpu_profile
-from loss.f1 import f1_macro, differenciable_f_sigmoid
+from loss.f import f1_macro, differenciable_f_sigmoid
 from loss.focal import focalloss_sigmoid
 from project.hpa_project.hpa_net import se_resnext101_32x4d_modified
 from utils import encode, load

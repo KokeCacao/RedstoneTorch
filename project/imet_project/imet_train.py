@@ -16,7 +16,7 @@ import tensorboardwriter
 from dataset.imet_dataset import IMetDataset
 from dataset.imet_dataset import train_collate, val_collate
 from gpu import gpu_profile
-from loss.f1 import f1_macro, differenciable_f_sigmoid
+from loss.f import differenciable_f_sigmoid, fbeta_score
 from loss.focal import focalloss_sigmoid
 from lr_scheduler.PlateauCyclicRestart import PlateauCyclicRestart
 from project.imet_project import imet_net
@@ -28,6 +28,7 @@ if os.environ.get('DISPLAY', '') == '':
     print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')
     mpl.use('Agg')
 from matplotlib import pyplot as plt
+
 
 class IMetTrain:
     def __init__(self, writer):
@@ -75,29 +76,29 @@ class IMetTrain:
                 self.lr_schedulers.append(PlateauCyclicRestart(optimizer, eval_mode='max', factor=config.MODEL_LR_SCHEDULER_REDUCE_FACTOR, patience=config.MODEL_LR_SCHEDULER_PATIENT, verbose=False, threshold=1e-4, threshold_mode='abs', cooldown=0, eps=1e-8, base_lr=config.MODEL_LR_SCHEDULER_BASELR, max_lr=config.MODEL_LR_SCHEDULER_MAXLR, step_size=config.MODEL_LR_SCHEDULER_STEP, mode='plateau_cyclic', gamma=1., scale_mode='cycle', last_batch_iteration=-1, reduce_restart=config.MODEL_LR_SCHEDULER_REDUCE_RESTART))
 
             self.train_loader.append(data.DataLoader(self.dataset,
-                                           batch_size=config.MODEL_BATCH_SIZE,
-                                           shuffle=False,
-                                           sampler=self.folded_samplers[fold]["train"],
-                                           batch_sampler=None,
-                                           num_workers=config.TRAIN_NUM_WORKER,
-                                           collate_fn=train_collate,
-                                           pin_memory=True,
-                                           drop_last=True, # Last batch will mess up with batch norm https://github.com/pytorch/pytorch/issues/4534
-                                           timeout=0,
-                                           worker_init_fn=None,
-                                           ))
+                                                     batch_size=config.MODEL_BATCH_SIZE,
+                                                     shuffle=False,
+                                                     sampler=self.folded_samplers[fold]["train"],
+                                                     batch_sampler=None,
+                                                     num_workers=config.TRAIN_NUM_WORKER,
+                                                     collate_fn=train_collate,
+                                                     pin_memory=True,
+                                                     drop_last=True,  # Last batch will mess up with batch norm https://github.com/pytorch/pytorch/issues/4534
+                                                     timeout=0,
+                                                     worker_init_fn=None,
+                                                     ))
             self.validation_loader.append(data.DataLoader(self.dataset,
-                                                             batch_size=config.MODEL_BATCH_SIZE,
-                                                             shuffle=False,
-                                                             sampler=self.folded_samplers[fold]["val"],
-                                                             batch_sampler=None,
-                                                             num_workers=config.TRAIN_NUM_WORKER,
-                                                             collate_fn=val_collate,
-                                                             pin_memory=False,
-                                                             drop_last=False,
-                                                             timeout=0,
-                                                             worker_init_fn=None,
-                                                             ))
+                                                          batch_size=config.MODEL_BATCH_SIZE,
+                                                          shuffle=False,
+                                                          sampler=self.folded_samplers[fold]["val"],
+                                                          batch_sampler=None,
+                                                          num_workers=config.TRAIN_NUM_WORKER,
+                                                          collate_fn=val_collate,
+                                                          pin_memory=False,
+                                                          drop_last=False,
+                                                          timeout=0,
+                                                          worker_init_fn=None,
+                                                          ))
         if config.TRAIN_LOAD_OPTIMIZER: load_checkpoint_all_fold(self.nets, self.optimizers, self.lr_schedulers, config.DIRECTORY_LOAD)
         set_milestone(config.DIRECTORY_LOAD)
 
@@ -105,7 +106,7 @@ class IMetTrain:
         if config.resetlr != 0:
             print("Reset Learning Rate to {}".format(config.resetlr))
             for optim in self.optimizers:
-                if optim == None:
+                if optim is None:
                     continue
                 for g in optim.param_groups:
                     g['lr'] = config.resetlr
@@ -224,7 +225,7 @@ class IMetTrain:
 
         evaluation = IMetEvaluation(self.writer, self.dataset.multilabel_binarizer)
         for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
-            if net == None or optimizer == None or lr_scheduler == None:
+            if net is None or optimizer is None or lr_scheduler is None:
                 continue
 
             """UNFREEZE"""
@@ -239,7 +240,7 @@ class IMetTrain:
                                     if not paras.requires_grad:
                                         updated_children.append(child_counter)
                                         paras.requires_grad = True
-                if len(updated_children) !=0:
+                if len(updated_children) != 0:
                     print("Enable Gradient for child_counter: {}".format(updated_children))
                     tensorboardwriter.write_text(self.writer, "Unfreeze {} layers at epoch: {}".format(updated_children, config.epoch), config.global_steps[fold])
                 # if config.MODEL_LEARNING_RATE_AFTER_UNFREEZE != 0:
@@ -256,10 +257,10 @@ class IMetTrain:
             optimizer = load.move_optimizer_to_cuda(optimizer)
             if config.TRAIN: self.step_fold(fold, net, optimizer, lr_scheduler, batch_size)
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-            val_loss, val_f1 = evaluation.eval_fold(net, self.validation_loader[config.fold])
+            val_loss, val_f = evaluation.eval_fold(net, self.validation_loader[config.fold])
             print("""
-            ValidLoss: {}, ValidF1: {}
-            """.format(val_loss, val_f1))
+            ValidLoss: {}, ValidF: {}
+            """.format(val_loss, val_f))
             net = net.cpu()
             optimizer = load.move_optimizer_to_cpu(optimizer)
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
@@ -277,24 +278,25 @@ class IMetTrain:
         #     tensorboardwriter.write_worst_img(self.writer, img=worst_img, label=worst_label, id=worst_id, loss=worst_loss, fold=fold)
 
         """LOSS"""
-        f1 = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
-        f2_sklearn = metrics.f1_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), average='macro')  # sklearn does not automatically import matrics.
-        f1_dict = dict(("Class-{}".format(i), x) for i, x in enumerate(metrics.f1_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), average=None)))
-        tensorboardwriter.write_classwise_loss_distribution(self.writer, np.array(f1_dict.values()), config.epoch)
+        # f = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
+        f = fbeta_score(evaluation.epoch_label, evaluation.epoch_pred, beta=2, threshold=0.5)
+        f_sklearn = metrics.fbeta_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), beta=2, average='macro')  # sklearn does not automatically import matrics.
+        f_dict = dict(("Class-{}".format(i), x) for i, x in enumerate(metrics.fbeta_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), beta=2, average=None)))
+        tensorboardwriter.write_classwise_loss_distribution(self.writer, np.array(f_dict.values()), config.epoch)
 
         # IT WILL MESS UP THE RANDOM SEED (CAREFUL)
         shakeup = dict()
         pbar = tqdm(range(config.EVAL_SHAKEUP_RATIO))
         for i in pbar:
-            public_lb = set(np.random.choice(range(len(evaluation.epoch_pred)), int(len(evaluation.epoch_pred)*0.5), replace=False))
-            private_lb = set(range(len(evaluation.epoch_pred)))-public_lb
+            public_lb = set(np.random.choice(range(len(evaluation.epoch_pred)), int(len(evaluation.epoch_pred) * 0.5), replace=False))
+            private_lb = set(range(len(evaluation.epoch_pred))) - public_lb
             public_lb = np.array(list(public_lb)).astype(dtype=np.int)
             # public_lb = metrics.roc_auc_score(evaluation.epoch_label[public_lb], evaluation.epoch_pred[public_lb])
-            public_lb = f1_macro(evaluation.epoch_pred[public_lb], evaluation.epoch_label[public_lb]).mean()
+            public_lb = fbeta_score(evaluation.epoch_label[public_lb], evaluation.epoch_pred[public_lb], beta=2, threshold=0.5)
             private_lb = np.array(list(private_lb)).astype(dtype=np.int)
             # private_lb = metrics.roc_auc_score(evaluation.epoch_label[private_lb], evaluation.epoch_pred[private_lb])
-            private_lb = f1_macro(evaluation.epoch_pred[private_lb], evaluation.epoch_label[private_lb]).mean()
-            score_diff = private_lb-public_lb
+            private_lb = fbeta_score(evaluation.epoch_label[private_lb], evaluation.epoch_pred[private_lb], beta=2, threshold=0.5)
+            score_diff = private_lb - public_lb
             shakeup[score_diff] = (public_lb, private_lb)
             pbar.set_description_str("Public LB: {}, Private LB: {}, Difference: {}".format(public_lb, private_lb, score_diff))
         shakeup_keys = sorted(shakeup)
@@ -308,18 +310,18 @@ class IMetTrain:
 
         # report = classification_report(np.argmax(evaluation.epoch_label, axis=1), np.argmax(evaluation.epoch_pred, axis=1), target_names=["Negative", "Positive"])
         report = ""
-        max_names = max(f1_dict.items(), key=operator.itemgetter(1))
-        min_names = min(f1_dict.items(), key=operator.itemgetter(1))
+        max_names = max(f_dict.items(), key=operator.itemgetter(1))
+        min_names = min(f_dict.items(), key=operator.itemgetter(1))
         report = report + """
         Shakeup Mean of Sample Mean: {}
         Shakeup STD of Sample Mean: {}
         Predicted Shakeup STD: {}
-        n={} --> n={} (<1.750261596x)""".format(shakeup_mean, shakeup_std, shakeup_std*np.sqrt(len(evaluation.epoch_label))/np.sqrt(57459/2), len(evaluation.epoch_label), int(57459/2))\
+        n={} --> n={} (<1.750261596x)""".format(shakeup_mean, shakeup_std, shakeup_std * np.sqrt(len(evaluation.epoch_label)) / np.sqrt(57459 / 2), len(evaluation.epoch_label), int(57459 / 2)) \
                  + """
         F2 sklearn = {}
         Max = {}, socre = {}
         Min = {}, score = {}
-        """.format(f2_sklearn, max_names[0], max_names[1], min_names[0], min_names[1])
+        """.format(f_sklearn, max_names[0], max_names[1], min_names[0], min_names[1])
         #          + """
         # Soft AUC Macro: {}
         # Hard AUC Macro: {}
@@ -328,12 +330,12 @@ class IMetTrain:
         # """.format(soft_auc_macro, hard_auc_macro, soft_auc_micro, hard_auc_micro)
         print(report)
         for lr_scheduler in lr_schedulers:
-            if lr_scheduler == None:
+            if lr_scheduler is None:
                 continue
-            lr_scheduler.step(metrics=f2_sklearn, epoch=config.epoch)
+            lr_scheduler.step(metrics=f_sklearn, epoch=config.epoch)
         tensorboardwriter.write_text(self.writer, report, config.epoch)
 
-        tensorboardwriter.write_epoch_loss(self.writer, {"EvalF1": f1, "F2Sklearn": f2_sklearn}, config.epoch)
+        tensorboardwriter.write_epoch_loss(self.writer, {"EvalF": f, "F2Sklearn": f_sklearn}, config.epoch)
         if config.EVAL_IF_PRED_DISTRIBUTION: tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
 
         """THRESHOLD"""
@@ -346,15 +348,15 @@ class IMetTrain:
 
             pbar = tqdm(config.EVAL_TRY_THRESHOLD)
             for threshold in pbar:
-                score = f1_macro(evaluation.epoch_pred, evaluation.epoch_label, thresh=threshold).mean()
+                score = fbeta_score(evaluation.epoch_label, evaluation.epoch_pred, beta=2, threshold=threshold)
                 tensorboardwriter.write_threshold(self.writer, -1, score, threshold * 1000.0, config.fold)
                 if score > best_val:
                     best_threshold = threshold
                     best_val = score
-                pbar.set_description("Threshold: {}; F1: {}".format(threshold, score))
+                pbar.set_description("Threshold: {}; F: {}".format(threshold, score))
 
                 for c in range(config.TRAIN_NUM_CLASS):
-                    score = metrics.f1_score(evaluation.epoch_label[:][c], (evaluation.epoch_pred[:][c] > threshold))
+                    score = metrics.fbeta_score(evaluation.epoch_label[:][c], (evaluation.epoch_pred[:][c] > threshold), beta=2)
                     tensorboardwriter.write_threshold(self.writer, c, score, threshold * 1000.0, config.fold)
                     if score > best_val_dict[c]:
                         best_threshold_dict[c] = threshold
@@ -375,7 +377,7 @@ class IMetTrain:
         config.fold = fold
 
         epoch_loss = 0
-        epoch_f1 = 0
+        epoch_f = 0
         train_len = 1e-10
         total_confidence = 0
 
@@ -387,12 +389,12 @@ class IMetTrain:
         ratio = int(config.TRAIN_RATIO) if config.TRAIN_RATIO >= 1 else 1
         for train_index in tqdm(range(ratio)):
             pbar = tqdm(train_loader)
-            train_len = train_len+ len(train_loader)
+            train_len = train_len + len(train_loader)
             for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
-                if train_len < 1 and config.epoch % (1/config.TRAIN_RATIO) != batch_index % (1/config.TRAIN_RATIO):
+                if train_len < 1 and config.epoch % (1 / config.TRAIN_RATIO) != batch_index % (1 / config.TRAIN_RATIO):
                     continue
 
-                #1215MB -> 4997MB = 3782
+                # 1215MB -> 4997MB = 3782
 
                 # """UPDATE LR"""
                 # if config.global_steps[fold] == 2 * 46808 / 32 - 1: print("Perfect Place to Stop")
@@ -409,9 +411,9 @@ class IMetTrain:
 
                 """LOSS"""
                 focal = focalloss_sigmoid(alpha=0.25, gamma=2, eps=1e-7)(labels_0, logits_predict)
-                f1, precise, recall = differenciable_f_sigmoid(beta=2)(labels_0, logits_predict)
+                f, precise, recall = differenciable_f_sigmoid(beta=2)(labels_0, logits_predict)
                 bce = BCELoss()(prob_predict, labels_0)
-                positive_bce = BCELoss(weight=labels_0*20+1)(prob_predict, labels_0)
+                positive_bce = BCELoss(weight=labels_0 * 20 + 1)(prob_predict, labels_0)
                 loss = focal.mean()
                 """BACKPROP"""
                 optimizer.zero_grad()
@@ -420,7 +422,7 @@ class IMetTrain:
 
                 """DETATCH"""
                 focal = focal.detach().cpu().numpy().mean()
-                f1 = f1.detach().cpu().numpy().mean()
+                f = f.detach().cpu().numpy().mean()
                 precise = precise.detach().cpu().numpy().mean()
                 recall = recall.detach().cpu().numpy().mean()
                 bce = bce.detach().cpu().numpy().mean()
@@ -434,8 +436,8 @@ class IMetTrain:
 
                 """SUM"""
                 epoch_loss = epoch_loss + loss.mean()
-                epoch_f1 = epoch_f1 + f1.mean()
-                # f1 = f1_macro(logits_predict, labels_0).mean()
+                epoch_f = epoch_f + f.mean()
+                # f = f1_macro(logits_predict, labels_0).mean()
                 confidence = np.absolute(prob_predict - 0.5).mean() + 0.5
                 total_confidence = total_confidence + confidence
 
@@ -449,46 +451,46 @@ class IMetTrain:
                 label = 0
                 # pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(prob_predict > config.EVAL_THRESHOLD)[0])
                 pred = 0
-                pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Conf:{:.4f} lr:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, total_confidence/(batch_index+1), optimizer.param_groups[0]['lr']))
+                pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Conf:{:.4f} lr:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, total_confidence / (batch_index + 1), optimizer.param_groups[0]['lr']))
                 # pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, left))
-                # pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F1:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f1, optimizer.param_groups[0]['lr'], weighted_bce, bce))
+                # pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f, optimizer.param_groups[0]['lr'], weighted_bce, bce))
                 # pbar.set_description_str("(E{}-F{}) Stp:{} Y:{}, y:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), labels_0, logits_predict))
 
                 out_dict = {'Epoch/{}'.format(config.fold): config.epoch,
-                                                           'LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold): optimizer.param_groups[0]['lr'],
-                                                           'Loss/{}'.format(config.fold): loss,
-                                                           'F1/{}'.format(config.fold): f1,
-                                                           'Focal/{}'.format(config.fold): focal,
-                                                           'PositiveBCE/{}'.format(config.fold): positive_bce,
-                                                           # 'WeightedBCE/{}'.format(config.fold): weighted_bce,
-                                                           'BCE/{}'.format(config.fold): bce,
-                                                           'Precision/{}'.format(config.fold): precise,
-                                                           'Recall/{}'.format(config.fold): recall,
-                                                           'LogitsProbability/{}'.format(config.fold): logits_predict.mean(),
-                                                           'PredictProbability/{}'.format(config.fold): prob_predict.mean(),
-                                                           'LabelProbability/{}'.format(config.fold): labels_0.mean(),
-                                                           # 'AUCMacro/{}'.format(config.fold): soft_auc_macro,
-                                                           # 'AUCMicro/{}'.format(config.fold): soft_auc_micro,
-                                                           }
+                            'LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold): optimizer.param_groups[0]['lr'],
+                            'Loss/{}'.format(config.fold): loss,
+                            'F/{}'.format(config.fold): f,
+                            'Focal/{}'.format(config.fold): focal,
+                            'PositiveBCE/{}'.format(config.fold): positive_bce,
+                            # 'WeightedBCE/{}'.format(config.fold): weighted_bce,
+                            'BCE/{}'.format(config.fold): bce,
+                            'Precision/{}'.format(config.fold): precise,
+                            'Recall/{}'.format(config.fold): recall,
+                            'LogitsProbability/{}'.format(config.fold): logits_predict.mean(),
+                            'PredictProbability/{}'.format(config.fold): prob_predict.mean(),
+                            'LabelProbability/{}'.format(config.fold): labels_0.mean(),
+                            # 'AUCMacro/{}'.format(config.fold): soft_auc_macro,
+                            # 'AUCMicro/{}'.format(config.fold): soft_auc_micro,
+                            }
                 # for c in range(config.TRAIN_NUM_CLASS):
                 #     out_dict['PredictProbability-Class-{}/{}'.format(c, config.fold)] = prob_predict[:][c].mean()
-                # TODO: the code above is wrong - IndexError: index 64 is out of bounds for axis 0 with size 64
+                # the code above is wrong - IndexError: index 64 is out of bounds for axis 0 with size 64
 
                 tensorboardwriter.write_loss(self.writer, out_dict, config.global_steps[fold])
 
                 """CLEAN UP"""
                 del ids, image, image_for_display
-                del focal, f1, precise, recall, bce, positive_bce, loss, labels_0, logits_predict, prob_predict
+                del focal, f, precise, recall, bce, positive_bce, loss, labels_0, logits_predict, prob_predict
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
             del pbar
 
         train_loss = epoch_loss / train_len
-        epoch_f1 = epoch_f1 / train_len
+        epoch_f = epoch_f / train_len
         print("""
             Epoch: {}, Fold: {}
-            TrainLoss: {}, F1Loss: {}
-        """.format(config.epoch, config.fold, train_loss, epoch_f1))
-        # lr_scheduler.step(epoch_f1, epoch=config.epoch)
+            TrainLoss: {}, FLoss: {}
+        """.format(config.epoch, config.fold, train_loss, epoch_f))
+        # lr_scheduler.step(epoch_f, epoch=config.epoch)
 
         del train_loss
 
@@ -517,7 +519,7 @@ class IMetEvaluation:
         if config.DISPLAY_HISTOGRAM: self.epoch_losses = []  # [loss.flatten()]
         self.mean_losses = []
         # self.epoch_dict = np.array([]) # [fold_loss_dict]
-        self.f1_losses = np.array([])
+        self.f_losses = np.array([])
 
         # self.best_id = None
         # self.worst_id = None
@@ -556,7 +558,7 @@ class IMetEvaluation:
 
                 """LOSS"""
                 focal = focalloss_sigmoid(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
-                f1, precise, recall = differenciable_f_sigmoid(beta=2)(labels_0, logits_predict)
+                f, precise, recall = differenciable_f_sigmoid(beta=2)(labels_0, logits_predict)
 
                 """EVALUATE LOSS"""
                 focal = focal.detach()
@@ -578,7 +580,7 @@ class IMetEvaluation:
                 """DETATCH"""
                 focal = focal.cpu().numpy()
                 focal_mean = focal.mean()
-                f1 = f1.detach().cpu().numpy()
+                f = f.detach().cpu().numpy()
                 precise = precise.detach().cpu().numpy().mean()
                 recall = recall.detach().cpu().numpy().mean()
                 # bce = bce.detach().cpu().numpy().mean()
@@ -591,8 +593,8 @@ class IMetEvaluation:
                 prob_predict = prob_predict.detach().cpu().numpy()
 
                 """SUM"""
-                # np.append(self.f1_losses, f1_macro(prob_predict, labels_0).mean())
-                self.f1_losses = np.append(self.f1_losses, f1.mean())
+                # np.append(self.f_losses, f1_macro(prob_predict, labels_0).mean())
+                self.f_losses = np.append(self.f_losses, f.mean())
                 focal_losses = np.append(focal_losses, focal_mean)
 
                 confidence = np.absolute(prob_predict - 0.5).mean() + 0.5
@@ -602,11 +604,10 @@ class IMetEvaluation:
                 # label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
                 # pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(prob_predict>0.5)[0])
                 # pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(int(config.global_steps[fold]), label, pred, left))
-                pbar.set_description("(E{}F{}I{}) Focal:{} F1:{} Conf:{}".format(config.epoch, config.fold, config.eval_index, focal_mean, f1.mean(), total_confidence/(batch_index+1)))
+                pbar.set_description("(E{}F{}I{}) Focal:{} F:{} Conf:{}".format(config.epoch, config.fold, config.eval_index, focal_mean, f.mean(), total_confidence / (batch_index + 1)))
                 # if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(focal.flatten())
                 predict_total = np.concatenate((predict_total, prob_predict), axis=0) if predict_total is not None else prob_predict
                 label_total = np.concatenate((label_total, labels_0), axis=0) if label_total is not None else labels_0
-
 
                 """DISPLAY"""
                 tensorboardwriter.write_memory(self.writer, "train")
@@ -614,14 +615,14 @@ class IMetEvaluation:
 
                 """CLEAN UP"""
                 del ids, image, image_for_display
-                del focal, f1, precise, recall, labels_0, logits_predict, prob_predict
+                del focal, f, precise, recall, labels_0, logits_predict, prob_predict
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
                 if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
             del pbar
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
         """LOSS"""
-        f1 = f1_macro(predict_total, label_total).mean()
-        tensorboardwriter.write_eval_loss(self.writer, {"FoldFocal/{}".format(config.fold): focal_losses.mean(), "FoldF1/{}".format(config.fold): f1}, config.epoch)
+        f = fbeta_score(label_total, predict_total, beta=2, threshold=0.5)
+        tensorboardwriter.write_eval_loss(self.writer, {"FoldFocal/{}".format(config.fold): focal_losses.mean(), "FoldF/{}".format(config.fold): f}, config.epoch)
         tensorboardwriter.write_pr_curve(self.writer, label_total, predict_total, config.epoch, config.fold)
         self.epoch_pred = np.concatenate((self.epoch_pred, predict_total), axis=0) if self.epoch_pred is not None else predict_total
         self.epoch_label = np.concatenate((self.epoch_label, label_total), axis=0) if self.epoch_label is not None else label_total
@@ -630,7 +631,7 @@ class IMetEvaluation:
         mean_loss = focal_losses.mean()
         self.mean_losses.append(mean_loss)
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-        return mean_loss, f1
+        return mean_loss, f
 
     def __int__(self):
         return self.mean()
@@ -642,12 +643,12 @@ class IMetEvaluation:
         return np.array(self.mean_losses).mean()
 
     def std(self, axis=None):
-        if axis == None: return np.array(list(itertools.chain.from_iterable(self.epoch_losses))).std()
+        if axis is None: return np.array(list(itertools.chain.from_iterable(self.epoch_losses))).std()
         print("WARNING: self.epoch_losse may have different shape according to different shape of loss caused by different batch. Numpy cannot take the mean of it is baches shapes are different.")
         return np.array(self.epoch_losses).std(axis)
 
-    def f1_mean(self):
-        return self.f1_losses.mean()
+    def f_mean(self):
+        return self.f_losses.mean()
 
     # def best(self):
     #     return (self.best_id, self.best_loss)
@@ -658,7 +659,7 @@ class IMetEvaluation:
     def display(self, fold, ids, transfereds, untransfereds, labels, predicteds, losses):
         # tensorboardwriter.write_pr_curve(self.writer, labels, predicteds, config.global_steps[fold], fold)
 
-        for index, (id, transfered, untransfered, label, predicted, loss) in enumerate(zip(ids, transfereds, untransfereds, labels, predicteds, losses)):
+        for index, (img_id, transfered, untransfered, label, predicted, loss) in enumerate(zip(ids, transfereds, untransfereds, labels, predicteds, losses)):
             if index != 0: continue
 
             label = self.binarlizer.inverse_transform(np.expand_dims(np.array(label).astype(np.byte), axis=0))[0]
@@ -683,8 +684,6 @@ class IMetEvaluation:
 
             plt.subplot(324)
             plt.imshow(transfered.transpose((1, 2, 0)), vmin=0, vmax=1)
-            plt.title("Trans; f1:{}".format(loss))
+            plt.title("Trans; f:{}".format(loss))
             plt.grid(False)
-            tensorboardwriter.write_image(self.writer, "{}-{}".format(fold, id), F, config.epoch)
-
-
+            tensorboardwriter.write_image(self.writer, "{}-{}".format(fold, img_id), F, config.epoch)

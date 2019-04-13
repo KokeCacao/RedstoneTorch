@@ -16,7 +16,7 @@ import tensorboardwriter
 from dataset.HisCancer_dataset import HisCancerDataset
 from dataset.HisCancer_dataset import train_collate, val_collate
 from gpu import gpu_profile
-from loss.f1 import f1_macro, differenciable_f_softmax
+from loss.f import f1_macro, differenciable_f_softmax
 from loss.focal import focalloss_softmax
 from lr_scheduler.PlateauCyclicRestart import PlateauCyclicRestart
 from project.HisCancer_project import HisCancer_net

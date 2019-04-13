@@ -5,7 +5,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from loss.f1 import sigmoid_np
+from loss.f import sigmoid_np
 
 
 class FocalLoss0(nn.Module):

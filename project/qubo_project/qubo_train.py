@@ -16,7 +16,7 @@ import config
 import tensorboardwriter
 from dataset.qubo_dataset import QUBODataset, train_collate, val_collate
 from gpu import gpu_profile
-from loss.f1 import f1_macro, differenciable_f_sigmoid, differenciable_f_softmax
+from loss.f import f1_macro, differenciable_f_sigmoid, differenciable_f_softmax
 from loss.focal import focalloss_sigmoid, focalloss_softmax
 from project.qubo_project import qubo_net
 from project.qubo_project.qubo_cam import GradCam, GuidedBackprop, guided_grad_cam, save_gradient_images, convert_to_grayscale, cam
