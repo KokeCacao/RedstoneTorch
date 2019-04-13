@@ -270,11 +270,10 @@ class ExponentialLR(_LRScheduler):
 
     """
 
-    def __init__(self, optimizer, end_lr, num_iter, base_lr, last_epoch=-1):
+    def __init__(self, optimizer, end_lr, num_iter, last_epoch=-1):
         self.end_lr = end_lr
         self.num_iter = num_iter
         super(ExponentialLR, self).__init__(optimizer, last_epoch)
-        self.baselr
 
     def get_lr(self):
         curr_iter = self.last_epoch + 1
