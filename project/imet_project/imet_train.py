@@ -16,7 +16,7 @@ import tensorboardwriter
 from dataset.imet_dataset import IMetDataset
 from dataset.imet_dataset import train_collate, val_collate
 from gpu import gpu_profile
-from loss.f import differenciable_f_sigmoid, fbeta_score
+from loss.f import differenciable_f_sigmoid, fbeta_score_numpy
 from loss.focal import focalloss_sigmoid
 from lr_scheduler.PlateauCyclicRestart import PlateauCyclicRestart
 from project.imet_project import imet_net
@@ -292,10 +292,10 @@ class IMetTrain:
             private_lb = set(range(len(evaluation.epoch_pred))) - public_lb
             public_lb = np.array(list(public_lb)).astype(dtype=np.int)
             # public_lb = metrics.roc_auc_score(evaluation.epoch_label[public_lb], evaluation.epoch_pred[public_lb])
-            public_lb = fbeta_score(evaluation.epoch_label[public_lb], evaluation.epoch_pred[public_lb], beta=2, threshold=0.5)
+            public_lb = fbeta_score_numpy(evaluation.epoch_label[public_lb], evaluation.epoch_pred[public_lb], beta=2, threshold=0.5)
             private_lb = np.array(list(private_lb)).astype(dtype=np.int)
             # private_lb = metrics.roc_auc_score(evaluation.epoch_label[private_lb], evaluation.epoch_pred[private_lb])
-            private_lb = fbeta_score(evaluation.epoch_label[private_lb], evaluation.epoch_pred[private_lb], beta=2, threshold=0.5)
+            private_lb = fbeta_score_numpy(evaluation.epoch_label[private_lb], evaluation.epoch_pred[private_lb], beta=2, threshold=0.5)
             score_diff = private_lb - public_lb
             shakeup[score_diff] = (public_lb, private_lb)
             pbar.set_description_str("Public LB: {}, Private LB: {}, Difference: {}".format(public_lb, private_lb, score_diff))
@@ -348,7 +348,7 @@ class IMetTrain:
 
             pbar = tqdm(config.EVAL_TRY_THRESHOLD)
             for threshold in pbar:
-                score = fbeta_score(evaluation.epoch_label, evaluation.epoch_pred, beta=2, threshold=threshold)
+                score = fbeta_score_numpy(evaluation.epoch_label, evaluation.epoch_pred, beta=2, threshold=threshold)
                 tensorboardwriter.write_threshold(self.writer, -1, score, threshold * 1000.0, config.fold)
                 if score > best_val:
                     best_threshold = threshold
@@ -621,7 +621,7 @@ class IMetEvaluation:
             del pbar
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
         """LOSS"""
-        f = fbeta_score(label_total, predict_total, beta=2, threshold=0.5)
+        f = fbeta_score_numpy(label_total, predict_total, beta=2, threshold=0.5)
         tensorboardwriter.write_eval_loss(self.writer, {"FoldFocal/{}".format(config.fold): focal_losses.mean(), "FoldF/{}".format(config.fold): f}, config.epoch)
         tensorboardwriter.write_pr_curve(self.writer, label_total, predict_total, config.epoch, config.fold)
         self.epoch_pred = np.concatenate((self.epoch_pred, predict_total), axis=0) if self.epoch_pred is not None else predict_total

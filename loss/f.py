@@ -123,9 +123,8 @@ class differenciable_f_softmax(nn.Module):
         if self.mean: return (1 - loss)
         return (1 - loss), precise, recall
 
-def fbeta_score(y_true, y_pred, beta, threshold, eps=1e-9):
+def fbeta_score_pytorch(y_true, y_pred, beta, threshold, eps=1e-9):
     beta2 = beta**2
-
     y_pred = torch.ge(y_pred.float(), threshold).float()
     y_true = y_true.float()
 
@@ -137,3 +136,14 @@ def fbeta_score(y_true, y_pred, beta, threshold, eps=1e-9):
         (precision*recall).
         div(precision.mul(beta2) + recall + eps).
         mul(1 + beta2))
+
+def fbeta_score_numpy(y_true, y_pred, beta, threshold, eps=1e-9):
+    beta2 = beta**2
+    y_pred = (y_pred>threshold).astype(np.byte)
+    y_true = y_true.astype(np.byte)
+
+    true_positive = (y_pred * y_true).sum(axis=1)
+    precision = true_positive / (y_pred.sum(axis=1)+eps)
+    recall = true_positive / (y_true.sum(dim=1)+eps)
+
+    return np.mean((precision*recall)/(precision*beta2 + recall + eps)*(1 + beta2))
