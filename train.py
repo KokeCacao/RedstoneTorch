@@ -46,13 +46,13 @@ def load_args():
     config.load_state_dicts = False if args.state_dict == "False" else True
     config.load_optimizers = False if args.optimizer == "False" else True
     config.load_lr_schedulers = False if args.lr_scheduler == "False" else True
+    config.resetlr = args.resetlr
 
     if args.loadfile:
         config.lastsave = args.loadfile
         if config.TRAIN_RESUME:
             config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/" + args.loadfile
             config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/"
-            config.resetlr = args.resetlr
         else:
             config.PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + config.PROJECT_TAG
             config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/" + args.loadfile
