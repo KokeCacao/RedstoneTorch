@@ -125,7 +125,7 @@ class IMetTrain:
                                          timeout=0,
                                          worker_init_fn=None,
                                          ) if config.FIND_LR_ON_VALIDATION else None
-            lr_finder = LRFinder(self.nets[config.train_fold[0]], self.optimizers[config.train_fold[0]], torch.nn.BCEWithLogitsLoss(), writer=self.writer, device="cuda")
+            lr_finder = LRFinder(self.nets[config.train_fold[0]], self.optimizers[config.train_fold[0]], differenciable_f_sigmoid(beta=2), writer=self.writer, device="cuda")
             lr_finder.range_test(data.DataLoader(self.dataset,
                                                  batch_size=config.MODEL_BATCH_SIZE,
                                                  shuffle=False,
@@ -137,7 +137,7 @@ class IMetTrain:
                                                  drop_last=False,
                                                  timeout=0,
                                                  worker_init_fn=None,
-                                                 ), val_loader=val_loader, end_lr=0.1, num_iter=config.FIND_LR_RATIO, step_mode="exp")
+                                                 ), val_loader=val_loader, end_lr=0.5, num_iter=config.FIND_LR_RATIO, step_mode="exp")
             tensorboardwriter.write_plot(self.writer, lr_finder.plot(skip_start=0, skip_end=0, log_lr=False), "lr_finder-Linear")
             tensorboardwriter.write_plot(self.writer, lr_finder.plot(skip_start=0, skip_end=0, log_lr=True), "lr_finder-Log")
             lr_finder.reset()
@@ -666,22 +666,22 @@ class IMetEvaluation:
             F = plt.figure()
 
             plt.subplot(321)
-            plt.imshow(untransfered.transpose((1, 2, 0)))
+            plt.imshow(untransfered.transpose((1, 2, 0)), vmin=0, vmax=1)
             plt.title("Real; pred:{}".format(predict))
             plt.grid(False)
 
             plt.subplot(322)
-            plt.imshow(transfered.transpose((1, 2, 0)))
+            plt.imshow(transfered.transpose((1, 2, 0)), vmin=0, vmax=1)
             plt.title("Trans")
             plt.grid(False)
 
             plt.subplot(323)
-            plt.imshow(untransfered.transpose((1, 2, 0)))
+            plt.imshow(untransfered.transpose((1, 2, 0)), vmin=0, vmax=1)
             plt.title("Real; label:{}".format(label))
             plt.grid(False)
 
             plt.subplot(324)
-            plt.imshow(transfered.transpose((1, 2, 0)))
+            plt.imshow(transfered.transpose((1, 2, 0)), vmin=0, vmax=1)
             plt.title("Trans; f1:{}".format(loss))
             plt.grid(False)
             tensorboardwriter.write_image(self.writer, "{}-{}".format(fold, id), F, config.epoch)

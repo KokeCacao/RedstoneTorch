@@ -238,18 +238,7 @@ def train_aug(term):
         #        GaussNoise()], p=0.5),
         RandomGamma(gamma_limit=(90, 110), p=0.5),
 
-        OneOf([
-               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-               Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-               # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
-               # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
-               # DoNothing(p=1),
-              ],p=1),
+        Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), CenterCrop(300, 300)], p=1),
         # 10% force resize
         # 20% black padding to biggest size
         # 70% crop
