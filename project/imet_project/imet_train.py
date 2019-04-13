@@ -280,7 +280,7 @@ class IMetTrain:
         """LOSS"""
         # f = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
         f = fbeta_score_numpy(evaluation.epoch_label, evaluation.epoch_pred, beta=2, threshold=config.EVAL_THRESHOLD)
-        f_sklearn = metrics.fbeta_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), beta=2, average='macro')  # sklearn does not automatically import matrics.
+        f_sklearn = metrics.fbeta_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), beta=2, average='micro')  # sklearn does not automatically import matrics.
         f_dict = dict(("Class-{}".format(i), x) for i, x in enumerate(metrics.fbeta_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), beta=2, average=None)))
         tensorboardwriter.write_classwise_loss_distribution(self.writer, np.array(f_dict.values()), config.epoch)
 
