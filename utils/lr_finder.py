@@ -188,7 +188,11 @@ class LRFinder(object):
 
                 # Forward pass and loss computation
                 outputs = self.model(inputs)
-                loss = self.criterion(outputs, labels)
+
+                """ Edit this to fit your dataset """
+                # loss = self.criterion(outputs, labels)
+                loss = self.criterion(labels, outputs).mean()
+
                 running_loss += loss.item() * inputs.size(0)
 
         return running_loss / len(dataloader.dataset)
