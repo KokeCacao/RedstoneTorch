@@ -355,12 +355,12 @@ class IMetTrain:
                     best_val = score
                 pbar.set_description("Threshold: {}; F: {}".format(threshold, score))
 
-                for c in range(config.TRAIN_NUM_CLASS):
-                    score = metrics.fbeta_score(evaluation.epoch_label[:][c], (evaluation.epoch_pred[:][c] > threshold), beta=2)
-                    tensorboardwriter.write_threshold(self.writer, c, score, threshold * 1000.0, config.fold)
-                    if score > best_val_dict[c]:
-                        best_threshold_dict[c] = threshold
-                        best_val_dict[c] = score
+                # for c in range(config.TRAIN_NUM_CLASS):
+                #     score = metrics.fbeta_score(evaluation.epoch_label[:][c], (evaluation.epoch_pred[:][c] > threshold), beta=2)
+                #     tensorboardwriter.write_threshold(self.writer, c, score, threshold * 1000.0, config.fold)
+                #     if score > best_val_dict[c]:
+                #         best_threshold_dict[c] = threshold
+                #         best_val_dict[c] = score
 
             tensorboardwriter.write_best_threshold(self.writer, -1, best_val, best_threshold, config.epoch, config.fold)
             for c in range(config.TRAIN_NUM_CLASS): tensorboardwriter.write_best_threshold(self.writer, c, best_val_dict[c], best_threshold_dict[c], config.epoch, config.fold)

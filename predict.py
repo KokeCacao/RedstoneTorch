@@ -5,7 +5,8 @@ from optparse import OptionParser
 from tensorboardX import SummaryWriter
 
 import config
-import project.HisCancer_project.HisCancer_prediction
+# import project.HisCancer_project.HisCancer_prediction
+import project.imet_project.imet_prediction
 from gpu import gpu_profile
 from reproduceability import reproduceability
 from utils.memory import memory_thread
@@ -65,6 +66,7 @@ if __name__ == '__main__':
         reproduceability()
 
         try:
+            # prediction = project.HisCancer_project.HisCancer_prediction.HisCancerPrediction(writer)
             prediction = project.HisCancer_project.HisCancer_prediction.HisCancerPrediction(writer)
         except Exception as e:
             if not isinstance(e, KeyboardInterrupt):
