@@ -330,8 +330,8 @@ elif PROJECT_NAME == "IMet":
 
     TRAIN_RATIO = 1
     EVAL_RATIO = 1 # to 8 when needed
-    FIND_LR_ON_VALIDATION = False
-    FIND_LR_RATIO = 20 if FIND_LR_ON_VALIDATION else 100
+    FIND_LR_ON_VALIDATION = True
+    FIND_LR_RATIO = 10 if FIND_LR_ON_VALIDATION else 100
 
     DIRECTORY_CSV = DIRECTORY_PREFIX + 'data/imet_dataset/train.csv'
     DIRECTORY_CSV_ID = 'id'
