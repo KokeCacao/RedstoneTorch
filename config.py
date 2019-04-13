@@ -317,7 +317,7 @@ elif PROJECT_NAME == "IMet":
         "presudo-3": "0",
         "KokeCacao-Ubuntu": "0",
     }
-    TRAIN = False
+    TRAIN = True
     TRAIN_LOAD_OPTIMIZER = True
     TRAIN_GPU_ARG = TRAIN_GPU_DICT[socket.gethostname()]
     TRAIN_GPU_LIST = [int(i) for i in TRAIN_GPU_ARG.split(",")]
@@ -330,7 +330,7 @@ elif PROJECT_NAME == "IMet":
 
     TRAIN_RATIO = 1
     EVAL_RATIO = 1 # to 8 when needed
-    FIND_LR_ON_VALIDATION = True
+    FIND_LR_ON_VALIDATION = False
     FIND_LR_RATIO = 10 if FIND_LR_ON_VALIDATION else 100
 
     DIRECTORY_CSV = DIRECTORY_PREFIX + 'data/imet_dataset/train.csv'
