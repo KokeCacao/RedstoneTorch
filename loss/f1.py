@@ -82,10 +82,11 @@ def f1_macro(y_preds, y_true, thresh=0.5, eps=1e-20):
     return f1
 
 class differenciable_f_sigmoid(nn.Module):
-    def __init__(self, eps=1e-6, beta=1):
+    def __init__(self, eps=1e-6, beta=1, mean=False):
         super(differenciable_f_sigmoid, self).__init__()
         self.eps = eps
         self.beta = beta
+        self.mean = mean
 
     def forward(self, labels, logits):
         batch_size = logits.size()[0]
@@ -98,13 +99,15 @@ class differenciable_f_sigmoid(nn.Module):
         recall = tp / num_pos_hat
         fs = (1 + self.beta * self.beta) * precise * recall / (self.beta * self.beta * precise + recall + self.eps)
         loss = fs.sum() / batch_size
+        if self.mean: return (1 - loss)
         return (1 - loss), precise, recall
 
 class differenciable_f_softmax(nn.Module):
-    def __init__(self, eps=1e-6, beta=1):
+    def __init__(self, eps=1e-6, beta=1, mean=False):
         super(differenciable_f_softmax, self).__init__()
         self.eps = eps
         self.beta = beta
+        self.mean = mean
 
     def forward(self, labels, logits):
         batch_size = logits.size()[0]
@@ -117,4 +120,5 @@ class differenciable_f_softmax(nn.Module):
         recall = tp / num_pos_hat
         fs = (1 + self.beta * self.beta) * precise * recall / (self.beta * self.beta * precise + recall + self.eps)
         loss = fs.sum() / batch_size
+        if self.mean: return (1 - loss)
         return (1 - loss), precise, recall
