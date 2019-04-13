@@ -317,7 +317,7 @@ elif PROJECT_NAME == "IMet":
         "presudo-3": "0",
         "KokeCacao-Ubuntu": "0",
     }
-    TRAIN = True
+    TRAIN = False
     TRAIN_LOAD_OPTIMIZER = True
     TRAIN_GPU_ARG = TRAIN_GPU_DICT[socket.gethostname()]
     TRAIN_GPU_LIST = [int(i) for i in TRAIN_GPU_ARG.split(",")]
