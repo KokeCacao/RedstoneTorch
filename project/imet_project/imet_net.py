@@ -355,7 +355,7 @@ pretrained_settings = {
 #     model.std = settings['std']
 
 def modified_initialize_pretrained_model(model, url):
-    state_dict = model_zoo.load_url()
+    state_dict = model_zoo.load_url(url)
 
     model_state = model.state_dict()
     pretrained_state = {k: v for k, v in state_dict.items() if k in model_state and v.size() == model_state[k].size()}
