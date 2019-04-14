@@ -10,8 +10,6 @@ from tqdm import tqdm
 import config
 from dataset.HisCancer_dataset import HisCancerDataset, test_collate, train_collate, tta_collate
 from project.HisCancer_project import HisCancer_net
-from utils.load import save_onnx, load_checkpoint_all_fold
-
 
 class IMetPrediction:
     def __init__(self, writer):

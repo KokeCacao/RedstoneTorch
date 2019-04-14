@@ -17,7 +17,7 @@ from dataset.imet_dataset import IMetDataset
 from dataset.imet_dataset import train_collate, val_collate
 from gpu import gpu_profile
 from loss.f import differenciable_f_sigmoid, fbeta_score_numpy
-from loss.focal import focalloss_sigmoid
+from loss.focal import focalloss_sigmoid_refined
 from lr_scheduler.PlateauCyclicRestart import PlateauCyclicRestart
 from project.imet_project import imet_net
 from utils import load
@@ -128,7 +128,7 @@ class IMetTrain:
                                          timeout=0,
                                          worker_init_fn=None,
                                          ) if config.FIND_LR_ON_VALIDATION else None
-            lr_finder = LRFinder(self.nets[config.train_fold[0]], self.optimizers[config.train_fold[0]], focalloss_sigmoid(alpha=0.25, gamma=2, eps=1e-7), writer=self.writer, device="cuda")
+            lr_finder = LRFinder(self.nets[config.train_fold[0]], self.optimizers[config.train_fold[0]], focalloss_sigmoid_refined(alpha=0.25, gamma=2, eps=1e-7), writer=self.writer, device="cuda")
             lr_finder.range_test(data.DataLoader(self.dataset,
                                                  batch_size=config.MODEL_BATCH_SIZE,
                                                  shuffle=False,
@@ -411,7 +411,7 @@ class IMetTrain:
                 prob_predict = torch.nn.Sigmoid()(logits_predict)
 
                 """LOSS"""
-                focal = focalloss_sigmoid(alpha=0.25, gamma=2, eps=1e-7)(labels_0, logits_predict)
+                focal = focalloss_sigmoid_refined(alpha=0.25, gamma=2, eps=1e-7)(labels_0, logits_predict)
                 f, precise, recall = differenciable_f_sigmoid(beta=2)(labels_0, logits_predict)
                 bce = BCELoss()(prob_predict, labels_0)
                 positive_bce = BCELoss(weight=labels_0 * 20 + 1)(prob_predict, labels_0)
@@ -558,7 +558,7 @@ class IMetEvaluation:
                 prob_predict = torch.nn.Sigmoid()(logits_predict)
 
                 """LOSS"""
-                focal = focalloss_sigmoid(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
+                focal = focalloss_sigmoid_refined(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
                 f, precise, recall = differenciable_f_sigmoid(beta=2)(labels_0, logits_predict)
 
                 """EVALUATE LOSS"""

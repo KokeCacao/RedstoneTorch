@@ -64,6 +64,23 @@ class focalloss_sigmoid(nn.Module):
         reduce_fl = fl.sum(dim=1)
         return reduce_fl
 
+class focalloss_sigmoid_refined(nn.Module):
+    def __init__(self, alpha=None, gamma=2, eps=1e-7):
+        super(focalloss_sigmoid_refined, self).__init__()
+        self.gamma = gamma
+
+    def forward(self, target, logit):
+        target = target.float()
+        max_val = (-logit).clamp(min=0)
+        loss = logit - logit * target + max_val + \
+               ((-max_val).exp() + (-logit - max_val).exp()).log()
+
+        invprobs = torch.nn.LogSigmoid()(-logit * (target * 2.0 - 1.0))
+        loss = (invprobs * self.gamma).exp() * loss
+        if len(loss.size())==2:
+            loss = loss.sum(dim=1)
+        return loss.mean()
+
 class focalloss_softmax(nn.Module):
     """
     Since a multiclass multilabel task is considered,

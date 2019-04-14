@@ -2,13 +2,12 @@ import os
 
 import torch
 import numpy as np
-import scipy.stats as st
 from torch.utils import data
 from torch.utils.data import SubsetRandomSampler
 from tqdm import tqdm
 
 import config
-from dataset.HisCancer_dataset import HisCancerDataset, test_collate, train_collate, tta_collate
+from dataset.HisCancer_dataset import HisCancerDataset, test_collate, tta_collate
 from project.HisCancer_project import HisCancer_net
 from utils.load import save_onnx, load_checkpoint_all_fold
 
