@@ -262,7 +262,6 @@ elif PROJECT_NAME == "IMet":
     DIRECTORY_PREPROCESSED_SUFFIX_IMG = ".npy"
     # DIRECTORY_IMG = DIRECTORY_PREFIX + "data/train/"
     # DIRECTORY_SELECTED_IMG = DIRECTORY_PREFIX + "data/iMet_dataset/selected/"
-    # DIRECTORY_LOAD = None
     PREDICTION_WRITER = False
     PREDICTION_TAG = "test"
     PREDICTION_LOAD_TAG = ""
@@ -356,6 +355,7 @@ elif PROJECT_NAME == "IMet":
 
     EVAL_SHAKEUP_RATIO = 100
 
+    DIRECTORY_LOAD = None
     TRAIN = True
     TRAIN_RESUME = False
     DEBUG_LR_FINDER = False # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
