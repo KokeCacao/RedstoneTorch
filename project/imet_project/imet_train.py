@@ -260,7 +260,7 @@ class IMetTrain:
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             val_loss, val_f = evaluation.eval_fold(net, self.validation_loader[config.fold])
             print("""
-            ValidLoss: {}, ValidF: {}
+        ValidLoss: {}, ValidF: {}
             """.format(val_loss, val_f))
             net = net.cpu()
             optimizer = load.move_optimizer_to_cpu(optimizer)
@@ -281,7 +281,7 @@ class IMetTrain:
         """LOSS"""
         # f = f1_macro(evaluation.epoch_pred, evaluation.epoch_label).mean()
         f = fbeta_score_numpy(evaluation.epoch_label, evaluation.epoch_pred, beta=2, threshold=config.EVAL_THRESHOLD)
-        f_sklearn = metrics.fbeta_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), beta=2, average='micro')  # sklearn does not automatically import matrics.
+        f_sklearn = metrics.fbeta_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), beta=2, average='average')  # sklearn does not automatically import matrics.
         f_dict = dict(("Class-{}".format(i), x) for i, x in enumerate(metrics.fbeta_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred > config.EVAL_THRESHOLD).astype(np.byte), beta=2, average=None)))
         tensorboardwriter.write_classwise_loss_distribution(self.writer, np.array(f_dict.values()), config.epoch)
 
@@ -362,7 +362,8 @@ class IMetTrain:
                 #     if score > best_val_dict[c]:
                 #         best_threshold_dict[c] = threshold
                 #         best_val_dict[c] = score
-            print("Best Threshold is: {}, with score: {}".format(best_threshold, best_val))
+            print("""
+        Best Threshold is: {}, with score: {}""".format(best_threshold, best_val))
             tensorboardwriter.write_best_threshold(self.writer, -1, best_val, best_threshold, config.epoch, config.fold)
             # for c in range(config.TRAIN_NUM_CLASS): tensorboardwriter.write_best_threshold(self.writer, c, best_val_dict[c], best_threshold_dict[c], config.epoch, config.fold)
 
@@ -488,8 +489,8 @@ class IMetTrain:
         train_loss = epoch_loss / train_len
         epoch_f = epoch_f / train_len
         print("""
-            Epoch: {}, Fold: {}
-            TrainLoss: {}, FLoss: {}
+        Epoch: {}, Fold: {}
+        TrainLoss: {}, FLoss: {}
         """.format(config.epoch, config.fold, train_loss, epoch_f))
         # lr_scheduler.step(epoch_f, epoch=config.epoch)
 

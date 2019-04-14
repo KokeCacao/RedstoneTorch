@@ -225,6 +225,12 @@ class PlateauCyclicRestart(object):
                 self.num_bad_epochs = 0
             else:
                 self.num_bad_epochs += epoch_diff
+                print("""
+        Current: {}, Best: {}
+        NumBadEpoch: {} <= {}
+        Coef: {}
+        Times Reduce = {}
+                """.format(current, self.best, self.num_bad_epochs, self.patience, self.coef, self.times_reduce))
 
             if self.in_cooldown:
                 self.cooldown_counter -= epoch_diff
@@ -242,7 +248,7 @@ class PlateauCyclicRestart(object):
                     self.times_reduce = 0
                     self.coef = 1
                     print("""
-        Learning ratestart
+        Learning restart!
                 """)
                 else:
                     self.coef = self.coef * self.factor

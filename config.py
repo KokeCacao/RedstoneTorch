@@ -266,7 +266,7 @@ elif PROJECT_NAME == "IMet":
     PREDICTION_WRITER = False
     PREDICTION_TAG = "test"
     PREDICTION_LOAD_TAG = ""
-    PREDICTION_CHOSEN_THRESHOLD = [0.8405]
+    PREDICTION_CHOSEN_THRESHOLD = [0.5]
     PREDICTION_TTA = 0
 
 
@@ -303,7 +303,7 @@ elif PROJECT_NAME == "IMet":
     # MODEL_NO_GRAD = [[],]
     MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], [-1], [-1], [-1], [-1]]
     MODEL_LEARNING_RATE_AFTER_UNFREEZE = 0.001
-    MODEL_FREEZE_EPOCH = 2
+    MODEL_FREEZE_EPOCH = 4
 
     TRAIN_GPU_DICT = {
         "kokecacao-ThinkPad-P50-Ubuntu": "0",
@@ -352,7 +352,7 @@ elif PROJECT_NAME == "IMet":
     EVAL_IF_THRESHOLD_TEST = True
     EVAL_IF_PRED_DISTRIBUTION = True
     EVAL_TRY_THRESHOLD = np.linspace(0.0, 1.0, 1000)
-    EVAL_THRESHOLD = 0.8405
+    EVAL_THRESHOLD = 0.5
 
     EVAL_SHAKEUP_RATIO = 100
 
