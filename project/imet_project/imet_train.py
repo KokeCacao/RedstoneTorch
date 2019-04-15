@@ -52,8 +52,8 @@ class IMetTrain:
                 self.lr_schedulers.append(None)
             else:
                 print("     Creating Fold: #{}".format(fold))
-                # net = imet_net.se_resnext50_32x4d(config.TRAIN_NUM_CLASS, pretrained="imagenet")
-                net = imet_net.fbresnet50(config.TRAIN_NUM_CLASS, pretrained="imagenet")
+                net = imet_net.se_resnext50_32x4d(config.TRAIN_NUM_CLASS, pretrained="imagenet")
+                # net = imet_net.fbresnet50(config.TRAIN_NUM_CLASS, pretrained="imagenet")
 
                 """FREEZING LAYER"""
                 for i, c in enumerate(net.children()):
@@ -74,7 +74,23 @@ class IMetTrain:
                 optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
                 self.optimizers.append(optimizer)
                 self.nets.append(net)
-                self.lr_schedulers.append(PlateauCyclicRestart(optimizer, eval_mode='max', factor=config.MODEL_LR_SCHEDULER_REDUCE_FACTOR, patience=config.MODEL_LR_SCHEDULER_PATIENT, verbose=False, threshold=1e-4, threshold_mode='abs', cooldown=0, eps=1e-8, base_lr=config.MODEL_LR_SCHEDULER_BASELR, max_lr=config.MODEL_LR_SCHEDULER_MAXLR, step_size=config.MODEL_LR_SCHEDULER_STEP, mode='plateau_cyclic', gamma=1., scale_mode='cycle', last_batch_iteration=-1, reduce_restart=config.MODEL_LR_SCHEDULER_REDUCE_RESTART))
+                self.lr_schedulers.append(PlateauCyclicRestart(optimizer,
+                                                               eval_mode='max',
+                                                               factor=config.MODEL_LR_SCHEDULER_REDUCE_FACTOR,
+                                                               patience=config.MODEL_LR_SCHEDULER_PATIENT,
+                                                               verbose=False,
+                                                               threshold=config.MODEL_LR_SCHEDULER_THRESHOLD,
+                                                               threshold_mode='abs',
+                                                               cooldown=0,
+                                                               eps=1e-8,
+                                                               base_lr=config.MODEL_LR_SCHEDULER_BASELR,
+                                                               max_lr=config.MODEL_LR_SCHEDULER_MAXLR,
+                                                               step_size=config.MODEL_LR_SCHEDULER_STEP,
+                                                               mode='plateau_cyclic',
+                                                               gamma=1.,
+                                                               scale_mode='cycle',
+                                                               last_batch_iteration=-1,
+                                                               reduce_restart=config.MODEL_LR_SCHEDULER_REDUCE_RESTART))
 
             self.train_loader.append(data.DataLoader(self.dataset,
                                                      batch_size=config.MODEL_BATCH_SIZE,
@@ -299,7 +315,9 @@ class IMetTrain:
             private_lb = fbeta_score_numpy(evaluation.epoch_label[private_lb], evaluation.epoch_pred[private_lb], beta=2, threshold=config.EVAL_THRESHOLD)
             score_diff = private_lb - public_lb
             shakeup[score_diff] = (public_lb, private_lb)
-            pbar.set_description_str("Public LB: {}, Private LB: {}, Difference: {}".format(public_lb, private_lb, score_diff))
+            pbar.set_description_str("""
+        Public LB: {}, Private LB: {}, Difference: {}
+        """.format(public_lb, private_lb, score_diff))
         shakeup_keys = sorted(shakeup)
         shakeup_mean, shakeup_std = np.mean(shakeup_keys), np.std(shakeup_keys)
         tensorboardwriter.write_shakeup(self.writer, shakeup, shakeup_keys, config.epoch)
@@ -321,8 +339,7 @@ class IMetTrain:
                  + """
         F2 sklearn = {}
         Max = {}, socre = {}
-        Min = {}, score = {}
-        """.format(f_sklearn, max_names[0], max_names[1], min_names[0], min_names[1])
+        Min = {}, score = {}""".format(f_sklearn, max_names[0], max_names[1], min_names[0], min_names[1])
         #          + """
         # Soft AUC Macro: {}
         # Hard AUC Macro: {}
@@ -542,7 +559,8 @@ class IMetEvaluation:
         # self.worst_loss = []
 
         print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
-        for eval_index in tqdm(range(config.EVAL_RATIO)):
+        pbar = tqdm(range(config.EVAL_RATIO)) if config.epoch >= config.MODEL_FREEZE_EPOCH +2 else tqdm(range(1))
+        for eval_index in pbar:
             config.eval_index = eval_index
             pbar = tqdm(validation_loader)
             total_confidence = 0

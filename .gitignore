@@ -1,10 +1,7 @@
 *.pyc
 __pycache__/
-SUBMISSION*
-data/*.zip
 .idea
-.orig
 .ipnb_checkpoints/
-*/xml
-*/images
 data/*
+model/*
+!.keep

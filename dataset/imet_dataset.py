@@ -224,7 +224,7 @@ class PredictImgAugTransform:
         return self
 
 def train_aug(term):
-    if term < config.MODEL_FREEZE_EPOCH +2:
+    if config.epoch <= config.MODEL_FREEZE_EPOCH +2:
         return Compose([
         HorizontalFlip(p=term % 2),
         ShiftScaleRotate(shift_limit=0.00625, scale_limit=0.002, rotate_limit=2, p=0.5),

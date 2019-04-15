@@ -222,6 +222,12 @@ class PlateauCyclicRestart(object):
 
             if self.is_better(current, self.best):
                 self.best = current
+                print("""
+        Its Highest Score: {}
+        NumBadEpoch: {} <= {} --> 0
+        Coef: {}
+        Times Reduce = {}
+        """.format(current, self.num_bad_epochs, self.patience, self.coef, self.times_reduce))
                 self.num_bad_epochs = 0
             else:
                 self.num_bad_epochs += epoch_diff
@@ -230,26 +236,31 @@ class PlateauCyclicRestart(object):
         NumBadEpoch: {} <= {}
         Coef: {}
         Times Reduce = {}
-                """.format(current, self.best, self.num_bad_epochs, self.patience, self.coef, self.times_reduce))
+        """.format(current, self.best, self.num_bad_epochs, self.patience, self.coef, self.times_reduce))
 
             if self.in_cooldown:
+                print("""
+        NumBadEpoch: {} --> 0
+        Cooldown Counter > 0
+        Cooldown Counter: {} --> {}
+        """.format(self.num_bad_epochs, self.cooldown_counter, self.cooldown_counter - epoch_diff))
                 self.cooldown_counter -= epoch_diff
                 self.num_bad_epochs = 0  # ignore any bad epochs in cooldown
 
             if self.num_bad_epochs > self.patience:
-                self.times_reduce = self.times_reduce+1
                 print("""
         Current: {}, Best: {}
         NumBadEpoch: {} > {}
-        Coef: {} -> {}
-        Times Reduce = {}
-                """.format(current, self.best, self.num_bad_epochs, self.patience, self.coef, self.coef*self.factor, self.times_reduce))
-                if self.times_reduce == self.reduce_restart:
+        Coef: {} --> {}
+        Times Reduce = {} --> {}
+        """.format(current, self.best, self.num_bad_epochs, self.patience, self.coef, self.coef*self.factor, self.times_reduce, self.times_reduce+1))
+                self.times_reduce = self.times_reduce+1
+                if self.times_reduce > self.reduce_restart:
                     self.times_reduce = 0
                     self.coef = 1
                     print("""
         Learning restart!
-                """)
+        """)
                 else:
                     self.coef = self.coef * self.factor
                 self.update_lr(step_size)
