@@ -25,6 +25,7 @@ class focalloss_sigmoid(nn.Module):
         self.alpha = alpha
         self.gamma = gamma
         self.eps = eps
+        print("This Focal Loss Sigmoid function is deprecated and will give you really bad result.")
 
     def forward(self, y_true, y_pred):
         """
@@ -101,6 +102,7 @@ class focalloss_softmax(nn.Module):
         self.alpha = alpha
         self.gamma = gamma
         self.eps = eps
+        print("This Focal Loss Sigmoid function is deprecated and will give you really bad result.")
 
     def forward(self, y_true, y_pred):
         """

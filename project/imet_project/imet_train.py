@@ -315,12 +315,10 @@ class IMetTrain:
             private_lb = fbeta_score_numpy(evaluation.epoch_label[private_lb], evaluation.epoch_pred[private_lb], beta=2, threshold=config.EVAL_THRESHOLD)
             score_diff = private_lb - public_lb
             shakeup[score_diff] = (public_lb, private_lb)
-            pbar.set_description_str("""
-        Public LB: {}, Private LB: {}, Difference: {}
-        """.format(public_lb, private_lb, score_diff))
+            pbar.set_description_str("""Public LB: {}, Private LB: {}, Difference: {}""".format(public_lb, private_lb, score_diff))
         shakeup_keys = sorted(shakeup)
         shakeup_mean, shakeup_std = np.mean(shakeup_keys), np.std(shakeup_keys)
-        tensorboardwriter.write_shakeup(self.writer, shakeup, shakeup_keys, config.epoch)
+        tensorboardwriter.write_shakeup(self.writer, shakeup, shakeup_keys, shakeup_std, config.epoch)
 
         # soft_auc_macro = metrics.roc_auc_score(evaluation.epoch_label, evaluation.epoch_pred)
         # hard_auc_macro = metrics.roc_auc_score((evaluation.epoch_label > config.EVAL_THRESHOLD).astype(np.byte), (evaluation.epoch_pred>config.EVAL_THRESHOLD).astype(np.byte))
@@ -381,6 +379,8 @@ class IMetTrain:
                 #         best_val_dict[c] = score
             print("""
         Best Threshold is: {}, with score: {}""".format(best_threshold, best_val))
+            tensorboardwriter.write_text(self.writer, """
+        Best Threshold is: {}, with score: {}""".format(best_threshold, best_val), config.epoch)
             tensorboardwriter.write_best_threshold(self.writer, -1, best_val, best_threshold, config.epoch, config.fold)
             # for c in range(config.TRAIN_NUM_CLASS): tensorboardwriter.write_best_threshold(self.writer, c, best_val_dict[c], best_threshold_dict[c], config.epoch, config.fold)
 
@@ -509,6 +509,10 @@ class IMetTrain:
         Epoch: {}, Fold: {}
         TrainLoss: {}, FLoss: {}
         """.format(config.epoch, config.fold, train_loss, epoch_f))
+        tensorboardwriter.write_text(self.writer, """
+        Epoch: {}, Fold: {}
+        TrainLoss: {}, FLoss: {}
+        """.format(config.epoch, config.fold, train_loss, epoch_f), config.epoch)
         # lr_scheduler.step(epoch_f, epoch=config.epoch)
 
         del train_loss

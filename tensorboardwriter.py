@@ -30,7 +30,10 @@ def write_find_lr(writer, loss, lr):
 
 
 def write_best_threshold(writer, classes, score, threshold, epoch, fold):
-    writer.add_scalars('threshold/best_threshold/{}'.format(fold), {"Threshold/{}".format(classes): threshold}, epoch)
+    if classes == -1:
+        writer.add_scalars('threshold/best_threshold/{}'.format(fold), {"Score/{}".format(classes): score, "Threshold/{}".format(classes): threshold}, epoch)
+    else:
+        writer.add_scalars('threshold/best_threshold/{}'.format(fold), {"Threshold/{}".format(classes): threshold}, epoch)
 
 
 def write_data_distribution(writer, F, fold, unique=False):
@@ -39,11 +42,12 @@ def write_data_distribution(writer, F, fold, unique=False):
         return
     writer.add_figure("data/fold_distribution/{}".format(fold), F, 0)
 
-def write_shakeup(writer, dictionary, sorted_keys, epoch):
+def write_shakeup(writer, dictionary, sorted_keys, std, epoch):
     for i, key in enumerate(sorted_keys):
         public_lb, private_lb = dictionary[key]
         writer.add_scalars('threshold/Shakeup/', {"Public LB": public_lb}, i)
         writer.add_scalars('threshold/Shakeup/', {"Private LB": private_lb}, i)
+    writer.add_scalars('threshold/shake_up_change/', {"Standard Deviation": std}, epoch)
     try:
         writer.add_histogram("eval/loss_distribution", np.array(sorted_keys), epoch)
     except Exception as e:
