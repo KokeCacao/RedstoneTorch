@@ -372,6 +372,15 @@ def se_resnext50_32x4d(num_classes=1000, pretrained='imagenet'):
         modified_initialize_pretrained_model(model, url)
     return model
 
+def se_resnext101_32x4d(num_classes=1000, pretrained='imagenet'):
+    model = SENet(SEResNeXtBottleneck, [3, 4, 23, 3], groups=32, reduction=16, inplanes=64, input_3x3=False,
+                  downsample_kernel_size=1, downsample_padding=0,
+                  num_classes=num_classes)
+    if pretrained is not None:
+        url = pretrained_settings['se_resnext101_32x4d'][pretrained]['url']
+        modified_initialize_pretrained_model(model, url)
+    return model
+
 def conv3x3(in_planes, out_planes, stride=1):
     "3x3 convolution with padding"
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
