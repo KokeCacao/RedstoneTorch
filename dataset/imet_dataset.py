@@ -185,11 +185,11 @@ class IMetDataset(data.Dataset):
         """
         return (self.indices_to_id[indice], self.get_load_image_by_indice(indice), self.get_load_label_by_indice(indice))
 
-    def get_load_image_by_indice(self, indice, suffix=".npy"):
+    def get_load_image_by_indice(self, indice):
         id = self.indices_to_id[indice]
-        return self.get_load_image_by_id(id, suffix)
+        return self.get_load_image_by_id(id)
 
-    def get_load_image_by_id(self, id, suffix=".npy"):
+    def get_load_image_by_id(self, id):
         return np.load(id)
 
     def get_load_label_by_indice(self, indice):

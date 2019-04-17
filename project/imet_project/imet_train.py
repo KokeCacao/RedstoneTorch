@@ -90,7 +90,8 @@ class IMetTrain:
                                                                gamma=1.,
                                                                scale_mode='cycle',
                                                                last_batch_iteration=-1,
-                                                               reduce_restart=config.MODEL_LR_SCHEDULER_REDUCE_RESTART))
+                                                               reduce_restart=config.MODEL_LR_SCHEDULER_REDUCE_RESTART,
+                                                               restart_coef=config.MODEL_LR_SCHEDULER_RESTART_COEF))
 
             self.train_loader.append(data.DataLoader(self.dataset,
                                                      batch_size=config.MODEL_BATCH_SIZE,
