@@ -223,13 +223,13 @@ class PlateauCyclicRestart(object):
             self.last_epoch = epoch
 
             if self.is_better(current, self.best):
-                self.best = current
                 print("""
-        Its Highest Score: {}
+        Its Highest Score: {} --> {} (+{})
         NumBadEpoch: {} <= {} --> 0
         Coef: {}
         Times Reduce = {}
-        """.format(current, self.num_bad_epochs, self.patience, self.coef, self.times_reduce))
+        """.format(self.best, current, current-self.best, self.num_bad_epochs, self.patience, self.coef, self.times_reduce))
+                self.best = current
                 self.num_bad_epochs = 0
             else:
                 self.num_bad_epochs += epoch_diff

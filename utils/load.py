@@ -1,4 +1,5 @@
 import os
+import sys
 import pickle
 from os import listdir
 from os.path import isfile, join
@@ -63,14 +64,14 @@ def load_checkpoint_all_fold(nets, optimizers, lr_schedulers, load_path):
         load_path = os.path.splitext(load_path)[0]+"-MILESTONE"+os.path.splitext(load_path)[1]
     if load_path and os.path.isfile(load_path):
         print("=> Loading checkpoint '{}'".format(load_path))
-        checkpoint = torch.load(load_path)
+        checkpoint = load_file(load_path)
         if 'state_dicts' not in checkpoint:
             raise ValueError("=> Checkpoint is broken, nothing loaded")
         config.epoch = checkpoint['epoch']
         config.global_steps = checkpoint['global_steps']
 
-        optimizers = [None] * len(nets) if optimizers==None else optimizers
-        lr_schedulers = [None] * len(nets) if lr_schedulers==None else lr_schedulers
+        optimizers = [None] * len(nets) if optimizers is None else optimizers
+        lr_schedulers = [None] * len(nets) if lr_schedulers is None else lr_schedulers
         for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
             if fold not in config.train_fold:
                 continue
@@ -129,7 +130,7 @@ def load_checkpoint_one_fold(net, optimizer, fold, load_path):
         return
     if load_path and os.path.isfile(load_path):
         print("=> Loading checkpoint '{}'".format(load_path))
-        checkpoint = torch.load(load_path)
+        checkpoint = load_file(load_path)
         if 'state_dicts' not in checkpoint:
             raise ValueError("=> Checkpoint is broken, nothing loaded")
         config.epoch = checkpoint['epoch']
@@ -214,3 +215,13 @@ def save_obj(obj, path):
 def load_obj(path):
     with open(path, 'rb') as f:
         return pickle.load(f)
+
+def load_file(file):
+    if sys.version_info[0] < 3:
+        return torch.load(file)
+    else:
+        from functools import partial
+        import pickle
+        pickle.load = partial(pickle.load, encoding="latin1")
+        pickle.Unpickler = partial(pickle.Unpickler, encoding="latin1")
+        return torch.load(file, map_location=lambda storage, loc: storage, pickle_module=pickle)

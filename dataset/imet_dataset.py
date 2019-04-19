@@ -5,31 +5,26 @@ import re
 import matplotlib as mpl
 import torch
 import cv2
-from sklearn.model_selection import KFold
 from tqdm import tqdm
 
 import config
 import numpy as np
 import pandas as pd
 from imgaug import augmenters as iaa
-from iterstrat.ml_stratifiers import MultilabelStratifiedKFold, MultilabelStratifiedShuffleSplit
+from iterstrat.ml_stratifiers import MultilabelStratifiedKFold
 from torch._six import string_classes, int_classes
 from torch.utils import data
 from torch.utils.data import SubsetRandomSampler
 from sklearn.preprocessing import MultiLabelBinarizer
 from torch.utils.data.dataloader import numpy_type_map, default_collate
-from torchvision.transforms import transforms, Normalize
+from torchvision.transforms import transforms
 
 from albumentations import (
-    HorizontalFlip, VerticalFlip, IAAPerspective, ShiftScaleRotate, CLAHE, RandomRotate90,
-    Transpose, ShiftScaleRotate, Blur, OpticalDistortion, GridDistortion, HueSaturationValue,
-    IAAAdditiveGaussianNoise, GaussNoise, MotionBlur, MedianBlur, RandomBrightnessContrast, IAAPiecewiseAffine,
-    IAASharpen, IAAEmboss, Flip, OneOf, Compose, JpegCompression,
+    HorizontalFlip, CLAHE, ShiftScaleRotate, Blur, GaussNoise, RandomBrightnessContrast, IAASharpen, IAAEmboss, OneOf, Compose, JpegCompression,
     CenterCrop, PadIfNeeded, RandomCrop, RandomGamma, Resize)
 # don't import Normalize from albumentations
 
 import tensorboardwriter
-from augmentation import AdaptivePadIfNeeded, DoNothing
 
 if os.environ.get('DISPLAY', '') == '':
     print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')

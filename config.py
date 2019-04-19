@@ -284,7 +284,7 @@ elif PROJECT_NAME == "IMet":
     DEBUG_WRITE_SPLIT_CSV = False
 
 
-    MODEL_EPOCHS = 40
+    MODEL_EPOCHS = 32
     MODEL_BATCH_SIZE = 64
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DECAY = 0.0001
@@ -292,12 +292,13 @@ elif PROJECT_NAME == "IMet":
     MODEL_LR_SCHEDULER_REDUCE_FACTOR = 0.5
     MODEL_LR_SCHEDULER_PATIENT = 0
     MODEL_LR_SCHEDULER_BASELR = 0.0001
-    MODEL_LR_SCHEDULER_THRESHOLD = 0.00001
+    # MODEL_LR_SCHEDULER_THRESHOLD = -2e-3
+    MODEL_LR_SCHEDULER_THRESHOLD = 0
     MODEL_LR_SCHEDULER_MAXLR = 0.01
     # MODEL_LR_SCHEDULER_MAXLR = 0.0003125
     MODEL_LR_SCHEDULER_STEP = 1363*2
-    MODEL_LR_SCHEDULER_REDUCE_RESTART = 999
-    MODEL_LR_SCHEDULER_RESTART_COEF = 0.25
+    MODEL_LR_SCHEDULER_REDUCE_RESTART = 6
+    MODEL_LR_SCHEDULER_RESTART_COEF = 1./8
     MODEL_FOLD = 5
     # MODEL_NO_GRAD = [[],]
     MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], [-1], [-1], [-1], [-1]]
@@ -316,7 +317,7 @@ elif PROJECT_NAME == "IMet":
         "KokeCacao-Ubuntu": "0",
     }
     TRAIN_LOAD_OPTIMIZER = True
-    TRAIN_GPU_ARG = 0 if socket.gethostname() not in TRAIN_GPU_DICT else TRAIN_GPU_DICT[socket.gethostname()]
+    TRAIN_GPU_ARG = "0" if socket.gethostname() not in TRAIN_GPU_DICT else TRAIN_GPU_DICT[socket.gethostname()]
     if socket.gethostname() not in TRAIN_GPU_DICT: print("Machine {} is not in record, use gpu #0")
     TRAIN_GPU_LIST = [int(i) for i in TRAIN_GPU_ARG.split(",")]
     TRAIN_DATA_PERCENT = 1
