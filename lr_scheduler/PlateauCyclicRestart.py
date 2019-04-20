@@ -127,7 +127,7 @@ class PlateauCyclicRestart(object):
         self.coef = 1.
         self.reduce_restart = reduce_restart
         self.times_reduce = 0
-        self.restart_coef=restart_coef
+        self.restart_coef = restart_coef
 
         if factor >= 1.0:
             raise ValueError('Factor should be < 1.0.')
@@ -208,7 +208,8 @@ class PlateauCyclicRestart(object):
         self.num_bad_epochs = 0
 
     def step(self, metrics=None, epoch=None, batch_iteration=None, step_size=None):
-        if metrics == None or metrics<=0:
+        text = ""
+        if metrics is None or metrics <= 0:
             if batch_iteration is None:
                 batch_iteration = self.last_batch_iteration + 1
             self.last_batch_iteration = batch_iteration
@@ -219,51 +220,51 @@ class PlateauCyclicRestart(object):
         if epoch is None:
             epoch = self.last_epoch = self.last_epoch + 1
         if epoch > self.last_epoch:
-            epoch_diff = int(epoch-self.last_epoch)
+            epoch_diff = int(epoch - self.last_epoch)
             self.last_epoch = epoch
 
             if self.is_better(current, self.best):
-                print("""
+                text = text + """
         Its Highest Score: {} --> {} (+{})
         NumBadEpoch: {} <= {} --> 0
         Coef: {}
         Times Reduce = {}
-        """.format(self.best, current, current-self.best, self.num_bad_epochs, self.patience, self.coef, self.times_reduce))
+        """.format(self.best, current, current - self.best, self.num_bad_epochs, self.patience, self.coef, self.times_reduce)
                 self.best = current
                 self.num_bad_epochs = 0
             else:
                 self.num_bad_epochs += epoch_diff
-                print("""
+                text = text + """
         Current: {}, Best: {}
         NumBadEpoch: {} <= {}
         Coef: {}
         Times Reduce = {}
-        """.format(current, self.best, self.num_bad_epochs, self.patience, self.coef, self.times_reduce))
+        """.format(current, self.best, self.num_bad_epochs, self.patience, self.coef, self.times_reduce)
 
             if self.in_cooldown:
-                print("""
+                text = text + """
         NumBadEpoch: {} --> 0
         Cooldown Counter > 0
         Cooldown Counter: {} --> {}
-        """.format(self.num_bad_epochs, self.cooldown_counter, self.cooldown_counter - epoch_diff))
+        """.format(self.num_bad_epochs, self.cooldown_counter, self.cooldown_counter - epoch_diff)
                 self.cooldown_counter -= epoch_diff
                 self.num_bad_epochs = 0  # ignore any bad epochs in cooldown
 
             if self.num_bad_epochs > self.patience:
-                print("""
+                text = text + """
         Current: {}, Best: {}
         NumBadEpoch: {} > {}
         Coef: {} --> {}
         Times Reduce = {} --> {}
-        """.format(current, self.best, self.num_bad_epochs, self.patience, self.coef, self.coef*self.factor, self.times_reduce, self.times_reduce+1))
-                self.times_reduce = self.times_reduce+1
+        """.format(current, self.best, self.num_bad_epochs, self.patience, self.coef, self.coef * self.factor, self.times_reduce, self.times_reduce + 1)
+                self.times_reduce = self.times_reduce + 1
                 if self.times_reduce > self.reduce_restart:
                     self.times_reduce = 0
                     self.coef = self.restart_coef
-                    print("""
+                    text = text + """
         Learning restart!
         Best: {} --> 0
-        """.format(self.best))
+        """.format(self.best)
                     self.best = self.mode_worse
                 else:
                     self.coef = self.coef * self.factor
@@ -273,8 +274,9 @@ class PlateauCyclicRestart(object):
         elif epoch == self.last_epoch:
             # if batch_iteration is None:
             #     batch_iteration = self.last_batch_iteration + 1
-            if batch_iteration != None: self.last_batch_iteration = batch_iteration
+            if batch_iteration is not None: self.last_batch_iteration = batch_iteration
             self.update_lr(step_size)
+        return text
 
     # def _reduce_lr(self, epoch):
     #     for i, param_group in enumerate(self.optimizer.param_groups):
@@ -356,7 +358,7 @@ class PlateauCyclicRestart(object):
         return self.coef
 
     def _exp_range_scale_fn(self, x):
-        return self.gamma**(x)
+        return self.gamma ** (x)
 
     def get_lr(self, step_size=None):
         if step_size is None: step_size = float(self.step_size)
@@ -374,6 +376,7 @@ class PlateauCyclicRestart(object):
             lrs.append(lr)
         return lrs
         # return self.base_lr + self.base_height * self.scale_fn(cycle) else self.base_lr + self.base_height * self.scale_fn(self.last_batch_iteration)
+
 
 # This code is from https://github.com/thomasjpfan/pytorch/blob/401ec389db2c9d2978917a6e4d1101b20340d7e7/torch/optim/lr_scheduler.py
 # This code is under review at PyTorch and is to be merged eventually to make CLR available to all.
@@ -513,7 +516,7 @@ class CyclicLR(object):
         return 1 / (2. ** (x - 1))
 
     def _exp_range_scale_fn(self, x):
-        return self.gamma**(x)
+        return self.gamma ** (x)
 
     def get_lr(self):
         step_size = float(self.step_size)

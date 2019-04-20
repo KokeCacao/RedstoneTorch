@@ -92,22 +92,8 @@ class IMetDataset(data.Dataset):
 def test_aug(term):
     return Compose([
         HorizontalFlip(p=term % 2),
-
-        OneOf([
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
-            # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
-            # DoNothing(p=1),
-        ], p=1),
-        # 10% force resize
-        # 20% black padding to biggest size
-        # 70% crop
+        PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE),
+        CenterCrop(300, 300),
         Resize(224, 224, interpolation=cv2.INTER_CUBIC),
     ])
 def tta_aug(term):

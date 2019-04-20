@@ -18,6 +18,7 @@ from dataset.imet_dataset import train_collate, val_collate
 from gpu import gpu_profile
 from loss.f import differenciable_f_sigmoid, fbeta_score_numpy
 from loss.focal import focalloss_sigmoid_refined
+from lr_scheduler.Constant import Constant
 from lr_scheduler.PlateauCyclicRestart import PlateauCyclicRestart
 from project.imet_project import imet_net
 from utils import load
@@ -71,27 +72,29 @@ class IMetTrain:
 
                 if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
-                optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
+                # optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
+                optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_LR_SCHEDULER_MAXLR, weight_decay=config.MODEL_WEIGHT_DECAY)
                 self.optimizers.append(optimizer)
                 self.nets.append(net)
-                self.lr_schedulers.append(PlateauCyclicRestart(optimizer,
-                                                               eval_mode='max',
-                                                               factor=config.MODEL_LR_SCHEDULER_REDUCE_FACTOR,
-                                                               patience=config.MODEL_LR_SCHEDULER_PATIENT,
-                                                               verbose=False,
-                                                               threshold=config.MODEL_LR_SCHEDULER_THRESHOLD,
-                                                               threshold_mode='abs',
-                                                               cooldown=0,
-                                                               eps=1e-8,
-                                                               base_lr=config.MODEL_LR_SCHEDULER_BASELR,
-                                                               max_lr=config.MODEL_LR_SCHEDULER_MAXLR,
-                                                               step_size=config.MODEL_LR_SCHEDULER_STEP,
-                                                               mode='plateau_cyclic',
-                                                               gamma=1.,
-                                                               scale_mode='cycle',
-                                                               last_batch_iteration=-1,
-                                                               reduce_restart=config.MODEL_LR_SCHEDULER_REDUCE_RESTART,
-                                                               restart_coef=config.MODEL_LR_SCHEDULER_RESTART_COEF))
+                # self.lr_schedulers.append(PlateauCyclicRestart(optimizer,
+                #                                                eval_mode='max',
+                #                                                factor=config.MODEL_LR_SCHEDULER_REDUCE_FACTOR,
+                #                                                patience=config.MODEL_LR_SCHEDULER_PATIENT,
+                #                                                verbose=False,
+                #                                                threshold=config.MODEL_LR_SCHEDULER_THRESHOLD,
+                #                                                threshold_mode='abs',
+                #                                                cooldown=0,
+                #                                                eps=1e-8,
+                #                                                base_lr=config.MODEL_LR_SCHEDULER_BASELR,
+                #                                                max_lr=config.MODEL_LR_SCHEDULER_MAXLR,
+                #                                                step_size=config.MODEL_LR_SCHEDULER_STEP,
+                #                                                mode='plateau_cyclic',
+                #                                                gamma=1.,
+                #                                                scale_mode='cycle',
+                #                                                last_batch_iteration=-1,
+                #                                                reduce_restart=config.MODEL_LR_SCHEDULER_REDUCE_RESTART,
+                #                                                restart_coef=config.MODEL_LR_SCHEDULER_RESTART_COEF))
+                self.lr_schedulers.append(Constant(optimizer, eval_mode="max", threshold=config.MODEL_LR_SCHEDULER_THRESHOLD, threshold_mode="abs", ast_batch_iteration=-1))
 
             self.train_loader.append(data.DataLoader(self.dataset,
                                                      batch_size=config.MODEL_BATCH_SIZE,
@@ -345,11 +348,11 @@ class IMetTrain:
         # Soft AUC Micro: {}
         # Hard AUC Micro: {}
         # """.format(soft_auc_macro, hard_auc_macro, soft_auc_micro, hard_auc_micro)
-        print(report)
         for lr_scheduler in lr_schedulers:
             if lr_scheduler is None:
                 continue
-            lr_scheduler.step(metrics=f_sklearn, epoch=config.epoch)
+            report = report + lr_scheduler.step(metrics=f_sklearn, epoch=config.epoch)
+        print(report)
         tensorboardwriter.write_text(self.writer, report, config.epoch)
 
         tensorboardwriter.write_epoch_loss(self.writer, {"EvalF": f, "F2Sklearn": f_sklearn}, config.epoch)
@@ -359,6 +362,7 @@ class IMetTrain:
         if config.EVAL_IF_THRESHOLD_TEST:
             best_threshold = 0.0
             best_val = 0.0
+            bad_value = 0
 
             best_threshold_dict = np.zeros(config.TRAIN_NUM_CLASS)
             best_val_dict = np.zeros(config.TRAIN_NUM_CLASS)
@@ -370,7 +374,10 @@ class IMetTrain:
                 if score > best_val:
                     best_threshold = threshold
                     best_val = score
+                    bad_value = 0
+                else: bad_value = bad_value + 1
                 pbar.set_description("Threshold: {}; F: {}".format(threshold, score))
+                if bad_value > 100: break
 
                 # for c in range(config.TRAIN_NUM_CLASS):
                 #     score = metrics.fbeta_score(evaluation.epoch_label[:][c], (evaluation.epoch_pred[:][c] > threshold), beta=2)

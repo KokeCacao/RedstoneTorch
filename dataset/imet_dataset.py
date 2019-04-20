@@ -272,56 +272,15 @@ def train_aug(term):
 def eval_aug(term):
     return Compose([
         HorizontalFlip(p=term % 2),
-        ShiftScaleRotate(shift_limit=0.00625, scale_limit=0.002, rotate_limit=2, p=0.5),
-
-        RandomGamma(gamma_limit=(90, 110), p=0.5),
-
-        OneOf([
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
-            # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
-            # DoNothing(p=1),
-        ], p=1),
-        # 10% force resize
-        # 20% black padding to biggest size
-        # 70% crop
+        PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE),
+        CenterCrop(300, 300),
         Resize(224, 224, interpolation=cv2.INTER_CUBIC),
     ])
 def test_aug(term):
     return Compose([
         HorizontalFlip(p=term % 2),
-        ShiftScaleRotate(shift_limit=0.00625, scale_limit=0.002, rotate_limit=2, p=0.5),
-
-        OneOf([CLAHE(clip_limit=2),
-               IAASharpen(alpha=(0.1, 0.2), lightness=(0.5, 1.)),
-               IAAEmboss(alpha=(0.1, 0.2), strength=(0.2, 0.7)),
-               RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1),
-               JpegCompression(quality_lower=99, quality_upper=100),
-               Blur(blur_limit=2),
-               GaussNoise()], p=0.5),
-        RandomGamma(gamma_limit=(90, 110), p=0.5),
-
-        OneOf([
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            Compose([PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE), RandomCrop(300, 300)], p=1),
-            # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
-            # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
-            # DoNothing(p=1),
-        ], p=1),
-        # 10% force resize
-        # 20% black padding to biggest size
-        # 70% crop
+        PadIfNeeded(300, 300, border_mode=cv2.BORDER_REPLICATE),
+        CenterCrop(300, 300),
         Resize(224, 224, interpolation=cv2.INTER_CUBIC),
     ])
 def tta_aug(term):

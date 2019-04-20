@@ -290,7 +290,7 @@ class SENet(nn.Module):
         self.bn_1 = nn.BatchNorm1d(4096)
         self.bn_2 = nn.BatchNorm1d(2730)
         self.bn_3 = nn.BatchNorm1d(1820)
-        self.cnn_dropout = nn.Dropout(0.2)
+        # self.cnn_dropout = nn.Dropout(0.2)
         self.dropout_1 = nn.Dropout(0.6)
         self.dropout_2 = nn.Dropout(0.6)
         self.dropout_3 = nn.Dropout(0.4)
@@ -319,11 +319,11 @@ class SENet(nn.Module):
     def features(self, x):
         x = self.layer0(x)
         x = self.layer1(x)
-        x = self.cnn_dropout(x)
+        # x = self.cnn_dropout(x)
         x = self.layer2(x)
-        x = self.cnn_dropout(x)
+        # x = self.cnn_dropout(x)
         x = self.layer3(x)
-        x = self.cnn_dropout(x)
+        # x = self.cnn_dropout(x)
         x = self.layer4(x)
         return x
 
@@ -497,7 +497,7 @@ class FBResNet(nn.Module):
         self.bn_1 = nn.BatchNorm1d(4096)
         self.bn_2 = nn.BatchNorm1d(2730)
         self.bn_3 = nn.BatchNorm1d(1820)
-        self.cnn_dropout = nn.Dropout(0.2)
+        # self.cnn_dropout = nn.Dropout(0.2)
         self.dropout_1 = nn.Dropout(0.6)
         self.dropout_2 = nn.Dropout(0.6)
         self.dropout_3 = nn.Dropout(0.4)
