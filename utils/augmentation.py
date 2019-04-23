@@ -3,6 +3,18 @@ from albumentations.augmentations import functional as F
 import cv2
 
 class DoNothing(DualTransform):
+    """Do Nothing
+
+    Args:
+        p (float): probability of applying the transform. Default: 1.0.
+
+    Targets:
+        image, mask
+
+    Image types:
+        uint8, float32
+
+    """
     def __init__(self, always_apply=False, p=1.0):
         super(DoNothing, self).__init__(always_apply, p)
 
@@ -10,7 +22,7 @@ class DoNothing(DualTransform):
         return img
 
 class AdaptivePadIfNeeded(DualTransform):
-    """Pad side of the image / max if side is less than desired number.
+    """Pad the smallest side to the biggest side
 
     Args:
         p (float): probability of applying the transform. Default: 1.0.

@@ -73,7 +73,7 @@ class IMetTrain:
                 if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
                 # optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
-                optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_LR_SCHEDULER_MAXLR, weight_decay=config.MODEL_WEIGHT_DECAY)
+                optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, weight_decay=config.MODEL_WEIGHT_DECAY)
                 self.optimizers.append(optimizer)
                 self.nets.append(net)
                 # self.lr_schedulers.append(PlateauCyclicRestart(optimizer,
@@ -352,8 +352,6 @@ class IMetTrain:
             if lr_scheduler is None:
                 continue
             report = report + lr_scheduler.step(metrics=f_sklearn, epoch=config.epoch)
-        print(report)
-        tensorboardwriter.write_text(self.writer, report, config.epoch)
 
         tensorboardwriter.write_epoch_loss(self.writer, {"EvalF": f, "F2Sklearn": f_sklearn}, config.epoch)
         if config.EVAL_IF_PRED_DISTRIBUTION: tensorboardwriter.write_pred_distribution(self.writer, evaluation.epoch_pred.flatten(), config.epoch)
@@ -363,20 +361,24 @@ class IMetTrain:
             best_threshold = 0.0
             best_val = 0.0
             bad_value = 0
+            total_score = 0
+            total_tried = 0
 
             best_threshold_dict = np.zeros(config.TRAIN_NUM_CLASS)
             best_val_dict = np.zeros(config.TRAIN_NUM_CLASS)
 
             pbar = tqdm(config.EVAL_TRY_THRESHOLD)
             for threshold in pbar:
+                total_tried = total_tried+1
                 score = fbeta_score_numpy(evaluation.epoch_label, evaluation.epoch_pred, beta=2, threshold=threshold)
+                total_score = total_score + score
                 tensorboardwriter.write_threshold(self.writer, -1, score, threshold * 1000.0, config.fold)
                 if score > best_val:
                     best_threshold = threshold
                     best_val = score
                     bad_value = 0
                 else: bad_value = bad_value + 1
-                pbar.set_description("Threshold: {}; F: {}".format(threshold, score))
+                pbar.set_description("Threshold: {}; F: {}; AreaUnder: {}".format(threshold, score, total_score/total_tried))
                 if bad_value > 100: break
 
                 # for c in range(config.TRAIN_NUM_CLASS):
@@ -385,12 +387,13 @@ class IMetTrain:
                 #     if score > best_val_dict[c]:
                 #         best_threshold_dict[c] = threshold
                 #         best_val_dict[c] = score
-            print("""
-        Best Threshold is: {}, with score: {}""".format(best_threshold, best_val))
-            tensorboardwriter.write_text(self.writer, """
-        Best Threshold is: {}, with score: {}""".format(best_threshold, best_val), config.epoch)
-            tensorboardwriter.write_best_threshold(self.writer, -1, best_val, best_threshold, config.epoch, config.fold)
+            report = report + """
+        Best Threshold is: {}, Score: {}, AreaUnder: {}""".format(best_threshold, best_val, total_score/total_tried)
+            tensorboardwriter.write_best_threshold(self.writer, -1, best_val, best_threshold, total_score/total_tried, config.epoch, config.fold)
             # for c in range(config.TRAIN_NUM_CLASS): tensorboardwriter.write_best_threshold(self.writer, c, best_val_dict[c], best_threshold_dict[c], config.epoch, config.fold)
+
+        print(report)
+        tensorboardwriter.write_text(self.writer, report, config.global_steps[config.fold])
 
         """HISTOGRAM"""
         if config.DISPLAY_HISTOGRAM:
@@ -443,9 +446,12 @@ class IMetTrain:
                 positive_bce = BCELoss(weight=labels_0 * 20 + 1)(prob_predict, labels_0)
                 loss = focal.mean()
                 """BACKPROP"""
-                optimizer.zero_grad()
                 loss.backward()
-                optimizer.step()
+                if (batch_index + 1) % config.TRAIN_GRADIENT_ACCUMULATION == 0:
+                    optimizer.step()
+                    optimizer.zero_grad()
+                elif batch_index + 1 == len(train_loader): # drop last
+                    optimizer.zero_grad()
 
                 """DETATCH"""
                 focal = focal.detach().cpu().numpy().mean()
@@ -520,7 +526,7 @@ class IMetTrain:
         tensorboardwriter.write_text(self.writer, """
         Epoch: {}, Fold: {}
         TrainLoss: {}, FLoss: {}
-        """.format(config.epoch, config.fold, train_loss, epoch_f), config.epoch)
+        """.format(config.epoch, config.fold, train_loss, epoch_f), config.global_steps[config.fold]-1)
         # lr_scheduler.step(epoch_f, epoch=config.epoch)
 
         del train_loss
@@ -591,6 +597,7 @@ class IMetEvaluation:
                 """LOSS"""
                 focal = focalloss_sigmoid_refined(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
                 f, precise, recall = differenciable_f_sigmoid(beta=2)(labels_0, logits_predict)
+                bce = BCELoss()(prob_predict, labels_0)
 
                 """EVALUATE LOSS"""
                 focal = focal.detach()
@@ -615,7 +622,7 @@ class IMetEvaluation:
                 f = f.detach().cpu().numpy()
                 precise = precise.detach().cpu().numpy().mean()
                 recall = recall.detach().cpu().numpy().mean()
-                # bce = bce.detach().cpu().numpy().mean()
+                bce = bce.detach().cpu().numpy().mean()
                 # positive_bce = positive_bce.detach().cpu().numpy().mean()
                 # loss = loss.detach().cpu().numpy()
                 labels_0 = labels_0.cpu().numpy()
@@ -647,7 +654,7 @@ class IMetEvaluation:
 
                 """CLEAN UP"""
                 del ids, image, image_for_display
-                del focal, f, precise, recall, labels_0, logits_predict, prob_predict
+                del focal, f, bce, precise, recall, labels_0, logits_predict, prob_predict
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
                 if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
             del pbar
