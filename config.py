@@ -298,7 +298,7 @@ elif PROJECT_NAME == "IMet":
     MODEL_LR_SCHEDULER_STEP = 1363*2
     MODEL_LR_SCHEDULER_REDUCE_RESTART = 6
     MODEL_LR_SCHEDULER_RESTART_COEF = 1./8
-    MODEL_FOLD = 5
+    MODEL_FOLD = 10
     # MODEL_NO_GRAD = [[],]
     MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], [-1], [-1], [-1], [-1]]
     MODEL_LEARNING_RATE_AFTER_UNFREEZE = 0.001
@@ -338,7 +338,7 @@ elif PROJECT_NAME == "IMet":
     DIRECTORY_SAMPLE_CSV = DIRECTORY_PREFIX + 'data/imet_dataset/sample_submission.csv'
     DIRECTORY_TRAIN = DIRECTORY_PREFIX + "data/imet_dataset/train/"
     DIRECTORY_TEST = DIRECTORY_PREFIX + 'data/imet_dataset/test/'
-    DIRECTORY_SPLIT = DIRECTORY_PREFIX + 'data/imet_dataset/split.npy'
+    DIRECTORY_SPLIT = DIRECTORY_PREFIX + 'data/imet_dataset/split{}.npy'.format(MODEL_FOLD)
     # DIRECTORY_PRESUDO_CSV = DIRECTORY_PREFIX + 'data/imet_dataset/presudo_labels.csv'
     DIRECTORY_CHECKPOINT = DIRECTORY_PREFIX + "model/" + PROJECT_TAG + "/"
     DIRECTORY_CP_NAME = 'CP{}_F{}_PT{}_VT{}_LR{}_BS{}_IMG{}.pth'
