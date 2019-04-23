@@ -223,6 +223,21 @@ def train_aug(term):
         PadIfNeeded(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, border_mode=cv2.BORDER_CONSTANT),
         Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),
     ])
+    elif config.epoch > config.AUGMENTATION_RESIZE_CHANGE_EPOCH:
+        return Compose([
+            HorizontalFlip(p=term % 2),
+            ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.002, rotate_limit=3, border_mode=cv2.BORDER_CONSTANT, p=0.8),
+            OneOf([CLAHE(clip_limit=2),
+                   IAASharpen(alpha=(0.1, 0.2), lightness=(0.5, 1.)),
+                   IAAEmboss(alpha=(0.1, 0.2), strength=(0.2, 0.7)),
+                   RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1),
+                   JpegCompression(quality_lower=99, quality_upper=100),
+                   Blur(blur_limit=2),
+                   GaussNoise()], p=0.8),
+            RandomGamma(gamma_limit=(90, 110), p=0.8),
+            PadIfNeeded(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, border_mode=cv2.BORDER_CONSTANT),
+            Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
+        ])
     else: return Compose([
         HorizontalFlip(p=term % 2),
         ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.002, rotate_limit=3, border_mode=cv2.BORDER_CONSTANT, p=0.8),
@@ -255,7 +270,13 @@ def train_aug(term):
         Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC), #1344
     ])
 def eval_aug(term):
-    return Compose([
+    if config.epoch > config.AUGMENTATION_RESIZE_CHANGE_EPOCH:
+        return Compose([
+            HorizontalFlip(p=term % 2),
+            PadIfNeeded(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, border_mode=cv2.BORDER_CONSTANT),
+            Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
+        ])
+    else: return Compose([
         HorizontalFlip(p=term % 2),
         PadIfNeeded(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, border_mode=cv2.BORDER_CONSTANT),
         Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
