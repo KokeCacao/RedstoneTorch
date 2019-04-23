@@ -62,6 +62,45 @@ class SEModule(nn.Module):
         x = self.sigmoid(x)
         return module_input * x
 
+# https://github.com/Youngkl0726/Convolutional-Block-Attention-Module/blob/master/CBAMNet.py
+class CBAM_SE_Module(nn.Module):
+
+    def __init__(self, channels, reduction):
+        super(CBAM_SE_Module, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.max_pool = nn.AdaptiveMaxPool2d(1)
+        self.fc1 = nn.Conv2d(channels, channels // reduction, kernel_size=1,
+                             padding=0)
+        self.relu = nn.ReLU(inplace=True)
+        self.fc2 = nn.Conv2d(channels // reduction, channels, kernel_size=1,
+                             padding=0)
+        self.sigmoid_channel = nn.Sigmoid()
+        self.conv_after_concat = nn.Conv2d(2, 1, kernel_size = 3, stride=1, padding = 1)
+        self.sigmoid_spatial = nn.Sigmoid()
+
+    def forward(self, x):
+        # Channel attention module
+        module_input = x
+        avg = self.avg_pool(x)
+        mx = self.max_pool(x)
+        avg = self.fc1(avg)
+        mx = self.fc1(mx)
+        avg = self.relu(avg)
+        mx = self.relu(mx)
+        avg = self.fc2(avg)
+        mx = self.fc2(mx)
+        x = avg + mx
+        x = self.sigmoid_channel(x)
+        # Spatial attention module
+        x = module_input * x
+        module_input = x
+        avg = torch.mean(x, 1, True)
+        mx, _ = torch.max(x, 1, True)
+        x = torch.cat((avg, mx), 1)
+        x = self.conv_after_concat(x)
+        x = self.sigmoid_spatial(x)
+        x = module_input * x
+        return x
 
 class Bottleneck(nn.Module):
     """
@@ -109,7 +148,8 @@ class SEBottleneck(Bottleneck):
                                bias=False)
         self.bn3 = nn.BatchNorm2d(planes * 4)
         self.relu = nn.ReLU(inplace=True)
-        self.se_module = SEModule(planes * 4, reduction=reduction)
+        # self.se_module = SEModule(planes * 4, reduction=reduction)
+        self.se_module = CBAM_SE_Module(planes * 4, reduction=reduction)
         self.downsample = downsample
         self.stride = stride
 
@@ -134,7 +174,8 @@ class SEResNetBottleneck(Bottleneck):
         self.conv3 = nn.Conv2d(planes, planes * 4, kernel_size=1, bias=False)
         self.bn3 = nn.BatchNorm2d(planes * 4)
         self.relu = nn.ReLU(inplace=True)
-        self.se_module = SEModule(planes * 4, reduction=reduction)
+        # self.se_module = SEModule(planes * 4, reduction=reduction)
+        self.se_module = CBAM_SE_Module(planes * 4, reduction=reduction)
         self.downsample = downsample
         self.stride = stride
 
@@ -162,7 +203,8 @@ class SEResNeXtBottleneck(Bottleneck):
         self.conv3 = nn.Conv2d(width, planes * 4, kernel_size=1, bias=False)
         self.bn3 = nn.BatchNorm2d(planes * 4)
         self.relu = nn.ReLU(inplace=True)
-        self.se_module = SEModule(planes * 4, reduction=reduction)
+        # self.se_module = SEModule(planes * 4, reduction=reduction)
+        self.se_module = CBAM_SE_Module(planes * 4, reduction=reduction)
         self.downsample = downsample
         self.stride = stride
 
@@ -242,7 +284,7 @@ class SENet(nn.Module):
 
         self.max_pool = nn.AdaptiveMaxPool2d(1)
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        self.conv1x1 = nn.Conv2d(2048, 2048, 1, stride=1, bias=False)
+        # self.conv1x1 = nn.Conv2d(2048, 2048, 1, stride=1, bias=False)
         self.linear_1 = nn.Linear(2048*3, 2730, bias=True)
         self.linear_2 = nn.Linear(2730, 1820, bias=True)
         self.linear_3 = nn.Linear(1820, num_classes, bias=True)
@@ -289,11 +331,12 @@ class SENet(nn.Module):
     def logits(self, x):
         max_pool = self.max_pool(x).flatten(1)
         avg_pool = self.avg_pool(x).flatten(1)
-        conv_pool = self.conv1x1(x).flatten(1)
+        # conv_pool = self.conv1x1(x).flatten(1)
 
 
         # x = x.view(x.size(0), -1)
-        x = torch.cat([max_pool, avg_pool, conv_pool], 1)
+        # x = torch.cat([max_pool, avg_pool, conv_pool], 1)
+        x = torch.cat([max_pool, avg_pool], 1)
 
         x = self.bn_1(x)
         x = self.dropout_1(x)
