@@ -240,6 +240,21 @@ class SENet(nn.Module):
             downsample_padding=downsample_padding
         )
 
+        self.max_pool = nn.AdaptiveMaxPool2d(1)
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.conv1x1 = nn.Conv2d(2048, 2048, 1, stride=1, bias=False)
+        self.linear_1 = nn.Linear(2048*3, 2730, bias=True)
+        self.linear_2 = nn.Linear(2730, 1820, bias=True)
+        self.linear_3 = nn.Linear(1820, num_classes, bias=True)
+        self.bn_1 = nn.BatchNorm1d(4096)
+        self.bn_2 = nn.BatchNorm1d(2730)
+        self.bn_3 = nn.BatchNorm1d(1820)
+        # self.cnn_dropout = nn.Dropout(0.2)
+        self.dropout_1 = nn.Dropout(0.6)
+        self.dropout_2 = nn.Dropout(0.6)
+        self.dropout_3 = nn.Dropout(0.4)
+        self.elu = nn.ELU()
+
     def _make_layer(self, block, planes, blocks, groups, reduction, stride=1,
                     downsample_kernel_size=1, downsample_padding=0):
         downsample = None
@@ -260,7 +275,7 @@ class SENet(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def forward(self, x):
+    def feature(self, x):
         x = self.layer0(x)
         x = self.layer1(x)
         # x = self.cnn_dropout(x)
@@ -270,31 +285,6 @@ class SENet(nn.Module):
         # x = self.cnn_dropout(x)
         x = self.layer4(x)
         return x
-
-class IMetNet(nn.Module):
-    def __init__(self, block, layers, groups, reduction, inplanes=128, input_3x3=True, downsample_kernel_size=3, downsample_padding=1, num_classes=1000):
-        super(IMetNet).__init__()
-        self.features_resize = SENet(block, layers, groups, reduction,
-                 inplanes=inplanes, input_3x3=input_3x3, downsample_kernel_size=downsample_kernel_size,
-                 downsample_padding=downsample_padding, num_classes=num_classes)
-        self.features_pad = SENet(block, layers, groups, reduction,
-                 inplanes=inplanes, input_3x3=input_3x3, downsample_kernel_size=downsample_kernel_size,
-                 downsample_padding=downsample_padding, num_classes=num_classes)
-
-        self.max_pool = nn.AdaptiveMaxPool2d(1)
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        self.conv1x1 = nn.Conv2d(2048, 2048, 1, stride=1, bias=False)
-        self.linear_1 = nn.Linear(2048*3, 2730, bias=True)
-        self.linear_2 = nn.Linear(2730, 1820, bias=True)
-        self.linear_3 = nn.Linear(1820, num_classes, bias=True)
-        self.bn_1 = nn.BatchNorm1d(4096)
-        self.bn_2 = nn.BatchNorm1d(2730)
-        self.bn_3 = nn.BatchNorm1d(1820)
-        # self.cnn_dropout = nn.Dropout(0.2)
-        self.dropout_1 = nn.Dropout(0.6)
-        self.dropout_2 = nn.Dropout(0.6)
-        self.dropout_3 = nn.Dropout(0.4)
-        self.elu = nn.ELU()
 
     def logits(self, x):
         max_pool = self.max_pool(x).flatten(1)
@@ -321,9 +311,8 @@ class IMetNet(nn.Module):
         return x
 
     def forward(self, x):
-        resize = self.features_resize(x)
-        pad = self.features_pad(x)
-        x = self.logits(resize, pad)
+        x = self.feature(x)
+        x = self.logits(x)
         return x
 
 def initialize_pretrained_model(model, num_classes, settings):
