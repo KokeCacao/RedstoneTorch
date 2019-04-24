@@ -285,7 +285,7 @@ elif PROJECT_NAME == "IMet":
 
 
     MODEL_EPOCHS = 64
-    MODEL_BATCH_SIZE = 32
+    MODEL_BATCH_SIZE = 16
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DECAY = 0
     MODEL_INIT_LEARNING_RATE = 0.0001 # this is useless for lr_schedulers
@@ -302,7 +302,7 @@ elif PROJECT_NAME == "IMet":
     # MODEL_NO_GRAD = [[],]
     MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], [-1], [-1], [-1], [-1]]
     MODEL_LEARNING_RATE_AFTER_UNFREEZE = 0.001
-    MODEL_FREEZE_EPOCH = 4
+    MODEL_FREEZE_EPOCH = 5
 
     TRAIN_GPU_DICT = {
         "kokecacao-ThinkPad-P50-Ubuntu": "0",
@@ -324,7 +324,7 @@ elif PROJECT_NAME == "IMet":
     TRAIN_NUM_WORKER = 8
     TRAIN_NUM_GPU = len(TRAIN_GPU_LIST)
     TRAIN_NUM_CLASS = 1103
-    TRAIN_GRADIENT_ACCUMULATION = 6
+    TRAIN_GRADIENT_ACCUMULATION = 12
 
     TRAIN_RATIO = 1
     EVAL_RATIO = 2 # to 8 when needed
