@@ -445,7 +445,8 @@ class IMetTrain:
                 f, precise, recall = differenciable_f_sigmoid(beta=2)(labels_0, logits_predict)
                 bce = BCELoss()(prob_predict, labels_0)
                 positive_bce = BCELoss(weight=labels_0 * 20 + 1)(prob_predict, labels_0)
-                loss = 0.5*focal.mean() + 0.5*f.mean()
+                # loss = 0.5*focal.mean() + 0.5*f.mean()
+                loss = focal.mean()
                 """BACKPROP"""
                 loss.backward()
                 if (batch_index + 1) % config.TRAIN_GRADIENT_ACCUMULATION == 0:
