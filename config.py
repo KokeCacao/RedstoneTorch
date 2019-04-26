@@ -300,8 +300,8 @@ elif PROJECT_NAME == "IMet":
     MODEL_LR_SCHEDULER_REDUCE_RESTART = 6
     MODEL_LR_SCHEDULER_RESTART_COEF = 1./8
     MODEL_FOLD = 10
-    # MODEL_NO_GRAD = [[],]
-    MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], [-1], [-1], [-1], [-1]]
+    MODEL_NO_GRAD = [[],]
+    # MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], [-1], [-1], [-1], [-1]]
     MODEL_LEARNING_RATE_AFTER_UNFREEZE = 0.001
     MODEL_FREEZE_EPOCH = 5
 
