@@ -14,7 +14,7 @@ from imgaug import augmenters as iaa
 from iterstrat.ml_stratifiers import MultilabelStratifiedKFold
 from torch._six import string_classes, int_classes
 from torch.utils import data
-from torch.utils.data import SubsetRandomSampler
+from torch.utils.data import SubsetRandomSampler, Sampler
 from sklearn.preprocessing import MultiLabelBinarizer
 from torch.utils.data.dataloader import numpy_type_map, default_collate
 from torchvision.transforms import transforms
@@ -83,6 +83,7 @@ class IMetDataset(data.Dataset):
 
     def __len__(self):
         return self.id_len
+
 
     def get_stratified_samplers(self, fold=-1):
         """
@@ -434,3 +435,28 @@ def transform(ids, image_0, labels_0, train, val):
         image_0 = REGULARIZATION_TRAINSFORM(image_0)
         if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
         return (ids, image, labels_0, image_0)
+
+# class StratifiedRandomSampler(object):
+#     r"""Samples elements randomly from a given list of indices, without replacement.
+#
+#     Arguments:
+#         indices (sequence): a sequence of indices
+#     """
+#
+#     def __init__(self, indices, labels):
+#         self.indices = indices
+#         self.labels = labels
+#
+#         mskf = MultilabelStratifiedKFold(n_splits=go    , random_state=None)
+#         for fold, (train_index, test_index) in enumerate(mskf.split(X, y)):
+#             print("#{} TRAIN:{} TEST:{}".format(fold, train_index, test_index))
+#             x_t = train_index
+#             # y_t = np.array([y[j] for j in train_index])
+#             x_e = test_index
+#             # y_e = np.array([y[j] for j in test_index])
+#
+#     def __iter__(self):
+#         return (self.indices[i] for i in torch.randperm(len(self.indices)))
+#
+#     def __len__(self):
+#         return len(self.indices)

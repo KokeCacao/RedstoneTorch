@@ -115,7 +115,7 @@ class IMetTrain:
                                                           batch_sampler=None,
                                                           num_workers=config.TRAIN_NUM_WORKER,
                                                           collate_fn=val_collate,
-                                                          pin_memory=False,
+                                                          pin_memory=True,
                                                           drop_last=False,
                                                           timeout=0,
                                                           worker_init_fn=None,
@@ -143,7 +143,7 @@ class IMetTrain:
                                          batch_sampler=None,
                                          num_workers=config.TRAIN_NUM_WORKER,
                                          collate_fn=val_collate,
-                                         pin_memory=False,
+                                         pin_memory=True,
                                          drop_last=False,
                                          timeout=0,
                                          worker_init_fn=None,
@@ -214,7 +214,7 @@ class IMetTrain:
                 #         if batch_index > 50: break
                 #     self.nets[0].cpu()
                 #     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-
+                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
                 self.step_epoch(nets=self.nets,
                                 optimizers=self.optimizers,
                                 lr_schedulers=self.lr_schedulers,
