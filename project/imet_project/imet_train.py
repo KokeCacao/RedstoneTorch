@@ -54,6 +54,7 @@ class IMetTrain:
             else:
                 print("     Creating Fold: #{}".format(fold))
                 # net = imet_net.se_resnext101_32x4d(config.TRAIN_NUM_CLASS, pretrained="imagenet")
+                net = imet_net.se_resnext50_32x4d(config.TRAIN_NUM_CLASS, pretrained="imagenet")
                 net = imet_net.fbresnet50(config.TRAIN_NUM_CLASS, pretrained="imagenet")
 
                 """FREEZING LAYER"""
