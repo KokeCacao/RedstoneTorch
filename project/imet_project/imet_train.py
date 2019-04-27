@@ -449,11 +449,16 @@ class IMetTrain:
                 loss = focal.mean()
                 """BACKPROP"""
                 loss.backward()
-                if (batch_index + 1) % config.TRAIN_GRADIENT_ACCUMULATION == 0:
+                if config.epoch > config.TRAIN_GRADIENT_ACCUMULATION:
+                    if (batch_index + 1) % config.TRAIN_GRADIENT_ACCUMULATION == 0:
+                        optimizer.step()
+                        optimizer.zero_grad()
+                    elif batch_index + 1 == len(train_loader): # drop last
+                        optimizer.zero_grad()
+                else:
                     optimizer.step()
                     optimizer.zero_grad()
-                elif batch_index + 1 == len(train_loader): # drop last
-                    optimizer.zero_grad()
+
 
                 """DETATCH"""
                 focal = focal.detach().cpu().numpy().mean()
