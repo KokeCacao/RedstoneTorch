@@ -226,7 +226,7 @@ def train_aug(term):
         RandomGamma(gamma_limit=(90, 110), p=0.8),
         # AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
         OneOf([
-            RandomCrop(config.AUGMENTATION_RESIZE+80, config.AUGMENTATION_RESIZE+80),
+            RandomCrop(300, 300),
             AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
             # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
             DoNothing(p=1),
@@ -246,7 +246,7 @@ def train_aug(term):
                    GaussNoise()], p=0.8),
             RandomGamma(gamma_limit=(90, 110), p=0.8),
             OneOf([
-                RandomCrop(config.AUGMENTATION_RESIZE+80, config.AUGMENTATION_RESIZE+80),
+                RandomCrop(300, 300),
                 AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
                 # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
                 DoNothing(p=1),
@@ -266,7 +266,7 @@ def train_aug(term):
                    GaussNoise()], p=0.8),
             RandomGamma(gamma_limit=(90, 110), p=0.8),
             OneOf([
-                RandomCrop(config.AUGMENTATION_RESIZE+80, config.AUGMENTATION_RESIZE+80),
+                RandomCrop(300, 300),
                 AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
                 # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
                 DoNothing(p=1),
@@ -278,7 +278,7 @@ def eval_aug(term):
         return Compose([
             HorizontalFlip(p=term % 2),
             OneOf([
-                RandomCrop(config.AUGMENTATION_RESIZE+80, config.AUGMENTATION_RESIZE+80),
+                RandomCrop(300, 300),
                 AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
                 # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
                 DoNothing(p=1),
@@ -288,7 +288,7 @@ def eval_aug(term):
     else: return Compose([
         HorizontalFlip(p=term % 2),
         OneOf([
-            RandomCrop(config.AUGMENTATION_RESIZE+80, config.AUGMENTATION_RESIZE+80),
+            RandomCrop(300, 300),
             AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
             # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
             DoNothing(p=1),
