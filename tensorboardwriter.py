@@ -41,7 +41,7 @@ def write_threshold_class(writer, best_threshold_dict, best_val_dict, class_list
             current_thres = current_thres + thres
             current_val = current_val + val
         else:
-            if freq != -1: writer.add_scalars('threshold/threshold_frequency', {"Threshold": current_thres/current_count, "Validation": current_val/current_count}, freq)
+            if current_count != 0: writer.add_scalars('threshold/threshold_frequency', {"Threshold": current_thres/current_count, "Validation": current_val/current_count}, freq)
 
             current_freq = freq
             current_thres = thres
