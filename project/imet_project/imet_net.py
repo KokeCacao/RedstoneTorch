@@ -148,8 +148,8 @@ class SEBottleneck(Bottleneck):
                                bias=False)
         self.bn3 = nn.BatchNorm2d(planes * 4)
         self.relu = nn.ReLU(inplace=True)
-        # self.se_module = SEModule(planes * 4, reduction=reduction)
-        self.se_module = CBAM_SE_Module(planes * 4, reduction=reduction)
+        self.se_module = SEModule(planes * 4, reduction=reduction)
+        # self.se_module = CBAM_SE_Module(planes * 4, reduction=reduction)
         self.downsample = downsample
         self.stride = stride
 
@@ -174,8 +174,8 @@ class SEResNetBottleneck(Bottleneck):
         self.conv3 = nn.Conv2d(planes, planes * 4, kernel_size=1, bias=False)
         self.bn3 = nn.BatchNorm2d(planes * 4)
         self.relu = nn.ReLU(inplace=True)
-        # self.se_module = SEModule(planes * 4, reduction=reduction)
-        self.se_module = CBAM_SE_Module(planes * 4, reduction=reduction)
+        self.se_module = SEModule(planes * 4, reduction=reduction)
+        # self.se_module = CBAM_SE_Module(planes * 4, reduction=reduction)
         self.downsample = downsample
         self.stride = stride
 
@@ -203,8 +203,8 @@ class SEResNeXtBottleneck(Bottleneck):
         self.conv3 = nn.Conv2d(width, planes * 4, kernel_size=1, bias=False)
         self.bn3 = nn.BatchNorm2d(planes * 4)
         self.relu = nn.ReLU(inplace=True)
-        # self.se_module = SEModule(planes * 4, reduction=reduction)
-        self.se_module = CBAM_SE_Module(planes * 4, reduction=reduction)
+        self.se_module = SEModule(planes * 4, reduction=reduction)
+        # self.se_module = CBAM_SE_Module(planes * 4, reduction=reduction)
         self.downsample = downsample
         self.stride = stride
 

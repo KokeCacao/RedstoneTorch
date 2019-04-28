@@ -137,7 +137,7 @@ def fbeta_score_pytorch(y_true, y_pred, beta, threshold, eps=1e-9):
         div(precision.mul(beta2) + recall + eps).
         mul(1 + beta2))
 
-def fbeta_score_numpy(y_true, y_pred, beta, threshold, eps=1e-9):
+def fbeta_score_numpy(y_true, y_pred, beta, threshold, eps=1e-9, raw=False):
     beta2 = beta**2
     y_pred = (y_pred>threshold).astype(np.byte)
     y_true = y_true.astype(np.byte)
@@ -146,4 +146,5 @@ def fbeta_score_numpy(y_true, y_pred, beta, threshold, eps=1e-9):
     precision = true_positive / (y_pred.sum(axis=1)+eps)
     recall = true_positive / (y_true.sum(axis=1)+eps)
 
-    return np.mean((precision*recall)/(precision*beta2 + recall + eps)*(1 + beta2))
+    if raw == False: return np.mean((precision*recall)/(precision*beta2 + recall + eps)*(1 + beta2))
+    else: return (precision*recall)/(precision*beta2 + recall + eps)*(1 + beta2)

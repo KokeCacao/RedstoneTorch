@@ -1,73 +1,191 @@
 import torch
 from torch.optim.optimizer import Optimizer, required
 
+# https://github.com/pytorch/pytorch/blob/015139b0c1c55c1a2e45f31ff309f4a7d715e796/torch/optim/sgdw.py
+# class SGDW(Optimizer):
+#     r"""Implements stochastic gradient descent (optionally with momentum).
+#
+#     Nesterov momentum is based on the formula from
+#     `On the importance of initialization and momentum in deep learning`__.
+#
+#     Args:
+#         params (iterable): iterable of parameters to optimize or dicts defining
+#             parameter groups
+#         lr (float): learning rate
+#         momentum (float, optional): momentum factor (default: 0)
+#         weight_decay (float, optional): weight decay (L2 penalty) (default: 0)
+#         dampening (float, optional): dampening for momentum (default: 0)
+#         nesterov (bool, optional): enables Nesterov momentum (default: False)
+#
+#     Example:
+#         >>> optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
+#         >>> optimizer.zero_grad()
+#         >>> loss_fn(model(input), target).backward()
+#         >>> optimizer.step()
+#
+#     __ http://www.cs.toronto.edu/%7Ehinton/absps/momentum.pdf
+#
+#     .. note::
+#         The implementation of SGD with Momentum/Nesterov subtly differs from
+#         Sutskever et. al. and implementations in some other frameworks.
+#
+#         Considering the specific case of Momentum, the update can be written as
+#
+#         .. math::
+#                   v = \rho * v + g \\
+#                   p = p - lr * v
+#
+#         where p, g, v and :math:`\rho` denote the parameters, gradient,
+#         velocity, and momentum respectively.
+#
+#         This is in contrast to Sutskever et. al. and
+#         other frameworks which employ an update of the form
+#
+#         .. math::
+#              v = \rho * v + lr * g \\
+#              p = p - v
+#
+#         The Nesterov version is analogously modified.
+#     """
+#
+#     def __init__(self, params, lr=required, momentum=0, dampening=0,
+#                  weight_decay=0, nesterov=False):
+#         defaults = dict(lr=lr, momentum=momentum, dampening=dampening,
+#                         weight_decay=weight_decay, nesterov=nesterov)
+#         if nesterov and (momentum <= 0 or dampening != 0):
+#             raise ValueError("Nesterov momentum requires a momentum and zero dampening")
+#         super(SGDW, self).__init__(params, defaults)
+#
+#     def __setstate__(self, state):
+#         super(SGDW, self).__setstate__(state)
+#         for group in self.param_groups:
+#             group.setdefault('nesterov', False)
+#
+#     def step(self, closure=None):
+#         """Performs a single optimization step.
+#
+#         Arguments:
+#             closure (callable, optional): A closure that reevaluates the model
+#                 and returns the loss.
+#         """
+#         loss = None
+#         if closure is not None:
+#             loss = closure()
+#
+#         for group in self.param_groups:
+#             weight_decay = group['weight_decay']
+#             momentum = group['momentum']
+#             dampening = group['dampening']
+#             nesterov = group['nesterov']
+#
+#             for p in group['params']:
+#                 if p.grad is None:
+#                     continue
+#                 d_p = p.grad.data
+#                 if momentum != 0:
+#                     param_state = self.state[p]
+#                     if 'momentum_buffer' not in param_state:
+#                         buf = param_state['momentum_buffer'] = torch.zeros_like(p.data)
+#                         buf.mul_(momentum).add_(d_p)
+#                     else:
+#                         buf = param_state['momentum_buffer']
+#                         buf.mul_(momentum).add_(1 - dampening, d_p)
+#                     if nesterov:
+#                         d_p = d_p.add(momentum, buf)
+#                     else:
+#                         d_p = buf
+#                 if weight_decay != 0:
+#                     p.data.add_(-weight_decay, p.data)
+#
+#         return loss
 
+# https://github.com/pytorch/pytorch/blob/b7b0e47f8c9977293ead21c5a6264c99640295a4/torch/optim/sgd.py
 class SGDW(Optimizer):
-    r"""Implements stochastic gradient descent warm (optionally with momentum).
-     It has been proposed in `Fixing Weight Decay Regularization in Adam`_.
-     Nesterov momentum is based on the formula from
+    r"""Implements stochastic gradient descent (optionally with momentum).
+
+    Nesterov momentum is based on the formula from
     `On the importance of initialization and momentum in deep learning`__.
-     Args:
+
+    Args:
         params (iterable): iterable of parameters to optimize or dicts defining
             parameter groups
         lr (float): learning rate
         momentum (float, optional): momentum factor (default: 0)
-        weight_decay (float, optional): weight decay (L2 penalty) (default: 0)
+        weight_decay (float, optional): weight decay (L2 penalty) using the
+            method from the paper `Fixing Weight Decay Regularization in
+            Adam` (default: 0)
         dampening (float, optional): dampening for momentum (default: 0)
         nesterov (bool, optional): enables Nesterov momentum (default: False)
-     Example:
+
+    .. _Fixing Weight Decay Regularization in Adam:
+        https://arxiv.org/abs/1711.05101
+
+    Example:
         >>> optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
         >>> optimizer.zero_grad()
         >>> loss_fn(model(input), target).backward()
         >>> optimizer.step()
-     __ http://www.cs.toronto.edu/%7Ehinton/absps/momentum.pdf
-     .. note::
+
+    __ http://www.cs.toronto.edu/%7Ehinton/absps/momentum.pdf
+
+    .. note::
         The implementation of SGD with Momentum/Nesterov subtly differs from
         Sutskever et. al. and implementations in some other frameworks.
-         Considering the specific case of Momentum, the update can be written as
-         .. math::
+
+        Considering the specific case of Momentum, the update can be written as
+
+        .. math::
                   v = \rho * v + g \\
                   p = p - lr * v
-         where p, g, v and :math:`\rho` denote the parameters, gradient,
+
+        where p, g, v and :math:`\rho` denote the parameters, gradient,
         velocity, and momentum respectively.
-         This is in contrast to Sutskever et. al. and
+
+        This is in contrast to Sutskever et. al. and
         other frameworks which employ an update of the form
-         .. math::
+
+        .. math::
              v = \rho * v + lr * g \\
              p = p - v
-         The Nesterov version is analogously modified.
-     .. Fixing Weight Decay Regularization in Adam:
-    https://arxiv.org/abs/1711.05101
+
+        The Nesterov version is analogously modified.
     """
-     def __init__(self, params, lr=required, momentum=0, dampening=0,
+
+    def __init__(self, params, lr=required, momentum=0, dampening=0,
                  weight_decay=0, nesterov=False):
         defaults = dict(lr=lr, momentum=momentum, dampening=dampening,
                         weight_decay=weight_decay, nesterov=nesterov)
         if nesterov and (momentum <= 0 or dampening != 0):
             raise ValueError("Nesterov momentum requires a momentum and zero dampening")
-        super(SGD, self).__init__(params, defaults)
-     def __setstate__(self, state):
-        super(SGD, self).__setstate__(state)
+        super(SGDW, self).__init__(params, defaults)
+
+    def __setstate__(self, state):
+        super(SGDW, self).__setstate__(state)
         for group in self.param_groups:
             group.setdefault('nesterov', False)
-     def step(self, closure=None):
+
+    def step(self, closure=None):
         """Performs a single optimization step.
-         Arguments:
+
+        Arguments:
             closure (callable, optional): A closure that reevaluates the model
                 and returns the loss.
         """
         loss = None
         if closure is not None:
             loss = closure()
-         for group in self.param_groups:
+
+        for group in self.param_groups:
             weight_decay = group['weight_decay']
             momentum = group['momentum']
             dampening = group['dampening']
             nesterov = group['nesterov']
-             for p in group['params']:
+
+            for p in group['params']:
                 if p.grad is None:
                     continue
                 d_p = p.grad.data
+
                 if momentum != 0:
                     param_state = self.state[p]
                     if 'momentum_buffer' not in param_state:
@@ -81,5 +199,11 @@ class SGDW(Optimizer):
                     else:
                         d_p = buf
                 if weight_decay != 0:
-                    p.data.add_(-weight_decay, p.data)
-         return loss
+                    xold = p.data.clone()
+
+                p.data.add_(-group['lr'], d_p)
+
+                if weight_decay != 0:
+                    p.data.add_(-weight_decay, xold)
+
+        return loss
