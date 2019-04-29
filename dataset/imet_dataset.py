@@ -21,11 +21,11 @@ from torchvision.transforms import transforms
 
 from albumentations import (
     HorizontalFlip, CLAHE, ShiftScaleRotate, Blur, GaussNoise, RandomBrightnessContrast, IAASharpen, IAAEmboss, OneOf, Compose, JpegCompression,
-    CenterCrop, PadIfNeeded, RandomCrop, RandomGamma, Resize)
+    CenterCrop, PadIfNeeded, RandomCrop, RandomGamma, Resize, IAAPiecewiseAffine)
 # don't import Normalize from albumentations
 
 import tensorboardwriter
-from utils.augmentation import AdaptivePadIfNeeded, DoNothing
+from utils.augmentation import AdaptivePadIfNeeded, DoNothing, RandomPercentCrop
 
 if os.environ.get('DISPLAY', '') == '':
     print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')
@@ -213,30 +213,30 @@ class IMetDataset(data.Dataset):
 def train_aug(term):
     if config.epoch <= config.MODEL_FREEZE_EPOCH +2:
         return Compose([
-        HorizontalFlip(p=term % 2),
-        ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.9, 0.3), rotate_limit=3, border_mode=cv2.BORDER_CONSTANT, p=0.8),
-
-        # OneOf([CLAHE(clip_limit=2),
-        #        IAASharpen(alpha=(0.1, 0.2), lightness=(0.5, 1.)),
-        #        IAAEmboss(alpha=(0.1, 0.2), strength=(0.2, 0.7)),
-        #        RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1),
-        #        JpegCompression(quality_lower=99, quality_upper=100),
-        #        Blur(blur_limit=2),
-        #        GaussNoise()], p=0.5),
-        RandomGamma(gamma_limit=(90, 110), p=0.8),
-        # AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
-        OneOf([
-            RandomCrop(300, 300),
+            HorizontalFlip(p=term % 2),
+            IAAPiecewiseAffine(scale=(0.01, 0.02)),
             AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
-            # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
-            DoNothing(p=1),
-        ], p=1),
-        Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),
-    ])
+            ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.5), rotate_limit=3, border_mode=cv2.BORDER_CONSTANT, p=0.8),
+            # OneOf([CLAHE(clip_limit=2),
+            #        IAASharpen(alpha=(0.1, 0.2), lightness=(0.5, 1.)),
+            #        IAAEmboss(alpha=(0.1, 0.2), strength=(0.2, 0.7)),
+            #        RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1),
+            #        JpegCompression(quality_lower=99, quality_upper=100),
+            #        Blur(blur_limit=2),
+            #        GaussNoise()], p=0.8),
+            # RandomGamma(gamma_limit=(90, 110), p=0.8),
+            OneOf([
+                RandomPercentCrop(0.8, 0.8),
+                DoNothing(p=1),
+            ], p=1),
+            Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
+        ])
     elif config.epoch > config.AUGMENTATION_RESIZE_CHANGE_EPOCH:
         return Compose([
             HorizontalFlip(p=term % 2),
-            ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.8, 0.5), rotate_limit=3, border_mode=cv2.BORDER_CONSTANT, p=0.8),
+            IAAPiecewiseAffine(scale=(0.01, 0.02)),
+            AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
+            ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.5), rotate_limit=3, border_mode=cv2.BORDER_CONSTANT, p=0.8),
             OneOf([CLAHE(clip_limit=2),
                    IAASharpen(alpha=(0.1, 0.2), lightness=(0.5, 1.)),
                    IAAEmboss(alpha=(0.1, 0.2), strength=(0.2, 0.7)),
@@ -246,9 +246,7 @@ def train_aug(term):
                    GaussNoise()], p=0.8),
             RandomGamma(gamma_limit=(90, 110), p=0.8),
             OneOf([
-                RandomCrop(300, 300),
-                AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
-                # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
+                RandomPercentCrop(0.8, 0.8),
                 DoNothing(p=1),
             ], p=1),
             Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
@@ -256,7 +254,9 @@ def train_aug(term):
     else:
         return Compose([
             HorizontalFlip(p=term % 2),
-            ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.8, 0.5), rotate_limit=3, border_mode=cv2.BORDER_CONSTANT, p=0.8),
+            IAAPiecewiseAffine(scale=(0.01, 0.02)),
+            AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
+            ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.5), rotate_limit=3, border_mode=cv2.BORDER_CONSTANT, p=0.8),
             OneOf([CLAHE(clip_limit=2),
                    IAASharpen(alpha=(0.1, 0.2), lightness=(0.5, 1.)),
                    IAAEmboss(alpha=(0.1, 0.2), strength=(0.2, 0.7)),
@@ -266,9 +266,7 @@ def train_aug(term):
                    GaussNoise()], p=0.8),
             RandomGamma(gamma_limit=(90, 110), p=0.8),
             OneOf([
-                RandomCrop(300, 300),
-                AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
-                # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
+                RandomPercentCrop(0.8, 0.8),
                 DoNothing(p=1),
             ], p=1),
             Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
@@ -277,29 +275,62 @@ def eval_aug(term):
     if config.epoch > config.AUGMENTATION_RESIZE_CHANGE_EPOCH:
         return Compose([
             HorizontalFlip(p=term % 2),
+            IAAPiecewiseAffine(scale=(0.01, 0.02)),
+            AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
+            ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.5), rotate_limit=3, border_mode=cv2.BORDER_CONSTANT, p=0.8),
+            OneOf([CLAHE(clip_limit=2),
+                   IAASharpen(alpha=(0.1, 0.2), lightness=(0.5, 1.)),
+                   IAAEmboss(alpha=(0.1, 0.2), strength=(0.2, 0.7)),
+                   RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1),
+                   JpegCompression(quality_lower=99, quality_upper=100),
+                   Blur(blur_limit=2),
+                   GaussNoise()], p=0.8),
+            RandomGamma(gamma_limit=(90, 110), p=0.8),
             OneOf([
-                RandomCrop(300, 300),
-                AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
-                # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
+                RandomPercentCrop(0.8, 0.8),
                 DoNothing(p=1),
             ], p=1),
             Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
         ])
-    else: return Compose([
-        HorizontalFlip(p=term % 2),
-        OneOf([
-            RandomCrop(300, 300),
+    else:
+        return Compose([
+            HorizontalFlip(p=term % 2),
+            IAAPiecewiseAffine(scale=(0.01, 0.02)),
             AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
-            # Compose([AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),], p=1),
-            DoNothing(p=1),
-        ], p=1),
-        Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
-    ])
+            ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.5), rotate_limit=3, border_mode=cv2.BORDER_CONSTANT, p=0.8),
+            # OneOf([CLAHE(clip_limit=2),
+            #        IAASharpen(alpha=(0.1, 0.2), lightness=(0.5, 1.)),
+            #        IAAEmboss(alpha=(0.1, 0.2), strength=(0.2, 0.7)),
+            #        RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1),
+            #        JpegCompression(quality_lower=99, quality_upper=100),
+            #        Blur(blur_limit=2),
+            #        GaussNoise()], p=0.8),
+            # RandomGamma(gamma_limit=(90, 110), p=0.8),
+            OneOf([
+                RandomPercentCrop(0.8, 0.8),
+                DoNothing(p=1),
+            ], p=1),
+            Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
+        ])
 def test_aug(term):
     return Compose([
         HorizontalFlip(p=term % 2),
-        PadIfNeeded(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, border_mode=cv2.BORDER_CONSTANT),
-        Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),
+        IAAPiecewiseAffine(scale=(0.01, 0.02)),
+        AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
+        ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.5), rotate_limit=3, border_mode=cv2.BORDER_CONSTANT, p=0.8),
+        # OneOf([CLAHE(clip_limit=2),
+        #        IAASharpen(alpha=(0.1, 0.2), lightness=(0.5, 1.)),
+        #        IAAEmboss(alpha=(0.1, 0.2), strength=(0.2, 0.7)),
+        #        RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1),
+        #        JpegCompression(quality_lower=99, quality_upper=100),
+        #        Blur(blur_limit=2),
+        #        GaussNoise()], p=0.8),
+        # RandomGamma(gamma_limit=(90, 110), p=0.8),
+        OneOf([
+            RandomPercentCrop(0.8, 0.8),
+            DoNothing(p=1),
+        ], p=1),
+        Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
     ])
 def tta_aug(term):
     return train_aug(term)

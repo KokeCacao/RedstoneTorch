@@ -303,7 +303,7 @@ elif PROJECT_NAME == "IMet":
     # MODEL_NO_GRAD = [[],]
     MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], [-1], [-1], [-1], [-1]]
     MODEL_LEARNING_RATE_AFTER_UNFREEZE = 0.001
-    MODEL_FREEZE_EPOCH = 5
+    MODEL_FREEZE_EPOCH = 7
 
     TRAIN_GPU_DICT = {
         "kokecacao-ThinkPad-P50-Ubuntu": "0",
