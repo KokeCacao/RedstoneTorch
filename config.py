@@ -286,7 +286,7 @@ elif PROJECT_NAME == "IMet":
 
     MODEL_EPOCHS = 64
     # MODEL_BATCH_SIZE = 256
-    MODEL_BATCH_SIZE = 32
+    MODEL_BATCH_SIZE = 128
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DECAY = 0.0001 # weight decay only used in AdamW and SGDW, other implementation may be wrong
     MODEL_INIT_LEARNING_RATE = 0.0001 # this is useless for lr_schedulers
