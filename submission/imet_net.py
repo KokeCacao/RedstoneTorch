@@ -570,7 +570,7 @@ class FBResNet(nn.Module):
 
 def fbresnet50(num_classes, pretrained='imagenet'):
     model = FBResNet(Bottleneck, [3, 4, 6, 3], num_classes=num_classes)
-    if pretrained is not None:
+    if pretrained is not None and pretrained is not False:
         url = 'https://download.pytorch.org/models/resnet50-19c8e357.pth'
         modified_initialize_pretrained_model(model, url)
     return model
