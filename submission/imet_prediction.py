@@ -22,9 +22,9 @@ class IMetPrediction:
                 self.nets.append(None)
             else:
                 print("     Creating Fold: #{}".format(fold))
-                # net = imet_net.fbresnet50(config.TRAIN_NUM_CLASS, pretrained=False)
+                net = imet_net.fbresnet50(config.TRAIN_NUM_CLASS, pretrained=False)
                 # net = imet_net.se_resnext50_32x4d(config.TRAIN_NUM_CLASS, pretrained=None)
-                net = imet_net.se_resnext101_32x4d(config.TRAIN_NUM_CLASS, pretrained=None)
+                # net = imet_net.se_resnext101_32x4d(config.TRAIN_NUM_CLASS, pretrained=None)
 
                 if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
                 self.nets.append(net)
