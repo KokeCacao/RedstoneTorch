@@ -1,3 +1,4 @@
+import multiprocessing
 import socket
 import time
 import numpy as np
@@ -307,7 +308,7 @@ elif PROJECT_NAME == "IMet":
 
     TRAIN_GPU_DICT = {
         "kokecacao-ThinkPad-P50-Ubuntu": "0",
-        "ml-k80-3": "0,1", # 16280 MB
+        "ml-k80-3": "0,1,2,3", # 16280 MB
         "ml-k80-4": "0",
         "ml-p100-1": "0",
         "presudo-0": "0",
@@ -322,7 +323,7 @@ elif PROJECT_NAME == "IMet":
     TRAIN_GPU_LIST = [int(i) for i in TRAIN_GPU_ARG.split(",")]
     TRAIN_DATA_PERCENT = 1
     TRAIN_SEED = 19
-    TRAIN_NUM_WORKER = 8
+    TRAIN_NUM_WORKER = multiprocessing.cpu_count()
     TRAIN_NUM_GPU = len(TRAIN_GPU_LIST)
     TRAIN_NUM_CLASS = 1103
     TRAIN_GRADIENT_ACCUMULATION = 6
