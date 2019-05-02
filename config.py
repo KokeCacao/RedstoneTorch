@@ -286,7 +286,7 @@ elif PROJECT_NAME == "IMet":
 
     MODEL_EPOCHS = 64
     # MODEL_BATCH_SIZE = 256
-    MODEL_BATCH_SIZE = 100
+    MODEL_BATCH_SIZE = 128
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DECAY = 0.0001 # weight decay only used in AdamW and SGDW, other implementation may be wrong
     MODEL_INIT_LEARNING_RATE = 0.0001 # this is useless for lr_schedulers
@@ -307,7 +307,7 @@ elif PROJECT_NAME == "IMet":
 
     TRAIN_GPU_DICT = {
         "kokecacao-ThinkPad-P50-Ubuntu": "0",
-        "ml-k80-3": "0", # 16280 MB
+        "ml-k80-3": "0,1", # 16280 MB
         "ml-k80-4": "0",
         "ml-p100-1": "0",
         "presudo-0": "0",
