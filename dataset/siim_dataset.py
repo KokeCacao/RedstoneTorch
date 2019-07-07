@@ -198,18 +198,20 @@ class SIIMDataset(data.Dataset):
         img = ds.pixel_array  # get image array
 
         # return np.load(id)
-        return np.array(img)
+        return np.array(np.stack((img,) * 3,-1))
 
     def get_load_label_by_indice(self, indice):
         # TODO: process label to picture
         # TODO : test if it works
         if len(self.labelframe) - 1 < indice: return None
-        return np.float32(rle2mask(self.labelframe[indice], config.IMG_SIZE, config.IMG_SIZE))
+        img = np.float32(rle2mask(self.labelframe[indice], config.IMG_SIZE, config.IMG_SIZE))
+        return np.stack((img,) * 3,-1)
 
     def get_load_label_by_id(self, id):
         # TODO: process label to picture
         # TODO : test if it works
-        return np.float32(rle2mask(self.labelframe[self.id_to_indices[id]], config.IMG_SIZE, config.IMG_SIZE))
+        img = np.float32(rle2mask(self.labelframe[self.id_to_indices[id]], config.IMG_SIZE, config.IMG_SIZE))
+        return np.stack((img,) * 3,-1)
 
     def get_metadata_by_id(self, id):
         ds = pydicom.dcmread(config.DIRECTORY_TRAIN + id)
@@ -415,6 +417,7 @@ def transform(ids, image_0, labels_0, mode):
     """
 
     REGULARIZATION_TRAINSFORM = transforms.Compose([
+            lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)), # and don't put them in strong_aug()
             lambda x: (cv2.resize(x[0],(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC), cv2.resize(x[1],(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC)),
             lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)), # make the image within the range
             lambda x: (transforms.ToTensor()(x[0]), transforms.ToTensor()(x[1])),
@@ -440,11 +443,13 @@ def transform(ids, image_0, labels_0, mode):
     elif mode == "train":
         term = config.epoch % 8
         TRAIN_TRANSFORM = transforms.Compose([
+            lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)), # and don't put them in strong_aug()
             lambda x: train_aug(term)(image=x[0], mask=x[1]), # Yes, you have to use image=xxx
             lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)), # make the image within the range
             lambda x: (transforms.ToTensor()(x[0]), transforms.ToTensor()(x[1])),
             # Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD), # this needs to be set accordingly
         ])
+        print(image_0.shape, labels_0.shape)
         image, labels = TRAIN_TRANSFORM((image_0, labels_0))
         image_0, labels_0 = REGULARIZATION_TRAINSFORM((image_0, labels_0))
         if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
