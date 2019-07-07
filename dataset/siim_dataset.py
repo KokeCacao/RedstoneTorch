@@ -231,17 +231,21 @@ class SIIMDataset(data.Dataset):
 def train_aug(term):
     return Compose([
         HorizontalFlip(p=term % 2),
-        IAAPiecewiseAffine(scale=(0.01, 0.02)),
-        AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
-        ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.5), rotate_limit=3, border_mode=cv2.BORDER_CONSTANT, p=0.8),
-        OneOf([CLAHE(clip_limit=2),
-               IAASharpen(alpha=(0.1, 0.2), lightness=(0.5, 1.)),
-               IAAEmboss(alpha=(0.1, 0.2), strength=(0.2, 0.7)),
-               RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1),
-               JpegCompression(quality_lower=99, quality_upper=100),
-               Blur(blur_limit=2),
-               GaussNoise()], p=0.8),
-        RandomGamma(gamma_limit=(90, 110), p=0.8),
+
+
+        # IAAPiecewiseAffine(scale=(0.01, 0.02)),
+        # AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
+        # ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.5), rotate_limit=3, border_mode=cv2.BORDER_CONSTANT, p=0.8),
+        # OneOf([CLAHE(clip_limit=2),
+        #        IAASharpen(alpha=(0.1, 0.2), lightness=(0.5, 1.)),
+        #        IAAEmboss(alpha=(0.1, 0.2), strength=(0.2, 0.7)),
+        #        RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1),
+        #        JpegCompression(quality_lower=99, quality_upper=100),
+        #        Blur(blur_limit=2),
+        #        GaussNoise()], p=0.8),
+        # RandomGamma(gamma_limit=(90, 110), p=0.8),
+
+
         OneOf([
             RandomPercentCrop(0.8, 0.8),
             DoNothing(p=1),
