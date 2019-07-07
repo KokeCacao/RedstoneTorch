@@ -189,8 +189,10 @@ class SEResNeXtBottleneck(Bottleneck):
     def __init__(self, inplanes, planes, groups, reduction, stride=1,
                  downsample=None, base_width=4):
         super(SEResNeXtBottleneck, self).__init__()
-        width = int(math.floor(planes * (base_width / 64)) * groups)
 
+        """Changed according to https://raw.githubusercontent.com/SeuTao/TGS-Salt-Identification-Challenge-2018-_4th_place_solution/master/model/senet.py"""
+        # width = math.floor(planes * (base_width / 64)) * groups
+        width = int(math.floor(planes * (base_width / 64)) * groups)
 
         self.conv1 = nn.Conv2d(inplanes, width, kernel_size=1, stride=1, bias=False)
         self.bn1 = nn.BatchNorm2d(width)
@@ -256,8 +258,12 @@ class SENet(nn.Module):
         super(SENet, self).__init__()
         self.inplanes = inplanes
         if input_3x3:
+
+            """TRING TO CHANGE TO 1 CHANNEL"""
+            # ('conv1', nn.Conv2d(3, 64, 3, stride=2, padding=1,
+            #                     bias=False)),
             layer0_modules = [
-                ('conv1', nn.Conv2d(3, 64, 3, stride=2, padding=1,
+                ('conv1', nn.Conv2d(1, 64, 3, stride=2, padding=1,
                                     bias=False)),
                 ('bn1', nn.BatchNorm2d(64)),
                 ('relu1', nn.ReLU(inplace=True)),
