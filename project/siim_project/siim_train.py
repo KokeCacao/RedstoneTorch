@@ -448,12 +448,10 @@ class SIIMTrain:
                 prob_predict = torch.nn.Sigmoid()(logits_predict)
                 prob_empty = torch.nn.Sigmoid()(empty_logits)
 
-                print(labels)
-                print(logits_predict)
                 """LOSS"""
                 if config.TRAIN_GPU_ARG:
                     labels = labels.cuda()
-                    empty = empty.cuda().float()
+                    empty = empty.cuda().float() # I don't know why I need to specify float() -> otherwise it will be long
                 dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, logits_predict)
                 bce = BCELoss()(prob_empty, empty)
                 loss = dice.mean() + bce.mean()
@@ -490,7 +488,7 @@ class SIIMTrain:
                 """DISPLAY"""
                 tensorboardwriter.write_memory(self.writer, "train")
 
-                pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Conf:{:.4f} lr:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, total_confidence / (batch_index + 1), optimizer.param_groups[0]['lr']))
+                pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Conf:{:.4f} lr:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), empty, prob_empty, total_confidence / (batch_index + 1), optimizer.param_groups[0]['lr']))
                 out_dict = {'Epoch/{}'.format(config.fold): config.epoch,
                             'LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold): optimizer.param_groups[0]['lr'],
                             'Loss/{}'.format(config.fold): loss,
