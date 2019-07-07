@@ -157,6 +157,9 @@ class UNetResNet(nn.Module):
 
         self.relu = nn.ReLU(inplace=True)
 
+        """EDIT CHANNEL TO 1"""
+        self.encoder.conv1 = self.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+
         self.conv1 = nn.Sequential(self.encoder.conv1,
                                    self.encoder.bn1,
                                    self.encoder.relu,

@@ -446,7 +446,7 @@ def transform(ids, image_0, labels_0, mode):
             lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)), # and don't put them in strong_aug()
             lambda x: train_aug(term)(image=x[0], mask=x[1]), # Yes, you have to use image=xxx
             lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)), # make the image within the range
-            lambda x: (transforms.ToTensor()(x[0]), transforms.ToTensor()(x[1])),
+            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)), # for 1 dim gray scale
             # Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD), # this needs to be set accordingly
         ])
         print(image_0.shape, labels_0.shape)
