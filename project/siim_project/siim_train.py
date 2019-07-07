@@ -448,6 +448,8 @@ class SIIMTrain:
                 prob_predict = torch.nn.Sigmoid()(logits_predict)
                 prob_empty = torch.nn.Sigmoid()(empty_logits)
 
+                print(labels)
+                print(logits_predict)
                 """LOSS"""
                 if config.TRAIN_GPU_ARG:
                     labels = labels.cuda()
