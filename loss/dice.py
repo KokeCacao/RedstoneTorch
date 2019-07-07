@@ -58,7 +58,7 @@ class denoised_siim_dice(torch.nn.Module):
 
         """dim here should be 0 instead of 1?"""
         input = torch.softmax(input, dim=1)[:,0,...].view(n,-1)
-        input = (input > self.threshold).long()
+        input = (input > self.threshold).float()
         if self.denoised: input[input.sum(-1) < noise_th,...] = 0.0
         #input = input.argmax(dim=1).view(n,-1)
         targs = targs.view(n,-1)
