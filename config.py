@@ -417,7 +417,7 @@ elif PROJECT_NAME == "SIIM":
 
 
     MODEL_EPOCHS = 32
-    MODEL_BATCH_SIZE = 64
+    MODEL_BATCH_SIZE = 16
     MODEL_MOMENTUM = 0.9
     MODEL_WEIGHT_DECAY = 0.0001 # weight decay only used in AdamW and SGDW, other implementation may be wrong
     MODEL_INIT_LEARNING_RATE = 0.0001 # this is useless for lr_schedulers
