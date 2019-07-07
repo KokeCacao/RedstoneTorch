@@ -56,7 +56,8 @@ class denoised_siim_dice(torch.nn.Module):
         # area < 0.6103516% of the image can be seen as noise
         noise_th = 100.0 * (n / 128.0) ** 2  # threshold for the number of predicted pixels
 
-        input = torch.softmax(input, dim=1)[:,1,...].view(n,-1)
+        """dim here should be 0 instead of 1?"""
+        input = torch.softmax(input, dim=1)[:,0,...].view(n,-1)
         input = (input > self.threshold).long()
         if self.denoised: input[input.sum(-1) < noise_th,...] = 0.0
         #input = input.argmax(dim=1).view(n,-1)
