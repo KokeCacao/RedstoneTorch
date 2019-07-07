@@ -186,7 +186,16 @@ def resnext50_ibn_a(baseWidth, cardinality):
     return model
 
 
-from utils import state_dict_remove_moudle
+def state_dict_remove_moudle(moudle_state_dict, model):
+    state_dict = model.state_dict()
+    keys = list(moudle_state_dict.keys())
+    for key in keys:
+        print(key + ' loaded')
+        new_key = key.replace(r'module.', r'')
+        print(new_key)
+        state_dict[new_key] = moudle_state_dict[key]
+
+    return state_dict
 
 
 def resnext101_ibn_a(baseWidth, cardinality, pretrained=True):
