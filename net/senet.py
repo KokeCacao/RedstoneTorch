@@ -277,8 +277,11 @@ class SENet(nn.Module):
                 ('relu3', nn.ReLU(inplace=True)),
             ]
         else:
+            """TRING TO CHANGE TO 1 CHANNEL"""
+            # ('conv1', nn.Conv2d(3, 64, 3, stride=2, padding=1,
+            #                     bias=False)),
             layer0_modules = [
-                ('conv1', nn.Conv2d(3, inplanes, kernel_size=7, stride=2,
+                ('conv1', nn.Conv2d(1, inplanes, kernel_size=7, stride=2,
                                     padding=3, bias=False)),
                 ('bn1', nn.BatchNorm2d(inplanes)),
                 ('relu1', nn.ReLU(inplace=True)),
