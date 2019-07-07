@@ -15,7 +15,8 @@ from project.hpa_project import hpa_train
 #     with open(file_name + ".txt", "a+") as file:
 #         file.write(data + "\n")
 # from project.HisCancer_project import HisCancer_train
-from project.imet_project import imet_train
+# from project.imet_project import imet_train
+from project.siim_project import siim_train
 from reproduceability import reproduceability
 
 
@@ -106,7 +107,8 @@ if __name__ == '__main__':
         try:
             # project = hpa_train.HPATrain(writer)
             # project = HisCancer_train.HisCancerTrain(writer)
-            project = imet_train.IMetTrain(writer)
+            # project = imet_train.IMetTrain(writer)
+            project = siim_train.SIIMTrain(writer)
         except Exception as e:
             # with open('Exception.txt', 'a+') as f:
             #     f.write(str(e))
