@@ -42,14 +42,14 @@ def dice_coeff(input, target):
 
 # adapted from https://www.kaggle.com/iafoss/hypercolumns-pneumothorax-fastai-0-818-lb
 class denoised_siim_dice(torch.nn.Module):
-    def __init__(self, threshold: float, iou: bool = False, eps: float = 1e-8, denoised: bool = False):
+    def __init__(self, threshold, iou = False, eps = 1e-8, denoised = False):
         super(denoised_siim_dice).__init__()
         self.threshold = threshold
         self.iou = iou
         self.eps = eps
         self.denoised = denoised
 
-    def forward(self, input:Tensor, targs:Tensor)->Tensor:
+    def forward(self, input, targs):
         n = targs.shape[0]
 
         # eliminate all predictions with a few (noise_th) pixesls
