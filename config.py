@@ -438,7 +438,7 @@ elif PROJECT_NAME == "SIIM":
 
     TRAIN_GPU_DICT = {
         "kokecacao-ThinkPad-P50-Ubuntu": "0",
-        "ml-k80-3": "0,1,2,3", # 16280 MB
+        "ml-k80-3": "0", # 16280 MB
         "ml-k80-4": "0",
         "ml-p100-1": "0",
         "presudo-0": "0",
