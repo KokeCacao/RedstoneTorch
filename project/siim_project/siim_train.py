@@ -453,7 +453,7 @@ class SIIMTrain:
                 """LOSS"""
                 if config.TRAIN_GPU_ARG:
                     labels = labels.cuda()
-                    empty = empty.cuda()
+                    empty = empty.cuda().float()
                 dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, logits_predict)
                 bce = BCELoss()(prob_empty, empty)
                 loss = dice.mean() + bce.mean()
