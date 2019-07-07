@@ -103,6 +103,7 @@ class SIIMDataset(data.Dataset):
 
 
         if config.DEBUG_WRITE_SPLIT_CSV or not os.path.exists(config.DIRECTORY_SPLIT):
+            print("Could not (or you chose not to) load DIRECTORY_SPLIT. Creating Split manually.")
             if os.path.exists(config.DIRECTORY_SPLIT):
                 os.remove(config.DIRECTORY_SPLIT)
                 print("WARNING: the split file '{}' already exist, remove file".format(config.DIRECTORY_SPLIT))
@@ -229,6 +230,9 @@ class SIIMDataset(data.Dataset):
     def get_metadata_by_indice(self, indice):
         return self.get_metadata_by_id(self.indices_to_id[indice])
 
+
+def no_aug():
+    return Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC)
 
 def train_aug(term):
     if config.epoch > config.AUGMENTATION_RESIZE_CHANGE_EPOCH:
@@ -418,9 +422,9 @@ def transform(ids, image_0, labels_0, mode):
 
     REGULARIZATION_TRAINSFORM = transforms.Compose([
             lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)), # and don't put them in strong_aug()
-            lambda x: (cv2.resize(x[0],(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC), cv2.resize(x[1],(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC)),
+            lambda x: no_aug()(image=x[0], mask=x[1]), # Yes, you have to use image=xxx
             lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)), # make the image within the range
-            lambda x: (transforms.ToTensor()(x[0]), transforms.ToTensor()(x[1])),
+            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)), # for 1 dim gray scale
         ])
 
     """ https://stackoverflow.com/questions/23853632/which-kind-of-interpolation-best-for-resizing-image
