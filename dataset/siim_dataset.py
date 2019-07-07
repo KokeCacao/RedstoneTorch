@@ -229,29 +229,54 @@ class SIIMDataset(data.Dataset):
 
 
 def train_aug(term):
-    return Compose([
-        HorizontalFlip(p=term % 2),
+    if config.epoch > config.AUGMENTATION_RESIZE_CHANGE_EPOCH:
+        return Compose([
+            HorizontalFlip(p=term % 2),
 
 
-        # IAAPiecewiseAffine(scale=(0.01, 0.02)),
-        # AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
-        # ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.5), rotate_limit=3, border_mode=cv2.BORDER_CONSTANT, p=0.8),
-        # OneOf([CLAHE(clip_limit=2),
-        #        IAASharpen(alpha=(0.1, 0.2), lightness=(0.5, 1.)),
-        #        IAAEmboss(alpha=(0.1, 0.2), strength=(0.2, 0.7)),
-        #        RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1),
-        #        JpegCompression(quality_lower=99, quality_upper=100),
-        #        Blur(blur_limit=2),
-        #        GaussNoise()], p=0.8),
-        # RandomGamma(gamma_limit=(90, 110), p=0.8),
+            # IAAPiecewiseAffine(scale=(0.01, 0.02)),
+            # AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
+            # ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.5), rotate_limit=3, border_mode=cv2.BORDER_CONSTANT, p=0.8),
+            # OneOf([CLAHE(clip_limit=2),
+            #        IAASharpen(alpha=(0.1, 0.2), lightness=(0.5, 1.)),
+            #        IAAEmboss(alpha=(0.1, 0.2), strength=(0.2, 0.7)),
+            #        RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1),
+            #        JpegCompression(quality_lower=99, quality_upper=100),
+            #        Blur(blur_limit=2),
+            #        GaussNoise()], p=0.8),
+            # RandomGamma(gamma_limit=(90, 110), p=0.8),
 
 
-        OneOf([
-            RandomPercentCrop(0.8, 0.8),
-            DoNothing(p=1),
-        ], p=1),
-        Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
-    ])
+            OneOf([
+                RandomPercentCrop(0.8, 0.8),
+                DoNothing(p=1),
+            ], p=1),
+            Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
+        ])
+    else:
+        return Compose([
+            HorizontalFlip(p=term % 2),
+
+
+            # IAAPiecewiseAffine(scale=(0.01, 0.02)),
+            # AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
+            # ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.5), rotate_limit=3, border_mode=cv2.BORDER_CONSTANT, p=0.8),
+            # OneOf([CLAHE(clip_limit=2),
+            #        IAASharpen(alpha=(0.1, 0.2), lightness=(0.5, 1.)),
+            #        IAAEmboss(alpha=(0.1, 0.2), strength=(0.2, 0.7)),
+            #        RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1),
+            #        JpegCompression(quality_lower=99, quality_upper=100),
+            #        Blur(blur_limit=2),
+            #        GaussNoise()], p=0.8),
+            # RandomGamma(gamma_limit=(90, 110), p=0.8),
+
+
+            OneOf([
+                RandomPercentCrop(0.8, 0.8),
+                DoNothing(p=1),
+            ], p=1),
+            Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
+        ])
 def eval_aug(term):
     if config.epoch > config.AUGMENTATION_RESIZE_CHANGE_EPOCH:
         return Compose([
@@ -291,7 +316,7 @@ def eval_aug(term):
                 RandomPercentCrop(0.8, 0.8),
                 DoNothing(p=1),
             ], p=1),
-            Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
+            Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
         ])
 def test_aug(term):
     return Compose([
@@ -420,8 +445,6 @@ def transform(ids, image_0, labels_0, mode):
             lambda x: (transforms.ToTensor()(x[0]), transforms.ToTensor()(x[1])),
             # Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD), # this needs to be set accordingly
         ])
-        print(image_0, labels_0)
-        print(image_0.shape, labels_0.shape)
         image, labels = TRAIN_TRANSFORM((image_0, labels_0))
         image_0, labels_0 = REGULARIZATION_TRAINSFORM((image_0, labels_0))
         if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
