@@ -16,12 +16,14 @@ import tensorboardwriter
 from dataset.siim_dataset import SIIMDataset
 from dataset.siim_dataset import train_collate, val_collate
 from gpu import gpu_profile
+from loss.dice import denoised_siim_dice
 from loss.f import differenciable_f_sigmoid, fbeta_score_numpy
 from loss.focal import focalloss_sigmoid_refined
 from lr_scheduler.Constant import Constant
 from lr_scheduler.PlateauCyclicRestart import PlateauCyclicRestart
 from optimizer import adamw
 from project.siim_project import siim_net
+from project.siim_project.siim_net import model50A_DeepSupervion
 from utils import load
 from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx, remove_checkpoint_fold, set_milestone
 from utils.lr_finder import LRFinder
@@ -54,7 +56,8 @@ class SIIMTrain:
                 self.lr_schedulers.append(None)
             else:
                 print("     Creating Fold: #{}".format(fold))
-                net = siim_net.resunet(encoder_depth=50, num_classes=config.TRAIN_NUM_CLASS, num_filters=32, dropout_2d=0.2, pretrained=False, is_deconv=False)
+                # net = siim_net.resunet(encoder_depth=50, num_classes=config.TRAIN_NUM_CLASS, num_filters=32, dropout_2d=0.2, pretrained=False, is_deconv=False)
+                net = model50A_DeepSupervion(num_classes=config.TRAIN_NUM_CLASS)
 
                 """FREEZING LAYER"""
                 for i, c in enumerate(net.children()):
@@ -428,32 +431,31 @@ class SIIMTrain:
         for train_index in tqdm(range(ratio)):
             pbar = tqdm(train_loader)
             train_len = train_len + len(train_loader)
-            for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+            for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
+                # drop last batch that has irregular shape
                 if train_len < 1 and config.epoch % (1 / config.TRAIN_RATIO) != batch_index % (1 / config.TRAIN_RATIO):
                     continue
 
-                # 1215MB -> 4997MB = 3782
-
-                # """UPDATE LR"""
+                """UPDATE LR"""
                 # if config.global_steps[fold] == 2 * 46808 / 32 - 1: print("Perfect Place to Stop")
                 # optimizer.state['lr'] = config.TRAIN_TRY_LR_FORMULA(config.global_steps[fold]) if config.TRAIN_TRY_LR else config.TRAIN_COSINE(config.global_steps[fold])
-
                 lr_scheduler.step(0, config.epoch, config.global_steps[fold], float(train_len))
+
                 """TRAIN NET"""
                 config.global_steps[fold] = config.global_steps[fold] + 1
-                if config.TRAIN_GPU_ARG:
-                    image = image.cuda()
-                    labels_0 = labels_0.cuda()
-                logits_predict = net(image)
+                if config.TRAIN_GPU_ARG: image = image.cuda()
+                empty_logits, _idkwhatthisis_, logits_predict = net(image)
                 prob_predict = torch.nn.Sigmoid()(logits_predict)
+                prob_empty = torch.nn.Sigmoid()(empty_logits)
 
                 """LOSS"""
-                focal = focalloss_sigmoid_refined(alpha=0.25, gamma=2, eps=1e-7)(labels_0, logits_predict)
-                f, precise, recall = differenciable_f_sigmoid(beta=2)(labels_0, logits_predict)
-                bce = BCELoss()(prob_predict, labels_0)
-                positive_bce = BCELoss(weight=labels_0 * 20 + 1)(prob_predict, labels_0)
-                # loss = 0.5*focal.mean() + 0.5*f.mean()
-                loss = focal.mean()
+                if config.TRAIN_GPU_ARG:
+                    labels = labels.cuda()
+                    empty = empty.cuda()
+                dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, logits_predict)
+                bce = BCELoss()(prob_empty, empty)
+                loss = dice.mean() + bce.mean()
+
                 """BACKPROP"""
                 loss.backward()
                 if config.epoch > config.TRAIN_GRADIENT_ACCUMULATION:
@@ -468,56 +470,34 @@ class SIIMTrain:
 
 
                 """DETATCH"""
-                focal = focal.detach().cpu().numpy().mean()
-                f = f.detach().cpu().numpy().mean()
-                precise = precise.detach().cpu().numpy().mean()
-                recall = recall.detach().cpu().numpy().mean()
-                bce = bce.detach().cpu().numpy().mean()
-                positive_bce = positive_bce.detach().cpu().numpy().mean()
-                # weighted_bce = weighted_bce.detach().cpu().numpy().mean()
+                dice = dice.detach().cpu().numpy().mean()
                 loss = loss.detach().cpu().numpy().mean()
-                labels_0 = labels_0.cpu().numpy()
+                labels = labels.cpu().numpy()
+                empty = empty.cpu().numpy()
                 logits_predict = logits_predict.detach().cpu().numpy()
                 prob_predict = prob_predict.detach().cpu().numpy()
+                prob_empty = prob_empty.detach().cpu().numpy()
                 # print(image)
 
                 """SUM"""
                 epoch_loss = epoch_loss + loss.mean()
-                epoch_f = epoch_f + f.mean()
-                # f = f1_macro(logits_predict, labels_0).mean()
+                # f = f1_macro(logits_predict, labels).mean()
                 confidence = np.absolute(prob_predict - 0.5).mean() + 0.5
                 total_confidence = total_confidence + confidence
 
                 """DISPLAY"""
                 tensorboardwriter.write_memory(self.writer, "train")
 
-                # soft_auc_macro = metrics.roc_auc_score(y_true=labels_0, y_score=prob_predict, average='macro')
-                # soft_auc_micro = metrics.roc_auc_score(y_true=labels_0, y_score=prob_predict, average='micro')
-                # left = self.dataset.multilabel_binarizer.inverse_transform((np.expand_dims((np.array(labels_0).sum(0) < 1).astype(np.byte), axis=0)))[0]
-                # label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
-                label = 0
-                # pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(prob_predict > config.EVAL_THRESHOLD)[0])
-                pred = 0
                 pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Conf:{:.4f} lr:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, total_confidence / (batch_index + 1), optimizer.param_groups[0]['lr']))
-                # pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), label, pred, left))
-                # pbar.set_description_str("(E{}-F{}) Stp:{} Focal:{:.4f} F:{:.4f} lr:{:.4E} BCE:{:.2f}|{:.2f}".format(config.epoch, config.fold, int(config.global_steps[fold]), focal, f, optimizer.param_groups[0]['lr'], weighted_bce, bce))
-                # pbar.set_description_str("(E{}-F{}) Stp:{} Y:{}, y:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), labels_0, logits_predict))
-
                 out_dict = {'Epoch/{}'.format(config.fold): config.epoch,
                             'LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold): optimizer.param_groups[0]['lr'],
                             'Loss/{}'.format(config.fold): loss,
-                            'F/{}'.format(config.fold): f,
-                            'Focal/{}'.format(config.fold): focal,
-                            'PositiveBCE/{}'.format(config.fold): positive_bce,
-                            # 'WeightedBCE/{}'.format(config.fold): weighted_bce,
-                            'BCE/{}'.format(config.fold): bce,
-                            'Precision/{}'.format(config.fold): precise,
-                            'Recall/{}'.format(config.fold): recall,
+                            'Dice/{}'.format(config.fold): dice,
                             'LogitsProbability/{}'.format(config.fold): logits_predict.mean(),
                             'PredictProbability/{}'.format(config.fold): prob_predict.mean(),
-                            'LabelProbability/{}'.format(config.fold): labels_0.mean(),
-                            # 'AUCMacro/{}'.format(config.fold): soft_auc_macro,
-                            # 'AUCMicro/{}'.format(config.fold): soft_auc_micro,
+                            'EmptyProbability/{}'.format(config.fold): prob_empty.mean(),
+                            'LabelProbability/{}'.format(config.fold): labels.mean(),
+                            'EmptyGroundProbability'.format(config.fold): empty.mean(),
                             }
                 # for c in range(config.TRAIN_NUM_CLASS):
                 #     out_dict['PredictProbability-Class-{}/{}'.format(c, config.fold)] = prob_predict[:][c].mean()
@@ -526,21 +506,20 @@ class SIIMTrain:
                 tensorboardwriter.write_loss(self.writer, out_dict, config.global_steps[fold])
 
                 """CLEAN UP"""
-                del ids, image, image_for_display
-                del focal, f, precise, recall, bce, positive_bce, loss, labels_0, logits_predict, prob_predict
+                del ids, image, image_0
+                del dice, loss, labels, logits_predict, prob_predict, prob_empty
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
             del pbar
 
         train_loss = epoch_loss / train_len
-        epoch_f = epoch_f / train_len
         print("""
         Epoch: {}, Fold: {}
-        TrainLoss: {}, FLoss: {}
-        """.format(config.epoch, config.fold, train_loss, epoch_f))
+        TrainLoss: {}
+        """.format(config.epoch, config.fold, train_loss))
         tensorboardwriter.write_text(self.writer, """
         Epoch: {}, Fold: {}
-        TrainLoss: {}, FLoss: {}
-        """.format(config.epoch, config.fold, train_loss, epoch_f), config.global_steps[config.fold]-1)
+        TrainLoss: {}
+        """.format(config.epoch, config.fold, train_loss), config.global_steps[config.fold]-1)
         # lr_scheduler.step(epoch_f, epoch=config.epoch)
 
         del train_loss
@@ -597,7 +576,7 @@ class SIIMEvaluation:
             pbar = tqdm(validation_loader)
             total_confidence = 0
 
-            for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
+            for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
 
                 """CALCULATE LOSS"""
                 if config.TRAIN_GPU_ARG:
@@ -641,7 +620,7 @@ class SIIMEvaluation:
                 # loss = loss.detach().cpu().numpy()
                 labels_0 = labels_0.cpu().numpy()
                 image = image.cpu().numpy()
-                image_for_display = image_for_display.numpy()
+                image_0 = image_0.numpy()
                 logits_predict = logits_predict.detach().cpu().numpy()
                 prob_predict = prob_predict.detach().cpu().numpy()
 
@@ -664,10 +643,10 @@ class SIIMEvaluation:
 
                 """DISPLAY"""
                 tensorboardwriter.write_memory(self.writer, "train")
-                if config.DISPLAY_VISUALIZATION and batch_index < max(1, config.MODEL_BATCH_SIZE / 32): self.display(config.fold, ids, image, image_for_display, labels_0, prob_predict, focal)
+                if config.DISPLAY_VISUALIZATION and batch_index < max(1, config.MODEL_BATCH_SIZE / 32): self.display(config.fold, ids, image, image_0, labels_0, prob_predict, focal)
 
                 """CLEAN UP"""
-                del ids, image, image_for_display
+                del ids, image, image_0
                 del focal, f, bce, precise, recall, labels_0, logits_predict, prob_predict
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
                 if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)

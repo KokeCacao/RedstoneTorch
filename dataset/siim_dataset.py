@@ -185,7 +185,7 @@ class SIIMDataset(data.Dataset):
         :param indice:
         :return: id, one hot encoded label, nparray image of (r, g, b, y) from 0~255 (['red', 'green', 'blue', 'yellow']) (4, W, H)
         """
-        return (self.indices_to_id[indice], self.get_load_image_by_indice(indice), self.get_load_label_by_indice(indice))
+        return (self.indices_to_id[indice], self.get_load_image_by_indice(indice), self.get_load_label_by_indice(indice), self.get_empty_by_indice(indice))
 
     def get_load_image_by_indice(self, indice):
         id = self.indices_to_id[indice]
@@ -213,6 +213,12 @@ class SIIMDataset(data.Dataset):
         # TODO : test if it works
         img = np.float32(rle2mask(self.labelframe[self.id_to_indices[id]], config.IMG_SIZE, config.IMG_SIZE))
         return np.stack((img,) * 3,-1)
+
+    def get_empty_by_indice(self, indice):
+        return int(self.labelframe[indice] == '-1')
+
+    def get_empty_by_id(self, id):
+        return int(self.labelframe[self.id_to_indices[id]] == '-1')
 
     def get_metadata_by_id(self, id):
         ds = pydicom.dcmread(config.DIRECTORY_TRAIN + id)
@@ -344,35 +350,38 @@ def test_aug(term):
         ], p=1),
         Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
     ])
+
+"""Handeling get_item()"""
+
 def tta_aug(term):
     return train_aug(term)
 
 def train_collate(batch):
     new_batch = []
-    for id, image_0, labels_0 in batch:
+    for id, image_0, labels_0, empty in batch:
         if config.global_steps[config.fold] ==1: print(id, image_0.shape, labels_0.shape)
-        new_batch.append(transform(id, image_0, labels_0, mode="train"))
+        new_batch.append(transform(id, image_0, labels_0, empty, mode="train"))
     batch = new_batch
     return collate(batch)
 
 def val_collate(batch):
     new_batch = []
-    for id, image_0, labels_0 in batch:
-        new_batch.append(transform(id, image_0, labels_0, mode="val"))
+    for id, image_0, labels_0, empty in batch:
+        new_batch.append(transform(id, image_0, labels_0, empty, mode="val"))
     batch = new_batch
     return collate(batch)
 
 def test_collate(batch):
     new_batch = []
-    for id, image_0, labels_0 in batch:
-        new_batch.append(transform(id, image_0, labels_0, mode="test"))
+    for id, image_0, labels_0, empty in batch:
+        new_batch.append(transform(id, image_0, labels_0, empty, mode="test"))
     batch = new_batch
     return collate(batch)
 
 def tta_collate(batch):
     new_batch = []
-    for id, image_0, labels_0 in batch:
-        new_batch.append(transform(id, image_0, labels_0, mode="tta"))
+    for id, image_0, labels_0, empty in batch:
+        new_batch.append(transform(id, image_0, labels_0, empty, mode="tta"))
     batch = new_batch
     return collate(batch)
 
@@ -409,7 +418,7 @@ def collate(batch):
     raise TypeError((error_msg.format(type(batch[0]))))
 
 
-def transform(ids, image_0, labels_0, mode):
+def transform(ids, image_0, labels_0, empty, mode):
     """
 
     :param ids:
@@ -434,16 +443,16 @@ def transform(ids, image_0, labels_0, mode):
     if mode == "test":
         term = config.eval_index % 8
         TEST_TRANSFORM = transforms.Compose([
-            lambda x: test_aug(term)(image=x), # Yes, you have to use image=xxx
-            lambda x: x['image'], # abstract the actual image after the augmentation
-            lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
-            transforms.ToTensor(),
+            lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)), # and don't put them in strong_aug()
+            lambda x: (test_aug(term)(image=x[0]), test_aug(term)(image=x[1])), # Yes, you have to use image=xxx
+            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)), # make the image within the range
+            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)), # for 1 dim gray scale
             # Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD), # this needs to be set accordingly
         ])
-        image = TEST_TRANSFORM(image_0)
-        image_0 = REGULARIZATION_TRAINSFORM(image_0)
-        if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
-        return (ids, image, labels, image_0, labels_0)
+        image, labels = TEST_TRANSFORM((image_0, labels_0))
+        image_0, labels_0 = REGULARIZATION_TRAINSFORM((image_0, labels_0))
+        if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels.shape, image_0.shape, labels_0.shape, empty.shape)
+        return (ids, image, labels, image_0, labels_0, empty)
     elif mode == "train":
         term = config.epoch % 8
         TRAIN_TRANSFORM = transforms.Compose([
@@ -453,34 +462,33 @@ def transform(ids, image_0, labels_0, mode):
             lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)), # for 1 dim gray scale
             # Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD), # this needs to be set accordingly
         ])
-        print(image_0.shape, labels_0.shape)
         image, labels = TRAIN_TRANSFORM((image_0, labels_0))
         image_0, labels_0 = REGULARIZATION_TRAINSFORM((image_0, labels_0))
-        if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
-        return (ids, image, labels, image_0, labels_0)
+        if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels.shape, image_0.shape, labels_0.shape, empty.shape)
+        return (ids, image, labels, image_0, labels_0, empty)
     elif mode == "val":
         term = config.eval_index % 8
-        VAL_TRANSFORM_IMG = transforms.Compose([
-            lambda x: eval_aug(term)(image=x),
-            lambda x: x['image'],
-            lambda x: np.clip(x, a_min=0, a_max=255),
-            transforms.ToTensor(),
+        VAL_TRANSFORM = transforms.Compose([
+            lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)), # and don't put them in strong_aug()
+            lambda x: (eval_aug(term)(image=x[0]), eval_aug(term)(image=x[1])),
+            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)), # make the image within the range
+            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)), # for 1 dim gray scale
             # Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD),
         ])
-        image = VAL_TRANSFORM_IMG(image_0)
-        image_0 = REGULARIZATION_TRAINSFORM(image_0)
-        if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
-        return (ids, image, labels, image_0, labels_0)
+        image, labels = VAL_TRANSFORM((image_0, labels_0))
+        image_0, labels_0 = REGULARIZATION_TRAINSFORM((image_0, labels_0))
+        if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels.shape, image_0.shape, labels_0.shape, empty.shape)
+        return (ids, image, labels, image_0, labels_0, empty)
     elif mode == "tta":
         term = config.eval_index % 8
         TTA_TRANSFORM = transforms.Compose([
-            lambda x: tta_aug(term)(image=x), # Yes, you have to use image=xxx
-            lambda x: x['image'], # abstract the actual image after the augmentation
-            lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
-            transforms.ToTensor(),
+            lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)), # and don't put them in strong_aug()
+            lambda x: (tta_aug(term)(image=x[0]), tta_aug(term)(image=x[1])), # Yes, you have to use image=xxx
+            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)), # make the image within the range
+            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)), # for 1 dim gray scale
             # Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD), # this needs to be set accordingly
         ])
-        image = TTA_TRANSFORM(image_0)
-        image_0 = REGULARIZATION_TRAINSFORM(image_0)
-        if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels_0.shape, image_0.shape)
-        return (ids, image, labels, image_0, labels_0)
+        image, labels = TTA_TRANSFORM((image_0, labels_0))
+        image_0, labels_0 = REGULARIZATION_TRAINSFORM((image_0, labels_0))
+        if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels.shape, image_0.shape, labels_0.shape, empty.shape)
+        return (ids, image, labels, image_0, labels_0, empty)
