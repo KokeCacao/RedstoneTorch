@@ -1069,7 +1069,8 @@ class model154_DeepSupervion(nn.Module):
 
         self.center_global_pool = nn.AdaptiveAvgPool2d([1, 1])
         self.center_conv1x1 = nn.Conv2d(512 * 4, 64, kernel_size=1)
-        self.center_fc = nn.Linear(64, 2)
+        """Change out_feature from 2 to 1 since it is binary classification"""
+        self.center_fc = nn.Linear(64, 1)
 
         self.center = nn.Sequential(nn.Conv2d(512 * 4, 512, kernel_size=3, padding=1),
                                     nn.BatchNorm2d(512),
