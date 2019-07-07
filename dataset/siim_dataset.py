@@ -390,7 +390,6 @@ def transform(ids, image_0, labels_0, mode):
     """
 
     REGULARIZATION_TRAINSFORM = transforms.Compose([
-            lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)), # and don't put them in strong_aug()
             lambda x: (cv2.resize(x[0],(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC), cv2.resize(x[1],(config.AUGMENTATION_RESIZE,config.AUGMENTATION_RESIZE), interpolation=cv2.INTER_CUBIC)),
             lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)), # make the image within the range
             lambda x: (transforms.ToTensor()(x[0]), transforms.ToTensor()(x[1])),
@@ -403,7 +402,6 @@ def transform(ids, image_0, labels_0, mode):
     if mode == "test":
         term = config.eval_index % 8
         TEST_TRANSFORM = transforms.Compose([
-            lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2GRAY), # and don't put them in strong_aug()
             lambda x: test_aug(term)(image=x), # Yes, you have to use image=xxx
             lambda x: x['image'], # abstract the actual image after the augmentation
             lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
@@ -417,7 +415,6 @@ def transform(ids, image_0, labels_0, mode):
     elif mode == "train":
         term = config.epoch % 8
         TRAIN_TRANSFORM = transforms.Compose([
-            lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)), # and don't put them in strong_aug()
             lambda x: train_aug(term)(image=x[0], mask=x[1]), # Yes, you have to use image=xxx
             lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)), # make the image within the range
             lambda x: (transforms.ToTensor()(x[0]), transforms.ToTensor()(x[1])),
@@ -432,7 +429,6 @@ def transform(ids, image_0, labels_0, mode):
     elif mode == "val":
         term = config.eval_index % 8
         VAL_TRANSFORM_IMG = transforms.Compose([
-            lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2GRAY),
             lambda x: eval_aug(term)(image=x),
             lambda x: x['image'],
             lambda x: np.clip(x, a_min=0, a_max=255),
@@ -446,7 +442,6 @@ def transform(ids, image_0, labels_0, mode):
     elif mode == "tta":
         term = config.eval_index % 8
         TTA_TRANSFORM = transforms.Compose([
-            lambda x: cv2.cvtColor(x, cv2.COLOR_BGR2GRAY), # and don't put them in strong_aug()
             lambda x: tta_aug(term)(image=x), # Yes, you have to use image=xxx
             lambda x: x['image'], # abstract the actual image after the augmentation
             lambda x: np.clip(x, a_min=0, a_max=255), # make the image within the range
