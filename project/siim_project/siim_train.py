@@ -460,7 +460,7 @@ def eval_fold(net, writer, validation_loader):
             dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, logits_predict)
             iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, logits_predict)
             hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
-            bce = BCELoss()(prob_empty, empty)
+            bce = BCELoss(reduction='none')(prob_empty, empty)
             loss = 0.5 * dice.mean() + 0.5 * bce.mean()
 
             """DETATCH WITHOUT MEAN"""

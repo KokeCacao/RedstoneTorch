@@ -48,12 +48,13 @@ def dice_coeff(input, target):
 # adapted from https://www.kaggle.com/iafoss/hypercolumns-pneumothorax-fastai-0-818-lb
 # work for pytorch, soft, differentiable
 class denoised_siim_dice(torch.nn.Module):
-    def __init__(self, threshold, iou=False, eps=1e-8, denoised=False):
+    def __init__(self, threshold, iou=False, eps=1e-8, denoised=False, mean=False):
         super(denoised_siim_dice, self).__init__()
         self.threshold = threshold
         self.iou = iou
         self.eps = eps
         self.denoised = denoised
+        self.mean = mean
 
     def forward(self, input, targs):
         n = targs.shape[0]
@@ -71,9 +72,11 @@ class denoised_siim_dice(torch.nn.Module):
         intersect = (input * targs).sum(-1).float()
         union = (input + targs).sum(-1).float()
         if not self.iou:
-            return ((2.0 * intersect + self.eps) / (union + self.eps)).mean()
+            if self.mean: return ((2.0 * intersect + self.eps) / (union + self.eps)).mean()
+            else: return ((2.0 * intersect + self.eps) / (union + self.eps))
         else:
-            return ((intersect + self.eps) / (union - intersect + self.eps)).mean()
+            if self.mean: return ((intersect + self.eps) / (union - intersect + self.eps)).mean()
+            else: return ((intersect + self.eps) / (union - intersect + self.eps))
 
 
 # work for pytorch, hard
