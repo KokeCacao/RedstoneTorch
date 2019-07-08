@@ -16,7 +16,7 @@ import tensorboardwriter
 from dataset.siim_dataset import SIIMDataset
 from dataset.siim_dataset import train_collate, val_collate
 from gpu import gpu_profile
-from loss.dice import denoised_siim_dice, siim_dice_overall, cmp_instance_dice
+from loss.dice import denoised_siim_dice, siim_dice_overall, cmp_instance_dice, dice_loss, jaccard_loss
 from loss.f import differenciable_f_sigmoid, fbeta_score_numpy
 from loss.focal import focalloss_sigmoid_refined
 from loss.hinge import lovasz_hinge
@@ -155,7 +155,7 @@ class SIIMTrain:
                                          timeout=0,
                                          worker_init_fn=None,
                                          ) if config.FIND_LR_ON_VALIDATION else None
-            lr_finder = LRFinder(self.nets[config.train_fold[0]], self.optimizers[config.train_fold[0]], denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False), writer=self.writer, device="cuda")
+            lr_finder = LRFinder(self.nets[config.train_fold[0]], self.optimizers[config.train_fold[0]], dice_loss, writer=self.writer, device="cuda")
             lr_finder.range_test(data.DataLoader(self.dataset,
                                                  batch_size=config.MODEL_BATCH_SIZE,
                                                  shuffle=False,
@@ -331,15 +331,18 @@ class SIIMTrain:
                 if config.TRAIN_GPU_ARG: image = image.cuda()
                 empty_logits, _idkwhatthisis_, logits_predict = net(image)
                 prob_predict = torch.nn.Sigmoid()(logits_predict)
-                prob_empty = torch.nn.Softmax()(empty_logits)
+                prob_empty = torch.nn.Sigmoid()(empty_logits)
 
                 """LOSS"""
                 if config.TRAIN_GPU_ARG:
                     labels = labels.cuda()
                     empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
-                dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, prob_predict)
-                iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, prob_predict)
-                hinge = lovasz_hinge(labels.squeeze(1), prob_predict.squeeze(1))
+
+                # dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, prob_predict)
+                dice = dice_loss(labels, logits_predict)
+                # iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, prob_predict)
+                iou = jaccard_loss(labels, logits_predict)
+                hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
                 bce = BCELoss(reduction='none')(prob_empty, empty)
                 ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
                 loss = 0.5 * ce.mean() + 0.5 * bce.mean()
@@ -455,15 +458,18 @@ def eval_fold(net, writer, validation_loader):
             if config.TRAIN_GPU_ARG: image = image.cuda()
             empty_logits, _idkwhatthisis_, logits_predict = net(image)
             prob_predict = torch.nn.Sigmoid()(logits_predict)
-            prob_empty = torch.nn.Softmax()(empty_logits)
+            prob_empty = torch.nn.Sigmoid()(empty_logits)
 
             """LOSS"""
             if config.TRAIN_GPU_ARG:
                 labels = labels.cuda()
                 empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
-            dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, prob_predict)
-            iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, prob_predict)
-            hinge = lovasz_hinge(labels.squeeze(1), prob_predict.squeeze(1))
+
+            # dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, prob_predict)
+            dice = dice_loss(labels, logits_predict)
+            # iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, prob_predict)
+            iou = jaccard_loss(labels, logits_predict)
+            hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
             bce = BCELoss(reduction='none')(prob_empty, empty)
             ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
             loss = 0.5 * ce.mean() + 0.5 * bce.mean()
@@ -584,6 +590,12 @@ def draw_image(image, ground, pred, empty, prob_empty, dice, bce, ce):
     plt.subplot(323)
     plt.imshow(np.squeeze(pred))
     plt.title("B:{} C:{}".format(bce, ce))
+    plt.grid(False)
+
+    plt.subplot(324)
+    thresholded = (pred>config.EVAL_THRESHOLD).astype(np.byte)
+    plt.imshow(np.squeeze(thresholded))
+    plt.title("Empty:{}".format(thresholded.sum() == 0))
     plt.grid(False)
 
     return F
