@@ -536,7 +536,7 @@ def eval_fold(net, writer, validation_loader):
     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
     """LOSS"""
-    score = cmp_instance_dice(label, pred_hard)
+    score = cmp_instance_dice(label, pred_hard, mean=True)
 
     """Shakeup"""
     # IT WILL MESS UP THE RANDOM SEED (CAREFUL)
