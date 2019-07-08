@@ -314,5 +314,4 @@ elif PROJECT_NAME == "IMet":
     versiontag = ""
     resetlr = 0
 elif PROJECT_NAME == "SIIM":
-    from project.siim_project import siim_config
-    siim_config.init()
+    from project.siim_project.siim_config import *
