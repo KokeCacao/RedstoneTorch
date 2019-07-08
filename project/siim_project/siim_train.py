@@ -343,7 +343,7 @@ class SIIMTrain:
                 iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, logits_predict)
                 hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
                 bce = BCELoss()(prob_empty, empty)
-                ce = CrossEntropyLoss()(logits_predict, labels.long())
+                ce = CrossEntropyLoss()(logits_predict.squeeze(1), labels.squeeze(1).long())
                 # loss = 0.5 * dice.mean() + 0.5 * bce.mean()
                 loss = ce.mean()
 
