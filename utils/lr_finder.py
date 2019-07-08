@@ -197,11 +197,14 @@ class LRFinder(object):
                 labels = labels.to(self.device)
 
                 # Forward pass and loss computation
-                outputs = self.model(inputs)
-
                 """ Edit this to fit your dataset """
-                # loss = self.criterion(outputs, labels)
-                loss = self.criterion(labels, outputs).mean()
+                # # imet
+                # outputs = self.model(inputs)
+                # loss = self.criterion(labels, outputs).mean()
+
+                # siim
+                empty_logits, _idkwhatthisis_, logits_predict = self.model(inputs)
+                loss = self.criterion(labels, logits_predict).mean()
 
                 running_loss += loss.item() * inputs.size(0)
 

@@ -69,7 +69,7 @@ class denoised_siim_dice(torch.nn.Module):
         if self.denoised: pred[pred.sum(-1) < noise_th, ...] = 0.0
         # pred = pred.argmax(dim=1).view(n,-1)
         label = label.view(n, -1)
-        intersect = (input * label).sum(-1).float()
+        intersect = (pred * label).sum(-1).float()
         union = (pred + label).sum(-1).float()
         if not self.iou:
             if self.mean: return ((2.0 * intersect + self.eps) / (union + self.eps)).mean()
