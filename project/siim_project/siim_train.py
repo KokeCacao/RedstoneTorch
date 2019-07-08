@@ -344,7 +344,7 @@ class SIIMTrain:
                 hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
                 bce = BCELoss()(prob_empty, empty)
                 print(logits_predict.shape, labels.squeeze(1).shape)
-                ce = CrossEntropyLoss()(logits_predict, labels.squeeze(1).long())
+                ce = CrossEntropyLoss()(logits_predict.squeeze(1).view(logits_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1).long())
                 # loss = 0.5 * dice.mean() + 0.5 * bce.mean()
                 loss = ce.mean()
 
