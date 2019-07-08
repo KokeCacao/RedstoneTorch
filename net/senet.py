@@ -430,14 +430,31 @@ def se_resnet152(num_classes=1000, pretrained='imagenet'):
     return model
 
 
+def modified_initialize_pretrained_model(model, url):
+    state_dict = model_zoo.load_url(url)
+
+    model_state = model.state_dict()
+    pretrained_state = {k: v for k, v in state_dict.items() if k in model_state and v.size() == model_state[k].size()}
+    model_state.update(pretrained_state)
+    model.load_state_dict(model_state, strict=False)
+
+
+# def se_resnext50_32x4d(num_classes=1000, pretrained='imagenet'):
+#     model = SENet(SEResNeXtBottleneck, [3, 4, 6, 3], groups=32, reduction=16,
+#                   dropout_p=None, inplanes=64, input_3x3=False,
+#                   downsample_kernel_size=1, downsample_padding=0,
+#                   num_classes=num_classes)
+#     if pretrained is not None:
+#         settings = pretrained_settings['se_resnext50_32x4d'][pretrained]
+#         initialize_pretrained_model(model, num_classes, settings)
+#     return model
 def se_resnext50_32x4d(num_classes=1000, pretrained='imagenet'):
-    model = SENet(SEResNeXtBottleneck, [3, 4, 6, 3], groups=32, reduction=16,
-                  dropout_p=None, inplanes=64, input_3x3=False,
+    model = SENet(SEResNeXtBottleneck, [3, 4, 6, 3], groups=32, reduction=16, inplanes=64, input_3x3=False,
                   downsample_kernel_size=1, downsample_padding=0,
                   num_classes=num_classes)
     if pretrained is not None:
-        settings = pretrained_settings['se_resnext50_32x4d'][pretrained]
-        initialize_pretrained_model(model, num_classes, settings)
+        url = pretrained_settings['se_resnext50_32x4d'][pretrained]['url']
+        modified_initialize_pretrained_model(model, url)
     return model
 
 

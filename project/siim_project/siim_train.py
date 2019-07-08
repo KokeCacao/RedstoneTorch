@@ -141,6 +141,7 @@ class SIIMTrain:
 
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[config.train_fold[0]], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
+        """LR FINDER"""
         if config.DEBUG_LR_FINDER:
             val_loader = data.DataLoader(self.dataset,
                                          batch_size=config.MODEL_BATCH_SIZE,
@@ -340,7 +341,8 @@ class SIIMTrain:
                 iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, logits_predict)
                 hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
                 bce = BCELoss()(prob_empty, empty)
-                loss = 0.5 * dice.mean() + 0.5 * bce.mean()
+                # loss = 0.5 * dice.mean() + 0.5 * bce.mean()
+                loss = bce.mean()
 
                 """BACKPROP"""
                 loss.backward()
@@ -447,6 +449,8 @@ def eval_fold(net, writer, validation_loader):
         total_confidence = 0
 
         for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
+            labels = image # for testing
+
             """TRAIN NET"""
             if config.TRAIN_GPU_ARG: image = image.cuda()
             empty_logits, _idkwhatthisis_, logits_predict = net(image)

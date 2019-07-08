@@ -617,7 +617,7 @@ class model50A_DeepSupervion(nn.Module):
 
         self.num_classes = num_classes
         """Pretrain edited to false for 1 channel input"""
-        self.encoder = se_resnext50_32x4d(pretrained=None)
+        self.encoder = se_resnext50_32x4d()
 
         self.relu = nn.ReLU(inplace=True)
         self.conv1 = nn.Sequential(self.encoder.layer0.conv1,
