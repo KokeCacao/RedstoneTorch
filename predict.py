@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
         if config.PREDICTION_WRITER:
             writer = SummaryWriter(config.DIRECTORY_CHECKPOINT)
-            print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/" + config.DIRECTORY_CHECKPOINT + " --port=6006")
+            print("=> Tensorboard: " + "tensorboard --logdir=" + config.DIRECTORY_CHECKPOINT + " --port=6006")
             memory = memory_thread(1, writer)
             memory.setDaemon(True)
             memory.start()
