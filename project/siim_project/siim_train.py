@@ -331,7 +331,7 @@ class SIIMTrain:
                 if config.TRAIN_GPU_ARG: image = image.cuda()
                 empty_logits, _idkwhatthisis_, logits_predict = net(image)
                 prob_predict = torch.nn.Sigmoid()(logits_predict)
-                prob_empty = torch.nn.Sigmoid()(empty_logits)
+                prob_empty = torch.nn.Softmax()(empty_logits)
 
                 """LOSS"""
                 if config.TRAIN_GPU_ARG:
@@ -455,7 +455,7 @@ def eval_fold(net, writer, validation_loader):
             if config.TRAIN_GPU_ARG: image = image.cuda()
             empty_logits, _idkwhatthisis_, logits_predict = net(image)
             prob_predict = torch.nn.Sigmoid()(logits_predict)
-            prob_empty = torch.nn.Sigmoid()(empty_logits)
+            prob_empty = torch.nn.Softmax()(empty_logits)
 
             """LOSS"""
             if config.TRAIN_GPU_ARG:
@@ -508,7 +508,7 @@ def eval_fold(net, writer, validation_loader):
             tensorboardwriter.write_memory(writer, "train")
             # TODO
             if config.DISPLAY_VISUALIZATION and batch_index < max(1, config.MODEL_BATCH_SIZE / 32):
-                for i, (image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, _ce) in enumerate(zip(image, labels, prob_predict, empty, prob_empty, dice, bce, ce)):
+                for i, (image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_) in enumerate(zip(image, labels, prob_predict, empty, prob_empty, dice, bce, ce)):
                     F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_)
                     tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, i), F, config.epoch)
 

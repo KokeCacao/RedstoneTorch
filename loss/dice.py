@@ -46,7 +46,7 @@ def dice_coeff(input, target):
 
 
 # adapted from https://www.kaggle.com/iafoss/hypercolumns-pneumothorax-fastai-0-818-lb
-# work for pytorch, soft, differentiable
+# work for pytorch, soft, activated, differentiable
 class denoised_siim_dice(torch.nn.Module):
     def __init__(self, threshold, iou=False, eps=1e-8, denoised=False, mean=False):
         super(denoised_siim_dice, self).__init__()
@@ -64,7 +64,7 @@ class denoised_siim_dice(torch.nn.Module):
         noise_th = 100.0 * (n / 128.0) ** 2  # threshold for the number of predicted pixels
 
         """dim here should be 0 instead of 1?"""
-        pred = torch.softmax(pred, dim=1).view(n, -1)
+        pred = pred.view(n, -1)
         pred = (pred > self.threshold).float()
         if self.denoised: pred[pred.sum(-1) < noise_th, ...] = 0.0
         # pred = pred.argmax(dim=1).view(n,-1)
@@ -79,7 +79,7 @@ class denoised_siim_dice(torch.nn.Module):
             else: return ((intersect + self.eps) / (union - intersect + self.eps))
 
 
-# work for pytorch, hard
+# work for pytorch, activated, hard
 def siim_dice_overall(label, pred):
     n = pred.shape[0]
     pred = pred.view(n, -1)
