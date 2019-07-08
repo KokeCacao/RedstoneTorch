@@ -177,7 +177,8 @@ class LRFinder(object):
         # siim
         self.optimizer.zero_grad()
         empty_logits, _idkwhatthisis_, logits_predict = self.model(inputs)
-        loss = self.criterion(labels, logits_predict).mean()
+        prob_predict = torch.nn.Sigmoid()(logits_predict)
+        loss = self.criterion(labels, prob_predict).mean()
 
 
         # Backward pass
@@ -205,7 +206,8 @@ class LRFinder(object):
                 # loss = self.criterion(labels, outputs).mean()
                 # siim
                 empty_logits, _idkwhatthisis_, logits_predict = self.model(inputs)
-                loss = self.criterion(labels, logits_predict).mean()
+                prob_predict = torch.nn.Sigmoid()(logits_predict)
+                loss = self.criterion(labels, prob_predict).mean()
 
                 running_loss += loss.item() * inputs.size(0)
 
