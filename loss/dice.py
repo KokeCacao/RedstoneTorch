@@ -80,7 +80,7 @@ class denoised_siim_dice(torch.nn.Module):
 
 # adapted from: https://github.com/kevinzakka/pytorch-goodies/blob/master/losses.py
 def dice_loss(true, logits, eps=1e-7):
-    """Computes the Sørensen–Dice loss.
+    """Computes the Sorensen–Dice loss.
     Note that PyTorch optimizers minimize a loss. In this
     case, we would like to maximize the dice loss so we
     return the negated dice loss.
