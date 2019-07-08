@@ -343,7 +343,6 @@ class SIIMTrain:
                 iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, logits_predict)
                 hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
                 bce = BCELoss()(prob_empty, empty)
-                ce = BCELoss()(logits_predict, labels)
                 # loss = 0.5 * dice.mean() + 0.5 * bce.mean()
                 loss = dice.mean()
 
@@ -364,7 +363,6 @@ class SIIMTrain:
                 iou = iou.detach().cpu().numpy().mean()
                 hinge = hinge.detach().cpu().numpy().mean()
                 bce = bce.detach().cpu().numpy().mean()
-                ce = ce.detach().cpu().numpy().mean()
                 loss = loss.detach().cpu().numpy().mean()
 
                 image = image.cpu().numpy()
@@ -391,7 +389,6 @@ class SIIMTrain:
                             'IOU/{}'.format(config.fold): iou,
                             'Hinge/{}'.format(config.fold): hinge,
                             'BCE/{}'.format(config.fold): bce,
-                            'CE/{}'.format(config.fold): ce,
                             'LogitsProbability/{}'.format(config.fold): logits_predict.mean(),
                             'PredictProbability/{}'.format(config.fold): prob_predict.mean(),
                             'EmptyProbability/{}'.format(config.fold): prob_empty.mean(),
@@ -406,7 +403,7 @@ class SIIMTrain:
 
                 """CLEAN UP"""
                 del ids, image_0, labels_0  # things threw away
-                del dice, iou, hinge, bce, ce, loss, image, labels, empty, logits_predict, prob_predict, prob_empty  # detach
+                del dice, iou, hinge, bce, loss, image, labels, empty, logits_predict, prob_predict, prob_empty  # detach
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
             del pbar
 
@@ -468,7 +465,6 @@ def eval_fold(net, writer, validation_loader):
             iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, logits_predict)
             hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
             bce = BCELoss(reduction='none')(prob_empty, empty)
-            ce = BCELoss(reduction='none')(logits_predict, labels)
             loss = 0.5 * dice.mean() + 0.5 * bce.mean()
 
             """DETATCH WITHOUT MEAN"""
@@ -476,7 +472,6 @@ def eval_fold(net, writer, validation_loader):
             iou = iou.detach().cpu().numpy()
             hinge = hinge.detach().cpu().numpy()
             bce = bce.detach().cpu().numpy()
-            ce = bce.detach().cpu().numpy()
             loss = loss.detach().cpu().numpy()
 
             image = image.cpu().numpy()
@@ -511,13 +506,13 @@ def eval_fold(net, writer, validation_loader):
             tensorboardwriter.write_memory(writer, "train")
             # TODO
             if config.DISPLAY_VISUALIZATION and batch_index < max(1, config.MODEL_BATCH_SIZE / 32):
-                for i, (image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_) in enumerate(zip(image, labels, prob_predict, empty, prob_empty, dice, bce, ce)):
-                    F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_)
+                for i, (image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_) in enumerate(zip(image, labels, prob_predict, empty, prob_empty, dice, bce)):
+                    F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_)
                     tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, i), F, config.epoch)
 
             """CLEAN UP"""
             del ids, image_0, labels_0  # things threw away
-            del dice, iou, hinge, bce, ce, loss, image, labels, empty, logits_predict, prob_predict, prob_empty  # detach
+            del dice, iou, hinge, bce, loss, image, labels, empty, logits_predict, prob_predict, prob_empty  # detach
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
         del pbar
@@ -571,7 +566,7 @@ def eval_fold(net, writer, validation_loader):
     return score
 
 
-def draw_image(image, ground, pred, empty, prob_empty, dice, bce, ce):
+def draw_image(image, ground, pred, empty, prob_empty, dice, bce):
     F = plt.figure()
 
     plt.subplot(321)
@@ -586,7 +581,7 @@ def draw_image(image, ground, pred, empty, prob_empty, dice, bce, ce):
 
     plt.subplot(323)
     plt.imshow(np.squeeze(pred))
-    plt.title("B:{} C:{}".format(bce, ce))
+    plt.title("B:{}".format(bce))
     plt.grid(False)
 
     return F
