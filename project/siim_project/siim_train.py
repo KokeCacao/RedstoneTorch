@@ -318,7 +318,7 @@ class SIIMTrain:
             train_len = train_len + len(train_loader)
             for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
                 labels = image # for testing
-                
+
                 # drop last batch that has irregular shape
                 if train_len < 1 and config.epoch % (1 / config.TRAIN_RATIO) != batch_index % (1 / config.TRAIN_RATIO):
                     continue
@@ -343,7 +343,7 @@ class SIIMTrain:
                 iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, logits_predict)
                 hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
                 bce = BCELoss()(prob_empty, empty)
-                ce = BCELoss(reduction='none')(logits_predict, labels)
+                ce = BCELoss()(logits_predict, labels)
                 # loss = 0.5 * dice.mean() + 0.5 * bce.mean()
                 loss = ce.mean()
 
