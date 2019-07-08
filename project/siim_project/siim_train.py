@@ -502,8 +502,8 @@ def eval_fold(net, writer, validation_loader):
             tensorboardwriter.write_memory(writer, "train")
             # TODO
             if config.DISPLAY_VISUALIZATION and batch_index < max(1, config.MODEL_BATCH_SIZE / 32):
-                for i, (image_, label_, empty_, prob_empty_, loss_) in enumerate(zip(image, labels, empty, prob_empty, loss)):
-                    F = draw_image(image_, label_, empty_, prob_empty_, loss_)
+                for i, (image_, label_, prob_predict_, empty_, prob_empty_, loss_) in enumerate(zip(image, labels, prob_predict, empty, prob_empty, loss)):
+                    F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, loss_)
                     tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, i), F, config.epoch)
 
             """CLEAN UP"""
@@ -540,7 +540,7 @@ def eval_fold(net, writer, validation_loader):
 
     """Shakeup"""
     # IT WILL MESS UP THE RANDOM SEED (CAREFUL)
-    shakeup, shakeup_keys, shakeup_mean, shakeup_std = calculate_shakeup(label, pred_hard, cmp_instance_dice, config.EVAL_SHAKEUP_RATIO)
+    shakeup, shakeup_keys, shakeup_mean, shakeup_std = calculate_shakeup(label, pred_hard, cmp_instance_dice, config.EVAL_SHAKEUP_RATIO, mean=True)
     tensorboardwriter.write_shakeup(writer, shakeup, shakeup_keys, shakeup_std, config.epoch)
 
     """Print"""
@@ -552,7 +552,7 @@ def eval_fold(net, writer, validation_loader):
 
     """THRESHOLD"""
     if config.EVAL_IF_THRESHOLD_TEST:
-        best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, cmp_instance_dice, config.EVAL_TRY_THRESHOLD, writer, config.fold, n_class=1)
+        best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, cmp_instance_dice, config.EVAL_TRY_THRESHOLD, writer, config.fold, n_class=1, mean=True)
         report = report + """Best Threshold is: {}, Score: {}, AreaUnder: {}""".format(best_threshold, best_val, total_score / total_tried)
         tensorboardwriter.write_best_threshold(writer, -1, best_val, best_threshold, total_score / total_tried, config.epoch, config.fold)
 
@@ -562,16 +562,21 @@ def eval_fold(net, writer, validation_loader):
     return score
 
 
-def draw_image(image, mask, empty, prob_empty, loss):
+def draw_image(image, ground, pred, empty, prob_empty, loss):
     F = plt.figure()
 
-    plt.subplot(211)
+    plt.subplot(321)
     plt.imshow(np.squeeze(image))
     plt.title("E:{} P:{}".format(empty, prob_empty))
     plt.grid(False)
 
-    plt.subplot(221)
-    plt.imshow(np.squeeze(mask))
+    plt.subplot(322)
+    plt.imshow(np.squeeze(ground))
+    plt.title("S:{}".format(loss))
+    plt.grid(False)
+
+    plt.subplot(323)
+    plt.imshow(np.squeeze(pred))
     plt.title("S:{}".format(loss))
     plt.grid(False)
 

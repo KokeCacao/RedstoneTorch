@@ -91,7 +91,7 @@ def siim_dice_overall(preds, targs):
 
 # adapted from https://www.kaggle.com/c/siim-acr-pneumothorax-segmentation/discussion/98747
 # work in numpy, hard, non-differentiable
-def cmp_instance_dice(labels, preds):
+def cmp_instance_dice(labels, preds, mean=False):
     '''
     instance dice score
     instance_preds: list of N_i mask (0,1) per image - variable preds per image
@@ -124,4 +124,5 @@ def cmp_instance_dice(labels, preds):
             dice_scores = dice[linear_sum_assignment(1 - dice)]
             mean_dice_score = sum(dice_scores) / max(n, m)  # unmatched gt or preds are counted as 0
             scores.append(mean_dice_score)
-    return scores
+    if mean: return np.array(scores).mean()
+    else: return np.array(scores)
