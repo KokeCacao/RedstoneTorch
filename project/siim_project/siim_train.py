@@ -364,7 +364,8 @@ class SIIMTrain:
                 iou = iou.detach().cpu().numpy().mean()
                 hinge = hinge.detach().cpu().numpy().mean()
                 bce = bce.detach().cpu().numpy().mean()
-                ce = bce.detach().cpu().numpy().mean()
+                # ce = bce.detach().cpu().numpy().mean()
+                ce = bce.mean()
                 loss = loss.detach().cpu().numpy().mean()
 
                 image = image.cpu().numpy()
