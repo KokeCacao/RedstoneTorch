@@ -339,11 +339,11 @@ class SIIMTrain:
                 if config.TRAIN_GPU_ARG:
                     labels = labels.cuda()
                     empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
-                dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, logits_predict)
-                iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, logits_predict)
-                hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
+                dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, prob_predict)
+                iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, prob_predict)
+                hinge = lovasz_hinge(labels.squeeze(1), prob_predict.squeeze(1))
                 bce = BCELoss()(prob_empty, empty)
-                ce = BCELoss()(logits_predict.squeeze(1).view(logits_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
+                ce = BCELoss()(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
                 # loss = 0.5 * dice.mean() + 0.5 * bce.mean()
                 loss = ce.mean()
 
@@ -463,9 +463,9 @@ def eval_fold(net, writer, validation_loader):
             if config.TRAIN_GPU_ARG:
                 labels = labels.cuda()
                 empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
-            dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, logits_predict)
-            iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, logits_predict)
-            hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
+            dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, prob_predict)
+            iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, prob_predict)
+            hinge = lovasz_hinge(labels.squeeze(1), prob_predict.squeeze(1))
             bce = BCELoss(reduction='none')(prob_empty, empty)
             loss = 0.5 * dice.mean() + 0.5 * bce.mean()
 
