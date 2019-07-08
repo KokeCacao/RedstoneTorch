@@ -489,6 +489,7 @@ elif PROJECT_NAME == "SIIM":
 
     # EVAL_IF_THRESHOLD_TEST = True
     # EVAL_IF_PRED_DISTRIBUTION = True
+    EVAL_IF_PR_CURVE = False
     EVAL_TRY_THRESHOLD = np.linspace(0.0, 1.0, 1000)
     EVAL_THRESHOLD = 0.22
     #

@@ -45,7 +45,7 @@ class SIIMDataset(data.Dataset):
         self.train_dataframe = pd.read_csv(train_csv_dir, delimiter=',', encoding="utf-8-sig", engine='python').set_index(id_col).sample(frac=1)
         self.test_dataframe = pd.read_csv(test_csv_dir, delimiter=',', encoding="utf-8-sig", engine='python').set_index(id_col).sample(frac=1)
 
-        self.multilabel_binarizer = MultiLabelBinarizer().fit([list(range(config.TRAIN_NUM_CLASS)),])
+        self.multilabel_binarizer = MultiLabelBinarizer().fit([list(range(config.TRAIN_NUM_CLASS)), ])
 
         if self.load_strategy == "train":
             print("Training Dataframe: {}".format(self.train_dataframe.head()))
@@ -85,7 +85,6 @@ class SIIMDataset(data.Dataset):
     def __len__(self):
         return self.id_len
 
-
     def get_stratified_samplers(self, fold=-1):
         """
         :param fold: fold number
@@ -96,7 +95,6 @@ class SIIMDataset(data.Dataset):
 
         mskf = MultilabelStratifiedKFold(n_splits=fold, random_state=None)
         folded_samplers = dict()
-
 
         if config.DEBUG_WRITE_SPLIT_CSV or not os.path.exists(config.DIRECTORY_SPLIT):
             print("Could not (or you chose not to) load DIRECTORY_SPLIT. Creating Split manually.")
@@ -132,8 +130,8 @@ class SIIMDataset(data.Dataset):
                     # ax2.bar(list(range(len(y_e_dict))), y_e_dict)
                     F = plt.figure()
                     ax = F.add_subplot(111)
-                    tr = ax.bar(np.arange(len(y_t_dict)) -0.2, y_t_dict, width=0.4, color='tab:red', log=True)
-                    ev = ax.bar(np.arange(len(y_e_dict)) +0.2, y_e_dict, width=0.4, color='tab:blue', log=True)
+                    tr = ax.bar(np.arange(len(y_t_dict)) - 0.2, y_t_dict, width=0.4, color='tab:red', log=True)
+                    ev = ax.bar(np.arange(len(y_e_dict)) + 0.2, y_e_dict, width=0.4, color='tab:blue', log=True)
                     ax.legend((tr[0], ev[0]), ('trian', 'eval'))
                     ax.set_ylabel('exp', color='tab:blue')
                     for i, v in enumerate(y_t_dict): ax.text(i - 0.2, v + 3, str(v), color='red', fontweight='bold')
@@ -200,20 +198,20 @@ class SIIMDataset(data.Dataset):
         img = ds.pixel_array  # get image array
 
         # return np.load(id)
-        return np.array(np.stack((img,) * 3,-1))
+        return np.array(np.stack((img,) * 3, -1))
 
     def get_load_label_by_indice(self, indice):
         # TODO: process label to picture
         # TODO : test if it works
         if len(self.labelframe) - 1 < indice: return None
         img = np.float32(rle2mask(self.labelframe[indice], config.IMG_SIZE, config.IMG_SIZE))
-        return np.stack((img,) * 3,-1)
+        return np.stack((img,) * 3, -1)
 
     def get_load_label_by_id(self, id):
         # TODO: process label to picture
         # TODO : test if it works
         img = np.float32(rle2mask(self.labelframe[self.id_to_indices[id]], config.IMG_SIZE, config.IMG_SIZE))
-        return np.stack((img,) * 3,-1)
+        return np.stack((img,) * 3, -1)
 
     def get_empty_by_indice(self, indice):
         return int(self.labelframe[indice] == '-1')
@@ -241,11 +239,11 @@ class SIIMDataset(data.Dataset):
 def no_aug():
     return Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC)
 
+
 def train_aug(term):
     if config.epoch > config.AUGMENTATION_RESIZE_CHANGE_EPOCH:
         return Compose([
             HorizontalFlip(p=term % 2),
-
 
             # IAAPiecewiseAffine(scale=(0.01, 0.02)),
             # AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
@@ -258,7 +256,6 @@ def train_aug(term):
             #        Blur(blur_limit=2),
             #        GaussNoise()], p=0.8),
             # RandomGamma(gamma_limit=(90, 110), p=0.8),
-
 
             OneOf([
                 RandomPercentCrop(0.8, 0.8),
@@ -270,7 +267,6 @@ def train_aug(term):
         return Compose([
             HorizontalFlip(p=term % 2),
 
-
             # IAAPiecewiseAffine(scale=(0.01, 0.02)),
             # AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
             # ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.5), rotate_limit=3, border_mode=cv2.BORDER_CONSTANT, p=0.8),
@@ -283,13 +279,14 @@ def train_aug(term):
             #        GaussNoise()], p=0.8),
             # RandomGamma(gamma_limit=(90, 110), p=0.8),
 
-
             OneOf([
                 RandomPercentCrop(0.8, 0.8),
                 DoNothing(p=1),
             ], p=1),
             Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
         ])
+
+
 def eval_aug(term):
     if config.epoch > config.AUGMENTATION_RESIZE_CHANGE_EPOCH:
         return Compose([
@@ -309,28 +306,34 @@ def eval_aug(term):
             ], p=1),
             Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
         ])
+
+
 def test_aug(term):
     return Compose([
-            HorizontalFlip(p=term % 2),
-            OneOf([
-                RandomPercentCrop(0.8, 0.8),
-                DoNothing(p=1),
-            ], p=1),
-            Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
-        ])
+        HorizontalFlip(p=term % 2),
+        OneOf([
+            RandomPercentCrop(0.8, 0.8),
+            DoNothing(p=1),
+        ], p=1),
+        Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
+    ])
+
 
 """Handeling get_item()"""
+
 
 def tta_aug(term):
     return train_aug(term)
 
+
 def train_collate(batch):
     new_batch = []
     for id, image_0, labels_0, empty in batch:
-        if config.global_steps[config.fold] ==1: print(id, image_0.shape, labels_0.shape)
+        if config.global_steps[config.fold] == 1: print(id, image_0.shape, labels_0.shape)
         new_batch.append(transform(id, image_0, labels_0, empty, mode="train"))
     batch = new_batch
     return collate(batch)
+
 
 def val_collate(batch):
     new_batch = []
@@ -339,6 +342,7 @@ def val_collate(batch):
     batch = new_batch
     return collate(batch)
 
+
 def test_collate(batch):
     new_batch = []
     for id, image_0, labels_0, empty in batch:
@@ -346,12 +350,14 @@ def test_collate(batch):
     batch = new_batch
     return collate(batch)
 
+
 def tta_collate(batch):
     new_batch = []
     for id, image_0, labels_0, empty in batch:
         new_batch.append(transform(id, image_0, labels_0, empty, mode="tta"))
     batch = new_batch
     return collate(batch)
+
 
 def collate(batch):
     error_msg = "batch must contain tensors, numbers, dicts or lists; found {}"
@@ -388,11 +394,11 @@ def collate(batch):
 
 def transform(ids, image_0, labels_0, empty, mode):
     REGULARIZATION_TRAINSFORM = transforms.Compose([
-            lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)), # and don't put them in strong_aug()
-            lambda x: no_aug()(image=x[0], mask=x[1]), # Yes, you have to use image=xxx
-            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)), # make the image within the range
-            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)), # for 1 dim gray scale
-        ])
+        lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)),  # and don't put them in strong_aug()
+        lambda x: no_aug()(image=x[0], mask=x[1]),  # Yes, you have to use image=xxx
+        lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)),  # make the image within the range
+        lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)),  # for 1 dim gray scale
+    ])
 
     """ https://stackoverflow.com/questions/23853632/which-kind-of-interpolation-best-for-resizing-image
     If you are enlarging the image, you should prefer to use INTER_LINEAR or INTER_CUBIC interpolation. If you are shrinking the image, you should prefer to use INTER_AREA interpolation.
@@ -401,10 +407,10 @@ def transform(ids, image_0, labels_0, empty, mode):
     if mode == "test":
         term = config.eval_index % 8
         TEST_TRANSFORM = transforms.Compose([
-            lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)), # and don't put them in strong_aug()
-            lambda x: test_aug(term)(image=x[0], mask=x[1]), # Yes, you have to use image=xxx
-            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)), # make the image within the range
-            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)), # for 1 dim gray scale
+            lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)),  # and don't put them in strong_aug()
+            lambda x: test_aug(term)(image=x[0], mask=x[1]),  # Yes, you have to use image=xxx
+            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)),  # make the image within the range
+            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)),  # for 1 dim gray scale
             # Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD), # this needs to be set accordingly
         ])
         image, labels = TEST_TRANSFORM((image_0, labels_0))
@@ -414,10 +420,10 @@ def transform(ids, image_0, labels_0, empty, mode):
     elif mode == "train":
         term = config.epoch % 8
         TRAIN_TRANSFORM = transforms.Compose([
-            lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)), # and don't put them in strong_aug()
-            lambda x: train_aug(term)(image=x[0], mask=x[1]), # Yes, you have to use image=xxx
-            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)), # make the image within the range
-            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)), # for 1 dim gray scale
+            lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)),  # and don't put them in strong_aug()
+            lambda x: train_aug(term)(image=x[0], mask=x[1]),  # Yes, you have to use image=xxx
+            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)),  # make the image within the range
+            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)),  # for 1 dim gray scale
             # Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD), # this needs to be set accordingly
         ])
         image, labels = TRAIN_TRANSFORM((image_0, labels_0))
@@ -427,10 +433,10 @@ def transform(ids, image_0, labels_0, empty, mode):
     elif mode == "val":
         term = config.eval_index % 8
         VAL_TRANSFORM = transforms.Compose([
-            lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)), # and don't put them in strong_aug()
-            lambda x: eval_aug(term)(image=x[0], mask=x[1]), # Yes, you have to use image=xxx
-            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)), # make the image within the range
-            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)), # for 1 dim gray scale
+            lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)),  # and don't put them in strong_aug()
+            lambda x: eval_aug(term)(image=x[0], mask=x[1]),  # Yes, you have to use image=xxx
+            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)),  # make the image within the range
+            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)),  # for 1 dim gray scale
             # Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD),
         ])
         image, labels = VAL_TRANSFORM((image_0, labels_0))
@@ -440,10 +446,10 @@ def transform(ids, image_0, labels_0, empty, mode):
     elif mode == "tta":
         term = config.eval_index % 8
         TTA_TRANSFORM = transforms.Compose([
-            lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)), # and don't put them in strong_aug()
-            lambda x: tta_aug(term)(image=x[0], mask=x[1]), # Yes, you have to use image=xxx
-            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)), # make the image within the range
-            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)), # for 1 dim gray scale
+            lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)),  # and don't put them in strong_aug()
+            lambda x: tta_aug(term)(image=x[0], mask=x[1]),  # Yes, you have to use image=xxx
+            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)),  # make the image within the range
+            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)),  # for 1 dim gray scale
             # Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD), # this needs to be set accordingly
         ])
         image, labels = TTA_TRANSFORM((image_0, labels_0))

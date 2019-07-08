@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 
+
 def lovasz_hinge(logits, labels, per_image=True, ignore=None):
     """
     Binary Lovasz hinge loss
@@ -11,7 +12,7 @@ def lovasz_hinge(logits, labels, per_image=True, ignore=None):
     """
     if per_image:
         loss = mean(lovasz_hinge_flat(*flatten_binary_scores(log.unsqueeze(0), lab.unsqueeze(0), ignore))
-                          for log, lab in zip(logits, labels))
+                    for log, lab in zip(logits, labels))
     else:
         loss = lovasz_hinge_flat(*flatten_binary_scores(logits, labels, ignore))
     return loss
@@ -35,9 +36,10 @@ def lovasz_hinge_flat(logits, labels):
     grad = lovasz_grad(gt_sorted)
     # loss = torch.dot(F.relu(errors_sorted), grad)
     # print('elu!!!!!!')
-    loss = torch.dot(F.elu(errors_sorted)+1, grad)
+    loss = torch.dot(F.elu(errors_sorted) + 1, grad)
     # loss = torch.dot(F.leaky_relu(errors_sorted)+1, grad)
     return loss
+
 
 def lovasz_grad(gt_sorted):
     """
@@ -49,9 +51,10 @@ def lovasz_grad(gt_sorted):
     intersection = gts - gt_sorted.float().cumsum(0)
     union = gts + (1 - gt_sorted).float().cumsum(0)
     jaccard = 1. - intersection / union
-    if p > 1: # cover 1-pixel case
+    if p > 1:  # cover 1-pixel case
         jaccard[1:p] = jaccard[1:p] - jaccard[0:-1]
     return jaccard
+
 
 def flatten_binary_scores(scores, labels, ignore=None):
     """
@@ -66,6 +69,7 @@ def flatten_binary_scores(scores, labels, ignore=None):
     vscores = scores[valid]
     vlabels = labels[valid]
     return vscores, vlabels
+
 
 def mean(l, ignore_nan=False, empty=0):
     """

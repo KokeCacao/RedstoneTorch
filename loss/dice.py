@@ -5,6 +5,7 @@ from scipy.optimize import linear_sum_assignment
 from torch import Tensor
 from torch.autograd import Function
 
+
 class DiceCoeff(Function):
     """Dice coeff for individual examples"""
 
@@ -30,6 +31,7 @@ class DiceCoeff(Function):
 
         return grad_input, grad_target
 
+
 def dice_coeff(input, target):
     """Dice coeff for batches"""
     if input.is_cuda:
@@ -42,10 +44,11 @@ def dice_coeff(input, target):
 
     return s / (i + 1)
 
+
 # adapted from https://www.kaggle.com/iafoss/hypercolumns-pneumothorax-fastai-0-818-lb
 # work for pytorch, soft, differentiable
 class denoised_siim_dice(torch.nn.Module):
-    def __init__(self, threshold, iou = False, eps = 1e-8, denoised = False):
+    def __init__(self, threshold, iou=False, eps=1e-8, denoised=False):
         super(denoised_siim_dice, self).__init__()
         self.threshold = threshold
         self.iou = iou
@@ -60,15 +63,18 @@ class denoised_siim_dice(torch.nn.Module):
         noise_th = 100.0 * (n / 128.0) ** 2  # threshold for the number of predicted pixels
 
         """dim here should be 0 instead of 1?"""
-        input = torch.softmax(input, dim=1)[:,0,...].view(n,-1)
+        input = torch.softmax(input, dim=1)[:, 0, ...].view(n, -1)
         input = (input > self.threshold).float()
-        if self.denoised: input[input.sum(-1) < noise_th,...] = 0.0
-        #input = input.argmax(dim=1).view(n,-1)
-        targs = targs.view(n,-1)
+        if self.denoised: input[input.sum(-1) < noise_th, ...] = 0.0
+        # input = input.argmax(dim=1).view(n,-1)
+        targs = targs.view(n, -1)
         intersect = (input * targs).sum(-1).float()
-        union = (input+targs).sum(-1).float()
-        if not self.iou: return ((2.0*intersect + self.eps) / (union+self.eps)).mean()
-        else: return ((intersect + self.eps) / (union - intersect + self.eps)).mean()
+        union = (input + targs).sum(-1).float()
+        if not self.iou:
+            return ((2.0 * intersect + self.eps) / (union + self.eps)).mean()
+        else:
+            return ((intersect + self.eps) / (union - intersect + self.eps)).mean()
+
 
 # work for pytorch, hard
 def siim_dice_overall(preds, targs):
@@ -76,11 +82,12 @@ def siim_dice_overall(preds, targs):
     preds = preds.view(n, -1)
     targs = targs.view(n, -1)
     intersect = (preds * targs).sum(-1).float()
-    union = (preds+targs).sum(-1).float()
-    u0 = union==0
+    union = (preds + targs).sum(-1).float()
+    u0 = union == 0
     intersect[u0] = 1
     union[u0] = 2
     return (2. * intersect / union)
+
 
 # adapted from https://www.kaggle.com/c/siim-acr-pneumothorax-segmentation/discussion/98747
 # work in numpy, hard, non-differentiable

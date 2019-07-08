@@ -335,12 +335,12 @@ class SIIMTrain:
                 """LOSS"""
                 if config.TRAIN_GPU_ARG:
                     labels = labels.cuda()
-                    empty = empty.cuda().float() # I don't know why I need to specify float() -> otherwise it will be long
+                    empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
                 dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, logits_predict)
                 iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, logits_predict)
                 hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
                 bce = BCELoss()(prob_empty, empty)
-                loss = 0.5*dice.mean() + 0.5*bce.mean()
+                loss = 0.5 * dice.mean() + 0.5 * bce.mean()
 
                 """BACKPROP"""
                 loss.backward()
@@ -348,7 +348,7 @@ class SIIMTrain:
                     if (batch_index + 1) % config.TRAIN_GRADIENT_ACCUMULATION == 0:
                         optimizer.step()
                         optimizer.zero_grad()
-                    elif batch_index + 1 == len(train_loader): # drop last
+                    elif batch_index + 1 == len(train_loader):  # drop last
                         optimizer.zero_grad()
                 else:
                     optimizer.step()
@@ -377,7 +377,7 @@ class SIIMTrain:
                 """DISPLAY"""
                 tensorboardwriter.write_memory(self.writer, "train")
 
-                pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Conf:{:.4f} lr:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), empty, prob_empty, total_confidence / (batch_index + 1), optimizer.param_groups[0]['lr']))
+                pbar.set_description_str("(E{}-F{}) Stp:{} Dice:{} BCE:{} Conf:{:.4f} lr:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), dice, bce, total_confidence / (batch_index + 1), optimizer.param_groups[0]['lr']))
                 out_dict = {'Epoch/{}'.format(config.fold): config.epoch,
                             'LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold): optimizer.param_groups[0]['lr'],
                             'Loss/{}'.format(config.fold): loss,
@@ -398,8 +398,8 @@ class SIIMTrain:
                 tensorboardwriter.write_loss(self.writer, out_dict, config.global_steps[fold])
 
                 """CLEAN UP"""
-                del ids, image_0, labels_0 # things threw away
-                del dice, iou, hinge, bce, loss, image, labels, empty, logits_predict, prob_predict, prob_empty # detach
+                del ids, image_0, labels_0  # things threw away
+                del dice, iou, hinge, bce, loss, image, labels, empty, logits_predict, prob_predict, prob_empty  # detach
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
             del pbar
 
@@ -411,7 +411,7 @@ class SIIMTrain:
         tensorboardwriter.write_text(self.writer, """
         Epoch: {}, Fold: {}
         TrainLoss: {}
-        """.format(config.epoch, config.fold, train_loss), config.global_steps[config.fold]-1)
+        """.format(config.epoch, config.fold, train_loss), config.global_steps[config.fold] - 1)
         # lr_scheduler.step(epoch_f, epoch=config.epoch)
 
         del train_loss
@@ -421,6 +421,7 @@ class SIIMTrain:
         #         print("Calculating Histogram #{}".format(i))
         #         writer.add_histogram(name, param.clone().cpu().data.numpy(), config.epoch)
         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
+
 
 def eval_fold(net, writer, validation_loader):
     dice_losses = np.array([])
@@ -439,7 +440,7 @@ def eval_fold(net, writer, validation_loader):
     # self.worst_loss = []
 
     print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
-    pbar = tqdm(range(config.EVAL_RATIO)) if config.epoch >= config.MODEL_FREEZE_EPOCH +2 else tqdm(range(1))
+    pbar = tqdm(range(config.EVAL_RATIO)) if config.epoch >= config.MODEL_FREEZE_EPOCH + 2 else tqdm(range(1))
     for eval_index in pbar:
         config.eval_index = eval_index
         pbar = tqdm(validation_loader)
@@ -455,12 +456,12 @@ def eval_fold(net, writer, validation_loader):
             """LOSS"""
             if config.TRAIN_GPU_ARG:
                 labels = labels.cuda()
-                empty = empty.cuda().float() # I don't know why I need to specify float() -> otherwise it will be long
+                empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
             dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, logits_predict)
             iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, logits_predict)
             hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
             bce = BCELoss()(prob_empty, empty)
-            loss = 0.5*dice.mean() + 0.5*bce.mean()
+            loss = 0.5 * dice.mean() + 0.5 * bce.mean()
 
             """DETATCH WITHOUT MEAN"""
             dice = dice.detach().cpu().numpy()
@@ -485,7 +486,7 @@ def eval_fold(net, writer, validation_loader):
             predict_total = np.concatenate((predict_total, prob_predict), axis=0) if predict_total is not None else prob_predict
             label_total = np.concatenate((label_total, labels), axis=0) if label_total is not None else labels
             prob_empty_total = np.concatenate((prob_empty_total, prob_empty), axis=0) if prob_empty_total is not None else prob_empty
-            empty_total =  np.concatenate((empty_total, empty), axis=0) if empty_total is not None else empty
+            empty_total = np.concatenate((empty_total, empty), axis=0) if empty_total is not None else empty
 
             confidence = np.absolute(prob_predict - 0.5).mean() + 0.5
             total_confidence = total_confidence + confidence
@@ -506,8 +507,8 @@ def eval_fold(net, writer, validation_loader):
                     tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, i), F, config.epoch)
 
             """CLEAN UP"""
-            del ids, image_0, labels_0 # things threw away
-            del dice, iou, hinge, bce, loss, image, labels, empty, logits_predict, prob_predict, prob_empty # detach
+            del ids, image_0, labels_0  # things threw away
+            del dice, iou, hinge, bce, loss, image, labels, empty, logits_predict, prob_predict, prob_empty  # detach
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
         del pbar
@@ -515,11 +516,11 @@ def eval_fold(net, writer, validation_loader):
 
     """LOSS"""
     tensorboardwriter.write_eval_loss(writer, {"Dice/{}".format(config.fold): dice_losses.mean(),
-                                                    "IOU/{}".format(config.fold): iou_losses.mean(),
-                                                    "Hinge/{}".format(config.fold): hinge_losses.mean(),
-                                                    "Loss/{}".format(config.fold): loss_losses.mean(),
-                                                    }, config.epoch)
-    tensorboardwriter.write_pr_curve(writer, empty_total, prob_empty_total, config.epoch, config.fold)
+                                               "IOU/{}".format(config.fold): iou_losses.mean(),
+                                               "Hinge/{}".format(config.fold): hinge_losses.mean(),
+                                               "Loss/{}".format(config.fold): loss_losses.mean(),
+                                               }, config.epoch)
+    if config.EVAL_IF_PR_CURVE: tensorboardwriter.write_pr_curve(writer, empty_total, prob_empty_total, config.epoch, config.fold)
 
     """Result Summary"""
     # epoch_pred = None
@@ -559,6 +560,7 @@ def eval_fold(net, writer, validation_loader):
     tensorboardwriter.write_text(writer, report, config.global_steps[config.fold])
 
     return score
+
 
 def draw_image(image, mask, empty, prob_empty, loss):
     F = plt.figure()
