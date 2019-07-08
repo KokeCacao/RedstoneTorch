@@ -64,7 +64,7 @@ class denoised_siim_dice(torch.nn.Module):
         noise_th = 100.0 * (n / 128.0) ** 2  # threshold for the number of predicted pixels
 
         """dim here should be 0 instead of 1?"""
-        pred = torch.softmax(pred, dim=1)[:, 1, ...].view(n, -1)
+        pred = torch.softmax(pred, dim=1).view(n, -1)
         pred = (pred > self.threshold).float()
         if self.denoised: pred[pred.sum(-1) < noise_th, ...] = 0.0
         # pred = pred.argmax(dim=1).view(n,-1)
