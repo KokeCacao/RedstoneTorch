@@ -345,7 +345,7 @@ class SIIMTrain:
                 bce = BCELoss()(prob_empty, empty)
                 ce = BCELoss()(logits_predict, labels)
                 # loss = 0.5 * dice.mean() + 0.5 * bce.mean()
-                loss = ce.mean()
+                loss = dice.mean()
 
                 """BACKPROP"""
                 loss.backward()
@@ -469,7 +469,7 @@ def eval_fold(net, writer, validation_loader):
             hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
             bce = BCELoss(reduction='none')(prob_empty, empty)
             ce = BCELoss(reduction='none')(logits_predict, labels)
-            loss = 0.5 * dice.mean() + 0.5 * ce.mean()
+            loss = 0.5 * dice.mean() + 0.5 * bce.mean()
 
             """DETATCH WITHOUT MEAN"""
             dice = dice.detach().cpu().numpy()
