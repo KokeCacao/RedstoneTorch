@@ -7,7 +7,7 @@ import matplotlib as mpl
 import numpy as np
 import torch
 from sklearn import metrics
-from torch.nn import BCELoss
+from torch.nn import BCELoss, CrossEntropyLoss
 from torch.utils import data
 from tqdm import tqdm
 
@@ -343,8 +343,9 @@ class SIIMTrain:
                 iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, logits_predict)
                 hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
                 bce = BCELoss()(prob_empty, empty)
+                ce = CrossEntropyLoss()(logits_predict, labels)
                 # loss = 0.5 * dice.mean() + 0.5 * bce.mean()
-                loss = dice.mean()
+                loss = ce.mean()
 
                 """BACKPROP"""
                 loss.backward()
@@ -363,6 +364,7 @@ class SIIMTrain:
                 iou = iou.detach().cpu().numpy().mean()
                 hinge = hinge.detach().cpu().numpy().mean()
                 bce = bce.detach().cpu().numpy().mean()
+                ce = bce.detach().cpu().numpy().mean()
                 loss = loss.detach().cpu().numpy().mean()
 
                 image = image.cpu().numpy()
@@ -403,7 +405,7 @@ class SIIMTrain:
 
                 """CLEAN UP"""
                 del ids, image_0, labels_0  # things threw away
-                del dice, iou, hinge, bce, loss, image, labels, empty, logits_predict, prob_predict, prob_empty  # detach
+                del dice, iou, hinge, bce, ce, loss, image, labels, empty, logits_predict, prob_predict, prob_empty  # detach
                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
             del pbar
 
