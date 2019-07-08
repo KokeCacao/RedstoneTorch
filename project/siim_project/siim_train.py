@@ -317,8 +317,6 @@ class SIIMTrain:
             pbar = tqdm(train_loader)
             train_len = train_len + len(train_loader)
             for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
-                labels = image # for testing
-
                 # drop last batch that has irregular shape
                 if train_len < 1 and config.epoch % (1 / config.TRAIN_RATIO) != batch_index % (1 / config.TRAIN_RATIO):
                     continue
