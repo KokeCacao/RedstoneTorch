@@ -205,12 +205,14 @@ class SIIMDataset(data.Dataset):
         # TODO : test if it works
         if len(self.labelframe) - 1 < indice: return None
         img = np.float32(rle2mask(self.labelframe[indice], config.IMG_SIZE, config.IMG_SIZE))
+        img = np.transpose(img) # this dataset mask need to be transposed
         return np.stack((img,) * 3, -1)
 
     def get_load_label_by_id(self, id):
         # TODO: process label to picture
         # TODO : test if it works
         img = np.float32(rle2mask(self.labelframe[self.id_to_indices[id]], config.IMG_SIZE, config.IMG_SIZE))
+        img = np.transpose(img) # this dataset mask need to be transposed
         return np.stack((img,) * 3, -1)
 
     def get_empty_by_indice(self, indice):
