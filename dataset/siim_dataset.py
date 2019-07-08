@@ -91,10 +91,6 @@ class SIIMDataset(data.Dataset):
         :param fold: fold number
         :return: dictionary[fold]["train" or "val"]
         """
-        X = self.indices
-
-        # each instance(x) here must be a list with length greater than 1
-        y = np.array(list([self.get_metadata_by_indice(x)[5], 0] for x in X)) # TODO: verify stratify method using AP/PA
 
         # print("Indice:{}, Id:{}, Label:{}".format(X[0], self.id[0], y[0]))
 
@@ -109,6 +105,11 @@ class SIIMDataset(data.Dataset):
                 print("WARNING: the split file '{}' already exist, remove file".format(config.DIRECTORY_SPLIT))
 
             fold_dict = []
+
+            X = self.indices
+            # each instance(x) here must be a list with length greater than 1
+            y = np.array(list([self.get_metadata_by_indice(x)[5], 0] for x in X))  # TODO: verify stratify method using AP/PA
+
             print("X = {} ; y = {}".format(X, y))
             for fold, (train_index, test_index) in enumerate(mskf.split(X, y)):
                 print("#{} TRAIN:{} TEST:{}".format(fold, train_index, test_index))
