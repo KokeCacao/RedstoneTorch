@@ -502,8 +502,8 @@ def eval_fold(net, writer, validation_loader):
             tensorboardwriter.write_memory(writer, "train")
             # TODO
             if config.DISPLAY_VISUALIZATION and batch_index < max(1, config.MODEL_BATCH_SIZE / 32):
-                for i, (image_, label_, prob_predict_, empty_, prob_empty_, loss_) in enumerate(zip(image, labels, prob_predict, empty, prob_empty, loss)):
-                    F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, loss_)
+                for i, (image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_) in enumerate(zip(image, labels, prob_predict, empty, prob_empty, dice, bce)):
+                    F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_)
                     tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, i), F, config.epoch)
 
             """CLEAN UP"""
@@ -562,7 +562,7 @@ def eval_fold(net, writer, validation_loader):
     return score
 
 
-def draw_image(image, ground, pred, empty, prob_empty, loss):
+def draw_image(image, ground, pred, empty, prob_empty, dice, bce):
     F = plt.figure()
 
     plt.subplot(321)
@@ -572,12 +572,12 @@ def draw_image(image, ground, pred, empty, prob_empty, loss):
 
     plt.subplot(322)
     plt.imshow(np.squeeze(ground))
-    plt.title("S:{}".format(loss))
+    plt.title("D:{}".format(dice))
     plt.grid(False)
 
     plt.subplot(323)
     plt.imshow(np.squeeze(pred))
-    plt.title("S:{}".format(loss))
+    plt.title("B:{}".format(bce))
     plt.grid(False)
 
     return F
