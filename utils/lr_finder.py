@@ -123,7 +123,6 @@ class LRFinder(object):
             #     ids, image, labels_0, image_for_display = next(iterator)
             # inputs = image
             # labels = labels_0
-
             # For siim
             try:
                 ids, image, labels, image_0, labels_0, empty = next(iterator)
@@ -170,12 +169,15 @@ class LRFinder(object):
         labels = labels.to(self.device)
 
         # Forward pass
-        self.optimizer.zero_grad()
-        outputs = self.model(inputs)
-
         """ Edit this to fit your dataset """
-        # loss = self.criterion(outputs, labels)
-        loss = self.criterion(labels, outputs).mean()
+        # # imet
+        # self.optimizer.zero_grad()
+        # outputs = self.model(inputs)
+        # loss = self.criterion(labels, outputs).mean()
+        # siim
+        self.optimizer.zero_grad()
+        empty_logits, _idkwhatthisis_, logits_predict = self.model(inputs)
+        loss = self.criterion(labels, logits_predict).mean()
 
 
         # Backward pass
@@ -201,7 +203,6 @@ class LRFinder(object):
                 # # imet
                 # outputs = self.model(inputs)
                 # loss = self.criterion(labels, outputs).mean()
-
                 # siim
                 empty_logits, _idkwhatthisis_, logits_predict = self.model(inputs)
                 loss = self.criterion(labels, logits_predict).mean()
