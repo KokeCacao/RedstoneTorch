@@ -5,10 +5,12 @@ import numpy as np
 
 from datetime import datetime
 
+
 PROJECT_NAME = "SIIM"
 
 if PROJECT_NAME == "HPA":
-    import project.hpa_project.hpa_config
+    from project.hpa_project import hpa_config
+    hpa_config.init()
 
 elif PROJECT_NAME == "QUBO":
     DEBUG_TRAISE_GPU = False
@@ -312,4 +314,5 @@ elif PROJECT_NAME == "IMet":
     versiontag = ""
     resetlr = 0
 elif PROJECT_NAME == "SIIM":
-    import project.siim_project.siim_config
+    from project.siim_project import siim_config
+    siim_config.init()
