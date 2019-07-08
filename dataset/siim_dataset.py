@@ -433,7 +433,6 @@ def transform(ids, image_0, labels_0, empty, mode):
             lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)), # for 1 dim gray scale
             # Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD),
         ])
-        print(image_0.shape, labels_0.shape)
         image, labels = VAL_TRANSFORM((image_0, labels_0))
         image_0, labels_0 = REGULARIZATION_TRAINSFORM((image_0, labels_0))
         if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels.shape, image_0.shape, labels_0.shape, empty.shape)

@@ -1,5 +1,5 @@
 import torch
-
+import torch.nn.functional as F
 
 def lovasz_hinge(logits, labels, per_image=True, ignore=None):
     """
