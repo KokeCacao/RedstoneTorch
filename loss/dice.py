@@ -1,5 +1,7 @@
 # --------------------------- DiceLoss ---------------------------
 import torch
+import numpy as np
+from scipy.optimize import linear_sum_assignment
 from torch import Tensor
 from torch.autograd import Function
 
@@ -41,6 +43,7 @@ def dice_coeff(input, target):
     return s / (i + 1)
 
 # adapted from https://www.kaggle.com/iafoss/hypercolumns-pneumothorax-fastai-0-818-lb
+# work for pytorch, soft, differentiable
 class denoised_siim_dice(torch.nn.Module):
     def __init__(self, threshold, iou = False, eps = 1e-8, denoised = False):
         super(denoised_siim_dice, self).__init__()
@@ -67,6 +70,7 @@ class denoised_siim_dice(torch.nn.Module):
         if not self.iou: return ((2.0*intersect + self.eps) / (union+self.eps)).mean()
         else: return ((intersect + self.eps) / (union - intersect + self.eps)).mean()
 
+# work for pytorch, hard
 def siim_dice_overall(preds, targs):
     n = preds.shape[0]
     preds = preds.view(n, -1)
@@ -77,3 +81,40 @@ def siim_dice_overall(preds, targs):
     intersect[u0] = 1
     union[u0] = 2
     return (2. * intersect / union)
+
+# adapted from https://www.kaggle.com/c/siim-acr-pneumothorax-segmentation/discussion/98747
+# work in numpy, hard, non-differentiable
+def cmp_instance_dice(labels, preds):
+    '''
+    instance dice score
+    instance_preds: list of N_i mask (0,1) per image - variable preds per image
+    instance_targs: list of M_i mask (0,1) target per image - variable targs per image
+    '''
+
+    scores = []
+    for i in range(len(preds)):
+        # Case when there is no GT mask
+        if np.sum(preds[i]) == 0:
+            scores.append(int(np.sum(preds[i]) == 0))
+        # Case when there is no pred mask but there is GT mask
+        elif np.sum(preds[i]) == 0:
+            scores.append(0)
+        # Case when there is both pred and gt masks
+        else:
+            m, _, _ = labels[i].shape
+            n, _, _ = preds[i].shape
+
+            label = labels[i].reshape(m, -1)
+            pred = preds[i].reshape(n, -1)
+
+            # intersect: matrix of target x preds (M, N)
+            intersect = ((label[:, None, :] * pred[None, :, :]) > 0).sum(2)
+            label_area, pred_area = label.sum(1), pred.sum(1)
+            union = label_area[:, None] + pred_area[None, :]
+
+            dice = (2 * intersect / union)
+
+            dice_scores = dice[linear_sum_assignment(1 - dice)]
+            mean_dice_score = sum(dice_scores) / max(n, m)  # unmatched gt or preds are counted as 0
+            scores.append(mean_dice_score)
+    return scores
