@@ -56,21 +56,21 @@ class denoised_siim_dice(torch.nn.Module):
         self.denoised = denoised
         self.mean = mean
 
-    def forward(self, input, targs):
-        n = targs.shape[0]
+    def forward(self, label, pred):
+        n = label.shape[0]
 
         # eliminate all predictions with a few (noise_th) pixesls
         # area < 0.6103516% of the image can be seen as noise
         noise_th = 100.0 * (n / 128.0) ** 2  # threshold for the number of predicted pixels
 
         """dim here should be 0 instead of 1?"""
-        input = torch.softmax(input, dim=1)[:, 0, ...].view(n, -1)
-        input = (input > self.threshold).float()
-        if self.denoised: input[input.sum(-1) < noise_th, ...] = 0.0
-        # input = input.argmax(dim=1).view(n,-1)
-        targs = targs.view(n, -1)
-        intersect = (input * targs).sum(-1).float()
-        union = (input + targs).sum(-1).float()
+        pred = torch.softmax(pred, dim=1)[:, 0, ...].view(n, -1)
+        pred = (pred > self.threshold).float()
+        if self.denoised: pred[pred.sum(-1) < noise_th, ...] = 0.0
+        # pred = pred.argmax(dim=1).view(n,-1)
+        label = label.view(n, -1)
+        intersect = (input * label).sum(-1).float()
+        union = (pred + label).sum(-1).float()
         if not self.iou:
             if self.mean: return ((2.0 * intersect + self.eps) / (union + self.eps)).mean()
             else: return ((2.0 * intersect + self.eps) / (union + self.eps))
@@ -80,12 +80,12 @@ class denoised_siim_dice(torch.nn.Module):
 
 
 # work for pytorch, hard
-def siim_dice_overall(preds, targs):
-    n = preds.shape[0]
-    preds = preds.view(n, -1)
-    targs = targs.view(n, -1)
-    intersect = (preds * targs).sum(-1).float()
-    union = (preds + targs).sum(-1).float()
+def siim_dice_overall(label, pred):
+    n = pred.shape[0]
+    pred = pred.view(n, -1)
+    label = label.view(n, -1)
+    intersect = (pred * label).sum(-1).float()
+    union = (pred + label).sum(-1).float()
     u0 = union == 0
     intersect[u0] = 1
     union[u0] = 2
@@ -97,8 +97,8 @@ def siim_dice_overall(preds, targs):
 def cmp_instance_dice(labels, preds, mean=False):
     '''
     instance dice score
-    instance_preds: list of N_i mask (0,1) per image - variable preds per image
-    instance_targs: list of M_i mask (0,1) target per image - variable targs per image
+    preds: list of N_i mask (0,1) per image - variable preds per image
+    labels: list of M_i mask (0,1) target per image - variable labels per image
     '''
 
     scores = []

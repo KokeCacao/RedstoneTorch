@@ -154,7 +154,7 @@ class SIIMTrain:
                                          timeout=0,
                                          worker_init_fn=None,
                                          ) if config.FIND_LR_ON_VALIDATION else None
-            lr_finder = LRFinder(self.nets[config.train_fold[0]], self.optimizers[config.train_fold[0]], focalloss_sigmoid_refined(alpha=0.25, gamma=2, eps=1e-7), writer=self.writer, device="cuda")
+            lr_finder = LRFinder(self.nets[config.train_fold[0]], self.optimizers[config.train_fold[0]], denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False), writer=self.writer, device="cuda")
             lr_finder.range_test(data.DataLoader(self.dataset,
                                                  batch_size=config.MODEL_BATCH_SIZE,
                                                  shuffle=False,

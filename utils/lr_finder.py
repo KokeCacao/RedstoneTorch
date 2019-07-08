@@ -115,13 +115,23 @@ class LRFinder(object):
         for iteration in pbar:
             # Get a new set of inputs and labels
             """ Edit this to fit your dataset """
+            # For imet
+            # try:
+            #     ids, image, labels_0, image_for_display = next(iterator)
+            # except StopIteration:
+            #     iterator = iter(train_loader)
+            #     ids, image, labels_0, image_for_display = next(iterator)
+            # inputs = image
+            # labels = labels_0
+
+            # For siim
             try:
-                ids, image, labels_0, image_for_display = next(iterator)
+                ids, image, labels, image_0, labels_0, empty = next(iterator)
             except StopIteration:
                 iterator = iter(train_loader)
-                ids, image, labels_0, image_for_display = next(iterator)
+                ids, image, labels, image_0, labels_0, empty = next(iterator)
             inputs = image
-            labels = labels_0
+            labels = labels
 
             # Train on batch and retrieve loss
             loss = self._train_batch(inputs, labels)
