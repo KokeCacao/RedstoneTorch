@@ -90,7 +90,7 @@ def dice_loss(true, logits, eps=1e-7):
             the raw output or logits of the model.
         eps: added to the denominator for numerical stability.
     Returns:
-        dice_loss: the Sørensen–Dice loss.
+        dice_loss: the Sorensen-Dice loss.
     """
     num_classes = logits.shape[1]
     if num_classes == 1:
