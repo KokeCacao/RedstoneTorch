@@ -336,7 +336,7 @@ class SIIMTrain:
 
                 """LOSS"""
                 if config.TRAIN_GPU_ARG:
-                    labels = labels.cuda().byte()
+                    labels = labels.cuda().float()
                     empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
 
                 # dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, prob_predict)
@@ -463,7 +463,7 @@ def eval_fold(net, writer, validation_loader):
 
             """LOSS"""
             if config.TRAIN_GPU_ARG:
-                labels = labels.cuda().byte()
+                labels = labels.cuda().float()
                 empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
 
             # dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, prob_predict)
