@@ -579,23 +579,23 @@ def draw_image(image, ground, pred, empty, prob_empty, dice, bce, ce):
     F = plt.figure()
 
     plt.subplot(321)
-    plt.imshow(np.squeeze(image))
+    plt.imshow(np.squeeze(image), cmap='plasma', vmin=0, vmax=1)
     plt.title("E:{} P:{}".format(empty, prob_empty))
     plt.grid(False)
 
     plt.subplot(322)
-    plt.imshow(np.squeeze(ground))
+    plt.imshow(np.squeeze(ground), cmap='plasma', vmin=0, vmax=1)
     plt.title("D:{}".format(dice))
     plt.grid(False)
 
     plt.subplot(323)
-    plt.imshow(np.squeeze(pred))
+    plt.imshow(np.squeeze(pred), cmap='plasma', vmin=0, vmax=1)
     plt.title("B:{} C:{}".format(bce, ce))
     plt.grid(False)
 
     plt.subplot(324)
     thresholded = (pred>config.EVAL_THRESHOLD).astype(np.byte)
-    plt.imshow(np.squeeze(thresholded))
+    plt.imshow(np.squeeze(thresholded), cmap='plasma', vmin=0, vmax=1)
     plt.title("Empty:{}".format(thresholded.sum() == 0))
     plt.grid(False)
 
