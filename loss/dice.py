@@ -205,12 +205,13 @@ def cmp_instance_dice(labels, preds, mean=False):
 # pytorch, binary, differentiable, soft, probability, loss, bounded between 1 and 0
 # adapted from: https://github.com/pytorch/pytorch/issues/1249
 def binary_dice(target, input, smooth=1e-5):
-    iflat = input.view(-1)
-    tflat = target.view(-1)
-    intersection = (iflat * tflat).sum()
+    n = target.shape[0]
+    iflat = input.view(n, -1)
+    tflat = target.view(n, -1)
+    intersection = (iflat * tflat).sum(dim=-1)
 
     return 1 - ((2. * intersection + smooth) /
-                (iflat.sum() + tflat.sum() + smooth))
+                (iflat.sum(dim=-1) + tflat.sum(dim=-1) + smooth))
 
 # pytorch, binary, differentiable, soft, probability, loss
 # adapted from: https://github.com/pytorch/pytorch/issues/1249
