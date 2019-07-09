@@ -206,7 +206,7 @@ def cmp_instance_dice(labels, preds, mean=False):
 # adapted from: https://github.com/pytorch/pytorch/issues/1249
 def binary_dice(target, input, smooth=1e-5):
     iflat = input.view(-1)
-    tflat = target.view(-1)
+    tflat = target.view(-1).float()
     intersection = (iflat * tflat).sum()
 
     return 1 - ((2. * intersection + smooth) /
