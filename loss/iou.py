@@ -1,4 +1,7 @@
 import numpy as np
+from torch import nn
+import torch.nn.functional as F
+
 
 def iou_score(outputs, labels, threshold=0.5):
     outputs = outputs > threshold  # threshold
@@ -16,3 +19,27 @@ def iou_score(outputs, labels, threshold=0.5):
 
     # thresholded = torch.clamp(20 * (iou - 0.5), 0, 10).ceil() / 10  # This is equal to comparing with thresolds
     return iou  # Or thresholded.mean() if you are interested in average across the batch
+
+class mIoULoss(nn.Module):
+    def __init__(self, mean=False, eps=1e-5):
+        super(mIoULoss, self).__init__()
+        self.mean = mean
+        self.eps = eps
+
+    def forward(self, target, pred):
+        # pred => N x Classes x H x W
+        # target => N x Classes x H x W
+        n_classes = pred.shape[1]
+        N = pred.size()[0]
+
+        # Numerator Product
+        inter = pred * target
+        ## Sum over all pixels N x C x H x W => N x C
+        inter = inter.view(N, n_classes, -1).sum(2)
+
+        # Denominator
+        union = pred + target - (pred * target)
+        ## Sum over all pixels N x C x H x W => N x C
+        union = union.view(N, n_classes, -1).sum(2)
+        if self.mean: return 1 - ((inter + self.eps) / (union + self.eps)).mean()
+        return 1 - ((inter + self.eps) / (union + self.eps))

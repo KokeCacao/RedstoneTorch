@@ -201,3 +201,28 @@ def cmp_instance_dice(labels, preds, mean=False):
             scores.append(mean_dice_score)
     if mean: return np.array(scores).mean()
     else: return np.array(scores)
+
+# pytorch, binary, differentiable, soft, probability, loss, bounded between 1 and 0
+# adapted from: https://github.com/pytorch/pytorch/issues/1249
+def binary_dice(target, input, smooth=1e-5):
+    iflat = input.view(-1)
+    tflat = target.view(-1)
+    intersection = (iflat * tflat).sum()
+
+    return 1 - ((2. * intersection + smooth) /
+                (iflat.sum() + tflat.sum() + smooth))
+
+# pytorch, binary, differentiable, soft, probability, loss
+# adapted from: https://github.com/pytorch/pytorch/issues/1249
+def muticlass_dice(target, input, smooth, class_weights):
+    loss = 0.
+    n_classes = input.shape[1]
+    for c in range(n_classes):
+        iflat = input[:, c].view(-1)
+        tflat = target[:, c].view(-1)
+        intersection = (iflat * tflat).sum()
+
+        w = class_weights[c]
+        loss += w * (1 - ((2. * intersection + smooth) /
+                          (iflat.sum() + tflat.sum() + smooth)))
+    return loss

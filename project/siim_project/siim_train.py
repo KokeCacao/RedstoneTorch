@@ -16,10 +16,11 @@ import tensorboardwriter
 from dataset.siim_dataset import SIIMDataset
 from dataset.siim_dataset import train_collate, val_collate
 from gpu import gpu_profile
-from loss.dice import denoised_siim_dice, siim_dice_overall, cmp_instance_dice, dice_loss, jaccard_loss
+from loss.dice import denoised_siim_dice, siim_dice_overall, cmp_instance_dice, dice_loss, jaccard_loss, binary_dice
 from loss.f import differenciable_f_sigmoid, fbeta_score_numpy
 from loss.focal import focalloss_sigmoid_refined
 from loss.hinge import lovasz_hinge
+from loss.iou import mIoULoss
 from lr_scheduler.Constant import Constant
 from lr_scheduler.PlateauCyclicRestart import PlateauCyclicRestart
 from optimizer import adamw
@@ -339,9 +340,9 @@ class SIIMTrain:
                     empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
 
                 # dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, prob_predict)
-                dice = dice_loss(labels, logits_predict)
+                dice = binary_dice(labels, prob_predict, smooth=1e-5)
                 # iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, prob_predict)
-                iou = jaccard_loss(labels, logits_predict)
+                iou = mIoULoss(mean=False, eps=1e-5)(labels, prob_predict)
                 hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
                 bce = BCELoss(reduction='none')(prob_empty, empty)
                 ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
@@ -466,9 +467,9 @@ def eval_fold(net, writer, validation_loader):
                 empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
 
             # dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, prob_predict)
-            dice = dice_loss(labels, logits_predict)
+            dice = binary_dice(labels, prob_predict, smooth=1e-5)
             # iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, prob_predict)
-            iou = jaccard_loss(labels, logits_predict)
+            iou = mIoULoss(mean=False, eps=1e-5)(labels, prob_predict)
             hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
             bce = BCELoss(reduction='none')(prob_empty, empty)
             ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
