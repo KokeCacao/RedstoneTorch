@@ -453,6 +453,8 @@ def eval_fold(net, writer, validation_loader):
         config.eval_index = eval_index
         pbar = tqdm(validation_loader)
         total_confidence = 0
+        displayed_img = 0
+        displayed_empty = 0
 
         for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
             """TRAIN NET"""
@@ -514,10 +516,16 @@ def eval_fold(net, writer, validation_loader):
             """DISPLAY"""
             tensorboardwriter.write_memory(writer, "train")
             # TODO
-            if config.DISPLAY_VISUALIZATION and batch_index < max(1, config.MODEL_BATCH_SIZE / 32):
+            # if config.DISPLAY_VISUALIZATION and batch_index < max(1, config.MODEL_BATCH_SIZE / 32):
+            if displayed_img < 16 or displayed_empty < 16:
                 for i, (image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_) in enumerate(zip(image, labels, prob_predict, empty, prob_empty, dice, bce, ce)):
-                    F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_)
-                    tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, i), F, config.epoch)
+                    if empty_.sum() is not 0 and displayed_img < 16:
+                        F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_)
+                        tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, i), F, config.epoch)
+                        displayed_img = displayed_img +1
+                    if empty_.sum() is 0 and displayed_empty < 16:
+                        F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_)
+                        tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, i), F, config.epoch)
 
             """CLEAN UP"""
             del ids, image_0, labels_0  # things threw away
@@ -560,7 +568,7 @@ def eval_fold(net, writer, validation_loader):
     report = """
     Shakeup Mean of Sample Mean: {}
     Shakeup STD of Sample Mean: {}""".format(shakeup_mean, shakeup_std) + """
-    Score = {}""".format(score)
+    Score = {} """.format(score)
     tensorboardwriter.write_epoch_loss(writer, {"Score": score}, config.epoch)
 
     """THRESHOLD"""
@@ -580,7 +588,7 @@ def draw_image(image, ground, pred, empty, prob_empty, dice, bce, ce):
 
     plt.subplot(321)
     plt.imshow(np.squeeze(image), cmap='plasma', vmin=0, vmax=1)
-    plt.title("E:{} P:{}".format(empty, prob_empty))
+    plt.title("E:{} P:{}".format(empty, prob_empty[0]))
     plt.grid(False)
 
     plt.subplot(322)
@@ -590,7 +598,7 @@ def draw_image(image, ground, pred, empty, prob_empty, dice, bce, ce):
 
     plt.subplot(323)
     plt.imshow(np.squeeze(pred), cmap='plasma', vmin=0, vmax=1)
-    plt.title("B:{} C:{}".format(bce, ce))
+    plt.title("B:{} C:{}".format(bce[0], ce.mean()))
     plt.grid(False)
 
     plt.subplot(324)
