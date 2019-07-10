@@ -34,8 +34,8 @@ DEBUG_AUTO_SHUTDOWN = True
 DEBUG_WRITE_SPLIT_CSV = False
 
 
-MODEL_EPOCHS = 32
-MODEL_BATCH_SIZE = 16
+MODEL_EPOCHS = 10
+MODEL_BATCH_SIZE = 64
 MODEL_MOMENTUM = 0.9
 MODEL_WEIGHT_DECAY = 0.0001 # weight decay only used in AdamW and SGDW, other implementation may be wrong
 MODEL_INIT_LEARNING_RATE = 0.00015 # this is useless for lr_schedulers
@@ -49,14 +49,14 @@ MODEL_LR_SCHEDULER_THRESHOLD = 0
 # MODEL_LR_SCHEDULER_REDUCE_RESTART = 6
 # MODEL_LR_SCHEDULER_RESTART_COEF = 1./8
 MODEL_FOLD = 5
-MODEL_NO_GRAD = [[],]
-# MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], [-1], [-1], [-1], [-1]]
+# MODEL_NO_GRAD = [[],]
+MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], ]
 MODEL_LEARNING_RATE_AFTER_UNFREEZE = 0.001
-MODEL_FREEZE_EPOCH = 7
+MODEL_FREEZE_EPOCH = 6
 
 TRAIN_GPU_DICT = {
     "kokecacao-ThinkPad-P50-Ubuntu": "0",
-    "ml-k80-3": "0", # 16280 MB
+    "ml-k80-3": "0",
     "ml-k80-4": "0",
     "ml-p100-1": "0",
     "presudo-0": "0",
@@ -78,7 +78,7 @@ TRAIN_GRADIENT_ACCUMULATION = 1
 TRAIN_ACCUMULATION_AFTER_EPOCH = 99999
 
 TRAIN_RATIO = 1
-EVAL_RATIO = 2 # to 8 when need
+EVAL_RATIO = 1 # to 8 when need
 FIND_LR_ON_VALIDATION = False
 FIND_LR_RATIO = 10 if FIND_LR_ON_VALIDATION else 100
 

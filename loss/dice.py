@@ -209,9 +209,16 @@ def binary_dice(target, input, smooth=1e-5):
     iflat = input.view(n, -1)
     tflat = target.view(n, -1)
     intersection = (iflat * tflat).sum(dim=-1)
+    return 1 - ((2. * intersection + smooth) / (iflat.sum(dim=-1) + tflat.sum(dim=-1) + smooth))
 
-    return 1 - ((2. * intersection + smooth) /
-                (iflat.sum(dim=-1) + tflat.sum(dim=-1) + smooth))
+# written by myself, soft
+def binary_dice_numpy(target, input, smooth=1e-5, mean=False):
+    n = target.shape[0]
+    iflat = input.reshape(n, -1)
+    tflat = target.view(n, -1)
+    intersection = (iflat *tflat).sum(axis=-1)
+    if mean: return (1 - ((2. * intersection + smooth) / (iflat.sum(axis=-1) + tflat.sum(axis=-1) + smooth))).mean()
+    return 1 - ((2. * intersection + smooth) / (iflat.sum(axis=-1) + tflat.sum(axis=-1) + smooth))
 
 # pytorch, binary, differentiable, soft, probability, loss
 # adapted from: https://github.com/pytorch/pytorch/issues/1249

@@ -16,7 +16,7 @@ import tensorboardwriter
 from dataset.siim_dataset import SIIMDataset
 from dataset.siim_dataset import train_collate, val_collate
 from gpu import gpu_profile
-from loss.dice import denoised_siim_dice, siim_dice_overall, cmp_instance_dice, dice_loss, jaccard_loss, binary_dice
+from loss.dice import denoised_siim_dice, siim_dice_overall, cmp_instance_dice, dice_loss, jaccard_loss, binary_dice, binary_dice_numpy
 from loss.f import differenciable_f_sigmoid, fbeta_score_numpy
 from loss.focal import focalloss_sigmoid_refined
 from loss.hinge import lovasz_hinge
@@ -557,11 +557,11 @@ def eval_fold(net, writer, validation_loader):
     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
     """LOSS"""
-    score = cmp_instance_dice(label, pred_hard, mean=True)
+    score = binary_dice_numpy(label, pred_hard, mean=True)
 
     """Shakeup"""
     # IT WILL MESS UP THE RANDOM SEED (CAREFUL)
-    shakeup, shakeup_keys, shakeup_mean, shakeup_std = calculate_shakeup(label, pred_hard, cmp_instance_dice, config.EVAL_SHAKEUP_RATIO, mean=True)
+    shakeup, shakeup_keys, shakeup_mean, shakeup_std = calculate_shakeup(label, pred_hard, binary_dice_numpy, config.EVAL_SHAKEUP_RATIO, mean=True)
     tensorboardwriter.write_shakeup(writer, shakeup, shakeup_keys, shakeup_std, config.epoch)
 
     """Print"""
@@ -573,7 +573,7 @@ def eval_fold(net, writer, validation_loader):
 
     """THRESHOLD"""
     if config.EVAL_IF_THRESHOLD_TEST:
-        best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, cmp_instance_dice, config.EVAL_TRY_THRESHOLD, writer, config.fold, n_class=1, mean=True)
+        best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, binary_dice_numpy, config.EVAL_TRY_THRESHOLD, writer, config.fold, n_class=1, mean=True)
         report = report + """Best Threshold is: {}, Score: {}, AreaUnder: {}""".format(best_threshold, best_val, total_score / total_tried)
         tensorboardwriter.write_best_threshold(writer, -1, best_val, best_threshold, total_score / total_tried, config.epoch, config.fold)
 
