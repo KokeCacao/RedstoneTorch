@@ -215,7 +215,7 @@ def binary_dice(target, input, smooth=1e-5):
 def binary_dice_numpy(target, input, smooth=1e-5, mean=False):
     n = target.shape[0]
     iflat = input.reshape(n, -1)
-    tflat = target.view(n, -1)
+    tflat = target.reshape(n, -1)
     intersection = (iflat *tflat).sum(axis=-1)
     if mean: return (1 - ((2. * intersection + smooth) / (iflat.sum(axis=-1) + tflat.sum(axis=-1) + smooth))).mean()
     return 1 - ((2. * intersection + smooth) / (iflat.sum(axis=-1) + tflat.sum(axis=-1) + smooth))
