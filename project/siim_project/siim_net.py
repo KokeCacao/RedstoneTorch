@@ -606,7 +606,7 @@ class model34_DeepSupervion(nn.Module):
         x_no_empty = self.logits_no_empty(hypercol)
         hypercol_add_center = torch.cat((
             hypercol,
-            F.upsample(center_64, scale_factor=128,mode='bilinear')),1)
+            F.upsample(center_64, scale_factor=hypercol.shape[2],mode='bilinear')),1)
 
         x_final = self.logits_final( hypercol_add_center)
         return center_fc, x_no_empty, x_final
@@ -686,7 +686,7 @@ class model50A_DeepSupervion(nn.Module):
         x_no_empty = self.logits_no_empty(hypercol)
         hypercol_add_center = torch.cat((
             hypercol,
-            F.upsample(center_64, scale_factor=128,mode='bilinear')),1)
+            F.upsample(center_64, scale_factor=hypercol.shape[2],mode='bilinear')),1)
 
         x_final = self.logits_final(hypercol_add_center)
         return center_fc, x_no_empty, x_final
