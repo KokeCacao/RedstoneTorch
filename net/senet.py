@@ -438,6 +438,8 @@ def modified_initialize_pretrained_model(model, url):
     print("Loaded State Dict: {}".format(pretrained_state.keys()))
     model_state.update(pretrained_state)
     model.load_state_dict(model_state, strict=False)
+
+    """freezing the loaded parameters"""
     for name, param in model.named_parameters():
         if name in pretrained_state.keys():
             param.requires_grad = False

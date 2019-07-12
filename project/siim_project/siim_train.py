@@ -63,18 +63,19 @@ class SIIMTrain:
                 net = model50A_DeepSupervion(num_classes=config.TRAIN_NUM_CLASS)
 
                 """FREEZING LAYER"""
-                for i, c in enumerate(net.children()):
-                    if len(config.MODEL_NO_GRAD) > i:
-                        l = config.MODEL_NO_GRAD[i]
-                        for child_counter, child in enumerate(list(c.children())):
-                            if child_counter in l or l == [-1]:
-                                print("Disable Gradient for child_counter: {}".format(child_counter))
-                                for paras in child.parameters():
-                                    paras.requires_grad = False
-                            else:
-                                print("Enable Gradient for child_counter: {}".format(child_counter))
-                    else:
-                        print("Enable Gradient for layer: {} (default)".format(i))
+                if config.MODEL_MANUAL_FREEZE_INITIAL:
+                    for i, c in enumerate(net.children()):
+                        if len(config.MODEL_NO_GRAD) > i:
+                            l = config.MODEL_NO_GRAD[i]
+                            for child_counter, child in enumerate(list(c.children())):
+                                if child_counter in l or l == [-1]:
+                                    print("Disable Gradient for child_counter: {}".format(child_counter))
+                                    for paras in child.parameters():
+                                        paras.requires_grad = False
+                                else:
+                                    print("Enable Gradient for child_counter: {}".format(child_counter))
+                        else:
+                            print("Enable Gradient for layer: {} (default)".format(i))
 
                 if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
 
