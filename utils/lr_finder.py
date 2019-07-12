@@ -1,5 +1,6 @@
 from __future__ import print_function, with_statement, division
 import torch
+from torch.nn import BCELoss
 from tqdm.autonotebook import tqdm
 from torch.optim.lr_scheduler import _LRScheduler
 import matplotlib.pyplot as plt
@@ -133,7 +134,7 @@ class LRFinder(object):
             labels = labels
 
             # Train on batch and retrieve loss
-            loss = self._train_batch(inputs, labels)
+            loss = self._train_batch(inputs, labels, empty)
             if val_loader:
                 loss = self._validate(val_loader)
 
@@ -160,7 +161,7 @@ class LRFinder(object):
 
         print("Learning rate search finished. See the graph with {finder_name}.plot()")
 
-    def _train_batch(self, inputs, labels):
+    def _train_batch(self, inputs, labels, empty):
         # Set model to training mode
         self.model.train()
 
@@ -178,7 +179,9 @@ class LRFinder(object):
         self.optimizer.zero_grad()
         empty_logits, _idkwhatthisis_, logits_predict = self.model(inputs)
         prob_predict = torch.nn.Sigmoid()(logits_predict)
-        loss = self.criterion(labels, prob_predict).mean()
+        prob_empty = torch.nn.Sigmoid()(empty_logits)
+        bce = BCELoss(reduction='none')(prob_empty, empty)
+        loss = self.criterion(labels, prob_predict).mean() + bce.mean()
 
 
         # Backward pass
@@ -192,9 +195,9 @@ class LRFinder(object):
         running_loss = 0
         self.model.eval()
         with torch.no_grad():
-            for ids, image, labels_0, image_for_display in dataloader:
+            for ids, image, labels, image_0, labels_0, empty in dataloader:
                 inputs = image
-                labels = labels_0
+                labels = labels
                 # Move data to the correct device
                 inputs = inputs.to(self.device)
                 labels = labels.to(self.device)
@@ -207,7 +210,9 @@ class LRFinder(object):
                 # siim
                 empty_logits, _idkwhatthisis_, logits_predict = self.model(inputs)
                 prob_predict = torch.nn.Sigmoid()(logits_predict)
-                loss = self.criterion(labels, prob_predict).mean()
+                prob_empty = torch.nn.Sigmoid()(empty_logits)
+                bce = BCELoss(reduction='none')(prob_empty, empty)
+                loss = self.criterion(labels, prob_predict).mean() + bce.mean()
 
                 running_loss += loss.item() * inputs.size(0)
 
