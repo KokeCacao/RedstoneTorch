@@ -16,7 +16,7 @@ import tensorboardwriter
 from dataset.siim_dataset import SIIMDataset
 from dataset.siim_dataset import train_collate, val_collate
 from gpu import gpu_profile
-from loss.dice import denoised_siim_dice, siim_dice_overall, cmp_instance_dice, dice_loss, jaccard_loss, binary_dice, binary_dice_numpy
+from loss.dice import denoised_siim_dice, siim_dice_overall, cmp_instance_dice, dice_loss, jaccard_loss, binary_dice_pytorch_loss, binary_dice_numpy_loss, binary_dice_numpy_gain
 from loss.f import differenciable_f_sigmoid, fbeta_score_numpy
 from loss.focal import focalloss_sigmoid_refined
 from loss.hinge import lovasz_hinge
@@ -156,7 +156,7 @@ class SIIMTrain:
                                          timeout=0,
                                          worker_init_fn=None,
                                          ) if config.FIND_LR_ON_VALIDATION else None
-            lr_finder = LRFinder(self.nets[config.train_fold[0]], self.optimizers[config.train_fold[0]], binary_dice, writer=self.writer, device="cuda")
+            lr_finder = LRFinder(self.nets[config.train_fold[0]], self.optimizers[config.train_fold[0]], binary_dice_pytorch_loss, writer=self.writer, device="cuda")
             lr_finder.range_test(data.DataLoader(self.dataset,
                                                  batch_size=config.MODEL_BATCH_SIZE,
                                                  shuffle=False,
@@ -340,7 +340,7 @@ class SIIMTrain:
                     empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
 
                 # dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, prob_predict)
-                dice = binary_dice(labels, prob_predict, smooth=1e-5)
+                dice = binary_dice_pytorch_loss(labels, prob_predict, smooth=1e-5)
                 # iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, prob_predict)
                 iou = mIoULoss(mean=False, eps=1e-5)(labels, prob_predict)
                 hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
@@ -469,7 +469,7 @@ def eval_fold(net, writer, validation_loader):
                 empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
 
             # dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, prob_predict)
-            dice = binary_dice(labels, prob_predict, smooth=1e-5)
+            dice = binary_dice_pytorch_loss(labels, prob_predict, smooth=1e-5)
             # iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, prob_predict)
             iou = mIoULoss(mean=False, eps=1e-5)(labels, prob_predict)
             hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
@@ -557,11 +557,11 @@ def eval_fold(net, writer, validation_loader):
     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
     """LOSS"""
-    score = binary_dice_numpy(label, pred_hard, mean=True)
+    score = binary_dice_numpy_gain(label, pred_hard, mean=True)
 
     """Shakeup"""
     # IT WILL MESS UP THE RANDOM SEED (CAREFUL)
-    shakeup, shakeup_keys, shakeup_mean, shakeup_std = calculate_shakeup(label, pred_hard, binary_dice_numpy, config.EVAL_SHAKEUP_RATIO, mean=True)
+    shakeup, shakeup_keys, shakeup_mean, shakeup_std = calculate_shakeup(label, pred_hard, binary_dice_numpy_gain, config.EVAL_SHAKEUP_RATIO, mean=True)
     tensorboardwriter.write_shakeup(writer, shakeup, shakeup_keys, shakeup_std, config.epoch)
 
     """Print"""
@@ -573,7 +573,7 @@ def eval_fold(net, writer, validation_loader):
 
     """THRESHOLD"""
     if config.EVAL_IF_THRESHOLD_TEST:
-        best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, binary_dice_numpy, config.EVAL_TRY_THRESHOLD, writer, config.fold, n_class=1, mean=True)
+        best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, binary_dice_numpy_gain, config.EVAL_TRY_THRESHOLD, writer, config.fold, n_class=1, mean=True)
         report = report + """Best Threshold is: {}, Score: {}, AreaUnder: {}""".format(best_threshold, best_val, total_score / total_tried)
         tensorboardwriter.write_best_threshold(writer, -1, best_val, best_threshold, total_score / total_tried, config.epoch, config.fold)
 

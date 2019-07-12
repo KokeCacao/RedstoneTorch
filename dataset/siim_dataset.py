@@ -62,7 +62,7 @@ class SIIMDataset(data.Dataset):
         elif self.load_strategy == "test" or self.load_strategy == "predict":
             # TODO
             print("Predicting Dataframe: {}".format(self.test_dataframe.head()))
-            self.labelframe = self.train_dataframe[target_col].tolist()
+            self.labelframe = self.test_dataframe[target_col].tolist()
             id = self.test_dataframe.index.tolist()
         else:
             raise ValueError("the argument [load_strategy] recieved and undefined value: [{}], which is not one of 'train', 'test', 'predict'".format(load_strategy))
@@ -288,7 +288,6 @@ def eval_aug(term):
 def test_aug(term):
     return Compose([
         HorizontalFlip(p=term % 2),
-        Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
     ])
 
 def tta_aug(term):
