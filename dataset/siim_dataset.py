@@ -106,7 +106,8 @@ class SIIMDataset(data.Dataset):
 
             X = self.indices
             # each instance(x) here must be a list with length greater than 1
-            y = np.array(list([self.get_metadata_by_indice(x)[5], 0] for x in X))  # TODO: verify stratify method using AP/PA
+            # y = np.array(list([self.get_metadata_by_indice(x)[5], 0] for x in X))  # TODO: verify stratify method using AP/PA
+            y = np.array(list([self.get_empty_by_indice(x), 0] for x in X))  # TODO: verify stratify method using AP/PA
 
             print("X = {} ; y = {}".format(X, y))
             for fold, (train_index, test_index) in enumerate(mskf.split(X, y)):
