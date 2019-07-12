@@ -436,6 +436,8 @@ def modified_initialize_pretrained_model(model, url):
     model_state = model.state_dict()
     pretrained_state = {k: v for k, v in state_dict.items() if k in model_state and v.size() == model_state[k].size()}
     print("Loaded State Dict: {}".format(pretrained_state.keys()))
+    for key in pretrained_state.keys():
+        key.requires_grad = False
     model_state.update(pretrained_state)
     model.load_state_dict(model_state, strict=False)
 
