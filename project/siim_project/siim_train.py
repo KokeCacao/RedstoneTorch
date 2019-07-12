@@ -455,6 +455,8 @@ def eval_fold(net, writer, validation_loader):
         total_confidence = 0
         displayed_img = 0
         displayed_empty = 0
+        display_max = 0
+        display_min = 0
 
         for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
             """TRAIN NET"""
@@ -517,15 +519,26 @@ def eval_fold(net, writer, validation_loader):
             tensorboardwriter.write_memory(writer, "train")
             # TODO
             # if config.DISPLAY_VISUALIZATION and batch_index < max(1, config.MODEL_BATCH_SIZE / 32):
-            if displayed_img < 16 or displayed_empty < 16:
-                for i, (image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_) in enumerate(zip(image, labels, prob_predict, empty, prob_empty, dice, bce, ce)):
-                    if empty_.sum() is not 0 and displayed_img < 16:
+            if displayed_img < 8 or displayed_empty < 8:
+                for image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_ in zip(image, labels, prob_predict, empty, prob_empty, dice, bce, ce):
+                    if empty_.sum() is not 0 and displayed_img < 8:
                         F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_)
-                        tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, i), F, config.epoch)
+                        tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, displayed_img), F, config.epoch, category="non-empty")
                         displayed_img = displayed_img +1
-                    if empty_.sum() is 0 and displayed_empty < 16:
+                    if empty_.sum() is 0 and displayed_empty < 8:
                         F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_)
-                        tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, i), F, config.epoch)
+                        tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, displayed_empty), F, config.epoch, category="empty")
+                        displayed_empty = displayed_empty +1
+            if display_max < 0:
+                arg = np.argmax(dice)
+                F = draw_image(image[arg], labels[arg], prob_predict[arg], empty[arg], prob_empty[arg], dice[arg], bce[arg], ce[arg])
+                tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, display_max), F, config.epoch, category="batch_max")
+                display_max = display_max +1
+            if display_min < 8:
+                arg = np.argmin(dice)
+                F = draw_image(image[arg], labels[arg], prob_predict[arg], empty[arg], prob_empty[arg], dice[arg], bce[arg], ce[arg])
+                tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, display_min), F, config.epoch, category="batch_min")
+                display_min = display_min +1
 
             """CLEAN UP"""
             del ids, image_0, labels_0  # things threw away
@@ -588,16 +601,16 @@ def draw_image(image, ground, pred, empty, prob_empty, dice, bce, ce):
 
     plt.subplot(321)
     plt.imshow(np.squeeze(image), cmap='plasma', vmin=0, vmax=1)
-    plt.title("E:{} P:{}".format(empty, prob_empty[0]))
+    plt.title("P:{}".format(prob_empty[0]))
     plt.grid(False)
 
     plt.subplot(322)
     plt.imshow(np.squeeze(ground), cmap='plasma', vmin=0, vmax=1)
-    plt.title("D:{}".format(dice))
+    plt.title("D:{} Empty:".format(dice, empty!=0.))
     plt.grid(False)
 
     plt.subplot(323)
-    plt.imshow(np.squeeze(pred), cmap='plasma', vmin=0, vmax=1)
+    plt.imshow(np.squeeze(pred), cmap='plasma', vmin=pred.min(), vmax=pred.max())
     plt.title("B:{} C:{}".format(bce[0], ce.mean()))
     plt.grid(False)
 

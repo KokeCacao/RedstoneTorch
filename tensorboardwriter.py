@@ -95,8 +95,8 @@ def write_pr_curve(writer, label, predicted, epoch, fold):
     writer.add_pr_curve("eval/pr_curve/{}".format(fold), label, predicted, epoch)
 
 
-def write_image(writer, msg, F, epoch):
-    writer.add_figure("eval/image/{}".format(msg), F, 0)
+def write_image(writer, msg, F, epoch, category="image"):
+    writer.add_figure("eval/{}/{}".format(category, msg), F, 0)
 
 
 def write_predict_image(writer, msg, F, epoch):
