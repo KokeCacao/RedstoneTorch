@@ -178,6 +178,10 @@ class LRFinder(object):
         # siim
         self.optimizer.zero_grad()
         empty_logits, _idkwhatthisis_, logits_predict = self.model(inputs)
+
+        labels = labels.cuda().float()
+        empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
+
         prob_predict = torch.nn.Sigmoid()(logits_predict)
         prob_empty = torch.nn.Sigmoid()(empty_logits)
         bce = BCELoss(reduction='none')(prob_empty, empty)
@@ -209,6 +213,10 @@ class LRFinder(object):
                 # loss = self.criterion(labels, outputs).mean()
                 # siim
                 empty_logits, _idkwhatthisis_, logits_predict = self.model(inputs)
+
+                labels = labels.cuda().float()
+                empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
+
                 prob_predict = torch.nn.Sigmoid()(logits_predict)
                 prob_empty = torch.nn.Sigmoid()(empty_logits)
                 bce = BCELoss(reduction='none')(prob_empty, empty)
