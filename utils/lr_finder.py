@@ -185,7 +185,8 @@ class LRFinder(object):
         prob_predict = torch.nn.Sigmoid()(logits_predict)
         prob_empty = torch.nn.Sigmoid()(empty_logits)
         bce = BCELoss(reduction='none')(prob_empty, empty)
-        loss = self.criterion(labels, prob_predict).mean() + bce.mean()
+        # loss = self.criterion(labels, prob_predict).mean() + bce.mean()
+        loss = self.criterion(labels, prob_predict).mean()
 
 
         # Backward pass
@@ -220,7 +221,8 @@ class LRFinder(object):
                 prob_predict = torch.nn.Sigmoid()(logits_predict)
                 prob_empty = torch.nn.Sigmoid()(empty_logits)
                 bce = BCELoss(reduction='none')(prob_empty, empty)
-                loss = self.criterion(labels, prob_predict).mean() + bce.mean()
+                # loss = self.criterion(labels, prob_predict).mean() + bce.mean()
+                loss = self.criterion(labels, prob_predict).mean()
 
                 running_loss += loss.item() * inputs.size(0)
 
