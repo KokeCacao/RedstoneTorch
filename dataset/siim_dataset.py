@@ -142,7 +142,7 @@ class SIIMDataset(data.Dataset):
                 # write_cv_distribution(self.writer, y_t, y_e)
             np.save(config.DIRECTORY_SPLIT, fold_dict)
         else:
-            fold_dict = np.load(config.DIRECTORY_SPLIT, allow_pickle=True)
+            fold_dict = np.load(config.DIRECTORY_SPLIT, allow_pickle=True, encoding="latin1")
             pbar = tqdm(fold_dict)
             for fold, items in enumerate(pbar):
                 pbar.set_description_str("Creating Folds from Dictionary")
@@ -195,12 +195,12 @@ class SIIMDataset(data.Dataset):
         # TODO: adjust to png or jpg for now
         # TODO : test if it works
         if ".npy" in id:
-            img = np.load(config.DIRECTORY_TRAIN + id, allow_pickle=True)
+            img = np.load(config.DIRECTORY_TRAIN + id, allow_pickle=True, encoding="latin1")
         else:
             ds = pydicom.read_file(config.DIRECTORY_TRAIN + id)  # read dicom image
             img = ds.pixel_array  # get image array
 
-            # return np.load(id, allow_pickle=True)
+            # return np.load(id, allow_pickle=True, encoding="latin1")
         return np.array(np.stack((img,) * 3, -1))
 
     def get_load_label_by_indice(self, indice):
