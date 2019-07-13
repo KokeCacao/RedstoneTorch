@@ -1,5 +1,7 @@
 import os
 import sys
+import warnings
+warnings.filterwarnings("ignore")
 from datetime import datetime
 from optparse import OptionParser
 
@@ -81,8 +83,6 @@ def load_args():
         raise NotImplementedError("Please specify fold number")
 
 if __name__ == '__main__':
-    import warnings
-    warnings.filterwarnings("once")
     """
     PLAYGROUND
     """
