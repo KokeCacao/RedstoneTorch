@@ -81,6 +81,8 @@ def load_args():
         raise NotImplementedError("Please specify fold number")
 
 if __name__ == '__main__':
+    import warnings
+    warnings.filterwarnings("once")
     """
     PLAYGROUND
     """
