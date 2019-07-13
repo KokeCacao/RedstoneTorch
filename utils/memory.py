@@ -55,7 +55,7 @@ def get_gpu_memory_map():
                 '--format=csv,nounits,noheader'
             ]) #nvidia-smi --query-gpu=memory.used --format=csv,nounits,noheader
         # Convert lines into a dictionary
-        gpu_memory = [int(x) for x in str(result.strip()).split('\n')]
+        gpu_memory = [int(x) for x in str(result.strip(), encoding="utf-8").split('\n')]
         result = dict(zip(range(len(gpu_memory)), gpu_memory))
     except KeyboardInterrupt as e:
         print(e)
