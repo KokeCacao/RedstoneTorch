@@ -348,7 +348,8 @@ class SIIMTrain:
                 bce = BCELoss(reduction='none')(prob_empty.squeeze(-1), empty)
                 ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
                 # loss = 0.5 * dice.mean() + 0.5 * bce.mean()
-                loss = 0.5 * ce.mean() + 0.5 * dice.mean()
+                # loss = 0.5 * ce.mean() + 0.5 * dice.mean()
+                loss = ce.mean()
 
                 """BACKPROP"""
                 loss.backward()
@@ -480,7 +481,7 @@ def eval_fold(net, writer, validation_loader):
             bce = BCELoss(reduction='none')(prob_empty.squeeze(-1), empty)
             ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
             # loss = 0.5 * dice.mean() + 0.5 * bce.mean()
-            loss = 0.5*ce.mean() + 0.5*dice.mean()
+            loss = ce.mean()
 
             """DETATCH WITHOUT MEAN"""
             dice = dice.detach().cpu().numpy()
@@ -604,17 +605,17 @@ def draw_image(image, ground, pred, empty, prob_empty, dice, bce, ce):
 
     plt.subplot(321)
     plt.imshow(np.squeeze(image), cmap='plasma', vmin=0, vmax=1)
-    plt.title("P:{0:.4f}".format(prob_empty[0]))
+    plt.title("P:{.4f}".format(prob_empty[0]))
     plt.grid(False)
 
     plt.subplot(322)
     plt.imshow(np.squeeze(ground), cmap='plasma', vmin=0, vmax=1)
-    plt.title("D:{0:.4f} Empty:".format(dice, empty!=0.))
+    plt.title("D:{.4f} Empty:{}".format(dice, empty!=0.))
     plt.grid(False)
 
     plt.subplot(323)
     plt.imshow(np.squeeze(pred), cmap='plasma', vmin=pred.min(), vmax=pred.max())
-    plt.title("B:{0:.4f} C:{0:.4f}".format(bce, ce.mean()))
+    plt.title("B:{.4f} C:{.4f}".format(bce, ce.mean()))
     plt.grid(False)
 
     plt.subplot(324)
