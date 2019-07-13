@@ -194,11 +194,13 @@ class SIIMDataset(data.Dataset):
     def get_load_image_by_id(self, id):
         # TODO: adjust to png or jpg for now
         # TODO : test if it works
+        if ".npy" in id:
+            img = np.load(config.DIRECTORY_TRAIN + id)
+        else:
+            ds = pydicom.read_file(config.DIRECTORY_TRAIN + id)  # read dicom image
+            img = ds.pixel_array  # get image array
 
-        ds = pydicom.read_file(config.DIRECTORY_TRAIN + id)  # read dicom image
-        img = ds.pixel_array  # get image array
-
-        # return np.load(id)
+            # return np.load(id)
         return np.array(np.stack((img,) * 3, -1))
 
     def get_load_label_by_indice(self, indice):

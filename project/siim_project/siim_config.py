@@ -81,7 +81,7 @@ FIND_LR_ON_VALIDATION = False
 FIND_LR_RATIO = 10 if FIND_LR_ON_VALIDATION else 100
 
 DIRECTORY_PREFIX = "./" # remember to add '/' at the end
-DIRECTORY_CSV = DIRECTORY_PREFIX + 'data/siim_dataset/train-rle.csv'
+DIRECTORY_CSV = DIRECTORY_PREFIX + 'data/siim_dataset/train-rle-mix.csv'
 DIRECTORY_CSV_ID = 'ImageId'
 DIRECTORY_CSV_TARGET = 'EncodedPixels'
 DIRECTORY_SAMPLE_CSV = DIRECTORY_PREFIX + 'data/siim_dataset/sample_submission.csv'
