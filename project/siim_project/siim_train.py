@@ -605,17 +605,17 @@ def draw_image(image, ground, pred, empty, prob_empty, dice, bce, ce):
 
     plt.subplot(321)
     plt.imshow(np.squeeze(image), cmap='plasma', vmin=0, vmax=1)
-    plt.title("P:{.4f}".format(prob_empty[0]))
+    plt.title("P:{:.4f}".format(prob_empty[0]))
     plt.grid(False)
 
     plt.subplot(322)
     plt.imshow(np.squeeze(ground), cmap='plasma', vmin=0, vmax=1)
-    plt.title("D:{.4f} Empty:{}".format(dice, empty!=0.))
+    plt.title("D:{:.4f} Empty:{}".format(dice, empty!=0.))
     plt.grid(False)
 
     plt.subplot(323)
     plt.imshow(np.squeeze(pred), cmap='plasma', vmin=pred.min(), vmax=pred.max())
-    plt.title("B:{.4f} C:{.4f}".format(bce, ce.mean()))
+    plt.title("B:{:.4f} C:{:.4f}".format(bce, ce.mean()))
     plt.grid(False)
 
     plt.subplot(324)
