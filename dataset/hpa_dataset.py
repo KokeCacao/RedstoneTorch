@@ -14,7 +14,9 @@ from iterstrat.ml_stratifiers import MultilabelStratifiedKFold, MultilabelStrati
 from torch._six import string_classes, int_classes
 from torch.utils import data
 from torch.utils.data import SubsetRandomSampler
-from sklearn.preprocessing import MultiLabelBinarizer
+
+"""OUTDATED"""
+# from sklearn.preprocessing import MultiLabelBinarizer
 # from albumentations import (
 #     HorizontalFlip, IAAPerspective, ShiftScaleRotate, CLAHE, RandomRotate90,
 #     Transpose, ShiftScaleRotate, Blur, OpticalDistortion, GridDistortion, HueSaturationValue,
@@ -30,7 +32,9 @@ from sklearn.preprocessing import MultiLabelBinarizer
 ## https://www.kaggle.com/mratsim/planet-understanding-the-amazon-from-space/starting-kit-for-pytorch-deep-learning/notebook
 ## https://devhub.io/repos/pytorch-vision
 ## https://github.com/ClementPinard/FlowNetPytorch/blob/master/balancedsampler.py
-from torch.utils.data.dataloader import numpy_type_map, default_collate
+
+"""OUTDATED"""
+# from torch.utils.data.dataloader import numpy_type_map, default_collate
 from torchvision.transforms import transforms, Normalize
 
 import tensorboardwriter
