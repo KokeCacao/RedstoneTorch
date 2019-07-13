@@ -16,7 +16,8 @@ from torch._six import string_classes, int_classes
 from torch.utils import data
 from torch.utils.data import SubsetRandomSampler, Sampler
 from sklearn.preprocessing import MultiLabelBinarizer
-from torch.utils.data.dataloader import numpy_type_map, default_collate
+"""OUTDATED IMPORT"""
+# from torch.utils.data.dataloader import numpy_type_map, default_collate
 from torchvision.transforms import transforms
 
 from albumentations import (

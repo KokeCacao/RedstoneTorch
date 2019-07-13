@@ -31,7 +31,8 @@ from sklearn.preprocessing import MultiLabelBinarizer
 ## https://www.kaggle.com/mratsim/planet-understanding-the-amazon-from-space/starting-kit-for-pytorch-deep-learning/notebook
 ## https://devhub.io/repos/pytorch-vision
 ## https://github.com/ClementPinard/FlowNetPytorch/blob/master/balancedsampler.py
-from torch.utils.data.dataloader import numpy_type_map, default_collate
+"""OUTDATED IMPORT"""
+# from torch.utils.data.dataloader import numpy_type_map, default_collate
 from torchvision.transforms import transforms, Normalize
 
 from albumentations import (
