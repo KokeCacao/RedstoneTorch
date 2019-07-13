@@ -74,7 +74,6 @@ TRAIN_NUM_WORKER = multiprocessing.cpu_count()
 TRAIN_NUM_GPU = len(TRAIN_GPU_LIST)
 TRAIN_NUM_CLASS = 1 # gray scale
 TRAIN_GRADIENT_ACCUMULATION = 8
-TRAIN_ACCUMULATION_AFTER_EPOCH = 99999
 
 TRAIN_RATIO = 1
 EVAL_RATIO = 1 # to 8 when need
@@ -115,9 +114,9 @@ PREDICTION_CHOSEN_THRESHOLD = [0.3]
 PREDICTION_TTA = 0
 
 DIRECTORY_LOAD = None
-TRAIN = True
-TRAIN_RESUME = False
-DEBUG_LR_FINDER = False # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
+train = True
+train_resume = False
+debug_lr_finder = False # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
 load_state_dicts = True
 load_optimizers = True
 load_lr_schedulers = True

@@ -39,15 +39,15 @@ def load_args():
     args = get_args()
     if args.versiontag: config.versiontag = args.versiontag
     if args.projecttag: config.PROJECT_TAG = args.projecttag
-    config.TRAIN_RESUME = False
-    config.DEBUG_LR_FINDER = True if args.testlr == "True" else False
+    config.train_resume = False
+    config.debug_lr_finder = True if args.testlr == "True" else False
     config.load_state_dicts = False if args.state_dict == "False" else True
     config.load_optimizers = False if args.optimizer == "False" else True
     config.load_lr_schedulers = False if args.lr_scheduler == "False" else True
 
     if args.loadfile:
         config.lastsave = args.loadfile
-        if config.TRAIN_RESUME:
+        if config.train_resume:
             config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/" + args.loadfile
             config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/"
             config.resetlr = args.resetlr

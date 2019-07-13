@@ -138,7 +138,7 @@ class IMetTrain:
 
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[config.train_fold[0]], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
-        if config.DEBUG_LR_FINDER:
+        if config.debug_lr_finder:
             val_loader = data.DataLoader(self.dataset,
                                          batch_size=config.MODEL_BATCH_SIZE,
                                          shuffle=False,
@@ -279,7 +279,7 @@ class IMetTrain:
             #     tensorboardwriter.write_text(self.writer, "Switch to torch.optim.SGD, weight_decay={}, momentum={}".format(config.MODEL_WEIGHT_DEFAY, config.MODEL_MOMENTUM), config.global_steps[fold])
             net = net.cuda()
             optimizer = load.move_optimizer_to_cuda(optimizer)
-            if config.TRAIN: self.step_fold(fold, net, optimizer, lr_scheduler, batch_size)
+            if config.train: self.step_fold(fold, net, optimizer, lr_scheduler, batch_size)
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             val_loss, val_f = evaluation.eval_fold(net, self.validation_loader[config.fold])
             print("""

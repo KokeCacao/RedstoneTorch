@@ -45,7 +45,7 @@ def rle_encode(img):
     runs[1::2] = runs[1::2] - runs[:-1:2]
     return ' '.join(str(x) for x in runs)
 
-def mask2rle(img, width, height):
+def mask2rle(img, width, height, max_color=1):
     rle = []
     lastColor = 0
     currentPixel = 0
@@ -56,7 +56,7 @@ def mask2rle(img, width, height):
         for y in range(height):
             currentColor = img[x][y]
             if currentColor != lastColor:
-                if currentColor == 255:
+                if currentColor == max_color:
                     runStart = currentPixel
                     runLength = 1
                 else:

@@ -144,7 +144,7 @@ class SIIMTrain:
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[config.train_fold[0]], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
         """LR FINDER"""
-        if config.DEBUG_LR_FINDER:
+        if config.debug_lr_finder:
             val_loader = data.DataLoader(self.dataset,
                                          batch_size=config.MODEL_BATCH_SIZE,
                                          shuffle=False,
@@ -288,7 +288,7 @@ class SIIMTrain:
             """Train and Eval"""
             net = net.cuda()
             optimizer = load.move_optimizer_to_cuda(optimizer)
-            if config.TRAIN: self.step_fold(fold, net, optimizer, lr_scheduler, batch_size)
+            if config.train: self.step_fold(fold, net, optimizer, lr_scheduler, batch_size)
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
             score = eval_fold(net, self.writer, self.validation_loader[config.fold])
 
@@ -604,17 +604,17 @@ def draw_image(image, ground, pred, empty, prob_empty, dice, bce, ce):
 
     plt.subplot(321)
     plt.imshow(np.squeeze(image), cmap='plasma', vmin=0, vmax=1)
-    plt.title("P:{}".format(prob_empty[0]))
+    plt.title("P:{0:.4f}".format(prob_empty[0]))
     plt.grid(False)
 
     plt.subplot(322)
     plt.imshow(np.squeeze(ground), cmap='plasma', vmin=0, vmax=1)
-    plt.title("D:{} Empty:".format(dice, empty!=0.))
+    plt.title("D:{0:.4f} Empty:".format(dice, empty!=0.))
     plt.grid(False)
 
     plt.subplot(323)
     plt.imshow(np.squeeze(pred), cmap='plasma', vmin=pred.min(), vmax=pred.max())
-    plt.title("B:{} C:{}".format(bce[0], ce.mean()))
+    plt.title("B:{0:.4f} C:{0:.4f}".format(bce[0], ce.mean()))
     plt.grid(False)
 
     plt.subplot(324)
