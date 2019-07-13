@@ -55,7 +55,7 @@ def load_args():
     config.train = False if args.train == "False" else True
     config.resetlr = args.resetlr
 
-    if args.img_size != 0: config.AUGMENTATION_RESIZE = int(args.img_size)
+    if args.image_size != 0: config.AUGMENTATION_RESIZE = int(args.img_size)
     if args.total_epoch != 0: config.MODEL_EPOCHS = int(args.total_epoch)
     if args.batch_size != 0: config.MODEL_BATCH_SIZE = int(args.batch_size)
     if args.accumulation != 0: config.TRAIN_GRADIENT_ACCUMULATION = int(args.accumulation)
