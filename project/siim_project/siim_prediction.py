@@ -34,7 +34,7 @@ class SIIMPrediction:
 
                 if config.TRAIN_GPU_ARG:
                     print("Let's use", torch.cuda.device_count(), "GPUs!")
-                    net = torch.nn.DataParallel(net, device_ids=[i for i in range(torch.cuda.device_count())], dim=2) # dim=2 split image into half
+                    net = torch.nn.DataParallel(net, device_ids=[i for i in range(torch.cuda.device_count())], dim=0) # dim=2 split image into half
                 self.nets.append(net)
 
         config.load_optimizers = False
