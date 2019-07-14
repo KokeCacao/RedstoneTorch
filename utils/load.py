@@ -53,6 +53,12 @@ def save_checkpoint_fold(state_dicts, optimizer_dicts, lr_schedulers_dicts, inte
     print("""
         Checkpoint: {} epoch; {}-{} step; dir: {}""".format(config.epoch, config.global_steps[0], config.global_steps[-1], config.DIRECTORY_CHECKPOINT + config.lastsave))
 
+def load_unsave(model, state_dict):
+    model_state = model.state_dict()
+    pretrained_state = {k: v for k, v in state_dict.items() if k in model_state and v.size() == model_state[k].size()}
+    print("Loaded State Dict: {}".format(pretrained_state.keys()))
+    model_state.update(pretrained_state)
+    model.load_state_dict(model_state, strict=False)
 
 def load_checkpoint_all_fold(nets, optimizers, lr_schedulers, load_path):
     if not load_path or load_path == "False":
@@ -83,7 +89,11 @@ def load_checkpoint_all_fold(nets, optimizers, lr_schedulers, load_path):
                         print("[WARNING] No state_dict for the fold found, loading checkpoint['state_dicts'][0]")
                     else:
                         if checkpoint['state_dicts'][fold] is None: print("[ERROR] The fold number of your input is not correct or no fold found")
-                        net.load_state_dict(checkpoint['state_dicts'][fold])
+                        try:
+                            net.load_state_dict(checkpoint['state_dicts'][fold])
+                        except RuntimeError as e:
+                            print("[WARNING] State dict has something missing: {}".format(e))
+                            load_unsave(net, checkpoint['state_dicts'][fold])
                 else:
                     print("[WARNING] No keys [state_dicts] detected from loading")
             else:
