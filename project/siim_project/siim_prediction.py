@@ -106,7 +106,7 @@ class SIIMPrediction:
 
                             del ids, image, labels, image_0, labels_0, empty
                             del empty_logits, _idkwhatthisis_, logits_predict
-                            del prob_predict, prob_empty, confidence, total_confidence
+                            del prob_predict, prob_empty, confidence
                             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
                     print("Prob_path: {}".format(prob_path))
@@ -183,7 +183,7 @@ class SIIMPrediction:
 
                                 del ids, image, labels, image_0, labels_0, empty
                                 del empty_logits, _idkwhatthisis_, logits_predict
-                                del prob_predict, prob_empty, confidence, total_confidence
+                                del prob_predict, prob_empty, confidence
                                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
                             tta_list.append(tta_dict)
 
