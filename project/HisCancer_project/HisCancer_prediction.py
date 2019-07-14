@@ -48,7 +48,7 @@ class HisCancerPrediction:
                 continue
             for threshold in self.thresholds:
 
-                if config.PREDICTION_TTA == 0:
+                if config.prediction_tta == 0:
                     prob_path = "{}-{}-F{}-T{}-Prob.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
                     if os.path.exists(prob_path):
                         os.remove(prob_path)
@@ -107,7 +107,7 @@ class HisCancerPrediction:
                     with open(tta_path, 'a') as prob_file:
                         prob_file.write('Id,Label\n')
 
-                        if config.PREDICTION_TTA > 4:
+                        if config.prediction_tta > 4:
                             test_loader = data.DataLoader(self.test_dataset,
                                                           batch_size=config.MODEL_BATCH_SIZE,
                                                           shuffle=False,
@@ -137,7 +137,7 @@ class HisCancerPrediction:
                         print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
 
                         tta_list = []
-                        tta_pbar = tqdm(range(config.PREDICTION_TTA))
+                        tta_pbar = tqdm(range(config.prediction_tta))
                         for tta in tta_pbar:
                             tta_dict = dict()
                             config.eval_index = config.eval_index + 1

@@ -40,8 +40,8 @@ def load_args():
         raise NotImplementedError("Please specify fold number")
 
     if args.tta >= 0:
-        config.PREDICTION_TTA = int(args.tta)
-        print("=> Set tta to: {}".format(config.PREDICTION_TTA))
+        config.prediction_tta = int(args.tta)
+        print("=> Set tta to: {}".format(config.prediction_tta))
     else:
         raise NotImplementedError("Please specify tta number")
 

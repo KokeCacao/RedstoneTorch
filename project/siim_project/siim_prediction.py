@@ -43,10 +43,9 @@ class SIIMPrediction:
         config.load_lr_schedulers = False
         load_checkpoint_all_fold(self.nets, None, None, config.DIRECTORY_LOAD)
 
-        self.run()
+        with torch.no_grad(): self.run()
 
     def run(self):
-        torch.no_grad()
         """Used for Kaggle submission: predicts and encode all test images"""
         for fold, net in enumerate(self.nets):
             if net == None:
@@ -54,7 +53,7 @@ class SIIMPrediction:
             net = net.cuda()
             for threshold in config.PREDICTION_CHOSEN_THRESHOLD:
 
-                if config.PREDICTION_TTA == 0:
+                if config.prediction_tta == 0:
                     prob_path = "{}-{}-F{}-T{}-Prob.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
                     if os.path.exists(prob_path):
                         os.remove(prob_path)
@@ -114,7 +113,7 @@ class SIIMPrediction:
                 else:
                     """TTA"""
 
-                    if config.PREDICTION_TTA > 2:
+                    if config.prediction_tta > 2:
                         test_loader = data.DataLoader(self.test_dataset,
                                                       batch_size=config.TEST_BATCH_SIZE,
                                                       shuffle=False,
@@ -143,7 +142,7 @@ class SIIMPrediction:
 
                     print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
 
-                    tta_pbar = tqdm(range(config.PREDICTION_TTA))
+                    tta_pbar = tqdm(range(config.prediction_tta))
                     for tta in tta_pbar:
 
                         tta_path = "{}-{}-F{}-T{}-Prob-TTA{}.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold, tta)

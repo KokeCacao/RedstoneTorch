@@ -536,6 +536,7 @@ class Decoder_bottleneck(nn.Module):
         return x
 
 class model34_DeepSupervion(nn.Module):
+    """Change mask_class from 2 to 1 since it is binary classification"""
     def __init__(self, num_classes=1, mask_class = 1):
         super(model34_DeepSupervion, self).__init__()
 

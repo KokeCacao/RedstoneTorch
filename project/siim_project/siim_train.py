@@ -1,13 +1,10 @@
-import itertools
-import operator
 import os
 import sys
 
 import matplotlib as mpl
 import numpy as np
 import torch
-from sklearn import metrics
-from torch.nn import BCELoss, CrossEntropyLoss
+from torch.nn import BCELoss
 from torch.utils import data
 from tqdm import tqdm
 
@@ -16,16 +13,12 @@ import tensorboardwriter
 from dataset.siim_dataset import SIIMDataset
 from dataset.siim_dataset import train_collate, val_collate
 from gpu import gpu_profile
-from loss.dice import denoised_siim_dice, siim_dice_overall, cmp_instance_dice, dice_loss, jaccard_loss, binary_dice_pytorch_loss, binary_dice_numpy_loss, binary_dice_numpy_gain
-from loss.f import differenciable_f_sigmoid, fbeta_score_numpy
-from loss.focal import focalloss_sigmoid_refined
+from loss.dice import binary_dice_pytorch_loss, binary_dice_numpy_gain
 # from loss.hinge import lovasz_hinge
 from loss.iou import mIoULoss
 from lr_scheduler.Constant import Constant
-from lr_scheduler.PlateauCyclicRestart import PlateauCyclicRestart
 from optimizer import adamw
-from project.siim_project import siim_net
-from project.siim_project.siim_net import model50A_DeepSupervion
+from project.siim_project.siim_net import model34_DeepSupervion
 from utils import load
 from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx, remove_checkpoint_fold, set_milestone
 from utils.lr_finder import LRFinder
@@ -60,7 +53,8 @@ class SIIMTrain:
             else:
                 print("     Creating Fold: #{}".format(fold))
                 # net = siim_net.resunet(encoder_depth=50, num_classes=config.TRAIN_NUM_CLASS, num_filters=32, dropout_2d=0.2, pretrained=False, is_deconv=False)
-                net = model50A_DeepSupervion(num_classes=config.TRAIN_NUM_CLASS)
+                # net = model50A_DeepSupervion(num_classes=config.TRAIN_NUM_CLASS)
+                net = model34_DeepSupervion(num_classes=config.TRAIN_NUM_CLASS)
 
                 """FREEZING LAYER"""
                 if config.MODEL_MANUAL_FREEZE_INITIAL:
@@ -292,7 +286,7 @@ class SIIMTrain:
             optimizer = load.move_optimizer_to_cuda(optimizer)
             if config.train: self.step_fold(fold, net, optimizer, lr_scheduler, batch_size)
             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-            score = eval_fold(net, self.writer, self.validation_loader[config.fold])
+            with torch.no_grad(): score = eval_fold(net, self.writer, self.validation_loader[config.fold])
 
             """Update Learning Rate Scheduler"""
             if lr_scheduler is not None:
@@ -336,6 +330,7 @@ class SIIMTrain:
                 empty_logits, _idkwhatthisis_, logits_predict = net(image)
                 prob_predict = torch.nn.Sigmoid()(logits_predict)
                 prob_empty = torch.nn.Sigmoid()(empty_logits)
+                prob_predict = prob_empty * prob_predict
 
                 """LOSS"""
                 if config.TRAIN_GPU_ARG:
@@ -351,7 +346,7 @@ class SIIMTrain:
                 ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
                 # loss = 0.5 * dice.mean() + 0.5 * bce.mean()
                 # loss = 0.5 * ce.mean() + 0.5 * dice.mean()
-                loss = ce.mean()
+                loss = 0.2*bce.mean() + 0.8*ce.mean()
 
                 """BACKPROP"""
                 loss.backward()
@@ -469,6 +464,7 @@ def eval_fold(net, writer, validation_loader):
             empty_logits, _idkwhatthisis_, logits_predict = net(image)
             prob_predict = torch.nn.Sigmoid()(logits_predict)
             prob_empty = torch.nn.Sigmoid()(empty_logits)
+            prob_predict = prob_empty * prob_predict
 
             """LOSS"""
             if config.TRAIN_GPU_ARG:
@@ -483,7 +479,7 @@ def eval_fold(net, writer, validation_loader):
             bce = BCELoss(reduction='none')(prob_empty.squeeze(-1), empty)
             ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
             # loss = 0.5 * dice.mean() + 0.5 * bce.mean()
-            loss = ce.mean()
+            loss = 0.2*bce.mean() + 0.8*ce.mean()
 
             """DETATCH WITHOUT MEAN"""
             dice = dice.detach().cpu().numpy()

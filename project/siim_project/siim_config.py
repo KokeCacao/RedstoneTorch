@@ -108,15 +108,15 @@ EVAL_IF_THRESHOLD_TEST = True
 # EVAL_IF_PRED_DISTRIBUTION = True
 EVAL_IF_PR_CURVE = False
 EVAL_TRY_THRESHOLD = np.linspace(0.0, 1.0, 100)
-EVAL_THRESHOLD = 0.26
+EVAL_THRESHOLD = 0.8041
 EVAL_SHAKEUP_RATIO = 10
 
 PREDICTION_CHOSEN_THRESHOLD = [0.8041]
-PREDICTION_TTA = 0
 TEST_BATCH_SIZE = torch.cuda.device_count()
 PREDICTION_WRITER = False
 
 DIRECTORY_LOAD = None
+prediction_tta = 0
 train = True
 train_resume = False
 debug_lr_finder = False # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
