@@ -100,6 +100,7 @@ class SIIMPrediction:
 
                             for id, predict in zip(ids, prob_predict):
                                 predict = predict.squeeze()
+                                print(predict.shape)
                                 predict = cv2.resize(predict, (config.IMG_SIZE, config.IMG_SIZE))
                                 prob_file.write('{},{}\n'.format(id[0].split("/")[-1].split(".")[0], mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)))
 
@@ -176,6 +177,7 @@ class SIIMPrediction:
                                 prob_predict = (prob_predict > threshold).astype(np.byte)
                                 for id, predict in zip(ids, prob_predict):
                                     predict = predict.squeeze()
+                                    print(predict.shape)
                                     predict = cv2.resize(predict, (config.IMG_SIZE, config.IMG_SIZE))
                                     tta_dict[id[0].split("/")[-1].split(".")[0]] = mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)
                                     # prob_file.write('{},{}\n'.format(id[0].split("/")[-1].split(".")[0], mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)))
