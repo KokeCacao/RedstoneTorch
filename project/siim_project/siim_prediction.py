@@ -49,7 +49,7 @@ class SIIMPrediction:
         for fold, net in enumerate(self.nets):
             if net == None:
                 continue
-            net = net.cuda()
+            net = net.cuda(1)
             for threshold in config.PREDICTION_CHOSEN_THRESHOLD:
 
                 if config.PREDICTION_TTA == 0:
