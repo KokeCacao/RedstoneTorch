@@ -306,6 +306,7 @@ def eval_aug(term):
 def test_aug(term):
     return Compose([
         HorizontalFlip(p=term % 2),
+        Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
     ])
 
 def tta_aug(term):
@@ -320,6 +321,7 @@ def tta_aug(term):
                 RandomPercentCrop(0.9, 0.9),
                 DoNothing(p=1),
             ], p=1),
+            Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
         ])
 
 
