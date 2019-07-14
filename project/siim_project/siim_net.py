@@ -633,10 +633,11 @@ class model34_DeepSupervion(nn.Module):
         return center_fc, x_no_empty, x_final
 
 class model50A_DeepSupervion(nn.Module):
-    def __init__(self, num_classes=1):
+    def __init__(self, num_classes=1, test=False):
         super(model50A_DeepSupervion, self).__init__()
 
         self.num_classes = num_classes
+        self.test = test
         """Pretrain edited to false for 1 channel input"""
         self.encoder = se_resnext50_32x4d()
 
@@ -650,10 +651,11 @@ class model50A_DeepSupervion(nn.Module):
         self.conv4 = self.encoder.layer3
         self.conv5 = self.encoder.layer4
 
-        self.center_global_pool = nn.AdaptiveAvgPool2d([1,1])
-        self.center_conv1x1 = nn.Conv2d(512*4, 64, kernel_size=1)
-        """Change out_feature from 2 to 1 since it is binary classification"""
-        self.center_fc = nn.Linear(64, 1)
+        if not self.test:
+            self.center_global_pool = nn.AdaptiveAvgPool2d([1,1])
+            self.center_conv1x1 = nn.Conv2d(512*4, 64, kernel_size=1)
+            """Change out_feature from 2 to 1 since it is binary classification"""
+            self.center_fc = nn.Linear(64, 1)
 
         self.center = nn.Sequential(nn.Conv2d(512*4, 512, kernel_size=3,padding=1),
                                     nn.BatchNorm2d(512),
@@ -684,10 +686,11 @@ class model50A_DeepSupervion(nn.Module):
         conv4 = self.conv4(conv3) #1/16
         conv5 = self.conv5(conv4) #1/32
 
-        center_512 = self.center_global_pool(conv5)
-        center_64 = self.center_conv1x1(center_512)
-        center_64_flatten = center_64.view(center_64.size(0), -1)
-        center_fc = self.center_fc(center_64_flatten)
+        if not self.test:
+            center_512 = self.center_global_pool(conv5)
+            center_64 = self.center_conv1x1(center_512)
+            center_64_flatten = center_64.view(center_64.size(0), -1)
+            center_fc = self.center_fc(center_64_flatten)
 
         f = self.center(conv5)
         d5 = self.decoder5(f, conv5)
@@ -710,13 +713,16 @@ class model50A_DeepSupervion(nn.Module):
             F.upsample(center_64, scale_factor=hypercol.shape[2],mode='bilinear')),1)
 
         x_final = self.logits_final(hypercol_add_center)
-        return center_fc, x_no_empty, x_final
+        if not self.test:
+            return center_fc, x_no_empty, x_final
+        return x_no_empty, x_final
 
 class model50A_slim_DeepSupervion(nn.Module):
-    def __init__(self, num_classes=1):
+    def __init__(self, num_classes=1, test=False):
         super(model50A_slim_DeepSupervion, self).__init__()
 
         self.num_classes = num_classes
+        self.test = test
         self.encoder = se_resnext50_32x4d()
 
         self.relu = nn.ReLU(inplace=True)
@@ -729,9 +735,10 @@ class model50A_slim_DeepSupervion(nn.Module):
         self.conv4 = self.encoder.layer3
         self.conv5 = self.encoder.layer4
 
-        self.center_global_pool = nn.AdaptiveAvgPool2d([1,1])
-        self.center_conv1x1 = nn.Conv2d(512*4, 64, kernel_size=1)
-        self.center_fc = nn.Linear(64, 2)
+        if not self.test:
+            self.center_global_pool = nn.AdaptiveAvgPool2d([1,1])
+            self.center_conv1x1 = nn.Conv2d(512*4, 64, kernel_size=1)
+            self.center_fc = nn.Linear(64, 2)
 
         self.center = nn.Sequential(nn.Conv2d(512*4, 512, kernel_size=3,padding=1),
                                     nn.BatchNorm2d(512),
@@ -764,15 +771,13 @@ class model50A_slim_DeepSupervion(nn.Module):
                                          nn.Conv2d(64, 1, kernel_size=1, padding=0))
 
     def forward(self, x):
-        load_center = False
-
         conv1 = self.conv1(x)     #1/4
         conv2 = self.conv2(conv1) #1/4
         conv3 = self.conv3(conv2) #1/8
         conv4 = self.conv4(conv3) #1/16
         conv5 = self.conv5(conv4) #1/32
 
-        if not load_center:
+        if not self.test:
             center_512 = self.center_global_pool(conv5)
             center_64 = self.center_conv1x1(center_512)
             center_64_flatten = center_64.view(center_64.size(0), -1)
@@ -811,9 +816,9 @@ class model50A_slim_DeepSupervion(nn.Module):
 
         x_final = self.logits_final(hypercol_add_center)
         x_final_sig = F.sigmoid(x_final)
-        if not load_center:
-            return None, x_no_empty, x_final
-        return center_fc, x_no_empty, x_final
+        if not self.test:
+            return center_fc, x_no_empty, x_final
+        return None, x_no_empty, x_final
 
 class model101A_DeepSupervion(nn.Module):
     def __init__(self, num_classes=1):

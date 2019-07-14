@@ -27,7 +27,7 @@ class SIIMPrediction:
             else:
                 print("     Creating Fold: #{}".format(fold))
                 # net = siim_net.resunet(encoder_depth=50, num_classes=config.TRAIN_NUM_CLASS, num_filters=32, dropout_2d=0.2, pretrained=False, is_deconv=False)
-                net = model50A_DeepSupervion(num_classes=config.TRAIN_NUM_CLASS)
+                net = model50A_DeepSupervion(num_classes=config.TRAIN_NUM_CLASS, test=True)
 
                 """ONNX"""
                 if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(net, (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
