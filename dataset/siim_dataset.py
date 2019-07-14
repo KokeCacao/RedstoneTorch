@@ -195,7 +195,7 @@ class SIIMDataset(data.Dataset):
         # TODO: adjust to png or jpg for now
         # TODO : test if it works
         if self.load_strategy == "test" or self.load_strategy == "predict":
-            id = id + ".npy"
+            id = id + ".dcm"
             if ".npy" in id:
                 img = np.load(config.DIRECTORY_TEST + id, allow_pickle=True, encoding="latin1")
             else:
