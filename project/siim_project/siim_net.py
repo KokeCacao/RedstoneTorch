@@ -715,7 +715,7 @@ class model50A_DeepSupervion(nn.Module):
         x_final = self.logits_final(hypercol_add_center)
         if not self.test:
             return center_fc, x_no_empty, x_final
-        return x_no_empty, x_final
+        return None, x_no_empty, x_final
 
 class model50A_slim_DeepSupervion(nn.Module):
     def __init__(self, num_classes=1, test=False):
