@@ -95,9 +95,9 @@ class SIIMPrediction:
 
                             prob_predict = (prob_predict > threshold).astype(np.byte)
 
-                            print(prob_predict.shape)
                             for id, predict in zip(ids, prob_predict):
-                                print(predict.shape)
+                                predict = predict.squeeze()
+                                print("DEBUG: {}".format(predict.shape))
                                 prob_file.write('{},{}\n'.format(id[0].split("/")[-1].split(".")[0], mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)))
 
                             del ids, image, labels, image_0, labels_0, empty
