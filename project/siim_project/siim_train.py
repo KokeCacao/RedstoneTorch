@@ -330,7 +330,7 @@ class SIIMTrain:
                 empty_logits, _idkwhatthisis_, logits_predict = net(image)
                 prob_predict = torch.nn.Sigmoid()(logits_predict)
                 prob_empty = torch.nn.Sigmoid()(empty_logits)
-                prob_predict = prob_empty.unsqueeze(-1).unsqueeze(-1) * prob_predict
+                # prob_predict = prob_empty.unsqueeze(-1).unsqueeze(-1) * prob_predict -> THIS IS REALLY BAD BEHAVIOR
 
                 """LOSS"""
                 if config.TRAIN_GPU_ARG:
@@ -346,7 +346,7 @@ class SIIMTrain:
                 ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
                 # loss = 0.5 * dice.mean() + 0.5 * bce.mean()
                 # loss = 0.5 * ce.mean() + 0.5 * dice.mean()
-                loss = 0.2*bce.mean() + 0.8*ce.mean()
+                loss = 0.1*bce.mean() + 0.9*ce.mean()
 
                 """BACKPROP"""
                 loss.backward()
@@ -464,7 +464,7 @@ def eval_fold(net, writer, validation_loader):
             empty_logits, _idkwhatthisis_, logits_predict = net(image)
             prob_predict = torch.nn.Sigmoid()(logits_predict)
             prob_empty = torch.nn.Sigmoid()(empty_logits)
-            prob_predict = prob_empty.unsqueeze(-1).unsqueeze(-1) * prob_predict
+            # prob_predict = prob_empty.unsqueeze(-1).unsqueeze(-1) * prob_predict -> THIS IS REALLY BAD BEHAVIOR
 
             """LOSS"""
             if config.TRAIN_GPU_ARG:
@@ -479,7 +479,7 @@ def eval_fold(net, writer, validation_loader):
             bce = BCELoss(reduction='none')(prob_empty.squeeze(-1), empty)
             ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
             # loss = 0.5 * dice.mean() + 0.5 * bce.mean()
-            loss = 0.2*bce.mean() + 0.8*ce.mean()
+            loss = 0.1*bce.mean() + 0.9*ce.mean()
 
             """DETATCH WITHOUT MEAN"""
             dice = dice.detach().cpu().numpy()
