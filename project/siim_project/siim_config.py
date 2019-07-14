@@ -9,7 +9,6 @@ from datetime import datetime
 # DIRECTORY_PREPROCESSED_SUFFIX_IMG = ".npy"
 # # DIRECTORY_IMG = DIRECTORY_PREFIX + "data/train/"
 # # DIRECTORY_SELECTED_IMG = DIRECTORY_PREFIX + "data/iMet_dataset/selected/"
-# PREDICTION_WRITER = False
 # PREDICTION_TAG = "test"
 # PREDICTION_LOAD_TAG = ""
 #
@@ -34,7 +33,6 @@ DEBUG_WRITE_SPLIT_CSV = False
 
 MODEL_EPOCHS = 20
 MODEL_BATCH_SIZE = 8
-TEST_BATCH_SIZE = 1
 MODEL_MOMENTUM = 0.9
 MODEL_WEIGHT_DECAY = 0.0001 # weight decay only used in AdamW and SGDW, other implementation may be wrong
 MODEL_INIT_LEARNING_RATE = 0.00015 # this is useless for lr_schedulers
@@ -113,6 +111,8 @@ EVAL_SHAKEUP_RATIO = 10
 
 PREDICTION_CHOSEN_THRESHOLD = [0.3]
 PREDICTION_TTA = 0
+TEST_BATCH_SIZE = 1
+PREDICTION_WRITER = False
 
 DIRECTORY_LOAD = None
 train = True
