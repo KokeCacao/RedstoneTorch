@@ -112,46 +112,47 @@ class SIIMPrediction:
                     print("Prob_path: {}".format(prob_path))
                 else:
                     """TTA"""
-                    tta_path = "{}-{}-F{}-T{}-Prob-TTA.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
-                    if os.path.exists(tta_path):
-                        os.remove(tta_path)
-                        print("WARNING: delete file '{}'".format(tta_path))
 
-                    with open(tta_path, 'a') as prob_file:
-                        prob_file.write('{},{}\n'.format(config.DIRECTORY_CSV_ID, config.DIRECTORY_CSV_TARGET))
+                    if config.PREDICTION_TTA > 2:
+                        test_loader = data.DataLoader(self.test_dataset,
+                                                      batch_size=config.TEST_BATCH_SIZE,
+                                                      shuffle=False,
+                                                      sampler=SubsetRandomSampler(self.test_dataset.indices),
+                                                      batch_sampler=None,
+                                                      num_workers=config.TRAIN_NUM_WORKER,
+                                                      collate_fn=tta_collate,
+                                                      pin_memory=True,
+                                                      drop_last=False,
+                                                      timeout=0,
+                                                      worker_init_fn=None,
+                                                      )
+                    else:
+                        test_loader = data.DataLoader(self.test_dataset,
+                                                      batch_size=config.TEST_BATCH_SIZE,
+                                                      shuffle=False,
+                                                      sampler=SubsetRandomSampler(self.test_dataset.indices),
+                                                      batch_sampler=None,
+                                                      num_workers=config.TRAIN_NUM_WORKER,
+                                                      collate_fn=test_collate,
+                                                      pin_memory=True,
+                                                      drop_last=False,
+                                                      timeout=0,
+                                                      worker_init_fn=None,
+                                                      )
 
-                        if config.PREDICTION_TTA > 2:
-                            test_loader = data.DataLoader(self.test_dataset,
-                                                          batch_size=config.TEST_BATCH_SIZE,
-                                                          shuffle=False,
-                                                          sampler=SubsetRandomSampler(self.test_dataset.indices),
-                                                          batch_sampler=None,
-                                                          num_workers=config.TRAIN_NUM_WORKER,
-                                                          collate_fn=tta_collate,
-                                                          pin_memory=True,
-                                                          drop_last=False,
-                                                          timeout=0,
-                                                          worker_init_fn=None,
-                                                          )
-                        else:
-                            test_loader = data.DataLoader(self.test_dataset,
-                                                          batch_size=config.TEST_BATCH_SIZE,
-                                                          shuffle=False,
-                                                          sampler=SubsetRandomSampler(self.test_dataset.indices),
-                                                          batch_sampler=None,
-                                                          num_workers=config.TRAIN_NUM_WORKER,
-                                                          collate_fn=test_collate,
-                                                          pin_memory=True,
-                                                          drop_last=False,
-                                                          timeout=0,
-                                                          worker_init_fn=None,
-                                                          )
+                    print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
 
-                        print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
+                    tta_pbar = tqdm(range(config.PREDICTION_TTA))
+                    for tta in tta_pbar:
 
-                        tta_list = []
-                        tta_pbar = tqdm(range(config.PREDICTION_TTA))
-                        for tta in tta_pbar:
+                        tta_path = "{}-{}-F{}-T{}-Prob-TTA{}.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold, tta)
+                        if os.path.exists(tta_path):
+                            os.remove(tta_path)
+                            print("WARNING: delete file '{}'".format(tta_path))
+
+                        with open(tta_path, 'a') as prob_file:
+                            prob_file.write('{},{}\n'.format(config.DIRECTORY_CSV_ID, config.DIRECTORY_CSV_TARGET))
+
                             tta_dict = dict()
                             config.eval_index = config.eval_index + 1
                             total_confidence = 0
@@ -172,24 +173,18 @@ class SIIMPrediction:
 
                                 confidence = (np.absolute(prob_predict - 0.5).mean() + 0.5).item()
                                 total_confidence = total_confidence + confidence
-                                pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0].split("/")[-1].split(".")[0], confidence, total_confidence / (batch_index + 1)))
+                                pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0], confidence, total_confidence / (batch_index + 1)))
 
                                 prob_predict = (prob_predict > threshold).astype(np.byte)
                                 for id, predict in zip(ids, prob_predict):
                                     predict = predict.squeeze()
                                     predict = imresize(predict, (config.IMG_SIZE, config.IMG_SIZE))
-                                    tta_dict[id[0].split("/")[-1].split(".")[0]] = mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)
-                                    # prob_file.write('{},{}\n'.format(id[0].split("/")[-1].split(".")[0], mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)))
+                                    tta_dict[id] = mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)
+                                    prob_file.write('{},{}\n'.format(id, mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)))
 
                                 del ids, image, labels, image_0, labels_0, empty
                                 del empty_logits, _idkwhatthisis_, logits_predict
                                 del prob_predict, prob_empty, confidence
                                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-                            tta_list.append(tta_dict)
-
-                        for item in tta_list[0].keys():
-                            pred = (tta_list[i][item] for i in range(len(tta_list)))
-                            prob_file.write("{},{}\n".format(item, pred))
-
                         print("TTA_path: {}".format(tta_path))
 
