@@ -1,6 +1,8 @@
 import multiprocessing
 import socket
 import time
+import torch
+
 import numpy as np
 
 from datetime import datetime
@@ -111,7 +113,7 @@ EVAL_SHAKEUP_RATIO = 10
 
 PREDICTION_CHOSEN_THRESHOLD = [0.8041]
 PREDICTION_TTA = 0
-TEST_BATCH_SIZE = 2
+TEST_BATCH_SIZE = torch.cuda.device_count()
 PREDICTION_WRITER = False
 
 DIRECTORY_LOAD = None
