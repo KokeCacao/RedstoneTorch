@@ -34,6 +34,7 @@ DEBUG_WRITE_SPLIT_CSV = False
 
 MODEL_EPOCHS = 20
 MODEL_BATCH_SIZE = 8
+TEST_BATCH_SIZE = 1
 MODEL_MOMENTUM = 0.9
 MODEL_WEIGHT_DECAY = 0.0001 # weight decay only used in AdamW and SGDW, other implementation may be wrong
 MODEL_INIT_LEARNING_RATE = 0.00015 # this is useless for lr_schedulers

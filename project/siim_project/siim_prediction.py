@@ -59,7 +59,7 @@ class SIIMPrediction:
                         prob_file.write('{},{}\n'.format(config.DIRECTORY_CSV_ID, config.DIRECTORY_CSV_TARGET))
 
                         test_loader = data.DataLoader(self.test_dataset,
-                                                      batch_size=config.MODEL_BATCH_SIZE,
+                                                      batch_size=config.TEST_BATCH_SIZE,
                                                       shuffle=False,
                                                       sampler=SubsetRandomSampler(self.test_dataset.indices),
                                                       batch_sampler=None,
@@ -115,7 +115,7 @@ class SIIMPrediction:
 
                         if config.PREDICTION_TTA > 2:
                             test_loader = data.DataLoader(self.test_dataset,
-                                                          batch_size=config.MODEL_BATCH_SIZE,
+                                                          batch_size=config.TEST_BATCH_SIZE,
                                                           shuffle=False,
                                                           sampler=SubsetRandomSampler(self.test_dataset.indices),
                                                           batch_sampler=None,
@@ -128,7 +128,7 @@ class SIIMPrediction:
                                                           )
                         else:
                             test_loader = data.DataLoader(self.test_dataset,
-                                                          batch_size=config.MODEL_BATCH_SIZE,
+                                                          batch_size=config.TEST_BATCH_SIZE,
                                                           shuffle=False,
                                                           sampler=SubsetRandomSampler(self.test_dataset.indices),
                                                           batch_sampler=None,

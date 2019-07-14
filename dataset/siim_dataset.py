@@ -305,7 +305,6 @@ def tta_aug(term):
                 RandomPercentCrop(0.9, 0.9),
                 DoNothing(p=1),
             ], p=1),
-            Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
         ])
 
 

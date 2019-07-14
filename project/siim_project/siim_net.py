@@ -5,6 +5,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 # TODO: change the backbone to SEResNeXt
+from torch.utils import model_zoo
+
 from net import senet154, se_resnet152, se_resnext101_32x4d, se_resnext50_32x4d
 from net.ibnnet import IBN, resnext101_ibn_a
 
@@ -534,12 +536,31 @@ class Decoder_bottleneck(nn.Module):
         return x
 
 class model34_DeepSupervion(nn.Module):
-    def __init__(self, num_classes=1, mask_class = 2):
+    def __init__(self, num_classes=1, mask_class = 1):
         super(model34_DeepSupervion, self).__init__()
 
         self.num_classes = num_classes
 
+        def modified_initialize_pretrained_model(model, url):
+            state_dict = model_zoo.load_url(url)
+
+            model_state = model.state_dict()
+            pretrained_state = {k: v for k, v in state_dict.items() if k in model_state and v.size() == model_state[k].size()}
+            print("Loaded State Dict: {}".format(pretrained_state.keys()))
+            model_state.update(pretrained_state)
+            model.load_state_dict(model_state, strict=False)
+
+            """freezing the loaded parameters"""
+            for name, param in model.named_parameters():
+                if name in pretrained_state.keys():
+                    param.requires_grad = False
+                    print("Set {} require_grad = False".format(name))
+
+        """Change Input Architecture"""
         self.encoder = torchvision.models.resnet34(pretrained=True)
+        self.encoder.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        self.encoder = modified_initialize_pretrained_model(self.encoder, 'https://download.pytorch.org/models/resnet34-333f7ec4.pth')
+
         self.relu = nn.ReLU(inplace=True)
         self.conv1 = nn.Sequential(self.encoder.conv1,
                                    self.encoder.bn1,
