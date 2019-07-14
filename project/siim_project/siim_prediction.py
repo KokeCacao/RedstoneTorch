@@ -32,7 +32,9 @@ class SIIMPrediction:
                 """ONNX"""
                 if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(net, (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
-                if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
+                if config.TRAIN_GPU_ARG:
+                    print("Let's use", torch.cuda.device_count(), "GPUs!")
+                    net = torch.nn.DataParallel(net)
                 self.nets.append(net)
 
         config.load_optimizers = False

@@ -77,7 +77,9 @@ class SIIMTrain:
                         else:
                             print("Enable Gradient for layer: {} (default)".format(i))
 
-                if config.TRAIN_GPU_ARG: net = torch.nn.DataParallel(net, device_ids=config.TRAIN_GPU_LIST)
+                if config.TRAIN_GPU_ARG:
+                    print("Let's use", torch.cuda.device_count(), "GPUs!")
+                    net = torch.nn.DataParallel(net)
 
                 # optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
                 # optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, weight_decay=config.MODEL_WEIGHT_DECAY)
