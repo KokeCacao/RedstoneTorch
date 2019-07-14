@@ -153,8 +153,7 @@ class SIIMPrediction:
                             pbar = tqdm(test_loader)
                             for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
 
-                                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-                                if config.TRAIN_GPU_ARG: image = image.cuda()
+                                image = image.cuda()
                                 empty_logits, _idkwhatthisis_, logits_predict = net(image)
                                 prob_predict = torch.nn.Sigmoid()(logits_predict)
                                 prob_empty = torch.nn.Sigmoid()(empty_logits)
