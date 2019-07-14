@@ -72,13 +72,13 @@ if __name__ == '__main__':
             prediction = project.siim_project.siim_prediction.SIIMPrediction(writer)
         except Exception as e:
             if not isinstance(e, KeyboardInterrupt):
-                os.system("sudo shutdown -P +1")
+                os.system("sudo shutdown -P +20")
                 print("""
                     WARNING: THE SYSTEM WILL SHUTDOWN
                     Use command: sudo shutdown -c
                 """)
             raise
-        os.system("sudo shutdown -P +1")
+        os.system("sudo shutdown -P +20")
         print("""
                             WARNING: THE SYSTEM WILL SHUTDOWN
                             Use command: sudo shutdown -c
