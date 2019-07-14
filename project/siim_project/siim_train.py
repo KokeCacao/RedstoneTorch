@@ -330,6 +330,10 @@ class SIIMTrain:
                 empty_logits, _idkwhatthisis_, logits_predict = net(image)
                 prob_predict = torch.nn.Sigmoid()(logits_predict)
                 prob_empty = torch.nn.Sigmoid()(empty_logits)
+
+                print(prob_empty.shape, prob_predict.shape)
+
+
                 prob_predict = prob_empty * prob_predict
 
                 """LOSS"""
