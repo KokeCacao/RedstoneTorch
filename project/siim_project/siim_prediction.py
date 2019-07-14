@@ -7,7 +7,7 @@ from torch.utils.data import SubsetRandomSampler
 from tqdm import tqdm
 
 import config
-from dataset.HisCancer_dataset import test_collate, tta_collate
+from dataset.siim_dataset import test_collate, tta_collate
 from dataset.siim_dataset import SIIMDataset
 from project.siim_project.siim_net import model50A_DeepSupervion
 from utils.encode import mask2rle
