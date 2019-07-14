@@ -651,9 +651,9 @@ class model50A_DeepSupervion(nn.Module):
         self.conv4 = self.encoder.layer3
         self.conv5 = self.encoder.layer4
 
+        self.center_global_pool = nn.AdaptiveAvgPool2d([1, 1])
+        self.center_conv1x1 = nn.Conv2d(512 * 4, 64, kernel_size=1)
         if not self.test:
-            self.center_global_pool = nn.AdaptiveAvgPool2d([1,1])
-            self.center_conv1x1 = nn.Conv2d(512*4, 64, kernel_size=1)
             """Change out_feature from 2 to 1 since it is binary classification"""
             self.center_fc = nn.Linear(64, 1)
 
@@ -686,9 +686,9 @@ class model50A_DeepSupervion(nn.Module):
         conv4 = self.conv4(conv3) #1/16
         conv5 = self.conv5(conv4) #1/32
 
+        center_512 = self.center_global_pool(conv5)
+        center_64 = self.center_conv1x1(center_512)
         if not self.test:
-            center_512 = self.center_global_pool(conv5)
-            center_64 = self.center_conv1x1(center_512)
             center_64_flatten = center_64.view(center_64.size(0), -1)
             center_fc = self.center_fc(center_64_flatten)
 
