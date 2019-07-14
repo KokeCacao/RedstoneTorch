@@ -1,14 +1,15 @@
 import os
-import cv2
+
 import numpy as np
 import torch
+from scipy.misc import imresize
 from torch.utils import data
 from torch.utils.data import SubsetRandomSampler
 from tqdm import tqdm
 
 import config
-from dataset.siim_dataset import test_collate, tta_collate
 from dataset.siim_dataset import SIIMDataset
+from dataset.siim_dataset import test_collate, tta_collate
 from project.siim_project.siim_net import model50A_DeepSupervion
 from utils.encode import mask2rle
 from utils.load import save_onnx, load_checkpoint_all_fold
@@ -100,8 +101,7 @@ class SIIMPrediction:
 
                             for id, predict in zip(ids, prob_predict):
                                 predict = predict.squeeze()
-                                print(predict.shape)
-                                predict = cv2.resize(predict, (config.IMG_SIZE, config.IMG_SIZE))
+                                predict = imresize(predict, (config.IMG_SIZE, config.IMG_SIZE))
                                 prob_file.write('{},{}\n'.format(id[0].split("/")[-1].split(".")[0], mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)))
 
                             del ids, image, labels, image_0, labels_0, empty
@@ -177,8 +177,7 @@ class SIIMPrediction:
                                 prob_predict = (prob_predict > threshold).astype(np.byte)
                                 for id, predict in zip(ids, prob_predict):
                                     predict = predict.squeeze()
-                                    print(predict.shape)
-                                    predict = cv2.resize(predict, (config.IMG_SIZE, config.IMG_SIZE))
+                                    predict = imresize(predict, (config.IMG_SIZE, config.IMG_SIZE))
                                     tta_dict[id[0].split("/")[-1].split(".")[0]] = mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)
                                     # prob_file.write('{},{}\n'.format(id[0].split("/")[-1].split(".")[0], mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)))
 
