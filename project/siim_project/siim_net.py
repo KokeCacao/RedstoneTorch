@@ -764,16 +764,19 @@ class model50A_slim_DeepSupervion(nn.Module):
                                          nn.Conv2d(64, 1, kernel_size=1, padding=0))
 
     def forward(self, x):
+        load_center = False
+
         conv1 = self.conv1(x)     #1/4
         conv2 = self.conv2(conv1) #1/4
         conv3 = self.conv3(conv2) #1/8
         conv4 = self.conv4(conv3) #1/16
         conv5 = self.conv5(conv4) #1/32
 
-        center_512 = self.center_global_pool(conv5)
-        center_64 = self.center_conv1x1(center_512)
-        center_64_flatten = center_64.view(center_64.size(0), -1)
-        center_fc = self.center_fc(center_64_flatten)
+        if not load_center:
+            center_512 = self.center_global_pool(conv5)
+            center_64 = self.center_conv1x1(center_512)
+            center_64_flatten = center_64.view(center_64.size(0), -1)
+            center_fc = self.center_fc(center_64_flatten)
 
         f = self.center(conv5)
 
@@ -808,7 +811,8 @@ class model50A_slim_DeepSupervion(nn.Module):
 
         x_final = self.logits_final(hypercol_add_center)
         x_final_sig = F.sigmoid(x_final)
-
+        if not load_center:
+            return None, x_no_empty, x_final
         return center_fc, x_no_empty, x_final
 
 class model101A_DeepSupervion(nn.Module):
