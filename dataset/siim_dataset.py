@@ -195,12 +195,18 @@ class SIIMDataset(data.Dataset):
         # TODO: adjust to png or jpg for now
         # TODO : test if it works
         if self.load_strategy == "test" or self.load_strategy == "predict":
-            id = id + ".dcm"
-        if ".npy" in id:
-            img = np.load(config.DIRECTORY_TRAIN + id, allow_pickle=True, encoding="latin1")
+            id = id + ".npy"
+            if ".npy" in id:
+                img = np.load(config.DIRECTORY_TEST + id, allow_pickle=True, encoding="latin1")
+            else:
+                ds = pydicom.read_file(config.DIRECTORY_TEST + id)  # read dicom image
+                img = ds.pixel_array  # get image array
         else:
-            ds = pydicom.read_file(config.DIRECTORY_TRAIN + id)  # read dicom image
-            img = ds.pixel_array  # get image array
+            if ".npy" in id:
+                img = np.load(config.DIRECTORY_TRAIN + id, allow_pickle=True, encoding="latin1")
+            else:
+                ds = pydicom.read_file(config.DIRECTORY_TRAIN + id)  # read dicom image
+                img = ds.pixel_array  # get image array
 
             # return np.load(id, allow_pickle=True, encoding="latin1")
         return np.array(np.stack((img,) * 3, -1))
@@ -227,7 +233,12 @@ class SIIMDataset(data.Dataset):
         return int(self.labelframe[self.id_to_indices[id]] == '-1')
 
     def get_metadata_by_id(self, id):
-        ds = pydicom.dcmread(config.DIRECTORY_TRAIN + id)
+
+        if self.load_strategy == "test" or self.load_strategy == "predict":
+            id = id + ".dcm"
+            ds = pydicom.dcmread(config.DIRECTORY_TRAIN + id)
+        else:
+            ds = pydicom.dcmread(config.DIRECTORY_TEST + id)
 
         # ds.dir() # showDicomTags
 
