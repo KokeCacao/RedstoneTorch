@@ -586,14 +586,14 @@ class model34_DeepSupervion(nn.Module):
 
     def forward(self, x):
         conv2 = self.conv2(self.conv1(x)) #1/4
+        del x
         conv3 = self.conv3(conv2) #1/8
         conv4 = self.conv4(conv3) #1/16
         conv5 = self.conv5(conv4) #1/32
 
-        conv5 = self.center_global_pool(conv5) #CENTER512
+        center_64 = self.center_conv1x1(self.center_global_pool(conv5))
 
         d5 = self.decoder5(self.center(conv5), conv5)
-        center_64 = self.center_conv1x1(conv5)
         del conv5
         d4 = self.decoder4(d5, conv4)
         del conv4
@@ -608,7 +608,6 @@ class model34_DeepSupervion(nn.Module):
             F.upsample(d3, scale_factor=4, mode='bilinear'),
             F.upsample(d4, scale_factor=8, mode='bilinear'),
             F.upsample(d5, scale_factor=16, mode='bilinear')),1), p = 0.50)
-        del d2, d3, d4, d5
 
         hypercol_add_center = self.logits_final(torch.cat((
             hypercol,
