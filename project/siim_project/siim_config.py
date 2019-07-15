@@ -32,7 +32,6 @@ DEBUG_TEST_CODE = False
 DEBUG_AUTO_SHUTDOWN = True
 DEBUG_WRITE_SPLIT_CSV = False
 
-
 MODEL_EPOCHS = 20
 MODEL_BATCH_SIZE = 8
 MODEL_MOMENTUM = 0.9
@@ -116,6 +115,8 @@ TEST_BATCH_SIZE = torch.cuda.device_count()
 PREDICTION_WRITER = False
 
 DIRECTORY_LOAD = None
+
+display_architecture = False
 prediction_tta = 0
 train = True
 train_resume = False

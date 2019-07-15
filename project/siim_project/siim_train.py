@@ -7,6 +7,7 @@ import numpy as np
 import torch
 from torch.nn import BCELoss
 from torch.utils import data
+from torchsummary import summary
 from tqdm import tqdm
 
 import config
@@ -268,7 +269,7 @@ class SIIMTrain:
                                         updated_children.append(child_counter)
                                         paras.requires_grad = True
                 if len(updated_children) != 0:
-                    print("Enable Gradient for child_counter: {}".format(updated_children))
+                    if config.display_architecture: print("Enable Gradient for child_counter: {}".format(updated_children))
                     tensorboardwriter.write_text(self.writer, "Unfreeze {} layers at epoch: {}".format(updated_children, config.epoch), config.global_steps[fold])
                 # if config.MODEL_LEARNING_RATE_AFTER_UNFREEZE != 0:
                 #     print("Reset Learning Rate to {}".format(config.MODEL_LEARNING_RATE_AFTER_UNFREEZE))
@@ -282,6 +283,9 @@ class SIIMTrain:
 
             """Train and Eval"""
             net = net.cuda()
+
+            if config.display_architecture: summary(net, (1, 1024, 1024))
+
             optimizer = load.move_optimizer_to_cuda(optimizer)
             if config.train: self.step_fold(fold, net, optimizer, lr_scheduler, batch_size)
             torch.cuda.empty_cache()
