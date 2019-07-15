@@ -71,9 +71,8 @@ class SIIMTrain:
                         else:
                             print("Enable Gradient for layer: {} (default)".format(i))
 
-                if config.TRAIN_GPU_ARG:
-                    print("Let's use", torch.cuda.device_count(), "GPUs!")
-                    net = torch.nn.DataParallel(net, device_ids=[i for i in range(torch.cuda.device_count())])
+                print("Let's use", torch.cuda.device_count(), "GPUs!")
+                net = torch.nn.DataParallel(net, device_ids=[i for i in range(torch.cuda.device_count())])
 
                 # optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
                 # optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, weight_decay=config.MODEL_WEIGHT_DECAY)
@@ -201,13 +200,12 @@ class SIIMTrain:
                 #                                  timeout=0,
                 #                                  worker_init_fn=None,
                 #                                  ))
-                #     if config.TRAIN_GPU_ARG: self.nets[0].cuda()
+                #     self.nets[0].cuda()
                 #
                 #     print("Set Model Trainning mode to trainning=[{}]".format(self.nets[0].eval().training))
                 #     for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
-                #         if config.TRAIN_GPU_ARG:
-                #             image = image.cuda()
-                #             labels_0 = labels_0.cuda()
+            #             image = image.cuda()
+            #             labels_0 = labels_0.cuda()
                 #
                 #         cam_img = cam(self.nets[0], image, labels_0)
                 #         logits_predict = self.nets[0](image)
@@ -218,21 +216,21 @@ class SIIMTrain:
                 #         del image, labels_0
                 #         if batch_index > 50: break
                 #     self.nets[0].cpu()
-                #     if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                #     torch.cuda.empty_cache()
 
                 """Step Epoch"""
-                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                torch.cuda.empty_cache()
                 self.step_epoch(nets=self.nets,
                                 optimizers=self.optimizers,
                                 lr_schedulers=self.lr_schedulers,
                                 batch_size=config.MODEL_BATCH_SIZE
                                 )
-                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+                torch.cuda.empty_cache()
 
                 """SAVE AND DELETE"""
                 save_checkpoint_fold([x.state_dict() if x is not None else None for x in self.nets], [x.state_dict() if x is not None else None for x in self.optimizers if x is not None], [x.state_dict() if x is not None else None for x in self.lr_schedulers if x is not None])
                 remove_checkpoint_fold()
-            if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+            torch.cuda.empty_cache()
 
             """KeyboardInterrupt"""
         except KeyboardInterrupt as e:
@@ -285,7 +283,7 @@ class SIIMTrain:
             net = net.cuda()
             optimizer = load.move_optimizer_to_cuda(optimizer)
             if config.train: self.step_fold(fold, net, optimizer, lr_scheduler, batch_size)
-            if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+            torch.cuda.empty_cache()
             with torch.no_grad(): score = eval_fold(net, self.writer, self.validation_loader[config.fold])
 
             """Update Learning Rate Scheduler"""
@@ -295,7 +293,7 @@ class SIIMTrain:
 
             net = net.cpu()
             optimizer = load.move_optimizer_to_cpu(optimizer)
-            if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+            torch.cuda.empty_cache()
 
     def step_fold(self, fold, net, optimizer, lr_scheduler, batch_size):
         config.fold = fold
@@ -326,16 +324,15 @@ class SIIMTrain:
 
                 """TRAIN NET"""
                 config.global_steps[fold] = config.global_steps[fold] + 1
-                if config.TRAIN_GPU_ARG: image = image.cuda()
+                image = image.cuda()
                 empty_logits, _idkwhatthisis_, logits_predict = net(image)
                 prob_predict = torch.nn.Sigmoid()(logits_predict)
                 prob_empty = torch.nn.Sigmoid()(empty_logits)
                 # prob_predict = prob_empty.unsqueeze(-1).unsqueeze(-1) * prob_predict -> THIS IS REALLY BAD BEHAVIOR
 
                 """LOSS"""
-                if config.TRAIN_GPU_ARG:
-                    labels = labels.cuda().float()
-                    empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
+                labels = labels.cuda().float()
+                empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
 
                 # dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, prob_predict)
                 dice = binary_dice_pytorch_loss(labels, prob_predict, smooth=1e-5)
@@ -408,7 +405,7 @@ class SIIMTrain:
                 """CLEAN UP"""
                 del ids, image_0, labels_0  # things threw away
                 del dice, iou, bce, ce, loss, image, labels, empty, logits_predict, prob_predict, prob_empty  # detach
-                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
+                torch.cuda.empty_cache()  # release gpu memory
             del pbar
 
         train_loss = epoch_loss / train_len
@@ -428,12 +425,14 @@ class SIIMTrain:
         #     for i, (name, param) in enumerate(net.named_parameters()):
         #         print("Calculating Histogram #{}".format(i))
         #         writer.add_histogram(name, param.clone().cpu().data.numpy(), config.epoch)
-        if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()  # release gpu memory
+        torch.cuda.empty_cache()  # release gpu memory
 
 
 def eval_fold(net, writer, validation_loader):
     dice_losses = np.array([])
     iou_losses = np.array([])
+    bce_losses = np.array([])
+    ce_losses = np.array([])
     # hinge_losses = np.array([])
     loss_losses = np.array([])
 
@@ -460,16 +459,15 @@ def eval_fold(net, writer, validation_loader):
 
         for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
             """TRAIN NET"""
-            if config.TRAIN_GPU_ARG: image = image.cuda()
+            image = image.cuda()
             empty_logits, _idkwhatthisis_, logits_predict = net(image)
             prob_predict = torch.nn.Sigmoid()(logits_predict)
             prob_empty = torch.nn.Sigmoid()(empty_logits)
             # prob_predict = prob_empty.unsqueeze(-1).unsqueeze(-1) * prob_predict -> THIS IS REALLY BAD BEHAVIOR
 
             """LOSS"""
-            if config.TRAIN_GPU_ARG:
-                labels = labels.cuda().float()
-                empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
+            labels = labels.cuda().float()
+            empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
 
             # dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, prob_predict)
             dice = binary_dice_pytorch_loss(labels, prob_predict, smooth=1e-5)
@@ -499,6 +497,8 @@ def eval_fold(net, writer, validation_loader):
             """SUM"""
             dice_losses = np.append(dice_losses, dice)
             iou_losses = np.append(iou_losses, iou)
+            bce_losses = np.append(bce_losses, bce)
+            ce_losses = np.append(ce_losses, ce)
             # hinge_losses = np.append(hinge_losses, hinge)
             loss_losses = np.append(loss_losses, loss)
 
@@ -545,14 +545,16 @@ def eval_fold(net, writer, validation_loader):
             """CLEAN UP"""
             del ids, image_0, labels_0  # things threw away
             del dice, iou, bce, ce, loss, image, labels, empty, logits_predict, prob_predict, prob_empty  # detach
-            if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+            torch.cuda.empty_cache()
             if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
         del pbar
-        if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+        torch.cuda.empty_cache()
 
     """LOSS"""
     tensorboardwriter.write_eval_loss(writer, {"Dice/{}".format(config.fold): dice_losses.mean(),
                                                "IOU/{}".format(config.fold): iou_losses.mean(),
+                                               "BCE/{}".format(config.fold): bce_losses.mean(),
+                                               "CE/{}".format(config.fold): ce_losses.mean(),
                                                # "Hinge/{}".format(config.fold): hinge_losses.mean(),
                                                "Loss/{}".format(config.fold): loss_losses.mean(),
                                                }, config.epoch)
@@ -568,8 +570,8 @@ def eval_fold(net, writer, validation_loader):
     pred_hard = (predict_total > config.EVAL_THRESHOLD).astype(np.byte)
     label = label_total
 
-    if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-    if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+    torch.cuda.empty_cache()
+    torch.cuda.empty_cache()
 
     """LOSS"""
     score = binary_dice_numpy_gain(label, pred_hard, mean=True)
