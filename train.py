@@ -40,6 +40,7 @@ def get_args():
     parser.add_option('--total_epoch', type="float", dest='total_epoch', default=0, help='additional epoch for training')
     parser.add_option('--batch_size', type="float", dest='batch_size', default=0, help='batch size')
     parser.add_option('--accumulation', type="float", dest='accumulation', default=0, help='gradient accumulation')
+    parser.add_option('--display_architecture', type="string", dest='display_architecture', default=False, help='print architecture')
 
     (options, args) = parser.parse_args()
     return options
@@ -55,6 +56,7 @@ def load_args():
     config.load_optimizers = False if args.optimizer == "False" else True
     config.load_lr_schedulers = False if args.lr_scheduler == "False" else True
     config.train = False if args.train == "False" else True
+    config.display_architecture = True if args.train == "True" else False
     config.resetlr = args.resetlr
 
     if args.image_size != 0: config.AUGMENTATION_RESIZE = int(args.image_size)
