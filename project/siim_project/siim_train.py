@@ -486,12 +486,12 @@ def eval_fold(net, writer, validation_loader):
             loss = 0.2*bce.mean() + 0.4*ce.mean() + 0.4*dice.mean()
 
             """DETATCH WITHOUT MEAN"""
-            dice = dice.detach().cpu().numpy()
-            iou = iou.detach().cpu().numpy()
-            # hinge = hinge.detach().cpu().numpy()
-            bce = bce.detach().cpu().numpy()
-            ce = ce.detach().cpu().numpy()
-            loss = loss.detach().cpu().numpy()
+            dice = dice.detach().cpu().numpy().mean()
+            iou = iou.detach().cpu().numpy().mean()
+            # hinge = hinge.detach().cpu().numpy().mean()
+            bce = bce.detach().cpu().numpy().mean()
+            ce = ce.detach().cpu().numpy().mean()
+            loss = loss.detach().cpu().numpy().mean()
 
             image = image.cpu().numpy()
             labels = labels.cpu().numpy()

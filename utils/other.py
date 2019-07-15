@@ -49,7 +49,7 @@ def calculate_threshold(label, pred, criteria, threshold_check_list, writer, fol
             bad_value = 0
         else:
             bad_value = bad_value + 1
-        pbar.set_description("Threshold: {}; F: {}; AreaUnder: {}".format(threshold, score, total_score / total_tried))
+        pbar.set_description("Threshold: {}; Score: {}; AreaUnder: {}".format(threshold, score, total_score / total_tried))
         if bad_value > 100: break
 
         if n_class > 1: # do per-class threshold
