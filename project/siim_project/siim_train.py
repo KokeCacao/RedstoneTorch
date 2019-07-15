@@ -285,7 +285,7 @@ class SIIMTrain:
             net = net.cuda()
 
             if config.display_architecture:
-                print(summary(net, (1, 1024, 1024)))
+                summary(net, (1, 1024, 1024))
                 config.display_architecture = False
 
             optimizer = load.move_optimizer_to_cuda(optimizer)
@@ -488,12 +488,12 @@ def eval_fold(net, writer, validation_loader):
             loss = 0.2*bce.mean() + 0.4*ce.mean() + 0.4*dice.mean()
 
             """DETATCH WITHOUT MEAN"""
-            dice = dice.detach().cpu().numpy().mean()
-            iou = iou.detach().cpu().numpy().mean()
+            dice = dice.detach().cpu().numpy()
+            iou = iou.detach().cpu().numpy()
             # hinge = hinge.detach().cpu().numpy().mean()
-            bce = bce.detach().cpu().numpy().mean()
-            ce = ce.detach().cpu().numpy().mean()
-            loss = loss.detach().cpu().numpy().mean()
+            bce = bce.detach().cpu().numpy()
+            ce = ce.detach().cpu().numpy()
+            loss = loss.detach().cpu().numpy()
 
             image = image.cpu().numpy()
             labels = labels.cpu().numpy()
@@ -502,7 +502,35 @@ def eval_fold(net, writer, validation_loader):
             prob_predict = prob_predict.detach().cpu().numpy()
             prob_empty = prob_empty.detach().cpu().numpy()
 
+            """Draw Image"""
+            if displayed_img < 8 or displayed_empty < 8:
+                for image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_ in zip(image, labels, prob_predict, empty, prob_empty, dice, bce, ce):
+                    if empty_.sum() is not 0 and displayed_img < 8:
+                        F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_)
+                        tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, displayed_img), F, config.epoch, category="non-empty")
+                        displayed_img = displayed_img +1
+                    if empty_.sum() is 0 and displayed_empty < 8:
+                        F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_)
+                        tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, displayed_empty), F, config.epoch, category="empty")
+                        displayed_empty = displayed_empty +1
+            if display_max < 0:
+                arg = np.argmax(dice)
+                F = draw_image(image[arg], labels[arg], prob_predict[arg], empty[arg], prob_empty[arg], dice[arg], bce[arg], ce[arg])
+                tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, display_max), F, config.epoch, category="batch_max")
+                display_max = display_max +1
+            if display_min < 8:
+                arg = np.argmin(dice)
+                F = draw_image(image[arg], labels[arg], prob_predict[arg], empty[arg], prob_empty[arg], dice[arg], bce[arg], ce[arg])
+                tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, display_min), F, config.epoch, category="batch_min")
+                display_min = display_min +1
+
             """SUM"""
+            dice = dice.mean()
+            iou = iou.mean()
+            bce = bce.mean()
+            ce = ce.mean()
+            loss = loss.mean()
+
             dice_losses = np.append(dice_losses, dice)
             iou_losses = np.append(iou_losses, iou)
             bce_losses = np.append(bce_losses, bce)
@@ -529,29 +557,6 @@ def eval_fold(net, writer, validation_loader):
             # tensorboardwriter.write_memory(writer, "train")
             writer.add_scalars('stats/GPU-Memory', {"GPU-Tensor": float(torch.cuda.memory_allocated() / torch.cuda.max_memory_allocated())}, global_step = int(time.time()-config.start_time))
             writer.add_scalars('stats/GPU-Memory', {"GPU-Cache": float(torch.cuda.memory_cached() / torch.cuda.max_memory_cached())}, global_step = int(time.time()-config.start_time))
-
-            # TODO
-            # if config.DISPLAY_VISUALIZATION and batch_index < max(1, config.MODEL_BATCH_SIZE / 32):
-            if displayed_img < 8 or displayed_empty < 8:
-                for image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_ in zip(image, labels, prob_predict, empty, prob_empty, dice, bce, ce):
-                    if empty_.sum() is not 0 and displayed_img < 8:
-                        F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_)
-                        tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, displayed_img), F, config.epoch, category="non-empty")
-                        displayed_img = displayed_img +1
-                    if empty_.sum() is 0 and displayed_empty < 8:
-                        F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_)
-                        tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, displayed_empty), F, config.epoch, category="empty")
-                        displayed_empty = displayed_empty +1
-            if display_max < 0:
-                arg = np.argmax(dice)
-                F = draw_image(image[arg], labels[arg], prob_predict[arg], empty[arg], prob_empty[arg], dice[arg], bce[arg], ce[arg])
-                tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, display_max), F, config.epoch, category="batch_max")
-                display_max = display_max +1
-            if display_min < 8:
-                arg = np.argmin(dice)
-                F = draw_image(image[arg], labels[arg], prob_predict[arg], empty[arg], prob_empty[arg], dice[arg], bce[arg], ce[arg])
-                tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, display_min), F, config.epoch, category="batch_min")
-                display_min = display_min +1
 
             """CLEAN UP"""
             del ids, image_0, labels_0  # things threw away
