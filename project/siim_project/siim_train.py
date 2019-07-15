@@ -343,7 +343,7 @@ class SIIMTrain:
                 ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
                 # loss = 0.5 * dice.mean() + 0.5 * bce.mean()
                 # loss = 0.5 * ce.mean() + 0.5 * dice.mean()
-                loss = 0.1*bce.mean() + 0.9*ce.mean()
+                loss = 0.2*bce.mean() + 0.4*ce.mean() + 0.4*dice.mean()
 
                 """BACKPROP"""
                 loss.backward()
@@ -382,8 +382,7 @@ class SIIMTrain:
                 tensorboardwriter.write_memory(self.writer, "train")
 
                 pbar.set_description_str("(E{}-F{}) Stp:{} Dice:{} BCE:{} Conf:{:.4f} lr:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), dice, bce, total_confidence / (batch_index + 1), optimizer.param_groups[0]['lr']))
-                out_dict = {'Epoch/{}'.format(config.fold): config.epoch,
-                            'LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold): optimizer.param_groups[0]['lr'],
+                out_dict = {'LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold): optimizer.param_groups[0]['lr'],
                             'Loss/{}'.format(config.fold): loss,
                             'Dice/{}'.format(config.fold): dice,
                             'IOU/{}'.format(config.fold): iou,
@@ -477,7 +476,7 @@ def eval_fold(net, writer, validation_loader):
             bce = BCELoss(reduction='none')(prob_empty.squeeze(-1), empty)
             ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
             # loss = 0.5 * dice.mean() + 0.5 * bce.mean()
-            loss = 0.1*bce.mean() + 0.9*ce.mean()
+            loss = 0.2*bce.mean() + 0.4*ce.mean() + 0.4*dice.mean()
 
             """DETATCH WITHOUT MEAN"""
             dice = dice.detach().cpu().numpy()
