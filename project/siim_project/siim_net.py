@@ -585,39 +585,36 @@ class model34_DeepSupervion(nn.Module):
                                          nn.Conv2d(64, 1, kernel_size=1, padding=0))
 
     def forward(self, x):
-        conv1 = self.conv1(x)     #1/4
-        conv2 = self.conv2(conv1) #1/4
+        conv2 = self.conv2(self.conv1(x)) #1/4
         conv3 = self.conv3(conv2) #1/8
         conv4 = self.conv4(conv3) #1/16
         conv5 = self.conv5(conv4) #1/32
 
-        center_512 = self.center_global_pool(conv5)
-        center_64 = self.center_conv1x1(center_512)
-        center_64_flatten = center_64.view(center_64.size(0), -1)
-        center_fc = self.center_fc(center_64_flatten)
+        conv5 = self.center_global_pool(conv5) #CENTER512
 
-        f = self.center(conv5)
-        d5 = self.decoder5(f, conv5)
+        d5 = self.decoder5(self.center(conv5), conv5)
+        center_64 = self.center_conv1x1(conv5)
+        del conv5
         d4 = self.decoder4(d5, conv4)
+        del conv4
         d3 = self.decoder3(d4, conv3)
+        del conv3
         d2 = self.decoder2(d3, conv2)
-        d1 = self.decoder1(d2)
+        del conv2
 
-        hypercol = torch.cat((
-            d1,
+        hypercol = F.dropout2d(torch.cat((
+            self.decoder1(d2),
             F.upsample(d2, scale_factor=2,mode='bilinear'),
             F.upsample(d3, scale_factor=4, mode='bilinear'),
             F.upsample(d4, scale_factor=8, mode='bilinear'),
-            F.upsample(d5, scale_factor=16, mode='bilinear')),1)
-        hypercol = F.dropout2d(hypercol, p = 0.50)
+            F.upsample(d5, scale_factor=16, mode='bilinear')),1), p = 0.50)
+        del d2, d3, d4, d5
 
-        x_no_empty = self.logits_no_empty(hypercol)
-        hypercol_add_center = torch.cat((
+        hypercol_add_center = self.logits_final(torch.cat((
             hypercol,
-            F.upsample(center_64, scale_factor=hypercol.shape[2],mode='bilinear')),1)
+            F.upsample(center_64, scale_factor=hypercol.shape[2],mode='bilinear')),1))
 
-        x_final = self.logits_final( hypercol_add_center)
-        return center_fc, x_no_empty, x_final
+        return self.center_fc(center_64.view(center_64.size(0), -1)), self.logits_no_empty(hypercol), hypercol_add_center
 
 class model50A_DeepSupervion(nn.Module):
     def __init__(self, num_classes=1, test=False):
