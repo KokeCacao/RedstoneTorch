@@ -284,7 +284,9 @@ class SIIMTrain:
             """Train and Eval"""
             net = net.cuda()
 
-            if config.display_architecture: summary(net, (1, 1024, 1024))
+            if config.display_architecture:
+                print(summary(net, (1, 1024, 1024)))
+                config.display_architecture = False
 
             optimizer = load.move_optimizer_to_cuda(optimizer)
             if config.train: self.step_fold(fold, net, optimizer, lr_scheduler, batch_size)
