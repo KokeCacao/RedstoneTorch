@@ -60,6 +60,14 @@ def load_unsave(model, state_dict):
     model_state.update(pretrained_state)
     model.load_state_dict(model_state, strict=False)
 
+    if config.freeze_loaded:
+        """freezing the loaded parameters"""
+        for name, param in model.named_parameters():
+            if name in pretrained_state.keys():
+                param.requires_grad = False
+                print("Set {} require_grad = False".format(name))
+
+
 def load_checkpoint_all_fold(nets, optimizers, lr_schedulers, load_path):
     if not load_path or load_path == "False":
         config.epoch = 0

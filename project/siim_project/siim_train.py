@@ -48,7 +48,6 @@ class SIIMTrain:
 
         for fold in range(config.MODEL_FOLD):
             if fold not in config.train_fold:
-                print("     Skipping dataset = SIIMDataset(config.DIRECTORY_CSV, fold: #{})".format(fold))
                 self.optimizers.append(None)
                 self.nets.append(None)
                 self.lr_schedulers.append(None)
@@ -59,7 +58,7 @@ class SIIMTrain:
                 net = model34_DeepSupervion(num_classes=config.TRAIN_NUM_CLASS)
 
                 """FREEZING LAYER"""
-                if config.MODEL_MANUAL_FREEZE_INITIAL:
+                if config.manual_freeze:
                     for i, c in enumerate(net.children()):
                         if len(config.MODEL_NO_GRAD) > i:
                             l = config.MODEL_NO_GRAD[i]
@@ -125,7 +124,7 @@ class SIIMTrain:
                                                           timeout=0,
                                                           worker_init_fn=None,
                                                           ))
-        if config.TRAIN_LOAD_OPTIMIZER: load_checkpoint_all_fold(self.nets, self.optimizers, self.lr_schedulers, config.DIRECTORY_LOAD)
+        load_checkpoint_all_fold(self.nets, self.optimizers, self.lr_schedulers, config.DIRECTORY_LOAD)
         set_milestone(config.DIRECTORY_LOAD)
 
         """RESET LR"""

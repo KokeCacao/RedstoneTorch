@@ -41,6 +41,8 @@ def get_args():
     parser.add_option('--batch_size', type="float", dest='batch_size', default=0, help='batch size')
     parser.add_option('--accumulation', type="float", dest='accumulation', default=0, help='gradient accumulation')
     parser.add_option('--display_architecture', type="string", dest='display_architecture', default=False, help='print architecture')
+    parser.add_option('--freeze_loaded', type="string", dest='freeze_loaded', default=None, help='Freeze loaded layers')
+    parser.add_option('--manual_freeze', type="string", dest='manual_freeze', default=False, help='Manual Freeze Additional Layers (after freeze_loaded)')
 
     (options, args) = parser.parse_args()
     return options
@@ -57,7 +59,14 @@ def load_args():
     config.load_lr_schedulers = False if args.lr_scheduler == "False" else True
     config.train = False if args.train == "False" else True
     config.display_architecture = True if args.train == "True" else False
+    config.manual_freeze = True if args.manual_freeze == "True" else False
     config.resetlr = args.resetlr
+
+    if args.freeze_loaded == "True" or args.freeze_loaded == "False":
+        if args.freeze_loaded == "True": config.freeze_loaded = True
+        else: config.freeze_loaded = False
+    else:
+        raise NotImplementedError("Please specify freeze_loaded")
 
     if args.image_size != 0: config.AUGMENTATION_RESIZE = int(args.image_size)
     if args.total_epoch != 0: config.MODEL_EPOCHS = int(args.total_epoch)

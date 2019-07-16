@@ -9,6 +9,8 @@ import math
 import torch.nn as nn
 from torch.utils import model_zoo
 
+import config
+
 __all__ = ['SENet', 'senet154', 'se_resnet50', 'se_resnet101', 'se_resnet152',
            'se_resnext50_32x4d', 'se_resnext101_32x4d']
 
@@ -431,19 +433,22 @@ def se_resnet152(num_classes=1000, pretrained='imagenet'):
 
 
 def modified_initialize_pretrained_model(model, url):
-    state_dict = model_zoo.load_url(url)
+    if not config.DIRECTORY_LOAD or config.DIRECTORY_LOAD == "False":
+        state_dict = model_zoo.load_url(url)
 
-    model_state = model.state_dict()
-    pretrained_state = {k: v for k, v in state_dict.items() if k in model_state and v.size() == model_state[k].size()}
-    print("Loaded State Dict: {}".format(pretrained_state.keys()))
-    model_state.update(pretrained_state)
-    model.load_state_dict(model_state, strict=False)
+        model_state = model.state_dict()
+        pretrained_state = {k: v for k, v in state_dict.items() if k in model_state and v.size() == model_state[k].size()}
+        print("Loaded State Dict: {}".format(pretrained_state.keys()))
+        model_state.update(pretrained_state)
+        model.load_state_dict(model_state, strict=False)
 
-    """freezing the loaded parameters"""
-    for name, param in model.named_parameters():
-        if name in pretrained_state.keys():
-            param.requires_grad = False
-            print("Set {} require_grad = False".format(name))
+        if config.freeze_loaded:
+            """freezing the loaded parameters"""
+            for name, param in model.named_parameters():
+                if name in pretrained_state.keys():
+                    param.requires_grad = False
+                    print("Set {} require_grad = False".format(name))
+    return model
 
 
 # def se_resnext50_32x4d(num_classes=1000, pretrained='imagenet'):

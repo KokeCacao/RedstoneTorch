@@ -48,8 +48,7 @@ MODEL_LR_SCHEDULER_THRESHOLD = 0
 # MODEL_LR_SCHEDULER_RESTART_COEF = 1./8
 MODEL_FOLD = 5
 # MODEL_NO_GRAD = [[],]
-MODEL_MANUAL_FREEZE_INITIAL = False
-MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], ]
+MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], ] # THIS WOULD ONLY BE EFFECTIVET IF manual_freeze is on.
 MODEL_LEARNING_RATE_AFTER_UNFREEZE = 0.001
 MODEL_FREEZE_EPOCH = 2
 
@@ -64,7 +63,6 @@ TRAIN_GPU_DICT = {
     "presudo-3": "0",
     "KokeCacao-Ubuntu": "0",
 }
-TRAIN_LOAD_OPTIMIZER = True
 TRAIN_GPU_ARG = "0" if socket.gethostname() not in TRAIN_GPU_DICT else TRAIN_GPU_DICT[socket.gethostname()]
 if socket.gethostname() not in TRAIN_GPU_DICT: print("Machine {} is not in record, use gpu #0")
 TRAIN_GPU_LIST = [int(i) for i in TRAIN_GPU_ARG.split(",")]
@@ -116,6 +114,8 @@ PREDICTION_WRITER = False
 
 DIRECTORY_LOAD = None
 
+manual_freeze = False
+freeze_loaded = None
 display_architecture = False
 prediction_tta = 0
 train = True

@@ -9,7 +9,7 @@ from torch.utils import model_zoo
 
 from net import senet154, se_resnet152, se_resnext101_32x4d, se_resnext50_32x4d
 from net.ibnnet import IBN, resnext101_ibn_a
-from net.pytorch_resnet import resnet34
+from net.pytorch_resnet import resnet34, resnet34_GroupNorm
 
 
 class double_conv(nn.Module):
@@ -567,6 +567,83 @@ class model34_DeepSupervion(nn.Module):
                                     nn.ReLU(inplace=True),
                                     nn.Conv2d(512, 256, kernel_size=3, padding=1),
                                     nn.BatchNorm2d(256),
+                                    nn.ReLU(inplace=True),
+                                    nn.MaxPool2d(kernel_size=2,stride=2))
+
+        self.decoder5 = Decoder(256 + 512, 512, 64)
+        self.decoder4 = Decoder(64 + 256, 256, 64)
+        self.decoder3 = Decoder(64 + 128, 128, 64)
+        self.decoder2 = Decoder(64 + 64, 64, 64)
+        self.decoder1 = Decoder(64, 32, 64)
+
+        self.logits_no_empty = nn.Sequential(nn.Conv2d(320, 64, kernel_size=3, padding=1),
+                                    nn.ReLU(inplace=True),
+                                    nn.Conv2d(64, 1, kernel_size=1, padding=0))
+
+        self.logits_final = nn.Sequential(nn.Conv2d(320+64, 64, kernel_size=3, padding=1),
+                                         nn.ReLU(inplace=True),
+                                         nn.Conv2d(64, 1, kernel_size=1, padding=0))
+
+    def forward(self, x):
+        conv2 = self.conv2(self.conv1(x)) #1/4
+        del x
+        conv3 = self.conv3(conv2) #1/8
+        conv4 = self.conv4(conv3) #1/16
+        conv5 = self.conv5(conv4) #1/32
+
+        center_64 = self.center_conv1x1(self.center_global_pool(conv5))
+
+        d5 = self.decoder5(self.center(conv5), conv5)
+        del conv5
+        d4 = self.decoder4(d5, conv4)
+        del conv4
+        d3 = self.decoder3(d4, conv3)
+        del conv3
+        d2 = self.decoder2(d3, conv2)
+        del conv2
+
+        hypercol = F.dropout2d(torch.cat((
+            self.decoder1(d2),
+            F.upsample(d2, scale_factor=2,mode='bilinear'),
+            F.upsample(d3, scale_factor=4, mode='bilinear'),
+            F.upsample(d4, scale_factor=8, mode='bilinear'),
+            F.upsample(d5, scale_factor=16, mode='bilinear')),1), p = 0.50)
+
+        hypercol_add_center = self.logits_final(torch.cat((
+            hypercol,
+            F.upsample(center_64, scale_factor=hypercol.shape[2],mode='bilinear')),1))
+
+        return self.center_fc(center_64.view(center_64.size(0), -1)), self.logits_no_empty(hypercol), hypercol_add_center
+
+class model34_DeepSupervion_GroupNorm(nn.Module):
+    """Change mask_class from 2 to 1 since it is binary classification"""
+    def __init__(self, num_classes=1, mask_class = 1):
+        super(model34_DeepSupervion_GroupNorm, self).__init__()
+
+        self.num_classes = num_classes
+
+        """Change Input Architecture"""
+        self.encoder = resnet34_GroupNorm(pretrained=True)
+
+        self.relu = nn.ReLU(inplace=True)
+        self.conv1 = nn.Sequential(self.encoder.conv1,
+                                   self.encoder.bn1,
+                                   self.encoder.relu)
+
+        self.conv2 = self.encoder.layer1
+        self.conv3 = self.encoder.layer2
+        self.conv4 = self.encoder.layer3
+        self.conv5 = self.encoder.layer4
+
+        self.center_global_pool = nn.AdaptiveAvgPool2d([1,1])
+        self.center_conv1x1 = nn.Conv2d(512, 64, kernel_size=1)
+        self.center_fc = nn.Linear(64, mask_class)
+
+        self.center = nn.Sequential(nn.Conv2d(512, 512, kernel_size=3,padding=1),
+                                    nn.GroupNorm(g, 512),
+                                    nn.ReLU(inplace=True),
+                                    nn.Conv2d(512, 256, kernel_size=3, padding=1),
+                                    nn.GroupNorm(g, 256),
                                     nn.ReLU(inplace=True),
                                     nn.MaxPool2d(kernel_size=2,stride=2))
 
