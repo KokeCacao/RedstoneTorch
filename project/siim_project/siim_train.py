@@ -386,8 +386,11 @@ class SIIMTrain:
 
                 """DISPLAY"""
                 # tensorboardwriter.write_memory(self.writer, "train")
-                self.writer.add_scalars('stats/GPU-Memory', {"GPU-Tensor": float(torch.cuda.memory_allocated() / torch.cuda.max_memory_allocated())}, global_step = int(time.time()-config.start_time))
-                self.writer.add_scalars('stats/GPU-Memory', {"GPU-Cache": float(torch.cuda.memory_cached() / torch.cuda.max_memory_cached())}, global_step = int(time.time()-config.start_time))
+                self.writer.add_scalars('stats/Memory', {"GPU-Tensor": float(torch.cuda.memory_allocated()),
+                                                             "GPU-Cache": float(torch.cuda.memory_cached()),
+                                                             "GPU-Tensor-Max": float(torch.cuda.max_memory_allocated()),
+                                                             "GPU-Cache-Max": float(torch.cuda.max_memory_cached()),
+                                                             }, global_step = int(time.time()-config.start_time))
 
                 pbar.set_description_str("(E{}-F{}) Stp:{} Dice:{} BCE:{} Conf:{:.4f} lr:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), dice, bce, total_confidence / (batch_index + 1), optimizer.param_groups[0]['lr']))
                 out_dict = {'LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold): optimizer.param_groups[0]['lr'],
