@@ -640,10 +640,10 @@ class model34_DeepSupervion_GroupNorm(nn.Module):
         self.center_fc = nn.Linear(64, mask_class)
 
         self.center = nn.Sequential(nn.Conv2d(512, 512, kernel_size=3,padding=1),
-                                    nn.GroupNorm(g, 512),
+                                    nn.GroupNorm(32, 512),
                                     nn.ReLU(inplace=True),
                                     nn.Conv2d(512, 256, kernel_size=3, padding=1),
-                                    nn.GroupNorm(g, 256),
+                                    nn.GroupNorm(32, 256),
                                     nn.ReLU(inplace=True),
                                     nn.MaxPool2d(kernel_size=2,stride=2))
 
