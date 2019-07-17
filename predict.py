@@ -21,6 +21,8 @@ def get_args():
     parser.add_option('--fold', type="float", dest='fold', default=-1., help='set training fold')
     parser.add_option('--net', type="string", dest='net', default=None, help='Network You Want to Use')
     parser.add_option('--tta', type="float", dest='tta', default=-1., help='tta')
+    parser.add_option('--batch_size', type="float", dest='batch_size', default=0, help='batch size')
+    parser.add_option('--image_size', type="float", dest='image_size', default=0, help='image resize')
 
     (options, args) = parser.parse_args()
     return options
@@ -29,6 +31,7 @@ def get_args():
 def load_args():
     args = get_args()
     if args.versiontag: config.PREDICTION_TAG = args.versiontag
+    if args.batch_size != 0: config.MODEL_BATCH_SIZE = int(args.batch_size)
     if args.loadfile:
         config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/" + args.loadfile
         config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/predict/"
@@ -42,6 +45,12 @@ def load_args():
 
     if args.net == None: raise NotImplementedError("Please specify net")
     else: config.net = args.net
+
+    if args.image_size != 0:
+        config.AUGMENTATION_RESIZE = int(args.image_size)
+        config.AUGMENTATION_RESIZE_CHANGE = int(args.image_size)
+    else:
+        raise NotImplementedError("Please specify image size")
 
     if args.tta >= 0:
         config.prediction_tta = int(args.tta)
