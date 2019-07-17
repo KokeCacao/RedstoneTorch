@@ -69,7 +69,7 @@ class SIIMTrain:
 
                 if config.freeze:
                     for name, param in net.named_parameters():
-                        if name in config.freeze:
+                        if str(name) in config.freeze:
                             param.requires_grad = False
                             print("Set {} require_grad = False because it contains '{}'".format(name, config.freeze))
 
