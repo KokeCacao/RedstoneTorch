@@ -60,10 +60,10 @@ class BasicBlock_GroupNorm(nn.Module):
     def __init__(self, inplanes, planes, stride=1, downsample=None):
         super(BasicBlock_GroupNorm, self).__init__()
         self.conv1 = conv3x3(inplanes, planes, stride)
-        self.bn1 = nn.GroupNorm(32, planes)
+        self.gn1 = nn.GroupNorm(32, planes)
         self.relu = nn.ReLU(inplace=True)
         self.conv2 = conv3x3(planes, planes)
-        self.bn2 = nn.GroupNorm(32, planes)
+        self.gn2 = nn.GroupNorm(32, planes)
         self.downsample = downsample
         self.stride = stride
 
@@ -71,11 +71,11 @@ class BasicBlock_GroupNorm(nn.Module):
         residual = x
 
         out = self.conv1(x)
-        out = self.bn1(out)
+        out = self.gn1(out)
         out = self.relu(out)
 
         out = self.conv2(out)
-        out = self.bn2(out)
+        out = self.gn2(out)
 
         if self.downsample is not None:
             residual = self.downsample(x)
@@ -232,7 +232,7 @@ class ResNet_GroupNorm(nn.Module):
         """MODIFY TO HAVE 1 DIMENSION INPUT"""
         self.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3,
                                bias=False)
-        self.bn1 = nn.GroupNorm(32, 64)
+        self.gn1 = nn.GroupNorm(32, 64)
         self.leaky_relu = nn.LeakyReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         self.layer1 = self._make_layer(block, 64, layers[0])
@@ -269,7 +269,7 @@ class ResNet_GroupNorm(nn.Module):
 
     def forward(self, x):
         x = self.conv1(x)
-        x = self.bn1(x)
+        x = self.gn1(x)
         x = self.leaky_relu(x)
         x = self.maxpool(x)
 
