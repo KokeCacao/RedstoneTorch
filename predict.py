@@ -32,7 +32,7 @@ def get_args():
 def load_args():
     args = get_args()
     if args.versiontag: config.PREDICTION_TAG = args.versiontag
-    if args.batch_size != 0: config.MODEL_BATCH_SIZE = int(args.batch_size)
+    if args.batch_size != 0: config.TEST_BATCH_SIZE = int(args.batch_size)
     if args.loadfile:
         config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/" + args.loadfile
         config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/predict/"
