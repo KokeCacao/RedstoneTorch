@@ -80,7 +80,7 @@ def load_args():
     else:
         raise NotImplementedError("Please specify image size")
     if args.total_epoch != 0: config.MODEL_EPOCHS = int(args.total_epoch)
-    if args.batch_size != 0: config.TEST_BATCH_SIZE = int(args.batch_size)
+    if args.batch_size != 0: config.MODEL_BATCH_SIZE = int(args.batch_size)
     if args.accumulation != 0: config.TRAIN_GRADIENT_ACCUMULATION = int(args.accumulation)
 
     if args.loadfile:
