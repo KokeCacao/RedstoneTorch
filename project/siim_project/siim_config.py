@@ -134,3 +134,4 @@ fold = 0
 versiontag = ""
 resetlr = 0
 net = None
+freeze = False
