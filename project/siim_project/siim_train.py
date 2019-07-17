@@ -20,7 +20,8 @@ from loss.dice import binary_dice_pytorch_loss, binary_dice_numpy_gain
 from loss.iou import mIoULoss
 from lr_scheduler.Constant import Constant
 from optimizer import adamw
-from project.siim_project.siim_net import model34_DeepSupervion
+from project.siim_project import siim_net
+from project.siim_project.siim_net import model34_DeepSupervion, model50A_DeepSupervion, model34_DeepSupervion_GroupNorm
 from utils import load
 from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx, remove_checkpoint_fold, set_milestone
 from utils.lr_finder import LRFinder
@@ -53,9 +54,16 @@ class SIIMTrain:
                 self.lr_schedulers.append(None)
             else:
                 print("     Creating Fold: #{}".format(fold))
-                # net = siim_net.resunet(encoder_depth=50, num_classes=config.TRAIN_NUM_CLASS, num_filters=32, dropout_2d=0.2, pretrained=False, is_deconv=False)
-                # net = model50A_DeepSupervion(num_classes=config.TRAIN_NUM_CLASS)
-                net = model34_DeepSupervion(num_classes=config.TRAIN_NUM_CLASS)
+
+                if config.net == "resunet50":
+                  net = siim_net.resunet(encoder_depth=50, num_classes=config.TRAIN_NUM_CLASS, num_filters=32, dropout_2d=0.2, pretrained=False, is_deconv=False)
+                elif config.net == "resunet50-ds":
+                    net = model50A_DeepSupervion(num_classes=config.TRAIN_NUM_CLASS)
+                elif config.net == "resunet34-ds":
+                    net = model34_DeepSupervion(num_classes=config.TRAIN_NUM_CLASS)
+                elif config.net == "resunet34-ds-gn":
+                    net = model34_DeepSupervion_GroupNorm(num_classes=config.TRAIN_NUM_CLASS)
+                ## leaky relu?
 
                 """FREEZING LAYER"""
                 if config.manual_freeze:

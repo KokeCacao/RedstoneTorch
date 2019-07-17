@@ -133,3 +133,4 @@ epoch = 0
 fold = 0
 versiontag = ""
 resetlr = 0
+net = None
