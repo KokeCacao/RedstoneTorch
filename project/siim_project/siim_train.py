@@ -359,9 +359,13 @@ class SIIMTrain:
                 bce = BCELoss(reduction='none')(prob_empty.squeeze(-1), empty)
                 ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
 
-                if config.epoch < 20:
+                if config.epoch < 21:
                     loss = 0.9*ce.mean() + 0.1*bce.mean()
-                elif config.epoch < 60:
+                elif config.epoch < 61:
+                    loss = 0.4*dice.mean() + 0.4*ce.mean() + 0.1*bce.mean()
+                elif config.epoch < 62:
+                    loss = 0.4*dice.mean() + 0.4*ce.mean() + 0.1*bce.mean()
+                elif config.epoch < 80:
                     loss = 0.4*dice.mean() + 0.4*ce.mean() + 0.1*bce.mean()
                 else:
                     raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
@@ -502,10 +506,14 @@ def eval_fold(net, writer, validation_loader):
             bce = BCELoss(reduction='none')(prob_empty.squeeze(-1), empty)
             ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
 
-            if config.epoch < 20:
-                loss = 0.9*ce.mean() + 0.1*bce.mean()
-            elif config.epoch < 60:
-                loss = 0.4*dice.mean() + 0.4*ce.mean() + 0.1*bce.mean()
+            if config.epoch < 21:
+                loss = 0.9 * ce.mean() + 0.1 * bce.mean()
+            elif config.epoch < 61:
+                loss = 0.4 * dice.mean() + 0.4 * ce.mean() + 0.1 * bce.mean()
+            elif config.epoch < 62:
+                loss = 0.4 * dice.mean() + 0.4 * ce.mean() + 0.1 * bce.mean()
+            elif config.epoch < 80:
+                loss = 0.4 * dice.mean() + 0.4 * ce.mean() + 0.1 * bce.mean()
             else:
                 raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
