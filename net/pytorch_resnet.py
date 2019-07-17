@@ -315,7 +315,7 @@ def resnet34_GroupNorm(pretrained=False, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = ResNet(BasicBlock_GroupNorm, [3, 4, 6, 3], **kwargs)
+    model = ResNet_GroupNorm(BasicBlock_GroupNorm, [3, 4, 6, 3], **kwargs)
     if pretrained:
         model = modified_initialize_pretrained_model(model, model_urls['resnet34'])
     return model

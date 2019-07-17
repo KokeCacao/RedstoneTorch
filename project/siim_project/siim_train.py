@@ -189,8 +189,9 @@ class SIIMTrain:
                     if not p.requires_grad:
                         req_grad = False
                 print("=======================Start Child Number #{} Grad: {}=======================".format(child_counter, req_grad))
-                print("{}".format(child))
-                print("=======================End Child Number #{} Grad: {}=======================".format(child_counter, req_grad))
+                if config.display_architecture:
+                    print("{}".format(child))
+                    print("=======================End Child Number #{} Grad: {}=======================".format(child_counter, req_grad))
 
         self.run()
 

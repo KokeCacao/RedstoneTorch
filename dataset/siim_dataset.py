@@ -201,7 +201,7 @@ class SIIMDataset(data.Dataset):
                 ds = pydicom.read_file(config.DIRECTORY_TEST + id)  # read dicom image
                 img = ds.pixel_array  # get image array
         else:
-            id = id + ".npy"
+            id = id.replace(".dcm", ".npy")
             if ".npy" in id:
                 img = np.load(config.DIRECTORY_TRAIN + id, allow_pickle=True, encoding="latin1")
             else:
