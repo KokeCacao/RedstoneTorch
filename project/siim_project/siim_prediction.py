@@ -65,6 +65,7 @@ class SIIMPrediction:
 
                 if config.prediction_tta == 0:
                     prob_path = "{}-{}-F{}-T{}-Prob.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
+                    print("Creating Path: {}".format(prob_path))
                     if os.path.exists(prob_path):
                         os.remove(prob_path)
                         print("WARNING: delete file '{}'".format(prob_path))
@@ -157,6 +158,7 @@ class SIIMPrediction:
                     for tta in tta_pbar:
 
                         tta_path = "{}-{}-F{}-T{}-Prob-TTA{}.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold, tta)
+                        print("Creating Path: {}".format(tta_path))
                         if os.path.exists(tta_path):
                             os.remove(tta_path)
                             print("WARNING: delete file '{}'".format(tta_path))
