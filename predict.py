@@ -19,6 +19,7 @@ def get_args():
     parser.add_option('--versiontag', dest='versiontag', default="predict", help='tag for tensorboard-log and prediction')
     parser.add_option('--loadfile', dest='loadfile', default=False, help='file you want to load')
     parser.add_option('--fold', type="float", dest='fold', default=-1., help='set training fold')
+    parser.add_option('--net', type="string", dest='net', default=None, help='Network You Want to Use')
     parser.add_option('--tta', type="float", dest='tta', default=-1., help='tta')
 
     (options, args) = parser.parse_args()
@@ -38,6 +39,9 @@ def load_args():
         print("=> Set training fold to: {}".format(config.train_fold))
     else:
         raise NotImplementedError("Please specify fold number")
+
+    if args.net == None: raise NotImplementedError("Please specify net")
+    else: config.net = args.net
 
     if args.tta >= 0:
         config.prediction_tta = int(args.tta)
