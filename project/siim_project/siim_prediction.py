@@ -101,6 +101,7 @@ class SIIMPrediction:
 
                             for id, predict in zip(ids, prob_predict):
                                 predict = predict.squeeze()
+                                predict = np.transpose(predict)
                                 predict = ndimage.zoom(predict, config.IMG_SIZE/predict.shape[0])
                                 prob_file.write('{},{}\n'.format(id[0].split("/")[-1].split(".")[0], mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)))
 
@@ -178,6 +179,7 @@ class SIIMPrediction:
                                 prob_predict = (prob_predict > threshold).astype(np.byte)
                                 for id, predict in zip(ids, prob_predict):
                                     predict = predict.squeeze()
+                                    predict = np.transpose(predict)
                                     predict = ndimage.zoom(predict, config.IMG_SIZE/predict.shape[0])
                                     tta_dict[id] = mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)
                                     prob_file.write('{},{}\n'.format(id, mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)))
