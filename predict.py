@@ -21,6 +21,7 @@ def get_args():
     parser.add_option('--fold', type="float", dest='fold', default=-1., help='set training fold')
     parser.add_option('--net', type="string", dest='net', default=None, help='Network You Want to Use')
     parser.add_option('--tta', type="float", dest='tta', default=-1., help='tta')
+    parser.add_option('--threshold', type="float", dest='threshold', default=-1., help='threshold')
     parser.add_option('--batch_size', type="float", dest='batch_size', default=0, help='batch size')
     parser.add_option('--image_size', type="float", dest='image_size', default=0, help='image resize')
 
@@ -36,6 +37,11 @@ def load_args():
         config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/" + args.loadfile
         config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/predict/"
     else: raise ValueError("You must set --loadfile directory in prediction mode")
+
+    if args.threshold != -1:
+        config.PREDICTION_CHOSEN_THRESHOLD = [float(args.threshold)]
+    else:
+        raise NotImplementedError("Please specify threshold")
 
     if args.fold != -1 and args.fold < config.MODEL_FOLD:
         config.train_fold = [int(args.fold)]
