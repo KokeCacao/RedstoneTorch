@@ -627,7 +627,7 @@ class model34_DeepSupervion_GroupNorm(nn.Module):
 
         self.leaky_relu = nn.LeakyReLU(inplace=True)
         self.conv1 = nn.Sequential(self.encoder.conv1,
-                                   self.encoder.bn1,
+                                   self.encoder.gn1,
                                    self.encoder.leaky_relu)
 
         self.conv2 = self.encoder.layer1
