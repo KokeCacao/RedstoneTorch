@@ -625,10 +625,10 @@ class model34_DeepSupervion_GroupNorm(nn.Module):
         """Change Input Architecture"""
         self.encoder = resnet34_GroupNorm(pretrained=True)
 
-        self.relu = nn.ReLU(inplace=True)
+        self.leaky_relu = nn.LeakyReLU(inplace=True)
         self.conv1 = nn.Sequential(self.encoder.conv1,
                                    self.encoder.bn1,
-                                   self.encoder.relu)
+                                   self.encoder.leaky_relu)
 
         self.conv2 = self.encoder.layer1
         self.conv3 = self.encoder.layer2
@@ -641,10 +641,10 @@ class model34_DeepSupervion_GroupNorm(nn.Module):
 
         self.center = nn.Sequential(nn.Conv2d(512, 512, kernel_size=3,padding=1),
                                     nn.GroupNorm(32, 512),
-                                    nn.ReLU(inplace=True),
+                                    nn.LeakyReLU(inplace=True),
                                     nn.Conv2d(512, 256, kernel_size=3, padding=1),
                                     nn.GroupNorm(32, 256),
-                                    nn.ReLU(inplace=True),
+                                    nn.LeakyReLU(inplace=True),
                                     nn.MaxPool2d(kernel_size=2,stride=2))
 
         self.decoder5 = Decoder(256 + 512, 512, 64)
@@ -654,11 +654,11 @@ class model34_DeepSupervion_GroupNorm(nn.Module):
         self.decoder1 = Decoder(64, 32, 64)
 
         self.logits_no_empty = nn.Sequential(nn.Conv2d(320, 64, kernel_size=3, padding=1),
-                                    nn.ReLU(inplace=True),
+                                    nn.LeakyReLU(inplace=True),
                                     nn.Conv2d(64, 1, kernel_size=1, padding=0))
 
         self.logits_final = nn.Sequential(nn.Conv2d(320+64, 64, kernel_size=3, padding=1),
-                                         nn.ReLU(inplace=True),
+                                         nn.LeakyReLU(inplace=True),
                                          nn.Conv2d(64, 1, kernel_size=1, padding=0))
 
     def forward(self, x):
