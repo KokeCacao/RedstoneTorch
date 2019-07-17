@@ -192,8 +192,7 @@ class SIIMDataset(data.Dataset):
         return self.get_load_image_by_id(id)
 
     def get_load_image_by_id(self, id):
-        # TODO: adjust to png or jpg for now
-        # TODO : test if it works
+        # TODO: DO NOT HARD CODE .dcm and .npy
         if self.load_strategy == "test" or self.load_strategy == "predict":
             id = id + ".dcm"
             if ".npy" in id:
@@ -202,6 +201,7 @@ class SIIMDataset(data.Dataset):
                 ds = pydicom.read_file(config.DIRECTORY_TEST + id)  # read dicom image
                 img = ds.pixel_array  # get image array
         else:
+            id = id + ".npy"
             if ".npy" in id:
                 img = np.load(config.DIRECTORY_TRAIN + id, allow_pickle=True, encoding="latin1")
             else:

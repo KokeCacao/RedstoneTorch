@@ -64,6 +64,8 @@ class SIIMTrain:
                 elif config.net == "resunet34-ds-gn":
                     net = model34_DeepSupervion_GroupNorm(num_classes=config.TRAIN_NUM_CLASS)
                 ## leaky relu?
+                else:
+                    raise ValueError("The Network {} you specified is not in one of the network you can use".format(config.net))
 
                 """FREEZING LAYER"""
                 if config.manual_freeze:
@@ -355,9 +357,13 @@ class SIIMTrain:
                 # hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
                 bce = BCELoss(reduction='none')(prob_empty.squeeze(-1), empty)
                 ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
-                # loss = 0.5 * dice.mean() + 0.5 * bce.mean()
-                # loss = 0.5 * ce.mean() + 0.5 * dice.mean()
-                loss = 0.2*bce.mean() + 0.4*ce.mean() + 0.4*dice.mean()
+
+                if config.epoch < 20:
+                    loss = 0.9*ce.mean() + 0.1*bce.mean()
+                elif config.epoch < 60:
+                    loss = 0.4*dice.mean() + 0.4*ce.mean() + 0.1*bce.mean()
+                else:
+                    raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
                 """BACKPROP"""
                 loss.backward()
@@ -494,8 +500,13 @@ def eval_fold(net, writer, validation_loader):
             # hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
             bce = BCELoss(reduction='none')(prob_empty.squeeze(-1), empty)
             ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
-            # loss = 0.5 * dice.mean() + 0.5 * bce.mean()
-            loss = 0.2*bce.mean() + 0.4*ce.mean() + 0.4*dice.mean()
+
+            if config.epoch < 20:
+                loss = 0.9*ce.mean() + 0.1*bce.mean()
+            elif config.epoch < 60:
+                loss = 0.4*dice.mean() + 0.4*ce.mean() + 0.1*bce.mean()
+            else:
+                raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
             """DETATCH WITHOUT MEAN"""
             dice = dice.detach().cpu().numpy()
