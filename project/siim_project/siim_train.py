@@ -69,11 +69,9 @@ class SIIMTrain:
 
                 if config.freeze:
                     for name, param in net.named_parameters():
-                        if str(name) in config.freeze:
+                        if config.freeze in name:
                             param.requires_grad = False
                             print("Set {} require_grad = False because it contains '{}'".format(name, config.freeze))
-                        else:
-                            print("Set {} require_grad = True because it contains '{}'".format(name, config.freeze))
 
                 """FREEZING LAYER"""
                 if config.manual_freeze:
