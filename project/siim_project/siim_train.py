@@ -332,6 +332,7 @@ class SIIMTrain:
         print("Set Model Trainning mode to trainning=[{}]".format(net.train().training))
 
         ratio = int(config.TRAIN_RATIO) if config.TRAIN_RATIO >= 1 else 1
+        out_dict = None
         for train_index in tqdm(range(ratio)):
             pbar = tqdm(train_loader)
             train_len = train_len + len(train_loader)
@@ -380,15 +381,13 @@ class SIIMTrain:
 
                 """BACKPROP"""
                 loss.backward()
-                if config.epoch > config.TRAIN_GRADIENT_ACCUMULATION:
-                    if (batch_index + 1) % config.TRAIN_GRADIENT_ACCUMULATION == 0:
-                        optimizer.step()
-                        optimizer.zero_grad()
-                    elif batch_index + 1 == len(train_loader):  # drop last
-                        optimizer.zero_grad()
-                else:
+                if (batch_index + 1) % config.TRAIN_GRADIENT_ACCUMULATION == 0: # backward
                     optimizer.step()
                     optimizer.zero_grad()
+                elif batch_index + 1 == len(train_loader):  # drop last batch if it can't backprop
+                    optimizer.zero_grad()
+                else:
+                    pass # accumulation
 
                 """DETATCH"""
                 dice = dice.detach().cpu().numpy().mean()
@@ -420,24 +419,41 @@ class SIIMTrain:
                                                              }, global_step = int(time.time()-config.start_time))
 
                 pbar.set_description_str("(E{}-F{}) Stp:{} Dice:{} BCE:{} Conf:{:.4f} lr:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), dice, bce, total_confidence / (batch_index + 1), optimizer.param_groups[0]['lr']))
-                out_dict = {'LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold): optimizer.param_groups[0]['lr'],
-                            'Loss/{}'.format(config.fold): loss,
-                            'Dice/{}'.format(config.fold): dice,
-                            'IOU/{}'.format(config.fold): iou,
-                            # 'Hinge/{}'.format(config.fold): hinge,
-                            'BCE/{}'.format(config.fold): bce,
-                            'CE/{}'.format(config.fold): ce,
-                            'LogitsProbability/{}'.format(config.fold): logits_predict.mean(),
-                            'PredictProbability/{}'.format(config.fold): prob_predict.mean(),
-                            'EmptyProbability/{}'.format(config.fold): prob_empty.mean(),
-                            'LabelProbability/{}'.format(config.fold): labels.mean(),
-                            'EmptyGroundProbability'.format(config.fold): empty.mean(),
-                            }
+
+                if out_dict is None:
+                    out_dict = {'LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold): optimizer.param_groups[0]['lr']/config.TRAIN_GRADIENT_ACCUMULATION,
+                                'Loss/{}'.format(config.fold): loss/config.TRAIN_GRADIENT_ACCUMULATION,
+                                'Dice/{}'.format(config.fold): dice/config.TRAIN_GRADIENT_ACCUMULATION,
+                                'IOU/{}'.format(config.fold): iou/config.TRAIN_GRADIENT_ACCUMULATION,
+                                # 'Hinge/{}'.format(config.fold): hinge/config.TRAIN_GRADIENT_ACCUMULATION,
+                                'BCE/{}'.format(config.fold): bce/config.TRAIN_GRADIENT_ACCUMULATION,
+                                'CE/{}'.format(config.fold): ce/config.TRAIN_GRADIENT_ACCUMULATION,
+                                'LogitsProbability/{}'.format(config.fold): logits_predict.mean()/config.TRAIN_GRADIENT_ACCUMULATION,
+                                'PredictProbability/{}'.format(config.fold): prob_predict.mean()/config.TRAIN_GRADIENT_ACCUMULATION,
+                                'EmptyProbability/{}'.format(config.fold): prob_empty.mean()/config.TRAIN_GRADIENT_ACCUMULATION,
+                                'LabelProbability/{}'.format(config.fold): labels.mean()/config.TRAIN_GRADIENT_ACCUMULATION,
+                                'EmptyGroundProbability'.format(config.fold): empty.mean()/config.TRAIN_GRADIENT_ACCUMULATION,
+                                }
+                else:
+                    out_dict['LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold)] += optimizer.param_groups[0]['lr']/config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['Loss/{}'.format(config.fold)] += loss/config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['Dice/{}'.format(config.fold)] += dice/config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['IOU/{}'.format(config.fold)] += iou/config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['BCE/{}'.format(config.fold)] += bce/config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['CE/{}'.format(config.fold)] += ce/config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['LogitsProbability/{}'.format(config.fold)] += logits_predict.mean()/config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['PredictProbability/{}'] += prob_predict.mean()/config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['EmptyProbability/{}'.format(config.fold)] += prob_empty.mean()/config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['LabelProbability/{}'.format(config.fold)] += labels.mean()/config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['EmptyGroundProbability'.format(config.fold)] += empty.mean()/config.TRAIN_GRADIENT_ACCUMULATION
+                if (batch_index + 1) % config.TRAIN_GRADIENT_ACCUMULATION == 0: # backward
+                    tensorboardwriter.write_loss(self.writer, out_dict, config.global_steps[fold])
+                    out_dict = None
                 # for c in range(config.TRAIN_NUM_CLASS):
                 #     out_dict['PredictProbability-Class-{}/{}'.format(c, config.fold)] = prob_predict[:][c].mean()
                 # the code above is wrong - IndexError: index 64 is out of bounds for axis 0 with size 64
 
-                tensorboardwriter.write_loss(self.writer, out_dict, config.global_steps[fold])
+
 
                 """CLEAN UP"""
                 del ids, image_0, labels_0  # things threw away
