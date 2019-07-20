@@ -442,7 +442,7 @@ class SIIMTrain:
                     out_dict['BCE/{}'.format(config.fold)] += bce/config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['CE/{}'.format(config.fold)] += ce/config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['LogitsProbability/{}'.format(config.fold)] += logits_predict.mean()/config.TRAIN_GRADIENT_ACCUMULATION
-                    out_dict['PredictProbability/{}'] += prob_predict.mean()/config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['PredictProbability/{}'.format(config.fold)] += prob_predict.mean()/config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['EmptyProbability/{}'.format(config.fold)] += prob_empty.mean()/config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['LabelProbability/{}'.format(config.fold)] += labels.mean()/config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['EmptyGroundProbability'.format(config.fold)] += empty.mean()/config.TRAIN_GRADIENT_ACCUMULATION
