@@ -123,6 +123,7 @@ train_resume = False
 debug_lr_finder = False # CAREFUL: open the lr finder would mess up the optimizers, you gonna retrain the network. So the program will end after the graph created.
 load_state_dicts = True
 load_optimizers = True
+load_epoch = True
 load_lr_schedulers = True
 train_fold = [-1]
 eval_index = 0

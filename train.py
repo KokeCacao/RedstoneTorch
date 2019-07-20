@@ -35,6 +35,7 @@ def get_args():
     parser.add_option('--state_dict', type="string", dest='state_dict', default=True, help='whether to load state_dicts')
     parser.add_option('--optimizer', type="string", dest='optimizer', default=True, help='whether to load optimizers')
     parser.add_option('--lr_scheduler', type="string", dest='lr_scheduler', default=True, help='whether to load lr_schedulers')
+    parser.add_option('--epoch', type="string", dest='epoch', default=True, help='whether to load epoch')
     parser.add_option('--train', type="string", dest='train', default=True, help='whether to train')
     parser.add_option('--image_size', type="float", dest='image_size', default=0, help='image resize')
     parser.add_option('--total_epoch', type="float", dest='total_epoch', default=0, help='additional epoch for training')
@@ -59,6 +60,7 @@ def load_args():
     config.load_state_dicts = False if args.state_dict == "False" else True
     config.load_optimizers = False if args.optimizer == "False" else True
     config.load_lr_schedulers = False if args.lr_scheduler == "False" else True
+    config.load_epoch = False if args.epoch == "False" else True
     config.train = False if args.train == "False" else True
     config.display_architecture = True if args.train == "True" else False
     config.manual_freeze = True if args.manual_freeze == "True" else False

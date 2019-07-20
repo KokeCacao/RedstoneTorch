@@ -81,8 +81,13 @@ def load_checkpoint_all_fold(nets, optimizers, lr_schedulers, load_path):
         checkpoint = load_file(load_path)
         if 'state_dicts' not in checkpoint:
             raise ValueError("=> Checkpoint is broken, nothing loaded")
-        config.epoch = checkpoint['epoch']
-        config.global_steps = checkpoint['global_steps']
+
+        if config.load_epoch:
+            config.epoch = checkpoint['epoch']
+            config.global_steps = checkpoint['global_steps']
+        else:
+            config.epoch = 0
+            config.global_steps = 0
 
         optimizers = [None] * len(nets) if optimizers is None else optimizers
         lr_schedulers = [None] * len(nets) if lr_schedulers is None else lr_schedulers
