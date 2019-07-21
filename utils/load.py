@@ -86,8 +86,8 @@ def load_checkpoint_all_fold(nets, optimizers, lr_schedulers, load_path):
             config.epoch = checkpoint['epoch']
             config.global_steps = checkpoint['global_steps']
         else:
-            config.epoch = 0
-            config.global_steps = [0]
+            config.epoch = checkpoint['epoch']*0
+            config.global_steps = checkpoint['global_steps']*0
 
         optimizers = [None] * len(nets) if optimizers is None else optimizers
         lr_schedulers = [None] * len(nets) if lr_schedulers is None else lr_schedulers
