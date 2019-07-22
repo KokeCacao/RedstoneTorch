@@ -114,7 +114,7 @@ class SIIMPrediction:
                                 predict = predict.squeeze()
                                 predict = np.transpose(predict)
                                 predict = ndimage.zoom(predict, config.IMG_SIZE/predict.shape[0])
-                                prob_file.write('{},{}\n'.format(id[0].split("/")[-1].split(".")[0], mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)))
+                                prob_file.write('{},{}\n'.format(id, mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)))
 
                             del ids, image, labels, image_0, labels_0, empty
                             del empty_logits, _idkwhatthisis_, logits_predict

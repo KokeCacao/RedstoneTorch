@@ -334,7 +334,7 @@ def train_aug(term):
         Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
     ])
 def eval_aug(term):
-    train_aug(term)
+    return train_aug(term)
 
 def test_aug(term):
     return Compose([
