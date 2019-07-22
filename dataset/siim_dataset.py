@@ -260,13 +260,14 @@ def no_aug():
     return Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC)
 
 
-def train_aug(term):
-    if config.epoch > config.AUGMENTATION_RESIZE_CHANGE_EPOCH:
+def train_aug1(term):
+    if config.epoch > 6:
         return Compose([
             HorizontalFlip(p=term % 2),
 
             IAAPiecewiseAffine(scale=(0., 0.02)),
             # AdaptivePadIfNeeded(border_mode=cv2.BORDER_CONSTANT),
+
             ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.5), rotate_limit=3, border_mode=cv2.BORDER_CONSTANT, p=0.8),
 
             OneOf([
@@ -290,8 +291,8 @@ def train_aug(term):
             Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
         ])
 
-def eval_aug(term):
-    if config.epoch > config.AUGMENTATION_RESIZE_CHANGE_EPOCH:
+def eval_aug1(term):
+    if config.epoch > 6:
         return Compose([
             HorizontalFlip(p=term % 2),
             Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
@@ -302,14 +303,13 @@ def eval_aug(term):
             Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
         ])
 
-
-def test_aug(term):
+def test_aug1(term):
     return Compose([
         HorizontalFlip(p=term % 2),
         Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
     ])
 
-def tta_aug(term):
+def tta_aug1(term):
     return Compose([
             HorizontalFlip(p=term % 2),
 
@@ -323,6 +323,29 @@ def tta_aug(term):
             ], p=1),
             Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
         ])
+
+
+
+def train_aug(term):
+    return Compose([
+        RandomGamma(gamma_limit=(80, 110), p=0.8),
+        GaussNoise(p=0.8),
+        ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.2), rotate_limit=5, p=0.8, border_mode=cv2.BORDER_CONSTANT),
+        Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
+    ])
+def eval_aug(term):
+    train_aug(term)
+
+def test_aug(term):
+    return Compose([
+        Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
+    ])
+
+def tta_aug(term):
+    return Compose([
+        RandomGamma(gamma_limit=(80, 110), p=0.8),
+        Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
+    ])
 
 
 def train_collate(batch):
