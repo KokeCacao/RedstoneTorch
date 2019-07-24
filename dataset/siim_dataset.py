@@ -324,7 +324,21 @@ def tta_aug1(term):
             Resize(config.AUGMENTATION_RESIZE_CHANGE, config.AUGMENTATION_RESIZE_CHANGE, interpolation=cv2.INTER_CUBIC),  # 1344
         ])
 
-
+# AUGMENTATIONS_TRAIN = Compose([
+#     HorizontalFlip(p=0.5),
+#     OneOf([
+#         RandomContrast(),
+#         RandomGamma(),
+#         RandomBrightness(),
+#          ], p=0.3),
+#     OneOf([
+#         ElasticTransform(alpha=120, sigma=120 * 0.05, alpha_affine=120 * 0.03),
+#         GridDistortion(),
+#         OpticalDistortion(distort_limit=2, shift_limit=0.5),
+#         ], p=0.3),
+#     RandomSizedCrop(min_max_height=(128, 256), height=h, width=w,p=0.5),
+#     ToFloat(max_value=1)
+# ],p=1)
 
 def train_aug(term):
     return Compose([
