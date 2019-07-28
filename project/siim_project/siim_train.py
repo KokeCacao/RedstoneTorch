@@ -383,9 +383,9 @@ class SIIMTrain:
                 dice_cherkeng, dice_neg, dice_pos, num_neg, num_pos = metric(labels, logits_predict)
 
                 if config.epoch < 2:
-                    loss = ce.mean()
+                    loss = ce.sum()
                 elif config.epoch < 200:
-                    loss = 0.9 * ce.mean() + 0.1 * bce.mean()
+                    loss = 0.9 * ce.sum() + 0.1 * bce.mean()
                 else:
                     raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
@@ -413,7 +413,7 @@ class SIIMTrain:
                 iou = iou.detach().cpu().numpy().mean()
                 # hinge = hinge.detach().cpu().numpy().mean()
                 bce = bce.detach().cpu().numpy().mean()
-                ce = ce.detach().cpu().numpy().mean()
+                ce = ce.detach().cpu().numpy().sum() # ce need sum
                 loss = loss.detach().cpu().numpy().mean()
 
                 image = image.cpu().numpy()
@@ -551,9 +551,9 @@ def eval_fold(net, writer, validation_loader):
             ce = segmentation_weighted_binary_cross_entropy(prob_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
 
             if config.epoch < 2:
-                loss = ce.mean()
+                loss = ce.sum()
             elif config.epoch < 200:
-                loss = 0.9 * ce.mean() + 0.1 * bce.mean()
+                loss = 0.9 * ce.sum() + 0.1 * bce.mean()
             else:
                 raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
@@ -598,7 +598,7 @@ def eval_fold(net, writer, validation_loader):
             dice = dice.mean()
             iou = iou.mean()
             bce = bce.mean()
-            ce = ce.mean()
+            ce = ce.sum()
             loss = loss.mean()
 
             dice_losses = np.append(dice_losses, dice)
@@ -701,7 +701,7 @@ def draw_image(image, ground, pred, empty, prob_empty, dice, bce, ce):
 
     plt.subplot(323)
     plt.imshow(np.squeeze(pred), cmap='plasma', vmin=pred.min(), vmax=pred.max())
-    plt.title("B:{:.4f} C:{:.4f}".format(bce, ce.mean()))
+    plt.title("B:{:.4f} C:{:.4f}".format(bce, ce.sum()))
     plt.grid(False)
 
     plt.subplot(324)
