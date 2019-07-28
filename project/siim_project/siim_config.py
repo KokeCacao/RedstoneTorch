@@ -1,6 +1,8 @@
 import multiprocessing
 import socket
 import time
+from timeit import default_timer
+
 import torch
 
 import numpy as np
@@ -126,7 +128,7 @@ load_epoch = True
 load_lr_schedulers = True
 train_fold = [-1]
 eval_index = 0
-start_time = time.time()
+start_time = default_timer()
 lastsave = None
 global_steps = []
 epoch = 0
@@ -135,3 +137,20 @@ versiontag = ""
 resetlr = 0
 net = None
 freeze = False
+
+def time_to_str(t, mode='min'):
+    if mode=='min':
+        t  = int(t)/60
+        hr = t//60
+        min = t%60
+        return '%2d hr %02d min'%(hr,min)
+
+    elif mode=='sec':
+        t   = int(t)
+        min = t//60
+        sec = t%60
+        return '%2d min %02d sec'%(min,sec)
+
+
+    else:
+        raise NotImplementedError

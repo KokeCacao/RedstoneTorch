@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+from timeit import default_timer
 
 import matplotlib as mpl
 import numpy as np
@@ -57,7 +58,7 @@ class SIIMTrain:
                 print("     Creating Fold: #{}".format(fold))
 
                 if config.net == "resunet50":
-                  net = siim_net.resunet(encoder_depth=50, num_classes=config.TRAIN_NUM_CLASS, num_filters=32, dropout_2d=0.2, pretrained=False, is_deconv=False)
+                    net = siim_net.resunet(encoder_depth=50, num_classes=config.TRAIN_NUM_CLASS, num_filters=32, dropout_2d=0.2, pretrained=False, is_deconv=False)
                 elif config.net == "resunet50-ds":
                     net = model50A_DeepSupervion(num_classes=config.TRAIN_NUM_CLASS)
                 elif config.net == "resunet34-ds":
@@ -223,8 +224,8 @@ class SIIMTrain:
                 #
                 #     print("Set Model Trainning mode to trainning=[{}]".format(self.nets[0].eval().training))
                 #     for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
-            #             image = image.cuda()
-            #             labels_0 = labels_0.cuda()
+                #             image = image.cuda()
+                #             labels_0 = labels_0.cuda()
                 #
                 #         cam_img = cam(self.nets[0], image, labels_0)
                 #         logits_predict = self.nets[0](image)
@@ -308,7 +309,8 @@ class SIIMTrain:
             optimizer = load.move_optimizer_to_cuda(optimizer)
             if config.train: self.step_fold(fold, net, optimizer, lr_scheduler, batch_size)
             torch.cuda.empty_cache()
-            with torch.no_grad(): score = eval_fold(net, self.writer, self.validation_loader[config.fold])
+            with torch.no_grad():
+                score = eval_fold(net, self.writer, self.validation_loader[config.fold])
 
             """Update Learning Rate Scheduler"""
             if lr_scheduler is not None:
@@ -326,6 +328,11 @@ class SIIMTrain:
         epoch_f = 0
         train_len = 1e-10
         total_confidence = 0
+
+        train_loss = np.zeros(20, np.float32)
+        batch_loss = np.zeros(20, np.float32)
+        sum_loss = np.zeros(20, np.float32)
+        sum_number = np.zeros(20, np.float32) + 1e-8
 
         # pin_memory: https://blog.csdn.net/tsq292978891/article/details/80454568
         train_loader = self.train_loader[config.fold]
@@ -368,34 +375,46 @@ class SIIMTrain:
                 # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
                 ce = segmentation_weighted_binary_cross_entropy(prob_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
 
+                """Heng CherKeng"""
+                dice_cherkeng, dice_neg, dice_pos, num_neg, num_pos = metric(labels, logits_predict)
+
                 if config.epoch < 21:
-                    loss = 0.9*ce.mean() + 0.1*bce.mean()
+                    loss = 0.9 * ce.mean() + 0.1 * bce.mean()
                 elif config.epoch < 61:
-                    loss = 0.4*dice.mean() + 0.4*ce.mean() + 0.1*bce.mean()
+                    loss = 0.4 * dice.mean() + 0.4 * ce.mean() + 0.1 * bce.mean()
                 elif config.epoch < 62:
-                    loss = 0.4*dice.mean() + 0.4*ce.mean() + 0.1*bce.mean()
+                    loss = 0.4 * dice.mean() + 0.4 * ce.mean() + 0.1 * bce.mean()
                 elif config.epoch < 81:
-                    loss = 0.4*dice.mean() + 0.4*ce.mean() + 0.1*bce.mean()
+                    loss = 0.4 * dice.mean() + 0.4 * ce.mean() + 0.1 * bce.mean()
                 elif config.epoch < 121:
-                    loss = 0.3*dice.mean() + 0.4*ce.mean() + 0.3*bce.mean()
+                    loss = 0.3 * dice.mean() + 0.4 * ce.mean() + 0.3 * bce.mean()
                 elif config.epoch < 161:
-                    loss = 0.2*dice.mean() + 0.5*ce.mean() + 0.3*bce.mean()
+                    loss = 0.2 * dice.mean() + 0.5 * ce.mean() + 0.3 * bce.mean()
                 elif config.epoch < 195:
-                    loss = 0.1*dice.mean() + 0.6*ce.mean() + 0.3*bce.mean()
+                    loss = 0.1 * dice.mean() + 0.6 * ce.mean() + 0.3 * bce.mean()
                 elif config.epoch < 221:
-                    loss = 0.2*dice.mean() + 0.5*50*ce.mean() + 0.3*50*bce.mean()
+                    loss = 0.2 * dice.mean() + 0.5 * 50 * ce.mean() + 0.3 * 50 * bce.mean()
                 else:
                     raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
                 """BACKPROP"""
                 loss.backward()
-                if (batch_index + 1) % config.TRAIN_GRADIENT_ACCUMULATION == 0: # backward
+                if (batch_index + 1) % config.TRAIN_GRADIENT_ACCUMULATION == 0:  # backward
                     optimizer.step()
                     optimizer.zero_grad()
                 elif batch_index + 1 == len(train_loader):  # drop last batch if it can't backprop
                     optimizer.zero_grad()
                 else:
-                    pass # accumulation
+                    pass  # accumulation
+
+                """Heng CherKeng"""
+                batch_loss[:4] = [loss.item(), dice_cherkeng, dice_neg, dice_pos]
+                sum_loss[:4] += [loss.item() * batch_size, dice_cherkeng * batch_size, dice_neg * num_neg, dice_pos * num_pos]
+                sum_number[:4] += [batch_size, batch_size, num_neg, num_pos]
+                if (batch_index + 1) % config.TRAIN_GRADIENT_ACCUMULATION == 0:
+                    train_loss = sum_loss / sum_number
+                    sum_loss[...] = 0
+                    sum_number[...] = 1e-8
 
                 """DETATCH"""
                 dice = dice.detach().cpu().numpy().mean()
@@ -421,47 +440,47 @@ class SIIMTrain:
                 """DISPLAY"""
                 # tensorboardwriter.write_memory(self.writer, "train")
                 self.writer.add_scalars('stats/Memory', {"GPU-Tensor": float(torch.cuda.memory_allocated()),
-                                                             "GPU-Cache": float(torch.cuda.memory_cached()),
-                                                             "GPU-Tensor-Max": float(torch.cuda.max_memory_allocated()),
-                                                             "GPU-Cache-Max": float(torch.cuda.max_memory_cached()),
-                                                             }, global_step = int(time.time()-config.start_time))
-
-                pbar.set_description_str("(E{}-F{}) Stp:{} Dice:{} BCE:{} Conf:{:.4f} lr:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), dice, bce, total_confidence / (batch_index + 1), optimizer.param_groups[0]['lr']))
+                                                         "GPU-Cache": float(torch.cuda.memory_cached()),
+                                                         "GPU-Tensor-Max": float(torch.cuda.max_memory_allocated()),
+                                                         "GPU-Cache-Max": float(torch.cuda.max_memory_cached()),
+                                                         }, global_step=int(time.time() - config.start_time))
+                """Heng CherKeng"""
+                pbar.set_description_str('%0.5f  %5.1f%s %5.1f |  %5.3f   %5.3f  %4.2f  %4.2f  |  %5.3f   %5.3f  %4.2f  %4.2f  | %s' % (optimizer.param_groups[0]['lr'], iter / 1000, " ", config.epoch, *train_loss[:4], *train_loss[:4], config.time_to_str((default_timer() - config.start_time), 'min'))
+                    )
+                # pbar.set_description_str("(E{}-F{}) Stp:{} Dice:{} BCE:{} Conf:{:.4f} lr:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), dice, bce, total_confidence / (batch_index + 1), optimizer.param_groups[0]['lr']))
 
                 if out_dict is None:
-                    out_dict = {'LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold): optimizer.param_groups[0]['lr']/config.TRAIN_GRADIENT_ACCUMULATION,
-                                'Loss/{}'.format(config.fold): loss/config.TRAIN_GRADIENT_ACCUMULATION,
-                                'Dice/{}'.format(config.fold): dice/config.TRAIN_GRADIENT_ACCUMULATION,
-                                'IOU/{}'.format(config.fold): iou/config.TRAIN_GRADIENT_ACCUMULATION,
+                    out_dict = {'LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold): optimizer.param_groups[0]['lr'] / config.TRAIN_GRADIENT_ACCUMULATION,
+                                'Loss/{}'.format(config.fold): loss / config.TRAIN_GRADIENT_ACCUMULATION,
+                                'Dice/{}'.format(config.fold): dice / config.TRAIN_GRADIENT_ACCUMULATION,
+                                'IOU/{}'.format(config.fold): iou / config.TRAIN_GRADIENT_ACCUMULATION,
                                 # 'Hinge/{}'.format(config.fold): hinge/config.TRAIN_GRADIENT_ACCUMULATION,
-                                'BCE/{}'.format(config.fold): bce/config.TRAIN_GRADIENT_ACCUMULATION,
-                                'CE/{}'.format(config.fold): ce/config.TRAIN_GRADIENT_ACCUMULATION,
-                                'LogitsProbability/{}'.format(config.fold): logits_predict.mean()/config.TRAIN_GRADIENT_ACCUMULATION,
-                                'PredictProbability/{}'.format(config.fold): prob_predict.mean()/config.TRAIN_GRADIENT_ACCUMULATION,
-                                'EmptyProbability/{}'.format(config.fold): prob_empty.mean()/config.TRAIN_GRADIENT_ACCUMULATION,
-                                'LabelProbability/{}'.format(config.fold): labels.mean()/config.TRAIN_GRADIENT_ACCUMULATION,
-                                'EmptyGroundProbability'.format(config.fold): empty.mean()/config.TRAIN_GRADIENT_ACCUMULATION,
+                                'BCE/{}'.format(config.fold): bce / config.TRAIN_GRADIENT_ACCUMULATION,
+                                'CE/{}'.format(config.fold): ce / config.TRAIN_GRADIENT_ACCUMULATION,
+                                'LogitsProbability/{}'.format(config.fold): logits_predict.mean() / config.TRAIN_GRADIENT_ACCUMULATION,
+                                'PredictProbability/{}'.format(config.fold): prob_predict.mean() / config.TRAIN_GRADIENT_ACCUMULATION,
+                                'EmptyProbability/{}'.format(config.fold): prob_empty.mean() / config.TRAIN_GRADIENT_ACCUMULATION,
+                                'LabelProbability/{}'.format(config.fold): labels.mean() / config.TRAIN_GRADIENT_ACCUMULATION,
+                                'EmptyGroundProbability'.format(config.fold): empty.mean() / config.TRAIN_GRADIENT_ACCUMULATION,
                                 }
                 else:
-                    out_dict['LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold)] += optimizer.param_groups[0]['lr']/config.TRAIN_GRADIENT_ACCUMULATION
-                    out_dict['Loss/{}'.format(config.fold)] += loss/config.TRAIN_GRADIENT_ACCUMULATION
-                    out_dict['Dice/{}'.format(config.fold)] += dice/config.TRAIN_GRADIENT_ACCUMULATION
-                    out_dict['IOU/{}'.format(config.fold)] += iou/config.TRAIN_GRADIENT_ACCUMULATION
-                    out_dict['BCE/{}'.format(config.fold)] += bce/config.TRAIN_GRADIENT_ACCUMULATION
-                    out_dict['CE/{}'.format(config.fold)] += ce/config.TRAIN_GRADIENT_ACCUMULATION
-                    out_dict['LogitsProbability/{}'.format(config.fold)] += logits_predict.mean()/config.TRAIN_GRADIENT_ACCUMULATION
-                    out_dict['PredictProbability/{}'.format(config.fold)] += prob_predict.mean()/config.TRAIN_GRADIENT_ACCUMULATION
-                    out_dict['EmptyProbability/{}'.format(config.fold)] += prob_empty.mean()/config.TRAIN_GRADIENT_ACCUMULATION
-                    out_dict['LabelProbability/{}'.format(config.fold)] += labels.mean()/config.TRAIN_GRADIENT_ACCUMULATION
-                    out_dict['EmptyGroundProbability'.format(config.fold)] += empty.mean()/config.TRAIN_GRADIENT_ACCUMULATION
-                if (batch_index + 1) % config.TRAIN_GRADIENT_ACCUMULATION == 0: # backward
+                    out_dict['LearningRate{}/{}'.format(optimizer.__class__.__name__, config.fold)] += optimizer.param_groups[0]['lr'] / config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['Loss/{}'.format(config.fold)] += loss / config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['Dice/{}'.format(config.fold)] += dice / config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['IOU/{}'.format(config.fold)] += iou / config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['BCE/{}'.format(config.fold)] += bce / config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['CE/{}'.format(config.fold)] += ce / config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['LogitsProbability/{}'.format(config.fold)] += logits_predict.mean() / config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['PredictProbability/{}'.format(config.fold)] += prob_predict.mean() / config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['EmptyProbability/{}'.format(config.fold)] += prob_empty.mean() / config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['LabelProbability/{}'.format(config.fold)] += labels.mean() / config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['EmptyGroundProbability'.format(config.fold)] += empty.mean() / config.TRAIN_GRADIENT_ACCUMULATION
+                if (batch_index + 1) % config.TRAIN_GRADIENT_ACCUMULATION == 0:  # backward
                     tensorboardwriter.write_loss(self.writer, out_dict, config.global_steps[fold])
                     out_dict = None
                 # for c in range(config.TRAIN_NUM_CLASS):
                 #     out_dict['PredictProbability-Class-{}/{}'.format(c, config.fold)] = prob_predict[:][c].mean()
                 # the code above is wrong - IndexError: index 64 is out of bounds for axis 0 with size 64
-
-
 
                 """CLEAN UP"""
                 del ids, image_0, labels_0  # things threw away
@@ -548,13 +567,13 @@ def eval_fold(net, writer, validation_loader):
             elif config.epoch < 80:
                 loss = 0.4 * dice.mean() + 0.4 * ce.mean() + 0.1 * bce.mean()
             elif config.epoch < 121:
-                loss = 0.3*dice.mean() + 0.4*ce.mean() + 0.3*bce.mean()
+                loss = 0.3 * dice.mean() + 0.4 * ce.mean() + 0.3 * bce.mean()
             elif config.epoch < 161:
-                loss = 0.2*dice.mean() + 0.5*ce.mean() + 0.3*bce.mean()
+                loss = 0.2 * dice.mean() + 0.5 * ce.mean() + 0.3 * bce.mean()
             elif config.epoch < 195:
-                loss = 0.1*dice.mean() + 0.6*ce.mean() + 0.3*bce.mean()
+                loss = 0.1 * dice.mean() + 0.6 * ce.mean() + 0.3 * bce.mean()
             elif config.epoch < 221:
-                loss = 0.2*dice.mean() + 0.5*50*ce.mean() + 0.3*50*bce.mean()
+                loss = 0.2 * dice.mean() + 0.5 * 50 * ce.mean() + 0.3 * 50 * bce.mean()
             else:
                 raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
@@ -579,21 +598,21 @@ def eval_fold(net, writer, validation_loader):
                     if empty_.sum() is not 0 and displayed_img < 8:
                         F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_)
                         tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, displayed_img), F, config.epoch, category="non-empty")
-                        displayed_img = displayed_img +1
+                        displayed_img = displayed_img + 1
                     if empty_.sum() is 0 and displayed_empty < 8:
                         F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_)
                         tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, displayed_empty), F, config.epoch, category="empty")
-                        displayed_empty = displayed_empty +1
+                        displayed_empty = displayed_empty + 1
             if display_max < 0:
                 arg = np.argmax(dice)
                 F = draw_image(image[arg], labels[arg], prob_predict[arg], empty[arg], prob_empty[arg], dice[arg], bce[arg], ce[arg])
                 tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, display_max), F, config.epoch, category="batch_max")
-                display_max = display_max +1
+                display_max = display_max + 1
             if display_min < 8:
                 arg = np.argmin(dice)
                 F = draw_image(image[arg], labels[arg], prob_predict[arg], empty[arg], prob_empty[arg], dice[arg], bce[arg], ce[arg])
                 tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, display_min), F, config.epoch, category="batch_min")
-                display_min = display_min +1
+                display_min = display_min + 1
 
             """SUM"""
             dice = dice.mean()
@@ -626,8 +645,8 @@ def eval_fold(net, writer, validation_loader):
 
             """DISPLAY"""
             # tensorboardwriter.write_memory(writer, "train")
-            writer.add_scalars('stats/GPU-Memory', {"GPU-Tensor": float(torch.cuda.memory_allocated() / torch.cuda.max_memory_allocated())}, global_step = int(time.time()-config.start_time))
-            writer.add_scalars('stats/GPU-Memory', {"GPU-Cache": float(torch.cuda.memory_cached() / torch.cuda.max_memory_cached())}, global_step = int(time.time()-config.start_time))
+            writer.add_scalars('stats/GPU-Memory', {"GPU-Tensor": float(torch.cuda.memory_allocated() / torch.cuda.max_memory_allocated())}, global_step=int(time.time() - config.start_time))
+            writer.add_scalars('stats/GPU-Memory', {"GPU-Cache": float(torch.cuda.memory_cached() / torch.cuda.max_memory_cached())}, global_step=int(time.time() - config.start_time))
 
             """CLEAN UP"""
             del ids, image_0, labels_0  # things threw away
@@ -697,7 +716,7 @@ def draw_image(image, ground, pred, empty, prob_empty, dice, bce, ce):
 
     plt.subplot(322)
     plt.imshow(np.squeeze(ground), cmap='plasma', vmin=0, vmax=1)
-    plt.title("D:{:.4f} Empty:{}".format(dice, empty!=0.))
+    plt.title("D:{:.4f} Empty:{}".format(dice, empty != 0.))
     plt.grid(False)
 
     plt.subplot(323)
@@ -706,9 +725,44 @@ def draw_image(image, ground, pred, empty, prob_empty, dice, bce, ce):
     plt.grid(False)
 
     plt.subplot(324)
-    thresholded = (pred>config.EVAL_THRESHOLD).astype(np.byte)
+    thresholded = (pred > config.EVAL_THRESHOLD).astype(np.byte)
     plt.imshow(np.squeeze(thresholded), cmap='plasma', vmin=0, vmax=1)
     plt.title("Empty:{}".format(thresholded.sum() == 0))
     plt.grid(False)
 
     return F
+
+
+def metric(truth, logit, threshold=0.5, reduction='none'):
+    batch_size = len(truth)
+
+    with torch.no_grad():
+        logit = logit.view(batch_size, -1)
+        truth = truth.view(batch_size, -1)
+        assert (logit.shape == truth.shape)
+
+        probability = torch.sigmoid(logit)
+        p = (probability > threshold).float()
+        t = (truth > 0.5).float()
+
+        t_sum = t.sum(-1)
+        p_sum = p.sum(-1)
+        neg_index = torch.nonzero(t_sum == 0)
+        pos_index = torch.nonzero(t_sum >= 1)
+        # print(len(neg_index), len(pos_index))
+
+        dice_neg = (p_sum == 0).float()
+        dice_pos = 2 * (p * t).sum(-1) / ((p + t).sum(-1))
+
+        dice_neg = dice_neg[neg_index]
+        dice_pos = dice_pos[pos_index]
+        dice = torch.cat([dice_pos, dice_neg])
+
+        dice_neg = np.nan_to_num(dice_neg.mean().item(), 0)
+        dice_pos = np.nan_to_num(dice_pos.mean().item(), 0)
+        dice = dice.mean().item()
+
+        num_neg = len(neg_index)
+        num_pos = len(pos_index)
+
+    return dice, dice_neg, dice_pos, num_neg, num_pos
