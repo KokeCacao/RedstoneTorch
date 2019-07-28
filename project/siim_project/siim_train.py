@@ -350,6 +350,8 @@ class SIIMTrain:
             train_len = train_len + len(train_loader)
             for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
                 # drop last batch that has irregular shape
+                if empty.sum() == 0 or empty.sum() == 1:
+                    print("WARNING: empty.sum() == {}".format(empty.sum()))
                 if train_len < 1 and config.epoch % (1 / config.TRAIN_RATIO) != batch_index % (1 / config.TRAIN_RATIO):
                     continue
 
