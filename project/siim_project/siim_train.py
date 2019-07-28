@@ -339,6 +339,10 @@ class SIIMTrain:
 
         print("Set Model Trainning mode to trainning=[{}]".format(net.train().training))
 
+        print('                      |----------- VALID -----------|-------- TRAIN/BATCH -------------------------\n')
+        print('rate     iter   epoch |  loss    dice   neg   pos   |  loss    dice   neg   pos   |  time          \n')
+        print('---------------------------------------------------------------------------------------------------\n')
+
         ratio = int(config.TRAIN_RATIO) if config.TRAIN_RATIO >= 1 else 1
         out_dict = None
         for train_index in tqdm(range(ratio)):
@@ -445,8 +449,8 @@ class SIIMTrain:
                                                          "GPU-Cache-Max": float(torch.cuda.max_memory_cached()),
                                                          }, global_step=int(time.time() - config.start_time))
                 """Heng CherKeng"""
-                pbar.set_description_str('%0.5f  %5.1f%s %5.1f |  %5.3f   %5.3f  %4.2f  %4.2f  |  %5.3f   %5.3f  %4.2f  %4.2f  | %s' % (optimizer.param_groups[0]['lr'], iter / 1000, " ", config.epoch, *train_loss[:4], *train_loss[:4], config.time_to_str((default_timer() - config.start_time), 'min'))
-                    )
+                if True: pbar.set_description_str('%0.5f  %5.1f%s %5.1f |  %5.3f   %5.3f  %4.2f  %4.2f  |  %5.3f   %5.3f  %4.2f  %4.2f  | %s' % (optimizer.param_groups[0]['lr'], iter / 1000, " ", config.epoch, *train_loss[:4], *batch_loss[:4], config.time_to_str((default_timer() - config.start_time), 'min')))
+
                 # pbar.set_description_str("(E{}-F{}) Stp:{} Dice:{} BCE:{} Conf:{:.4f} lr:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), dice, bce, total_confidence / (batch_index + 1), optimizer.param_groups[0]['lr']))
 
                 if out_dict is None:
