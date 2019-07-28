@@ -382,7 +382,7 @@ class SIIMTrain:
                 """Heng CherKeng"""
                 dice_cherkeng, dice_neg, dice_pos, num_neg, num_pos = metric(labels, logits_predict)
 
-                if config.epoch < 10:
+                if config.epoch < 2:
                     loss = ce.mean()
                 elif config.epoch < 200:
                     loss = 0.9 * ce.mean() + 0.1 * bce.mean()
@@ -403,7 +403,7 @@ class SIIMTrain:
                 batch_loss[:4] = [loss.item(), dice_cherkeng, dice_neg, dice_pos]
                 sum_loss[:4] += [loss.item() * batch_size, dice_cherkeng * batch_size, dice_neg * num_neg, dice_pos * num_pos]
                 sum_number[:4] += [batch_size, batch_size, num_neg, num_pos]
-                if (batch_index + 1) % 500 == 0:
+                if (batch_index + 1) % 50 == 0:
                     train_loss = sum_loss / sum_number
                     sum_loss[...] = 0
                     sum_number[...] = 1e-8
@@ -550,7 +550,7 @@ def eval_fold(net, writer, validation_loader):
             # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
             ce = segmentation_weighted_binary_cross_entropy(prob_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
 
-            if config.epoch < 10:
+            if config.epoch < 2:
                 loss = ce.mean()
             elif config.epoch < 200:
                 loss = 0.9 * ce.mean() + 0.1 * bce.mean()

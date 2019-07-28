@@ -148,7 +148,7 @@ class SIIMDataset(data.Dataset):
             fold_dict = np.load(config.DIRECTORY_SPLIT, allow_pickle=True, encoding="latin1")
             pbar = tqdm(fold_dict)
             for fold, items in enumerate(pbar):
-                pbar.set_description_str("Creating Folds from Dictionary")
+                pbar.set_description_str("Creating Folds from Dictionary: {}".format(config.DIRECTORY_SPLIT))
                 x_t = items[0]
                 y_t = items[1]
                 x_e = items[2]
