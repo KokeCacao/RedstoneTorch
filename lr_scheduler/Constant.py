@@ -13,7 +13,7 @@ class Constant(object):
                 type(optimizer).__name__))
         self.optimizer = optimizer
 
-        self.step(metrics=0, epoch=None, batch_iteration=last_batch_iteration + 1)
+        self.step(metrics=0, epoch=None, batch_iteration=last_batch_iteration + 1, step_size=None)
         self.last_batch_iteration = last_batch_iteration
 
         self.eval_mode = eval_mode

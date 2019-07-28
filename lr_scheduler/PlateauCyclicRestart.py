@@ -181,7 +181,7 @@ class PlateauCyclicRestart(object):
             self.scale_fn = scale_fn
             self.scale_mode = scale_mode
 
-        self.step(metrics=0, epoch=None, batch_iteration=last_batch_iteration + 1)
+        self.step(metrics=0, epoch=None, batch_iteration=last_batch_iteration + 1, step_size=None)
         self.last_batch_iteration = last_batch_iteration
 
         self.patience = patience
