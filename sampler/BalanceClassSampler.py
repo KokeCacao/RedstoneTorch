@@ -17,8 +17,8 @@ class BalanceClassSampler(Sampler):
         # neg_index = np.where(self.label==0)[0]
 
         # See this line: y = np.array(list([self.get_empty_by_indice(x), 0] for x in X))
-        pos_index = np.where(self.label==[1, 0])[0]
-        neg_index = np.where(self.label==[0, 0])[0]
+        pos_index = np.where(self.label==1)[0]
+        neg_index = np.where(self.label==0)[0]
 
         print("There are {} pos, and {} neg".format(len(pos_index), len(neg_index)))
         # 15177 pos, and 10443 neg
