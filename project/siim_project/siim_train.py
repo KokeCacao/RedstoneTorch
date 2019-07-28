@@ -339,9 +339,9 @@ class SIIMTrain:
 
         print("Set Model Trainning mode to trainning=[{}]".format(net.train().training))
 
-        print('                      |----------- VALID -----------|-------- TRAIN/BATCH -------------------------\n')
-        print('rate     iter   epoch |  loss    dice   neg   pos   |  loss    dice   neg   pos   |  time          \n')
-        print('---------------------------------------------------------------------------------------------------\n')
+        print('                      |----------- VALID -----------|-------- TRAIN/BATCH -------------------------')
+        print('rate     iter   epoch |  loss    dice   neg   pos   |  loss    dice   neg   pos   |  time          ')
+        print('---------------------------------------------------------------------------------------------------')
 
         ratio = int(config.TRAIN_RATIO) if config.TRAIN_RATIO >= 1 else 1
         out_dict = None
@@ -382,22 +382,8 @@ class SIIMTrain:
                 """Heng CherKeng"""
                 dice_cherkeng, dice_neg, dice_pos, num_neg, num_pos = metric(labels, logits_predict)
 
-                if config.epoch < 21:
+                if config.epoch < 200:
                     loss = 0.9 * ce.mean() + 0.1 * bce.mean()
-                elif config.epoch < 61:
-                    loss = 0.4 * dice.mean() + 0.4 * ce.mean() + 0.1 * bce.mean()
-                elif config.epoch < 62:
-                    loss = 0.4 * dice.mean() + 0.4 * ce.mean() + 0.1 * bce.mean()
-                elif config.epoch < 81:
-                    loss = 0.4 * dice.mean() + 0.4 * ce.mean() + 0.1 * bce.mean()
-                elif config.epoch < 121:
-                    loss = 0.3 * dice.mean() + 0.4 * ce.mean() + 0.3 * bce.mean()
-                elif config.epoch < 161:
-                    loss = 0.2 * dice.mean() + 0.5 * ce.mean() + 0.3 * bce.mean()
-                elif config.epoch < 195:
-                    loss = 0.1 * dice.mean() + 0.6 * ce.mean() + 0.3 * bce.mean()
-                elif config.epoch < 221:
-                    loss = 0.2 * dice.mean() + 0.5 * 50 * ce.mean() + 0.3 * 50 * bce.mean()
                 else:
                     raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
@@ -562,22 +548,8 @@ def eval_fold(net, writer, validation_loader):
             # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
             ce = segmentation_weighted_binary_cross_entropy(prob_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
 
-            if config.epoch < 21:
+            if config.epoch < 200:
                 loss = 0.9 * ce.mean() + 0.1 * bce.mean()
-            elif config.epoch < 61:
-                loss = 0.4 * dice.mean() + 0.4 * ce.mean() + 0.1 * bce.mean()
-            elif config.epoch < 62:
-                loss = 0.4 * dice.mean() + 0.4 * ce.mean() + 0.1 * bce.mean()
-            elif config.epoch < 80:
-                loss = 0.4 * dice.mean() + 0.4 * ce.mean() + 0.1 * bce.mean()
-            elif config.epoch < 121:
-                loss = 0.3 * dice.mean() + 0.4 * ce.mean() + 0.3 * bce.mean()
-            elif config.epoch < 161:
-                loss = 0.2 * dice.mean() + 0.5 * ce.mean() + 0.3 * bce.mean()
-            elif config.epoch < 195:
-                loss = 0.1 * dice.mean() + 0.6 * ce.mean() + 0.3 * bce.mean()
-            elif config.epoch < 221:
-                loss = 0.2 * dice.mean() + 0.5 * 50 * ce.mean() + 0.3 * 50 * bce.mean()
             else:
                 raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
