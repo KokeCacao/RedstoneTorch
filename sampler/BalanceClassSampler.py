@@ -13,14 +13,18 @@ class BalanceClassSampler(Sampler):
         print("Using BalanceClassSampler(length={}, replace={})".format(self.length, self.replace))
 
     def __iter__(self):
-        pos_index = np.where(self.label==1)[0]
-        neg_index = np.where(self.label==0)[0]
+        # pos_index = np.where(self.label==1)[0]
+        # neg_index = np.where(self.label==0)[0]
+
+        # See this line: y = np.array(list([self.get_empty_by_indice(x), 0] for x in X))
+        pos_index = np.where(self.label==[1, 0])[0]
+        neg_index = np.where(self.label==[0, 0])[0]
+
         half = self.length//2 + 1
         pos = np.random.choice(pos_index, half, replace=self.replace)
         neg = np.random.choice(neg_index, half, replace=self.replace)
         l = np.stack([pos,neg]).T
         l = l.reshape(-1)
-        print("Sampling size is {}={}+{}".format(len(l), len(pos), len(neg)))
         l = l[:self.length]
         return iter(l)
 
