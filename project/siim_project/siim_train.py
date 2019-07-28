@@ -377,7 +377,7 @@ class SIIMTrain:
                 # hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
                 bce = BCELoss(reduction='none')(prob_empty.squeeze(-1), empty)
                 # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
-                ce = segmentation_weighted_binary_cross_entropy(prob_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
+                ce = segmentation_weighted_binary_cross_entropy(prob_predict.squeeze(1), labels.squeeze(1))
 
                 """Heng CherKeng"""
                 dice_cherkeng, dice_neg, dice_pos, num_neg, num_pos = metric(labels, logits_predict)
@@ -549,7 +549,7 @@ def eval_fold(net, writer, validation_loader):
             # hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
             bce = BCELoss(reduction='none')(prob_empty.squeeze(-1), empty)
             # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
-            ce = segmentation_weighted_binary_cross_entropy(prob_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
+            ce = segmentation_weighted_binary_cross_entropy(prob_predict.squeeze(1), labels.squeeze(1))
 
             if config.epoch < 2:
                 loss = ce.sum()

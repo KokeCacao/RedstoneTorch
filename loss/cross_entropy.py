@@ -30,8 +30,6 @@ def segmentation_weighted_binary_cross_entropy(input, target, pos_prob=0.75, neg
 
     # allow 75% background gradient and 25% layer gradient
     print("PosLoss = {}, NegLoss = {}".format((pos_prob*pos*loss/pos_weight).sum().item(), (neg_prob*neg*loss/neg_weight).sum().item()))
-    # osLoss = 0.1166396364569664, NegLoss = 0.7338168621063232854
-
     loss = (pos_prob*pos*loss/pos_weight + neg_prob*neg*loss/neg_weight)
 
     if sum: return loss.sum()
