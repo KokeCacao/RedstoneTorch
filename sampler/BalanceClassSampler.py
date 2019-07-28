@@ -20,6 +20,8 @@ class BalanceClassSampler(Sampler):
         pos_index = np.where(self.label==[1, 0])[0]
         neg_index = np.where(self.label==[0, 0])[0]
 
+        print("There are {} pos, and {} neg".format(len(pos_index), len(neg_index)))
+
         half = self.length//2 + 1
         pos = np.random.choice(pos_index, half, replace=self.replace)
         neg = np.random.choice(neg_index, half, replace=self.replace)
