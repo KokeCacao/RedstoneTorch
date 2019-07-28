@@ -20,6 +20,7 @@ class BalanceClassSampler(Sampler):
         neg = np.random.choice(neg_index, half, replace=self.replace)
         l = np.stack([pos,neg]).T
         l = l.reshape(-1)
+        print("Sampling size is {}".format(len(l)))
         l = l[:self.length]
         return iter(l)
 
