@@ -311,7 +311,7 @@ class SIIMTrain:
 
             """Update Learning Rate Scheduler"""
             if lr_scheduler is not None:
-                _ = lr_scheduler.step(metrics=score, epoch=config.epoch)
+                _ = lr_scheduler.step_epoch(metrics=score, epoch=config.epoch)
                 print(_)
 
             net = net.cpu()
@@ -476,7 +476,7 @@ class SIIMTrain:
         Epoch: {}, Fold: {}
         TrainLoss: {}
         """.format(config.epoch, config.fold, train_loss), config.global_steps[config.fold] - 1)
-        # lr_scheduler.step(epoch_f, epoch=config.epoch)
+        # lr_scheduler.step_epoch(epoch_f, epoch=config.epoch)
 
         del train_loss
 

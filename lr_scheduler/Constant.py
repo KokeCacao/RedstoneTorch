@@ -49,46 +49,49 @@ class Constant(object):
         else:  # mode == 'max' and epsilon_mode == 'abs':
             return a > best + threshold
 
-    def step(self, metrics=None, epoch=None, batch_iteration=None, step_size=None):
+    def step_epoch(self, metrics, epoch):
         text = ""
-        if metrics is None or metrics <= 0:
-            if batch_iteration is None:
-                batch_iteration = self.last_batch_iteration + 1
-            self.last_batch_iteration = batch_iteration
-            self.update_lr(step_size)
-            return
 
         current = metrics
         if epoch is None:
-            epoch = self.last_epoch = self.last_epoch + 1
-        if epoch > self.last_epoch:
-            epoch_diff = int(epoch - self.last_epoch)
-            self.last_epoch = epoch
+            epoch = self.last_epoch + 1
+        assert epoch > self.last_epoch
+        epoch_diff = int(epoch - self.last_epoch)
+        self.last_epoch = epoch
 
-            if self.is_better(current, self.best):
-                text = text + """
+        if self.is_better(current, self.best):
+            text = text + """
         Its Highest Score: {} --> {} (+{})
         NumBadEpoch: {} <= {} --> 0
         Coef: {}
         Times Reduce = {}
-        """.format(self.best, current, current - self.best, self.num_bad_epochs, -1, -1, -1)
-                self.best = current
-                self.num_bad_epochs = 0
-            else:
-                self.num_bad_epochs += epoch_diff
-                text = text + """
+        """.format(self.best, current, current - self.best, self.num_bad_epochs, 0, 0, 0)
+            self.best = current
+            self.num_bad_epochs = 0
+        else:
+            self.num_bad_epochs += epoch_diff
+            text = text + """
         Current: {}, Best: {}
         NumBadEpoch: {} <= {}
         Coef: {}
         Times Reduce = {}
-        """.format(current, self.best, self.num_bad_epochs, -1, -1, -1)
+        """.format(current, self.best, self.num_bad_epochs, 0, 0, 0)
 
-        elif epoch == self.last_epoch:
-            # if batch_iteration is None:
-            #     batch_iteration = self.last_batch_iteration + 1
-            if batch_iteration is not None: self.last_batch_iteration = batch_iteration
+    def step(self, metrics, epoch, batch_iteration, step_size):
+        if metrics is None or metrics <= 0:
+            if batch_iteration is None: batch_iteration = self.last_batch_iteration + 1
+            self.last_batch_iteration = batch_iteration
             self.update_lr(step_size)
-        return text
+            return
+
+        if epoch is None:
+            epoch = self.last_epoch + 1
+        assert epoch == self.last_epoch
+        # if batch_iteration is None:
+        #     batch_iteration = self.last_batch_iteration + 1
+        if batch_iteration is not None: self.last_batch_iteration = batch_iteration
+        self.update_lr(step_size)
+        return
 
     def _set_lr(self, lrs):
         # for i, param_group in enumerate(self.optimizer.param_groups):

@@ -207,76 +207,80 @@ class PlateauCyclicRestart(object):
         self.cooldown_counter = 0
         self.num_bad_epochs = 0
 
-    def step(self, metrics=None, epoch=None, batch_iteration=None, step_size=None):
+    def step_epoch(self, metrics, epoch):
         text = ""
-        if metrics is None or metrics <= 0:
-            if batch_iteration is None:
-                batch_iteration = self.last_batch_iteration + 1
-            self.last_batch_iteration = batch_iteration
-            self.update_lr(step_size)
-            return
 
         current = metrics
         if epoch is None:
-            epoch = self.last_epoch = self.last_epoch + 1
-        if epoch > self.last_epoch:
-            epoch_diff = int(epoch - self.last_epoch)
-            self.last_epoch = epoch
+            epoch = self.last_epoch + 1
+        assert epoch > self.last_epoch
+        epoch_diff = int(epoch - self.last_epoch)
+        self.last_epoch = epoch
 
-            if self.is_better(current, self.best):
-                text = text + """
+        if self.is_better(current, self.best):
+            text = text + """
         Its Highest Score: {} --> {} (+{})
         NumBadEpoch: {} <= {} --> 0
         Coef: {}
         Times Reduce = {}
         """.format(self.best, current, current - self.best, self.num_bad_epochs, self.patience, self.coef, self.times_reduce)
-                self.best = current
-                self.num_bad_epochs = 0
-            else:
-                self.num_bad_epochs += epoch_diff
-                text = text + """
+            self.best = current
+            self.num_bad_epochs = 0
+        else:
+            self.num_bad_epochs += epoch_diff
+            text = text + """
         Current: {}, Best: {}
         NumBadEpoch: {} <= {}
         Coef: {}
         Times Reduce = {}
         """.format(current, self.best, self.num_bad_epochs, self.patience, self.coef, self.times_reduce)
 
-            if self.in_cooldown:
-                text = text + """
+        if self.in_cooldown:
+            text = text + """
         NumBadEpoch: {} --> 0
         Cooldown Counter > 0
         Cooldown Counter: {} --> {}
         """.format(self.num_bad_epochs, self.cooldown_counter, self.cooldown_counter - epoch_diff)
-                self.cooldown_counter -= epoch_diff
-                self.num_bad_epochs = 0  # ignore any bad epochs in cooldown
+            self.cooldown_counter -= epoch_diff
+            self.num_bad_epochs = 0  # ignore any bad epochs in cooldown
 
-            if self.num_bad_epochs > self.patience:
-                text = text + """
+        if self.num_bad_epochs > self.patience:
+            text = text + """
         Current: {}, Best: {}
         NumBadEpoch: {} > {}
         Coef: {} --> {}
         Times Reduce = {} --> {}
         """.format(current, self.best, self.num_bad_epochs, self.patience, self.coef, self.coef * self.factor, self.times_reduce, self.times_reduce + 1)
-                self.times_reduce = self.times_reduce + 1
-                if self.times_reduce > self.reduce_restart:
-                    self.times_reduce = 0
-                    self.coef = self.restart_coef
-                    text = text + """
+            self.times_reduce = self.times_reduce + 1
+            if self.times_reduce > self.reduce_restart:
+                self.times_reduce = 0
+                self.coef = self.restart_coef
+                text = text + """
         Learning restart!
         Best: {} --> 0
         """.format(self.best)
-                    self.best = self.mode_worse
-                else:
-                    self.coef = self.coef * self.factor
-                self.update_lr(step_size)
-                self.cooldown_counter = self.cooldown
-                self.num_bad_epochs = 0
-        elif epoch == self.last_epoch:
-            # if batch_iteration is None:
-            #     batch_iteration = self.last_batch_iteration + 1
-            if batch_iteration is not None: self.last_batch_iteration = batch_iteration
+                self.best = self.mode_worse
+            else:
+                self.coef = self.coef * self.factor
+            self.update_lr(None) # restart
+            self.cooldown_counter = self.cooldown
+            self.num_bad_epochs = 0
+
+    def step(self, metrics, epoch, batch_iteration, step_size):
+        if metrics is None or metrics <= 0:
+            if batch_iteration is None: batch_iteration = self.last_batch_iteration + 1
+            self.last_batch_iteration = batch_iteration
             self.update_lr(step_size)
-        return text
+            return
+
+        if epoch is None:
+            epoch = self.last_epoch + 1
+        assert epoch == self.last_epoch
+        # if batch_iteration is None:
+        #     batch_iteration = self.last_batch_iteration + 1
+        if batch_iteration is not None: self.last_batch_iteration = batch_iteration
+        self.update_lr(step_size)
+        return
 
     # def _reduce_lr(self, epoch):
     #     for i, param_group in enumerate(self.optimizer.param_groups):
