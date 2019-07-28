@@ -10,6 +10,7 @@ class BalanceClassSampler(Sampler):
 
         if length is None: length = len(indices)
         self.length = length
+        print("Using BalanceClassSampler(length={}, replace={})".format(self.length, self.replace))
 
     def __iter__(self):
         pos_index = np.where(self.label==1)[0]
