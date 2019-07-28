@@ -6,6 +6,7 @@ import matplotlib as mpl
 import pydicom
 import torch
 import cv2
+from sklearn.model_selection._split import StratifiedKFold
 from tqdm import tqdm
 
 import config
@@ -94,7 +95,9 @@ class SIIMDataset(data.Dataset):
 
         # print("Indice:{}, Id:{}, Label:{}".format(X[0], self.id[0], y[0]))
 
-        mskf = MultilabelStratifiedKFold(n_splits=fold, random_state=None)
+        # mskf = MultilabelStratifiedKFold(n_splits=fold, random_state=None)
+        mskf = StratifiedKFold(n_splits=fold)
+        print("Using {}".format(mskf))
         folded_samplers = dict()
 
         if config.DEBUG_WRITE_SPLIT_CSV or not os.path.exists(config.DIRECTORY_SPLIT):
@@ -108,15 +111,15 @@ class SIIMDataset(data.Dataset):
             X = self.indices
             # each instance(x) here must be a list with length greater than 1
             # y = np.array(list([self.get_metadata_by_indice(x)[5], 0] for x in X))  # TODO: verify stratify method using AP/PA
-            y = np.array(list([self.get_empty_by_indice(x), 0] for x in X))  # TODO: verify stratify method using empty
+            y = np.array(list(self.get_empty_by_indice(x) for x in X))  # TODO: verify stratify method using empty
 
             print("X = {} ; y = {}".format(X, y))
             for fold, (train_index, test_index) in enumerate(mskf.split(X, y)):
                 print("#{} TRAIN:{} TEST:{}".format(fold, train_index, test_index))
-                x_t = train_index
-                y_t = np.array([y[j] for j in train_index])
-                x_e = test_index
-                y_e = np.array([y[j] for j in test_index])
+                x_t = X[train_index]
+                y_t = y[train_index]
+                x_e = X[test_index]
+                y_e = y[test_index]
 
                 fold_dict.append([x_t, y_t, x_e, y_e])
 
