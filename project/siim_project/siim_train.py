@@ -377,7 +377,7 @@ class SIIMTrain:
                 # hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
                 bce = BCELoss(reduction='none')(prob_empty.squeeze(-1), empty)
                 # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
-                ce = segmentation_weighted_binary_cross_entropy(prob_predict.squeeze(1), labels.squeeze(1))
+                ce = segmentation_weighted_binary_cross_entropy(prob_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
 
                 """Heng CherKeng"""
                 dice_cherkeng, dice_neg, dice_pos, num_neg, num_pos = metric(labels, logits_predict)
@@ -437,7 +437,6 @@ class SIIMTrain:
                                                          "GPU-Cache-Max": float(torch.cuda.max_memory_cached()),
                                                          }, global_step=int(time.time() - config.start_time))
                 """Heng CherKeng"""
-                print(empty)
                 if True: pbar.set_description_str('%0.5f  %5.1f%s %5.1f |  %5.3f   %5.3f  %4.2f  %4.2f  |  %5.3f   %5.3f  %4.2f  %4.2f  | %s' % (optimizer.param_groups[0]['lr'], config.global_steps[config.fold] / 1000, " ", config.epoch, *train_loss[:4], *batch_loss[:4], config.time_to_str((default_timer() - config.start_time), 'min')))
 
                 # pbar.set_description_str("(E{}-F{}) Stp:{} Dice:{} BCE:{} Conf:{:.4f} lr:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), dice, bce, total_confidence / (batch_index + 1), optimizer.param_groups[0]['lr']))
@@ -549,7 +548,7 @@ def eval_fold(net, writer, validation_loader):
             # hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
             bce = BCELoss(reduction='none')(prob_empty.squeeze(-1), empty)
             # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
-            ce = segmentation_weighted_binary_cross_entropy(prob_predict.squeeze(1), labels.squeeze(1))
+            ce = segmentation_weighted_binary_cross_entropy(prob_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
 
             if config.epoch < 2:
                 loss = ce.sum()
