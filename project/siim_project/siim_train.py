@@ -15,6 +15,7 @@ import tensorboardwriter
 from dataset.siim_dataset import SIIMDataset
 from dataset.siim_dataset import train_collate, val_collate
 from gpu import gpu_profile
+from loss.cross_entropy import segmentation_weighted_binary_cross_entropy
 from loss.dice import binary_dice_pytorch_loss, binary_dice_numpy_gain
 # from loss.hinge import lovasz_hinge
 from loss.iou import mIoULoss
@@ -364,7 +365,8 @@ class SIIMTrain:
                 iou = mIoULoss(mean=False, eps=1e-5)(labels, prob_predict)
                 # hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
                 bce = BCELoss(reduction='none')(prob_empty.squeeze(-1), empty)
-                ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
+                # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
+                ce = segmentation_weighted_binary_cross_entropy(prob_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
 
                 if config.epoch < 21:
                     loss = 0.9*ce.mean() + 0.1*bce.mean()
@@ -534,7 +536,8 @@ def eval_fold(net, writer, validation_loader):
             iou = mIoULoss(mean=False, eps=1e-5)(labels, prob_predict)
             # hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
             bce = BCELoss(reduction='none')(prob_empty.squeeze(-1), empty)
-            ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
+            # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
+            ce = segmentation_weighted_binary_cross_entropy(prob_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
 
             if config.epoch < 21:
                 loss = 0.9 * ce.mean() + 0.1 * bce.mean()

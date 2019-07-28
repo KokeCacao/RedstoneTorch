@@ -19,6 +19,7 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from torch.utils.data.dataloader import default_collate
 from torchvision.transforms import transforms
 
+from Sampler.BalanceClassSampler import BalanceClassSampler
 from albumentations import (
     HorizontalFlip, CLAHE, ShiftScaleRotate, Blur, GaussNoise, RandomBrightnessContrast, IAASharpen, IAAEmboss, OneOf, Compose, JpegCompression,
     CenterCrop, PadIfNeeded, RandomCrop, RandomGamma, Resize, IAAPiecewiseAffine)
@@ -113,15 +114,17 @@ class SIIMDataset(data.Dataset):
             for fold, (train_index, test_index) in enumerate(mskf.split(X, y)):
                 print("#{} TRAIN:{} TEST:{}".format(fold, train_index, test_index))
                 x_t = train_index
-                # y_t = np.array([y[j] for j in train_index])
+                y_t = np.array([y[j] for j in train_index])
                 x_e = test_index
-                # y_e = np.array([y[j] for j in test_index])
+                y_e = np.array([y[j] for j in test_index])
 
-                fold_dict.append([x_t, x_e])
+                fold_dict.append([x_t, y_t, x_e, y_e])
 
                 folded_samplers[fold] = dict()
-                folded_samplers[fold]["train"] = SubsetRandomSampler(x_t)
-                folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)
+                # folded_samplers[fold]["train"] = SubsetRandomSampler(x_t)
+                # folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)
+                folded_samplers[fold]["train"] = BalanceClassSampler(x_t, y_t)
+                folded_samplers[fold]["val"] = BalanceClassSampler(x_e, y_e)
 
                 def write_cv_distribution(writer, y_t, y_e):
                     y_t_dict = np.bincount((y_t.astype(np.int8) * np.array(list(range(config.TRAIN_NUM_CLASS)))).flatten())
@@ -147,11 +150,15 @@ class SIIMDataset(data.Dataset):
             for fold, items in enumerate(pbar):
                 pbar.set_description_str("Creating Folds from Dictionary")
                 x_t = items[0]
-                x_e = items[1]
+                y_t = items[1]
+                x_e = items[2]
+                y_e = items[3]
 
                 folded_samplers[fold] = dict()
-                folded_samplers[fold]["train"] = SubsetRandomSampler(x_t)
-                folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)
+                # folded_samplers[fold]["train"] = SubsetRandomSampler(x_t)
+                # folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)
+                folded_samplers[fold]["train"] = BalanceClassSampler(x_t, y_t)
+                folded_samplers[fold]["val"] = BalanceClassSampler(x_e, y_e)
 
             # gc.collect()
         return folded_samplers
