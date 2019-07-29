@@ -132,10 +132,10 @@ if __name__ == '__main__':
     if not config.DEBUG_TEST_CODE:
         if config.DEBUG_TRAISE_GPU: sys.settrace(gpu_profile)
 
-        writer = SummaryWriter(config.DIRECTORY_CHECKPOINT)
         log = Logger()
         config.log = log
         if not os.path.exists(config.DIRECTORY_CHECKPOINT + 'log.train.txt'):
+            os.makedirs(config.DIRECTORY_CHECKPOINT)
             with open(config.DIRECTORY_CHECKPOINT + 'log.train.txt', 'w'): pass
         config.log.open(config.DIRECTORY_CHECKPOINT + 'log.train.txt', mode='a')
 
@@ -143,6 +143,7 @@ if __name__ == '__main__':
 
         config.log.write('\n--- [START %s] %s\n' % (config.time_to_str(config.start_time), '-' * 64))
 
+        writer = SummaryWriter(config.DIRECTORY_CHECKPOINT)
         config.log.write("=> Tensorboard: " + "tensorboard --logdir=" + config.DIRECTORY_CHECKPOINT + " --port=6006")
 
         reproduceability()
