@@ -20,7 +20,7 @@ class BalanceClassSampler(Sampler):
         pos_index = np.where(self.label==1)[0]
         neg_index = np.where(self.label==0)[0]
 
-        print("There are {} pos, and {} neg".format(len(pos_index), len(neg_index)))
+        # print("There are {} pos, and {} neg".format(len(pos_index), len(neg_index)))
         # 15177 pos, and 10443 neg
 
         half = self.length//2 + 1
