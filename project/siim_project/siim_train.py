@@ -385,9 +385,9 @@ class SIIMTrain:
                 dice_cherkeng, dice_neg, dice_pos, num_neg, num_pos = metric(labels, logits_predict)
 
                 if config.epoch < 2:
-                    loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice
+                    loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice.mean()
                 elif config.epoch < 200:
-                    loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice
+                    loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice.mean()
                 else:
                     raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
@@ -553,9 +553,9 @@ def eval_fold(net, writer, validation_loader):
             ce = segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
 
             if config.epoch < 2:
-                loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice.mena()
+                loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice.mean()
             elif config.epoch < 200:
-                loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice.mena()
+                loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice.mean()
             else:
                 raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
