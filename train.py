@@ -1,5 +1,6 @@
 import os
 import sys
+import traceback
 import warnings
 
 from utils.logger import Logger
@@ -160,8 +161,8 @@ if __name__ == '__main__':
             # project = imet_train.IMetTrain(writer)
             project = siim_train.SIIMTrain(writer)
         except Exception as e:
-            # with open('Exception.txt', 'a+') as f:
-            #     f.write(str(e))
+            error = traceback.format_exc()
+            config.log.write(error)
             if not isinstance(e, KeyboardInterrupt):
                 os.system("sudo shutdown -P +20")
                 config.log.write("""

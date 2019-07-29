@@ -6,6 +6,7 @@ from timeit import default_timer
 import matplotlib as mpl
 import numpy as np
 import torch
+from sklearn.metrics.classification import classification_report, confusion_matrix
 from torch.nn import BCELoss
 from torch.utils import data
 from torchsummary import summary
@@ -650,6 +651,16 @@ def eval_fold(net, writer, validation_loader):
     if config.EVAL_IF_PR_CURVE: tensorboardwriter.write_pr_curve(writer, empty_total, prob_empty_total, config.epoch, config.fold)
 
     """Result Summary"""
+
+    config.log.write(classification_report(empty_total.squeeze(), prob_empty_total.squeeze(), target_names=["Empty", "Pneumothorax"]))
+    tn, fp, fn, tp = confusion_matrix(empty_total.squeeze(), prob_empty_total.squeeze()).ravel()
+    config.log.write(
+"""
+                   True     False
+    Positive      %5.3f     %5.3f
+    Negative      %5.3f     %5.3f
+""" % (tp, fn, tn, fn))
+
     # epoch_pred = None
     # epoch_pred = np.concatenate((epoch_pred, predict_total), axis=0) if epoch_pred is not None else predict_total
     # epoch_label = None
