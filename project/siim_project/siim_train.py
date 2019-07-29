@@ -268,8 +268,6 @@ class SIIMTrain:
                    lr_schedulers,
                    batch_size
                    ):
-        config.epoch = config.epoch + 1
-
         for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
             if net is None or optimizer is None or lr_scheduler is None:
                 continue
@@ -346,6 +344,7 @@ class SIIMTrain:
         ratio = int(config.TRAIN_RATIO) if config.TRAIN_RATIO >= 1 else 1
         out_dict = None
         for train_index in tqdm(range(ratio)):
+            config.epoch = config.epoch + 1
             pbar = tqdm(train_loader)
             train_len = train_len + len(train_loader)
             for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
