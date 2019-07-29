@@ -93,8 +93,8 @@ class SIIMTrain:
                 print("Let's use", torch.cuda.device_count(), "GPUs!")
                 net = torch.nn.DataParallel(net, device_ids=[i for i in range(torch.cuda.device_count())])
 
-                optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
-                # optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, weight_decay=config.MODEL_WEIGHT_DECAY)
+                # optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
+                optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, weight_decay=config.MODEL_WEIGHT_DECAY)
                 # optimizer = adamw.AdamW(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-8, weight_decay=config.MODEL_WEIGHT_DECAY, amsgrad=False)
                 self.optimizers.append(optimizer)
                 self.nets.append(net)
@@ -378,8 +378,8 @@ class SIIMTrain:
                 iou = mIoULoss(mean=False, eps=1e-5)(labels, prob_predict)
                 # hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
                 bce = BCELoss(reduction='none')(prob_empty.squeeze(-1), empty)
-                # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
-                ce = segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
+                ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1)).mean()
+                # ce = segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
 
                 """Heng CherKeng"""
                 dice_cherkeng, dice_neg, dice_pos, num_neg, num_pos = metric(labels, logits_predict)
