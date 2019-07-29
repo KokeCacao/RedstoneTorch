@@ -134,7 +134,9 @@ if __name__ == '__main__':
 
         log = Logger()
         config.log = log
-        config.log.open(config.DIRECTORY_CHECKPOINT + '/log.train.txt', mode='a')
+        if not os.path.exists(config.DIRECTORY_CHECKPOINT + 'log.train.txt'):
+            with open(config.DIRECTORY_CHECKPOINT + 'log.train.txt', 'w'): pass
+        config.log.open(config.DIRECTORY_CHECKPOINT + 'log.train.txt', mode='a')
 
         load_args()
 
