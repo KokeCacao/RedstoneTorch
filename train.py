@@ -1,6 +1,9 @@
 import os
 import sys
 import warnings
+
+from utils.logger import Logger
+
 warnings.filterwarnings("ignore")
 from datetime import datetime
 from optparse import OptionParser
@@ -66,6 +69,9 @@ def load_args():
     config.manual_freeze = True if args.manual_freeze == "True" else False
     config.freeze = args.freeze if args.freeze != False else False
     config.resetlr = args.resetlr
+    if args.resetlr != 0:
+        config.MODEL_INIT_LEARNING_RATE = args.resetlr
+        config.MODEL_LR_SCHEDULER_BASELR = args.resetlr
 
     if args.net == None: raise NotImplementedError("Please specify net")
     else: config.net = args.net
@@ -101,7 +107,7 @@ def load_args():
 
     if args.fold != -1 and args.fold < config.MODEL_FOLD:
         config.train_fold = [int(args.fold)]
-        print("=> Set training fold to: {}".format(config.train_fold))
+        log.write("=> Set training fold to: {}".format(config.train_fold))
     else:
         raise NotImplementedError("Please specify fold number")
 
@@ -127,8 +133,13 @@ if __name__ == '__main__':
         if config.DEBUG_TRAISE_GPU: sys.settrace(gpu_profile)
         load_args()
 
+        log = Logger()
+        config.log = log
+        log.open(config.DIRECTORY_CHECKPOINT + '/log.train.txt', mode='a')
+        log.write('\n--- [START %s] %s\n' % (config.time_to_str(config.start_time), '-' * 64))
+
         writer = SummaryWriter(config.DIRECTORY_CHECKPOINT)
-        print("=> Tensorboard: " + "tensorboard --logdir=" + config.DIRECTORY_CHECKPOINT + " --port=6006")
+        log.write("=> Tensorboard: " + "tensorboard --logdir=" + config.DIRECTORY_CHECKPOINT + " --port=6006")
 
         reproduceability()
 
@@ -136,8 +147,8 @@ if __name__ == '__main__':
         # memory.setDaemon(True)
         # memory.start()
 
-        print("=> Current Directory: " + str(os.getcwd()))
-        print("=> Loading neuronetwork...")
+        log.write("=> Current Directory: " + str(os.getcwd()))
+        log.write("=> Loading neuronetwork...")
         try:
             # project = hpa_train.HPATrain(writer)
             # project = HisCancer_train.HisCancerTrain(writer)
@@ -148,13 +159,13 @@ if __name__ == '__main__':
             #     f.write(str(e))
             if not isinstance(e, KeyboardInterrupt):
                 os.system("sudo shutdown -P +20")
-                print("""
+                log.write("""
                     WARNING: THE SYSTEM WILL SHUTDOWN
                     Use command: sudo shutdown -c
                 """)
             raise
         os.system("sudo shutdown -P +20")
-        print("""
+        log.write("""
                             WARNING: THE SYSTEM WILL SHUTDOWN
                             Use command: sudo shutdown -c
                         """)

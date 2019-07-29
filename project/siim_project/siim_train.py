@@ -55,7 +55,7 @@ class SIIMTrain:
                 self.nets.append(None)
                 self.lr_schedulers.append(None)
             else:
-                print("     Creating Fold: #{}".format(fold))
+                config.log.write("     Creating Fold: #{}".format(fold))
 
                 if config.net == "resunet50":
                     net = siim_net.resunet(encoder_depth=50, num_classes=config.TRAIN_NUM_CLASS, num_filters=32, dropout_2d=0.2, pretrained=False, is_deconv=False)
@@ -73,7 +73,7 @@ class SIIMTrain:
                     for name, param in net.named_parameters():
                         if config.freeze in name:
                             param.requires_grad = False
-                            print("Set {} require_grad = False because it contains '{}'".format(name, config.freeze))
+                            config.log.write("Set {} require_grad = False because it contains '{}'".format(name, config.freeze))
 
                 """FREEZING LAYER"""
                 if config.manual_freeze:
@@ -82,19 +82,19 @@ class SIIMTrain:
                             l = config.MODEL_NO_GRAD[i]
                             for child_counter, child in enumerate(list(c.children())):
                                 if child_counter in l or l == [-1]:
-                                    print("Disable Gradient for child_counter: {}".format(child_counter))
+                                    config.log.write("Disable Gradient for child_counter: {}".format(child_counter))
                                     for paras in child.parameters():
                                         paras.requires_grad = False
                                 else:
-                                    print("Enable Gradient for child_counter: {}".format(child_counter))
+                                    config.log.write("Enable Gradient for child_counter: {}".format(child_counter))
                         else:
-                            print("Enable Gradient for layer: {} (default)".format(i))
+                            config.log.write("Enable Gradient for layer: {} (default)".format(i))
 
-                print("Let's use", torch.cuda.device_count(), "GPUs!")
+                config.log.write("Let's use", torch.cuda.device_count(), "GPUs!")
                 net = torch.nn.DataParallel(net, device_ids=[i for i in range(torch.cuda.device_count())])
 
-                # optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
-                optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, weight_decay=config.MODEL_WEIGHT_DECAY)
+                optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
+                # optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, weight_decay=config.MODEL_WEIGHT_DECAY)
                 # optimizer = adamw.AdamW(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-8, weight_decay=config.MODEL_WEIGHT_DECAY, amsgrad=False)
                 self.optimizers.append(optimizer)
                 self.nets.append(net)
@@ -147,7 +147,7 @@ class SIIMTrain:
 
         """RESET LR"""
         if config.resetlr != 0:
-            print("Reset Learning Rate to {}".format(config.resetlr))
+            config.log.write("Reset Learning Rate to {}".format(config.resetlr))
             for optim in self.optimizers:
                 if optim is None:
                     continue
@@ -196,10 +196,10 @@ class SIIMTrain:
                 for p in child.parameters():
                     if not p.requires_grad:
                         req_grad = False
-                print("=======================Start Child Number #{} Grad: {}=======================".format(child_counter, req_grad))
+                config.log.write("=======================Start Child Number #{} Grad: {}=======================".format(child_counter, req_grad))
                 if config.display_architecture:
-                    print("{}".format(child))
-                    print("=======================End Child Number #{} Grad: {}=======================".format(child_counter, req_grad))
+                    config.log.write("{}".format(child))
+                    config.log.write("=======================End Child Number #{} Grad: {}=======================".format(child_counter, req_grad))
 
         self.run()
 
@@ -222,7 +222,7 @@ class SIIMTrain:
                 #                                  ))
                 #     self.nets[0].cuda()
                 #
-                #     print("Set Model Trainning mode to trainning=[{}]".format(self.nets[0].eval().training))
+                #     config.log.write("Set Model Trainning mode to trainning=[{}]".format(self.nets[0].eval().training))
                 #     for batch_index, (ids, image, labels_0, image_for_display) in enumerate(pbar):
                 #             image = image.cuda()
                 #             labels_0 = labels_0.cuda()
@@ -254,9 +254,9 @@ class SIIMTrain:
 
             """KeyboardInterrupt"""
         except KeyboardInterrupt as e:
-            print(e)
+            config.log.write(e)
             self.writer.close()
-            print("To Resume: python train.py --versiontag 'test' --projecttag " + config.PROJECT_TAG + " --loadfile " + config.lastsave)
+            config.log.write("To Resume: python train.py --versiontag 'test' --projecttag " + config.PROJECT_TAG + " --loadfile " + config.lastsave)
             try:
                 sys.exit(0)
             except SystemExit:
@@ -287,10 +287,10 @@ class SIIMTrain:
                                         updated_children.append(child_counter)
                                         paras.requires_grad = True
                 if len(updated_children) != 0:
-                    if config.display_architecture: print("Enable Gradient for child_counter: {}".format(updated_children))
+                    if config.display_architecture: config.log.write("Enable Gradient for child_counter: {}".format(updated_children))
                     tensorboardwriter.write_text(self.writer, "Unfreeze {} layers at epoch: {}".format(updated_children, config.epoch), config.global_steps[fold])
                 # if config.MODEL_LEARNING_RATE_AFTER_UNFREEZE != 0:
-                #     print("Reset Learning Rate to {}".format(config.MODEL_LEARNING_RATE_AFTER_UNFREEZE))
+                #     config.log.write("Reset Learning Rate to {}".format(config.MODEL_LEARNING_RATE_AFTER_UNFREEZE))
                 #     for g in optimizer.param_groups:
                 #         g['lr'] = config.MODEL_LEARNING_RATE_AFTER_UNFREEZE
 
@@ -315,7 +315,7 @@ class SIIMTrain:
             """Update Learning Rate Scheduler"""
             if lr_scheduler is not None:
                 _ = lr_scheduler.step_epoch(metrics=score, epoch=config.epoch)
-                print(_)
+                config.log.write(_)
 
             net = net.cpu()
             optimizer = load.move_optimizer_to_cpu(optimizer)
@@ -337,11 +337,11 @@ class SIIMTrain:
         # pin_memory: https://blog.csdn.net/tsq292978891/article/details/80454568
         train_loader = self.train_loader[config.fold]
 
-        print("Set Model Trainning mode to trainning=[{}]".format(net.train().training))
+        config.log.write("Set Model Trainning mode to trainning=[{}]".format(net.train().training))
 
-        print('                      |----------- VALID -----------|-------- TRAIN/BATCH -------------------------')
-        print('rate     iter   epoch |  loss    dice   neg   pos   |  loss    dice   neg   pos   |  time          ')
-        print('---------------------------------------------------------------------------------------------------')
+        config.log.write('                      |----------- VALID -----------|-------- TRAIN/BATCH -------------------------')
+        config.log.write('rate     iter   epoch |  loss    dice   neg   pos   |  loss    dice   neg   pos   |  time          ')
+        config.log.write('---------------------------------------------------------------------------------------------------')
 
         ratio = int(config.TRAIN_RATIO) if config.TRAIN_RATIO >= 1 else 1
         out_dict = None
@@ -351,7 +351,7 @@ class SIIMTrain:
             for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
                 # drop last batch that has irregular shape
                 if empty.sum() == 0 or empty.sum() == 1:
-                    print("WARNING: empty.sum() == {}".format(empty.sum()))
+                    config.log.write("WARNING: empty.sum() == {}".format(empty.sum()))
                 if train_len < 1 and config.epoch % (1 / config.TRAIN_RATIO) != batch_index % (1 / config.TRAIN_RATIO):
                     continue
 
@@ -520,7 +520,7 @@ def eval_fold(net, writer, validation_loader):
     # self.best_loss = []
     # self.worst_loss = []
 
-    print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
+    config.log.write("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
     pbar = tqdm(range(config.EVAL_RATIO)) if config.epoch >= config.MODEL_FREEZE_EPOCH + 2 else tqdm(range(1))
     for eval_index in pbar:
         config.eval_index = eval_index
@@ -682,7 +682,7 @@ def eval_fold(net, writer, validation_loader):
         report = report + """Best Threshold is: {}, Score: {}, AreaUnder: {}""".format(best_threshold, best_val, total_score / total_tried)
         tensorboardwriter.write_best_threshold(writer, -1, best_val, best_threshold, total_score / total_tried, config.epoch, config.fold)
 
-    print(report)
+    config.log.write(report)
     tensorboardwriter.write_text(writer, report, config.global_steps[config.fold])
 
     return score
