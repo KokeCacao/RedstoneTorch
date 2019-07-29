@@ -265,6 +265,7 @@ class PlateauCyclicRestart(object):
             self.update_lr(None) # restart
             self.cooldown_counter = self.cooldown
             self.num_bad_epochs = 0
+        return text
 
     def step(self, metrics, epoch, batch_iteration, step_size):
         if metrics is None or metrics <= 0:

@@ -11,7 +11,8 @@ class Logger(object):
         self.file = open(file, mode)
 
     def write(self, message, is_terminal=1, is_file=1):
-        message = message + "\n"
+        if message is None: return
+        message = str(message) + "\n"
         if '\r' in message: is_file=0
 
         if is_terminal == 1:

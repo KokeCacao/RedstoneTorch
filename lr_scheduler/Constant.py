@@ -76,6 +76,7 @@ class Constant(object):
         Coef: {}
         Times Reduce = {}
         """.format(current, self.best, self.num_bad_epochs, 0, 0, 0)
+        return text
 
     def step(self, metrics, epoch, batch_iteration, step_size):
         if metrics is None or metrics <= 0:
