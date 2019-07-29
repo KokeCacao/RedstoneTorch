@@ -107,7 +107,7 @@ def load_args():
 
     if args.fold != -1 and args.fold < config.MODEL_FOLD:
         config.train_fold = [int(args.fold)]
-        config.log.write("=> Set training fold to: {}".format(config.train_fold))
+        print("=> Set training fold to: {}".format(config.train_fold))
     else:
         raise NotImplementedError("Please specify fold number")
 
@@ -132,14 +132,14 @@ if __name__ == '__main__':
     if not config.DEBUG_TEST_CODE:
         if config.DEBUG_TRAISE_GPU: sys.settrace(gpu_profile)
 
+        load_args()
+
         log = Logger()
         config.log = log
         if not os.path.exists(config.DIRECTORY_CHECKPOINT + 'log.train.txt'):
             os.makedirs(config.DIRECTORY_CHECKPOINT)
             with open(config.DIRECTORY_CHECKPOINT + 'log.train.txt', 'w'): pass
         config.log.open(config.DIRECTORY_CHECKPOINT + 'log.train.txt', mode='a')
-
-        load_args()
 
         config.log.write('\n--- [START %s] %s\n' % (config.time_to_str(config.start_time), '-' * 64))
 
