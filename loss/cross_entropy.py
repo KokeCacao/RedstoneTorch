@@ -16,7 +16,7 @@ class CrossEntropy(nn.Module):
 
 # pytorch, binary, differentiable, soft, logit, loss, bounded between 0 and inf
 # https://www.kaggle.com/c/siim-acr-pneumothorax-segmentation/discussion/97456
-def segmentation_weighted_binary_cross_entropy(input, target, pos_prob=0.49, neg_prob=0.51, smooth=1e-12, sum=False):
+def segmentation_weighted_binary_cross_entropy(input, target, pos_prob=0.75, neg_prob=0.25, smooth=1e-12, sum=False):
     input = input.view(input.shape[0], -1)
     target = target.view(target.shape[0], -1)
     assert(input.shape == target.shape)
