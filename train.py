@@ -107,7 +107,7 @@ def load_args():
 
     if args.fold != -1 and args.fold < config.MODEL_FOLD:
         config.train_fold = [int(args.fold)]
-        log.write("=> Set training fold to: {}".format(config.train_fold))
+        config.log.write("=> Set training fold to: {}".format(config.train_fold))
     else:
         raise NotImplementedError("Please specify fold number")
 
@@ -131,15 +131,17 @@ if __name__ == '__main__':
     config.DEBUG_LAPTOP = False
     if not config.DEBUG_TEST_CODE:
         if config.DEBUG_TRAISE_GPU: sys.settrace(gpu_profile)
-        load_args()
 
         log = Logger()
         config.log = log
-        log.open(config.DIRECTORY_CHECKPOINT + '/log.train.txt', mode='a')
-        log.write('\n--- [START %s] %s\n' % (config.time_to_str(config.start_time), '-' * 64))
+        config.log.open(config.DIRECTORY_CHECKPOINT + '/log.train.txt', mode='a')
+
+        load_args()
+
+        config.log.write('\n--- [START %s] %s\n' % (config.time_to_str(config.start_time), '-' * 64))
 
         writer = SummaryWriter(config.DIRECTORY_CHECKPOINT)
-        log.write("=> Tensorboard: " + "tensorboard --logdir=" + config.DIRECTORY_CHECKPOINT + " --port=6006")
+        config.log.write("=> Tensorboard: " + "tensorboard --logdir=" + config.DIRECTORY_CHECKPOINT + " --port=6006")
 
         reproduceability()
 
@@ -147,8 +149,8 @@ if __name__ == '__main__':
         # memory.setDaemon(True)
         # memory.start()
 
-        log.write("=> Current Directory: " + str(os.getcwd()))
-        log.write("=> Loading neuronetwork...")
+        config.log.write("=> Current Directory: " + str(os.getcwd()))
+        config.log.write("=> Loading neuronetwork...")
         try:
             # project = hpa_train.HPATrain(writer)
             # project = HisCancer_train.HisCancerTrain(writer)
@@ -159,13 +161,13 @@ if __name__ == '__main__':
             #     f.write(str(e))
             if not isinstance(e, KeyboardInterrupt):
                 os.system("sudo shutdown -P +20")
-                log.write("""
+                config.log.write("""
                     WARNING: THE SYSTEM WILL SHUTDOWN
                     Use command: sudo shutdown -c
                 """)
             raise
         os.system("sudo shutdown -P +20")
-        log.write("""
+        config.log.write("""
                             WARNING: THE SYSTEM WILL SHUTDOWN
                             Use command: sudo shutdown -c
                         """)
