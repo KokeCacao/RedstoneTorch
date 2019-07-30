@@ -2,7 +2,7 @@ import numpy as np
 
 # Koke_Cacao: for testing in submission
 from tqdm import tqdm
-
+import cv2
 
 def compute_kaggle_lb(test_id, test_truth, test_probability, threshold, min_size):
 
