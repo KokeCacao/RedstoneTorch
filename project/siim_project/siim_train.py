@@ -659,8 +659,8 @@ def eval_fold(net, writer, validation_loader):
     config.log.write(
 """
                    True     False
-    Positive      %5.3f     %5.3f
-    Negative      %5.3f     %5.3f
+    Positive    %7.1f   %7.1f
+    Negative    %7.1f   %7.1f
 """ % (tp, fn, tn, fn))
 
     # epoch_pred = None
@@ -681,7 +681,7 @@ def eval_fold(net, writer, validation_loader):
     """Shakeup"""
     # IT WILL MESS UP THE RANDOM SEED (CAREFUL)
     shakeup, shakeup_keys, shakeup_mean, shakeup_std = calculate_shakeup(label, pred_hard, binary_dice_numpy_gain, config.EVAL_SHAKEUP_RATIO, mean=True)
-    tensorboardwriter.write_shakeup(writer, shakeup, shakeup_keys, shakeup_std, config.epoch)
+    # tensorboardwriter.write_shakeup(writer, shakeup, shakeup_keys, shakeup_std, config.epoch)
 
     """Print"""
     report = """
@@ -695,6 +695,9 @@ def eval_fold(net, writer, validation_loader):
         best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, binary_dice_numpy_gain, config.EVAL_TRY_THRESHOLD, writer, config.fold, n_class=1, mean=True)
         report = report + """Best Threshold is: {}, Score: {}, AreaUnder: {}""".format(best_threshold, best_val, total_score / total_tried)
         tensorboardwriter.write_best_threshold(writer, -1, best_val, best_threshold, total_score / total_tried, config.epoch, config.fold)
+
+        """Setting eval threshold"""
+        # config.EVAL_THRESHOLD = best_threshold
 
     config.log.write(report)
     tensorboardwriter.write_text(writer, report, config.global_steps[config.fold])
