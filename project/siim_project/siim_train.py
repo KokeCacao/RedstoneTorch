@@ -309,7 +309,7 @@ class SIIMTrain:
                 config.display_architecture = False
 
             optimizer = load.move_optimizer_to_cuda(optimizer)
-            if config.train: self.step_fold(fold, net, optimizer, lr_scheduler, batch_size)
+            if config.train: self.step_fold(fold, net, optimizer, lr_scheduler)
             torch.cuda.empty_cache()
             with torch.no_grad():
                 score = eval_fold(net, self.writer, self.validation_loader[config.fold])
@@ -323,7 +323,7 @@ class SIIMTrain:
             optimizer = load.move_optimizer_to_cpu(optimizer)
             torch.cuda.empty_cache()
 
-    def step_fold(self, fold, net, optimizer, lr_scheduler, batch_size):
+    def step_fold(self, fold, net, optimizer, lr_scheduler):
         config.fold = fold
 
         epoch_loss = 0
@@ -354,13 +354,13 @@ class SIIMTrain:
             for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
 
 
-                """For Testing Only"""
-                for id in ids:
-                    if id not in config.split_dict.keys():
-                        config.split_dict[id] = 0
-                    else:
-                        if config.split_dict[id] != 0:
-                            raise ValueError("Find test set in training: {}".format(id))
+                # """For Testing Only"""
+                # for id in ids:
+                #     if id not in config.split_dict.keys():
+                #         config.split_dict[id] = 0
+                #     else:
+                #         if config.split_dict[id] != 0:
+                #             raise ValueError("Find test set in training: {}".format(id))
 
 
 
@@ -419,9 +419,10 @@ class SIIMTrain:
 
                 """Heng CherKeng"""
                 batch_loss[:4] = [loss.item(), dice_cherkeng, dice_neg, dice_pos]
+                batch_size = len(ids)
                 sum_loss[:4] += [loss.item() * batch_size, dice_cherkeng * batch_size, dice_neg * num_neg, dice_pos * num_pos]
                 sum_number[:4] += [batch_size, batch_size, num_neg, num_pos]
-                if (batch_index + 1) % 50 == 0:
+                if (batch_index + 1) % 500 == 0:
                     train_loss = sum_loss / sum_number
                     sum_loss[...] = 0
                     sum_number[...] = 1e-8
@@ -457,7 +458,7 @@ class SIIMTrain:
                 """Heng CherKeng"""
                 _ = '%0.5f  %5.1f%s %5.1f |  %5.3f   %5.3f  %4.2f  %4.2f  |  %5.3f   %5.3f  %4.2f  %4.2f  | %s' % (optimizer.param_groups[0]['lr'], config.global_steps[config.fold] / 1000, " ", config.epoch, *train_loss[:4], *batch_loss[:4], config.time_to_str((default_timer() - config.start_time), 'min'))
                 pbar.set_description_str(_)
-                config.log.write(_, is_terminal=0, is_file=1)
+                if (batch_index + 1) % 500 == 0: config.log.write(_, is_terminal=0, is_file=1)
 
                 # pbar.set_description_str("(E{}-F{}) Stp:{} Dice:{} BCE:{} Conf:{:.4f} lr:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), dice, bce, total_confidence / (batch_index + 1), optimizer.param_groups[0]['lr']))
 
@@ -550,17 +551,22 @@ def eval_fold(net, writer, validation_loader):
         display_max = 0
         display_min = 0
 
+        train_loss = np.zeros(20, np.float32)
+        batch_loss = np.zeros(20, np.float32)
+        sum_loss = np.zeros(20, np.float32)
+        sum_number = np.zeros(20, np.float32) + 1e-8
+
         for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
 
 
 
-            """For Testing Only"""
-            for id in ids:
-                if id not in config.split_dict.keys():
-                    config.split_dict[id] = 1
-                else:
-                    if config.split_dict[id] != 1:
-                        raise ValueError("Find train set in testing: {}".format(id))
+            # """For Testing Only"""
+            # for id in ids:
+            #     if id not in config.split_dict.keys():
+            #         config.split_dict[id] = 1
+            #     else:
+            #         if config.split_dict[id] != 1:
+            #             raise ValueError("Find train set in testing: {}".format(id))
 
 
 
@@ -585,12 +591,26 @@ def eval_fold(net, writer, validation_loader):
             # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
             ce = segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
 
+            """Heng CherKeng"""
+            dice_cherkeng, dice_neg, dice_pos, num_neg, num_pos = metric(labels, logits_predict)
+
             if config.epoch < 2:
                 loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice.mean()
             elif config.epoch < 200:
                 loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice.mean()
             else:
                 raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
+
+            """Heng CherKeng"""
+            batch_loss[:4] = [loss.item(), dice_cherkeng, dice_neg, dice_pos]
+
+            batch_size = len(ids)
+            sum_loss[:4] += [loss.item() * batch_size, dice_cherkeng * batch_size, dice_neg * num_neg, dice_pos * num_pos]
+            sum_number[:4] += [batch_size, batch_size, num_neg, num_pos]
+
+            """Heng CherKeng"""
+            _ = '%0.5f  %5.1f%s %5.1f |  %5.3f   %5.3f  %4.2f  %4.2f  |  %5.3f   %5.3f  %4.2f  %4.2f  | %s' % (0, config.global_steps[config.fold] / 1000, " ", config.epoch, *train_loss[:4], *batch_loss[:4], config.time_to_str((default_timer() - config.start_time), 'min'))
+            pbar.set_description_str(_)
 
             """DETATCH WITHOUT MEAN"""
             dice = dice.detach().cpu().numpy()
@@ -669,6 +689,15 @@ def eval_fold(net, writer, validation_loader):
             del dice, iou, bce, ce, loss, image, labels, empty, logits_predict, prob_predict, prob_empty  # detach
             torch.cuda.empty_cache()
             if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
+
+        """Heng CherKeng"""
+        train_loss = sum_loss / sum_number
+        sum_loss[...] = 0
+        sum_number[...] = 1e-8
+        _ = '%0.5f  %5.1f%s %5.1f |  %5.3f   %5.3f  %4.2f  %4.2f  |  %5.3f   %5.3f  %4.2f  %4.2f  | %s' % (0, config.global_steps[config.fold] / 1000, " ", config.epoch, *train_loss[:4], *batch_loss[:4], config.time_to_str((default_timer() - config.start_time), 'min'))
+        config.log.write(_, is_terminal=0, is_file=1)
+
+
         del pbar
         torch.cuda.empty_cache()
 
