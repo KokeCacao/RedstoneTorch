@@ -703,7 +703,8 @@ def eval_fold(net, writer, validation_loader):
         # config.EVAL_THRESHOLD = best_threshold
 
     kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, config.EVAL_THRESHOLD, 5000)
-    report = report + "KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f" % (kaggle_score, kaggle_neg_score, kaggle_pos_score)
+    report = report + """
+    KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score)
 
     config.log.write(report)
     tensorboardwriter.write_text(writer, report, config.global_steps[config.fold])

@@ -15,7 +15,7 @@ import pandas as pd
 from iterstrat.ml_stratifiers import MultilabelStratifiedKFold
 from torch._six import string_classes, int_classes
 from torch.utils import data
-from torch.utils.data import SubsetRandomSampler, Sampler
+from torch.utils.data import SubsetRandomSampler, Sampler, SequentialSampler
 from sklearn.preprocessing import MultiLabelBinarizer
 from torch.utils.data.dataloader import default_collate
 from torchvision.transforms import transforms
@@ -127,7 +127,7 @@ class SIIMDataset(data.Dataset):
                 # folded_samplers[fold]["train"] = SubsetRandomSampler(x_t)
                 # folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)
                 folded_samplers[fold]["train"] = BalanceClassSampler(x_t, y_t)
-                folded_samplers[fold]["val"] = BalanceClassSampler(x_e, y_e)
+                folded_samplers[fold]["val"] = SequentialSampler(x_e)
 
                 def write_cv_distribution(writer, y_t, y_e):
                     y_t_dict = np.bincount((y_t.astype(np.int8) * np.array(list(range(config.TRAIN_NUM_CLASS)))).flatten())
@@ -161,7 +161,7 @@ class SIIMDataset(data.Dataset):
                 # folded_samplers[fold]["train"] = SubsetRandomSampler(x_t)
                 # folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)
                 folded_samplers[fold]["train"] = BalanceClassSampler(x_t, y_t)
-                folded_samplers[fold]["val"] = BalanceClassSampler(x_e, y_e)
+                folded_samplers[fold]["val"] = SequentialSampler(x_e)
 
             # gc.collect()
         return folded_samplers

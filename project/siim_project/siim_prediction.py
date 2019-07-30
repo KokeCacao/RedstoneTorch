@@ -5,7 +5,7 @@ import torch
 from scipy import ndimage
 from scipy.misc import imresize
 from torch.utils import data
-from torch.utils.data import SubsetRandomSampler
+from torch.utils.data import SubsetRandomSampler, SequentialSampler
 from tqdm import tqdm
 
 import config
@@ -76,7 +76,7 @@ class SIIMPrediction:
                         test_loader = data.DataLoader(self.test_dataset,
                                                       batch_size=config.TEST_BATCH_SIZE,
                                                       shuffle=False,
-                                                      sampler=SubsetRandomSampler(self.test_dataset.indices),
+                                                      sampler=SequentialSampler(self.test_dataset.indices),
                                                       batch_sampler=None,
                                                       num_workers=config.TRAIN_NUM_WORKER,
                                                       collate_fn=test_collate,
@@ -129,7 +129,7 @@ class SIIMPrediction:
                         test_loader = data.DataLoader(self.test_dataset,
                                                       batch_size=config.TEST_BATCH_SIZE,
                                                       shuffle=False,
-                                                      sampler=SubsetRandomSampler(self.test_dataset.indices),
+                                                      sampler=SequentialSampler(self.test_dataset.indices),
                                                       batch_sampler=None,
                                                       num_workers=config.TRAIN_NUM_WORKER,
                                                       collate_fn=tta_collate,
@@ -142,7 +142,7 @@ class SIIMPrediction:
                         test_loader = data.DataLoader(self.test_dataset,
                                                       batch_size=config.TEST_BATCH_SIZE,
                                                       shuffle=False,
-                                                      sampler=SubsetRandomSampler(self.test_dataset.indices),
+                                                      sampler=SequentialSampler(self.test_dataset.indices),
                                                       batch_sampler=None,
                                                       num_workers=config.TRAIN_NUM_WORKER,
                                                       collate_fn=test_collate,
