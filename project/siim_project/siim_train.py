@@ -652,8 +652,10 @@ def eval_fold(net, writer, validation_loader):
 
     """Result Summary"""
 
-    config.log.write(classification_report(empty_total.squeeze(), prob_empty_total.squeeze(), target_names=["Empty", "Pneumothorax"]))
-    tn, fp, fn, tp = confusion_matrix(empty_total.squeeze(), prob_empty_total.squeeze()).ravel()
+    empty_total = empty_total.squeeze()
+    prob_empty_total = ((prob_empty_total.squeeze()) > config.EVAL_THRESHOLD).astype(np.byte)
+    config.log.write(classification_report(empty_total, prob_empty_total, target_names=["Empty", "Pneumothorax"]))
+    tn, fp, fn, tp = confusion_matrix(empty_total, prob_empty_total).ravel()
     config.log.write(
 """
                    True     False
