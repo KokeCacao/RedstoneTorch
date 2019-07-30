@@ -129,6 +129,10 @@ class SIIMDataset(data.Dataset):
                 folded_samplers[fold]["train"] = BalanceClassSampler(x_t, y_t)
                 folded_samplers[fold]["val"] = SequentialSampler(x_e)
 
+                """Leakage Test"""
+                _ = set(list(iter(folded_samplers[fold]["train"]))) & set(list(iter(folded_samplers[fold]["val"])))
+                if len(_) == 0: raise ValueError("Detected Intersection between train and set: {}".format(_))
+
                 def write_cv_distribution(writer, y_t, y_e):
                     y_t_dict = np.bincount((y_t.astype(np.int8) * np.array(list(range(config.TRAIN_NUM_CLASS)))).flatten())
                     y_e_dict = np.bincount((y_e.astype(np.int8) * np.array(list(range(config.TRAIN_NUM_CLASS)))).flatten())
@@ -162,6 +166,10 @@ class SIIMDataset(data.Dataset):
                 # folded_samplers[fold]["val"] = SubsetRandomSampler(x_e)
                 folded_samplers[fold]["train"] = BalanceClassSampler(x_t, y_t)
                 folded_samplers[fold]["val"] = SequentialSampler(x_e)
+
+                """Leakage Test"""
+                _ = set(list(iter(folded_samplers[fold]["train"]))) & set(list(iter(folded_samplers[fold]["val"])))
+                if len(_) == 0: raise ValueError("Detected Intersection between train and set: {}".format(_))
 
             # gc.collect()
         return folded_samplers

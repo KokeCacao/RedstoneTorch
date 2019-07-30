@@ -199,6 +199,8 @@ class SIIMTrain:
                     if not p.requires_grad:
                         req_grad = False
                 config.log.write("=======================Start Child Number #{} Grad: {}=======================".format(child_counter, req_grad))
+
+                """WARNING: display_architecture will occupy your GPU usage somehow"""
                 if config.display_architecture:
                     config.log.write("{}".format(child))
                     config.log.write("=======================End Child Number #{} Grad: {}=======================".format(child_counter, req_grad))
