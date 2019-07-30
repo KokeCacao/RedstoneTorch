@@ -25,6 +25,7 @@ from lr_scheduler.Constant import Constant
 from optimizer import adamw
 from project.siim_project import siim_net
 from project.siim_project.siim_net import model34_DeepSupervion, model50A_DeepSupervion, model34_DeepSupervion_GroupNorm
+from project.siim_project.siim_util import compute_kaggle_lb
 from utils import load
 from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx, remove_checkpoint_fold, set_milestone
 from utils.lr_finder import LRFinder
@@ -512,6 +513,7 @@ def eval_fold(net, writer, validation_loader):
     # hinge_losses = np.array([])
     loss_losses = np.array([])
 
+    id_total = None
     predict_total = None
     label_total = None
     prob_empty_total = None
@@ -612,6 +614,7 @@ def eval_fold(net, writer, validation_loader):
             # hinge_losses = np.append(hinge_losses, hinge)
             loss_losses = np.append(loss_losses, loss)
 
+            id_total = np.concatenate((id_total, ids), axis=0) if id_total is not None else ids
             predict_total = np.concatenate((predict_total, prob_predict), axis=0) if predict_total is not None else prob_predict
             label_total = np.concatenate((label_total, labels), axis=0) if label_total is not None else labels
             prob_empty_total = np.concatenate((prob_empty_total, prob_empty), axis=0) if prob_empty_total is not None else prob_empty
@@ -698,6 +701,9 @@ def eval_fold(net, writer, validation_loader):
 
         """Setting eval threshold"""
         # config.EVAL_THRESHOLD = best_threshold
+
+    kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, config.EVAL_THRESHOLD, 5000)
+    report = report + "KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f" % (kaggle_score, kaggle_neg_score, kaggle_pos_score)
 
     config.log.write(report)
     tensorboardwriter.write_text(writer, report, config.global_steps[config.fold])
