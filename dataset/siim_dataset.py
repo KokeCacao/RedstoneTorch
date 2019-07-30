@@ -15,7 +15,7 @@ import pandas as pd
 from iterstrat.ml_stratifiers import MultilabelStratifiedKFold
 from torch._six import string_classes, int_classes
 from torch.utils import data
-from torch.utils.data import SubsetRandomSampler, Sampler, SequentialSampler
+from torch.utils.data import SubsetRandomSampler
 from sklearn.preprocessing import MultiLabelBinarizer
 from torch.utils.data.dataloader import default_collate
 from torchvision.transforms import transforms
@@ -27,6 +27,7 @@ from albumentations import (
 # don't import Normalize from albumentations
 
 import tensorboardwriter
+from sampler.SequentialSampler import SequentialSampler
 from utils.augmentation import AdaptivePadIfNeeded, DoNothing, RandomPercentCrop
 from utils.encode import rle2mask
 
