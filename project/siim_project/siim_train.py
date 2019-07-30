@@ -350,6 +350,19 @@ class SIIMTrain:
             pbar = tqdm(train_loader)
             train_len = train_len + len(train_loader)
             for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
+
+
+                """For Testing Only"""
+                for id in ids:
+                    if id not in config.split_dict.keys():
+                        config.split_dict[id] = 0
+                    else:
+                        if config.split_dict[id] != 0:
+                            raise ValueError("Find test set in training: {}".format(id))
+
+
+
+
                 # drop last batch that has irregular shape
                 if empty.sum() == 0 or empty.sum() == 1:
                     config.log.write("WARNING: empty.sum() == {}".format(empty.sum()))
@@ -536,6 +549,20 @@ def eval_fold(net, writer, validation_loader):
         display_min = 0
 
         for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
+
+
+
+            """For Testing Only"""
+            for id in ids:
+                if id not in config.split_dict.keys():
+                    config.split_dict[id] = 1
+                else:
+                    if config.split_dict[id] != 1:
+                        raise ValueError("Find train set in testing: {}".format(id))
+
+
+
+
             """TRAIN NET"""
             image = image.cuda()
             empty_logits, _idkwhatthisis_, logits_predict = net(image)
@@ -657,13 +684,13 @@ def eval_fold(net, writer, validation_loader):
 
     empty_total = empty_total.squeeze()
     prob_empty_total = ((prob_empty_total.squeeze()) > config.EVAL_THRESHOLD).astype(np.byte)
-    config.log.write(classification_report(empty_total, prob_empty_total, target_names=["Empty", "Pneumothorax"]))
+    config.log.write(classification_report(empty_total, prob_empty_total, target_names=["Pneumothorax", "Empty"]))
     tn, fp, fn, tp = confusion_matrix(empty_total, prob_empty_total).ravel()
     config.log.write(
 """
-                   True     False
-    Positive    %7.1f   %7.1f
-    Negative    %7.1f   %7.1f
+                       True     False
+    Empty           %7.1f   %7.1f
+    Pneumothorax    %7.1f   %7.1f
 """ % (tp, fn, tn, fn))
 
     # epoch_pred = None

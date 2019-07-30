@@ -155,3 +155,5 @@ def time_to_str(t, mode='min'):
 
     else:
         raise NotImplementedError
+
+split_dict = dict()
