@@ -422,7 +422,7 @@ class SIIMTrain:
                 batch_size = len(ids)
                 sum_loss[:4] += [loss.item() * batch_size, dice_cherkeng * batch_size, dice_neg * num_neg, dice_pos * num_pos]
                 sum_number[:4] += [batch_size, batch_size, num_neg, num_pos]
-                if (batch_index + 1) % 500 == 0:
+                if (batch_index + 1) % 100 == 0:
                     train_loss = sum_loss / sum_number
                     sum_loss[...] = 0
                     sum_number[...] = 1e-8
@@ -458,7 +458,7 @@ class SIIMTrain:
                 """Heng CherKeng"""
                 _ = '%0.5f  %5.1f%s %5.1f |  %5.3f   %5.3f  %4.2f  %4.2f  |  %5.3f   %5.3f  %4.2f  %4.2f  | %s' % (optimizer.param_groups[0]['lr'], config.global_steps[config.fold] / 1000, " ", config.epoch, *train_loss[:4], *batch_loss[:4], config.time_to_str((default_timer() - config.start_time), 'min'))
                 pbar.set_description_str(_)
-                if (batch_index + 1) % 500 == 0: config.log.write(_, is_terminal=0, is_file=1)
+                if (batch_index + 1) % 100 == 0: config.log.write(_, is_terminal=0, is_file=1)
 
                 # pbar.set_description_str("(E{}-F{}) Stp:{} Dice:{} BCE:{} Conf:{:.4f} lr:{}".format(config.epoch, config.fold, int(config.global_steps[fold]), dice, bce, total_confidence / (batch_index + 1), optimizer.param_groups[0]['lr']))
 
