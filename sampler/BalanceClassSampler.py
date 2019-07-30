@@ -29,6 +29,7 @@ class BalanceClassSampler(Sampler):
         l = np.stack([pos,neg]).T
         l = l.reshape(-1)
         l = l[:self.length]
+        l = self.indices[l]
         return iter(l)
 
     def __len__(self):
