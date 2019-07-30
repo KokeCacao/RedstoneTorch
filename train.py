@@ -66,7 +66,7 @@ def load_args():
     config.load_lr_schedulers = False if args.lr_scheduler == "False" else True
     config.load_epoch = False if args.epoch == "False" else True
     config.train = False if args.train == "False" else True
-    config.display_architecture = True if args.train == "True" else False
+    config.display_architecture = True if args.display_architecture == "True" else False
     config.manual_freeze = True if args.manual_freeze == "True" else False
     config.freeze = args.freeze if args.freeze != False else False
     config.resetlr = args.resetlr
