@@ -4,7 +4,7 @@ import numpy as np
 from tqdm import tqdm
 import cv2
 
-def compute_kaggle_lb(test_id, test_truth, test_probability, threshold, min_size, tq=True):
+def compute_kaggle_lb(test_id, test_truth, test_probability, threshold, min_size, tq=True, empty=None, empty_threshold=None):
 
     test_num    = len(test_truth)
 
@@ -14,6 +14,7 @@ def compute_kaggle_lb(test_id, test_truth, test_probability, threshold, min_size
     for b in pbar:
         truth       = test_truth[b,0]
         probability = test_probability[b,0]
+        empty       = empty[b]
 
         if truth.shape!=(1024,1024):
             truth = cv2.resize(truth, dsize=(1024, 1024), interpolation=cv2.INTER_LINEAR)
@@ -23,7 +24,7 @@ def compute_kaggle_lb(test_id, test_truth, test_probability, threshold, min_size
             probability = cv2.resize(probability, dsize=(1024, 1024), interpolation=cv2.INTER_LINEAR)
 
         #-----
-        predict, num_component = post_process(probability, threshold, min_size)
+        predict, num_component = post_process(probability, threshold, min_size, empty=empty, empty_threshold=empty_threshold)
 
         score = kaggle_metric_one(predict, truth)
         if tq: pbar.set_description_str('%3d  %-56s  %s   %0.5f  %0.5f'% (b, test_id[b], predict.shape, probability.mean(), probability.max()))
@@ -57,13 +58,16 @@ def kaggle_metric_one(predict, truth):
     return dice
 
 # Koke_Cacao: deprecated, only for Kaggle LB prediction
-def post_process(probability, threshold, min_size):
-
-    mask = cv2.threshold(probability, threshold, 1, cv2.THRESH_BINARY)[1]
-    num_component, component = cv2.connectedComponents(mask.astype(np.uint8)) # Koke_Cacao: return n-white in a region and those white pixels in an array
-
+def post_process(probability, threshold, min_size, empty=None, empty_threshold=None):
     predict = np.zeros((1024,1024), np.float32)
     num = 0
+    if empty > empty_threshold:
+        return predict, num
+
+    mask = cv2.threshold(probability, threshold, 1, cv2.THRESH_BINARY)[1]
+
+    num_component, component = cv2.connectedComponents(mask.astype(np.uint8)) # Koke_Cacao: return n-white in a region and those white pixels in an array
+
     for c in range(1,num_component):
         p = (component==c)
         if p.sum()>min_size:

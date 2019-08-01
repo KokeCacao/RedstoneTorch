@@ -723,7 +723,7 @@ def eval_fold(net, writer, validation_loader):
     """Result Summary"""
 
     empty_total = empty_total.squeeze()
-    prob_empty_total = ((prob_empty_total.squeeze()) > config.EVAL_THRESHOLD).astype(np.byte)
+    prob_empty_total = ((prob_empty_total.squeeze()) > config.EVAL_EMPTYSHRESHOLD).astype(np.byte)
     config.log.write(classification_report(empty_total, prob_empty_total, target_names=["Pneumothorax", "Empty"]))
     tn, fp, fn, tp = confusion_matrix(empty_total, prob_empty_total).ravel()
     config.log.write(
@@ -769,9 +769,13 @@ def eval_fold(net, writer, validation_loader):
         """Setting eval threshold"""
         # config.EVAL_THRESHOLD = best_threshold
     if config.train:
-        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, config.EVAL_THRESHOLD, 5000)
+        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, config.EVAL_THRESHOLD, config.PREDICTION_CHOSEN_MINPIXEL)
         report = report + """
         KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score)
+
+        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, config.EVAL_THRESHOLD, config.PREDICTION_CHOSEN_MINPIXEL, tq=False, empty=prob_empty_total, empty_threshold=config.EVAL_EMPTYSHRESHOLD)
+        report = report + """
+        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f empty_thres: %5.3f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, config.EVAL_EMPTYSHRESHOLD)
     else:
         for min_pixel in [6000, 5000, 4000]:
             for thres in [0.99, 0.98, 0.95, 0.9, 0.85]:

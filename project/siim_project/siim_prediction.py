@@ -109,7 +109,7 @@ class SIIMPrediction:
                             total_confidence = total_confidence + confidence
                             pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0].split("/")[-1].split(".")[0], confidence, total_confidence / (batch_index + 1)))
 
-                            for id, predict in zip(ids, prob_predict):
+                            for id, empty, predict in zip(ids, prob_empty, prob_predict):
                                 predict = predict.squeeze()
                                 predict = np.transpose(predict)
                                 predict = cv2.resize(predict, dsize=(1024, 1024), interpolation=cv2.INTER_LINEAR)
@@ -117,7 +117,7 @@ class SIIMPrediction:
                                 # predict = ndimage.zoom(predict, config.IMG_SIZE/predict.shape[0])
 
 
-                                prob_file.write('{},{}\n'.format(id, mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)))
+                                prob_file.write('{},{},{}\n'.format(id, mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE), empty))
 
                             del ids, image, labels, image_0, labels_0, empty
                             del empty_logits, _idkwhatthisis_, logits_predict
@@ -192,14 +192,14 @@ class SIIMPrediction:
                                 pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0], confidence, total_confidence / (batch_index + 1)))
 
                                 # prob_predict = (prob_predict > threshold).astype(np.byte)
-                                for id, predict in zip(ids, prob_predict):
+                                for id, empty, predict in zip(ids, prob_empty, prob_predict):
                                     predict = predict.squeeze()
                                     predict = np.transpose(predict)
                                     predict = cv2.resize(predict, dsize=(1024, 1024), interpolation=cv2.INTER_LINEAR)
                                     predict, num_component = post_process(predict, threshold, config.PREDICTION_CHOSEN_MINPIXEL)
 
                                     tta_dict[id] = mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)
-                                    prob_file.write('{},{}\n'.format(id, mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)))
+                                    prob_file.write('{},{},{}\n'.format(id, mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE), empty))
 
                                 del ids, image, labels, image_0, labels_0, empty
                                 del empty_logits, _idkwhatthisis_, logits_predict
