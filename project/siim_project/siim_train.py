@@ -670,6 +670,12 @@ def eval_fold(net, writer, validation_loader):
             # hinge_losses = np.append(hinge_losses, hinge)
             loss_losses = np.append(loss_losses, loss)
 
+            if not config.train:
+                np.save("~/RedstoneTorch/data/siim_dataset/predict_total.npy", predict_total)
+                np.save("~/RedstoneTorch/data/siim_dataset/label_total.npy", label_total)
+                np.save("~/RedstoneTorch/data/siim_dataset/prob_empty_total.npy", prob_empty_total)
+                np.save("~/RedstoneTorch/data/siim_dataset/empty_total.npy", empty_total)
+
             id_total = np.concatenate((id_total, ids), axis=0) if id_total is not None else ids
             predict_total = np.concatenate((predict_total, prob_predict), axis=0) if predict_total is not None else prob_predict
             label_total = np.concatenate((label_total, labels), axis=0) if label_total is not None else labels
