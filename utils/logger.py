@@ -20,7 +20,7 @@ class Logger(object):
             self.terminal.flush()
             #time.sleep(1)
 
-        if is_file == 1:
+        if is_file == 1 and self.file is not None:
             self.file.write(message)
             self.file.flush()
 

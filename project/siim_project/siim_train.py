@@ -28,6 +28,7 @@ from project.siim_project.siim_net import model34_DeepSupervion, model50A_DeepSu
 from project.siim_project.siim_util import compute_kaggle_lb
 from utils import load
 from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx, remove_checkpoint_fold, set_milestone
+from utils.logger import Logger
 from utils.lr_finder import LRFinder
 from utils.other import calculate_shakeup, calculate_threshold
 
@@ -670,12 +671,6 @@ def eval_fold(net, writer, validation_loader):
             # hinge_losses = np.append(hinge_losses, hinge)
             loss_losses = np.append(loss_losses, loss)
 
-            if not config.train:
-                np.save("~/RedstoneTorch/data/siim_dataset/predict_total.npy", predict_total)
-                np.save("~/RedstoneTorch/data/siim_dataset/label_total.npy", label_total)
-                np.save("~/RedstoneTorch/data/siim_dataset/prob_empty_total.npy", prob_empty_total)
-                np.save("~/RedstoneTorch/data/siim_dataset/empty_total.npy", empty_total)
-
             id_total = np.concatenate((id_total, ids), axis=0) if id_total is not None else ids
             predict_total = np.concatenate((predict_total, prob_predict), axis=0) if predict_total is not None else prob_predict
             label_total = np.concatenate((label_total, labels), axis=0) if label_total is not None else labels
@@ -728,77 +723,14 @@ def eval_fold(net, writer, validation_loader):
 
     """Result Summary"""
 
-    empty_total = empty_total.squeeze()
-    prob_empty_total = ((prob_empty_total.squeeze()) > config.EVAL_EMPTYSHRESHOLD).astype(np.byte)
-    config.log.write(classification_report(empty_total, prob_empty_total, target_names=["Pneumothorax", "Empty"]))
-    tn, fp, fn, tp = confusion_matrix(empty_total, prob_empty_total).ravel()
-    config.log.write(
-"""
-                       True     False
-    Empty           %7.1f   %7.1f
-    Pneumothorax    %7.1f   %7.1f
-""" % (tp, fn, tn, fn))
+    if not config.train:
+        np.save("~/RedstoneTorch/data/siim_dataset/id_total.npy", id_total)
+        np.save("~/RedstoneTorch/data/siim_dataset/predict_total.npy", predict_total)
+        np.save("~/RedstoneTorch/data/siim_dataset/label_total.npy", label_total)
+        np.save("~/RedstoneTorch/data/siim_dataset/prob_empty_total.npy", prob_empty_total)
+        np.save("~/RedstoneTorch/data/siim_dataset/empty_total.npy", empty_total)
 
-    # epoch_pred = None
-    # epoch_pred = np.concatenate((epoch_pred, predict_total), axis=0) if epoch_pred is not None else predict_total
-    # epoch_label = None
-    # epoch_label = np.concatenate((epoch_label, label_total), axis=0) if epoch_label is not None else label_total
-
-    pred_soft = predict_total
-    pred_hard = (predict_total > config.EVAL_THRESHOLD).astype(np.byte)
-    label = label_total
-
-    torch.cuda.empty_cache()
-    torch.cuda.empty_cache()
-
-    """LOSS"""
-    score = binary_dice_numpy_gain(label, pred_hard, mean=True)
-
-    """Shakeup"""
-    # IT WILL MESS UP THE RANDOM SEED (CAREFUL)
-    shakeup, shakeup_keys, shakeup_mean, shakeup_std = calculate_shakeup(label, pred_hard, binary_dice_numpy_gain, config.EVAL_SHAKEUP_RATIO, mean=True)
-    # if writer != None: tensorboardwriter.write_shakeup(writer, shakeup, shakeup_keys, shakeup_std, config.epoch)
-
-    """Print"""
-    report = """
-    Shakeup Mean of Sample Mean: {}
-    Shakeup STD of Sample Mean: {}""".format(shakeup_mean, shakeup_std) + """
-    Score = {} """.format(score)
-    if writer != None: tensorboardwriter.write_epoch_loss(writer, {"Score": score}, config.epoch)
-
-    """THRESHOLD"""
-    if config.EVAL_IF_THRESHOLD_TEST:
-        best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, binary_dice_numpy_gain, config.EVAL_TRY_THRESHOLD, writer, config.fold, n_class=1, mean=True)
-        report = report + """Best Threshold is: {}, Score: {}, AreaUnder: {}""".format(best_threshold, best_val, total_score / total_tried)
-        if writer != None: tensorboardwriter.write_best_threshold(writer, -1, best_val, best_threshold, total_score / total_tried, config.epoch, config.fold)
-
-        """Setting eval threshold"""
-        # config.EVAL_THRESHOLD = best_threshold
-    report = report + """
-        config.EVAL_THRESHOLD, config.PREDICTION_CHOSEN_MINPIXEL = {}, {}""".format(config.EVAL_THRESHOLD, config.PREDICTION_CHOSEN_MINPIXEL)
-    if config.train:
-        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, config.EVAL_THRESHOLD, config.PREDICTION_CHOSEN_MINPIXEL)
-        report = report + """
-        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score)
-
-        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, config.EVAL_THRESHOLD, config.PREDICTION_CHOSEN_MINPIXEL, tq=False, empty=prob_empty_total, empty_threshold=config.EVAL_EMPTYSHRESHOLD)
-        report = report + """
-        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f empty_thres: %5.3f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, config.EVAL_EMPTYSHRESHOLD)
-    else:
-        for min_pixel in [6000, 5000, 4000]:
-            for thres in [0.99, 0.98, 0.95, 0.9, 0.85]:
-                kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, thres, min_pixel, tq=False)
-                print("""
-        min_pixel: %5.1f threshold: %5.3f KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f""" % (min_pixel, thres, kaggle_score, kaggle_neg_score, kaggle_pos_score))
-
-        for empty_thres in [0.4, 0.5, 0.9]:
-            kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, config.EVAL_THRESHOLD, config.PREDICTION_CHOSEN_MINPIXEL, tq=False, empty=prob_empty_total, empty_threshold=empty_thres)
-            report = report + """
-        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f empty_thres: %5.3f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, empty_thres)
-
-
-    config.log.write(report)
-    if writer != None: tensorboardwriter.write_text(writer, report, config.global_steps[config.fold])
+    score = print_report(writer, id_total, predict_total, label_total, prob_empty_total, empty_total)
 
     return score
 
@@ -863,3 +795,93 @@ def metric(truth, logit, threshold=0.5, reduction='none'):
         num_pos = len(pos_index)
 
     return dice, dice_neg, dice_pos, num_neg, num_pos
+
+def print_report(writer, id_total, predict_total, label_total, prob_empty_total, empty_total):
+    eval_emptyshreshold = config.EVAL_EMPTYSHRESHOLD
+    eval_threshold = config.EVAL_THRESHOLD
+    eval_try_threshold = config.EVAL_TRY_THRESHOLD
+    prediction_chosen_minpixel = config.PREDICTION_CHOSEN_MINPIXEL
+
+    eval_shakeup_ratio = config.EVAL_SHAKEUP_RATIO
+    eval_if_threshold_test = config.EVAL_IF_THRESHOLD_TEST
+
+    global_steps = config.global_steps
+    train = config.train
+    epoch = config.epoch
+    fold = config.fold
+
+    if config.log is None:
+        config.log = Logger()
+
+    empty_total = empty_total.squeeze()
+    prob_empty_total = ((prob_empty_total.squeeze()) > eval_emptyshreshold).astype(np.byte)
+    config.log.write(classification_report(empty_total, prob_empty_total, target_names=["Pneumothorax", "Empty"]))
+    tn, fp, fn, tp = confusion_matrix(empty_total, prob_empty_total).ravel()
+    config.log.write(
+        """
+                               True     False
+            Empty           %7.1f   %7.1f
+            Pneumothorax    %7.1f   %7.1f
+        """ % (tp, fn, tn, fn))
+
+    # epoch_pred = None
+    # epoch_pred = np.concatenate((epoch_pred, predict_total), axis=0) if epoch_pred is not None else predict_total
+    # epoch_label = None
+    # epoch_label = np.concatenate((epoch_label, label_total), axis=0) if epoch_label is not None else label_total
+
+    pred_soft = predict_total
+    pred_hard = (predict_total > eval_threshold).astype(np.byte)
+    label = label_total
+
+    torch.cuda.empty_cache()
+
+    """LOSS"""
+    score = binary_dice_numpy_gain(label, pred_hard, mean=True)
+
+    """Shakeup"""
+    # IT WILL MESS UP THE RANDOM SEED (CAREFUL)
+    shakeup, shakeup_keys, shakeup_mean, shakeup_std = calculate_shakeup(label, pred_hard, binary_dice_numpy_gain, eval_shakeup_ratio, mean=True)
+    # if writer != None: tensorboardwriter.write_shakeup(writer, shakeup, shakeup_keys, shakeup_std, epoch)
+
+    """Print"""
+    report = """
+        Shakeup Mean of Sample Mean: {}
+        Shakeup STD of Sample Mean: {}""".format(shakeup_mean, shakeup_std) + """
+        Score = {} """.format(score)
+    if writer != None: tensorboardwriter.write_epoch_loss(writer, {"Score": score}, epoch)
+
+    """THRESHOLD"""
+    if eval_if_threshold_test:
+        best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, binary_dice_numpy_gain, eval_try_threshold, writer, fold, n_class=1, mean=True)
+        report = report + """Best Threshold is: {}, Score: {}, AreaUnder: {}""".format(best_threshold, best_val, total_score / total_tried)
+        if writer != None: tensorboardwriter.write_best_threshold(writer, -1, best_val, best_threshold, total_score / total_tried, epoch, fold)
+
+        """Setting eval threshold"""
+        # config.EVAL_THRESHOLD = best_threshold
+    report = report + """
+            config.EVAL_THRESHOLD, config.PREDICTION_CHOSEN_MINPIXEL = {}, {}""".format(eval_threshold, prediction_chosen_minpixel)
+
+    """Postprocess"""
+    if train:
+        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, eval_threshold, prediction_chosen_minpixel)
+        report = report + """
+            KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score)
+
+        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, eval_threshold, prediction_chosen_minpixel, tq=False, empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
+        report = report + """
+            KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f empty_thres: %5.3f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, eval_emptyshreshold)
+    else:
+        for min_pixel in [6000, 5000, 4000]:
+            for thres in [0.99, 0.98, 0.95, 0.9, 0.85]:
+                kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, thres, min_pixel, tq=False)
+                print("""
+            min_pixel: %5.1f threshold: %5.3f KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f""" % (min_pixel, thres, kaggle_score, kaggle_neg_score, kaggle_pos_score))
+
+        for empty_thres in [0.4, 0.5, 0.9]:
+            kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, eval_threshold, prediction_chosen_minpixel, tq=False, empty=prob_empty_total, empty_threshold=empty_thres)
+            report = report + """
+            KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f empty_thres: %5.3f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, empty_thres)
+
+    config.log.write(report)
+    if writer != None: tensorboardwriter.write_text(writer, report, global_steps[fold])
+    return score
