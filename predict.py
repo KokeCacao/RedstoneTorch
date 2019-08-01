@@ -24,6 +24,7 @@ def get_args():
     parser.add_option('--threshold', type="float", dest='threshold', default=-1., help='threshold')
     parser.add_option('--batch_size', type="float", dest='batch_size', default=0, help='batch size')
     parser.add_option('--image_size', type="float", dest='image_size', default=0, help='image resize')
+    parser.add_option('--min_pixel', type="float", dest='min_pixel', default=0, help='min pixel threshold')
 
     (options, args) = parser.parse_args()
     return options
@@ -42,6 +43,11 @@ def load_args():
         config.PREDICTION_CHOSEN_THRESHOLD = [float(args.threshold)]
     else:
         raise NotImplementedError("Please specify threshold")
+
+    if args.min_pixel != -1:
+        config.PREDICTION_CHOSEN_MINPIXEL = float(args.min_pixel)
+    else:
+        raise NotImplementedError("Please specify min_pixel")
 
     if args.fold != -1 and args.fold < config.MODEL_FOLD:
         config.train_fold = [int(args.fold)]

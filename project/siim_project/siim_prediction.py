@@ -13,6 +13,7 @@ from dataset.siim_dataset import SIIMDataset
 from dataset.siim_dataset import test_collate, tta_collate
 from project.siim_project import siim_net
 from project.siim_project.siim_net import model50A_DeepSupervion, model34_DeepSupervion, model34_DeepSupervion_GroupNorm
+from project.siim_project.siim_util import post_process
 from utils.encode import mask2rle
 from utils.load import save_onnx, load_checkpoint_all_fold
 
@@ -108,12 +109,14 @@ class SIIMPrediction:
                             total_confidence = total_confidence + confidence
                             pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0].split("/")[-1].split(".")[0], confidence, total_confidence / (batch_index + 1)))
 
-                            prob_predict = (prob_predict > threshold).astype(np.byte)
-
                             for id, predict in zip(ids, prob_predict):
                                 predict = predict.squeeze()
                                 predict = np.transpose(predict)
-                                predict = ndimage.zoom(predict, config.IMG_SIZE/predict.shape[0])
+                                predict = cv2.resize(predict, dsize=(1024, 1024), interpolation=cv2.INTER_LINEAR)
+                                predict, num_component = post_process(predict, threshold, config.PREDICTION_CHOSEN_MINPIXEL)
+                                # predict = ndimage.zoom(predict, config.IMG_SIZE/predict.shape[0])
+
+
                                 prob_file.write('{},{}\n'.format(id, mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)))
 
                             del ids, image, labels, image_0, labels_0, empty
@@ -188,11 +191,13 @@ class SIIMPrediction:
                                 total_confidence = total_confidence + confidence
                                 pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0], confidence, total_confidence / (batch_index + 1)))
 
-                                prob_predict = (prob_predict > threshold).astype(np.byte)
+                                # prob_predict = (prob_predict > threshold).astype(np.byte)
                                 for id, predict in zip(ids, prob_predict):
                                     predict = predict.squeeze()
                                     predict = np.transpose(predict)
-                                    predict = ndimage.zoom(predict, config.IMG_SIZE/predict.shape[0])
+                                    predict = cv2.resize(predict, dsize=(1024, 1024), interpolation=cv2.INTER_LINEAR)
+                                    predict, num_component = post_process(predict, threshold, config.PREDICTION_CHOSEN_MINPIXEL)
+
                                     tta_dict[id] = mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)
                                     prob_file.write('{},{}\n'.format(id, mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)))
 
