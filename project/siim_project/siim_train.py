@@ -724,11 +724,11 @@ def eval_fold(net, writer, validation_loader):
     """Result Summary"""
 
     if not config.train:
-        np.save("~/RedstoneTorch/data/siim_dataset/id_total.npy", id_total)
-        np.save("~/RedstoneTorch/data/siim_dataset/predict_total.npy", predict_total)
-        np.save("~/RedstoneTorch/data/siim_dataset/label_total.npy", label_total)
-        np.save("~/RedstoneTorch/data/siim_dataset/prob_empty_total.npy", prob_empty_total)
-        np.save("~/RedstoneTorch/data/siim_dataset/empty_total.npy", empty_total)
+        np.save(config.DIRECTORY_PREFIX + "data/siim_dataset/id_total.npy", id_total)
+        np.save(config.DIRECTORY_PREFIX + "data/siim_dataset/predict_total.npy", predict_total)
+        np.save(config.DIRECTORY_PREFIX + "data/siim_dataset/label_total.npy", label_total)
+        np.save(config.DIRECTORY_PREFIX + "data/siim_dataset/prob_empty_total.npy", prob_empty_total)
+        np.save(config.DIRECTORY_PREFIX + "data/siim_dataset/empty_total.npy", empty_total)
 
     score = print_report(writer, id_total, predict_total, label_total, prob_empty_total, empty_total)
 
