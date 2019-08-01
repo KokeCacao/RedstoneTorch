@@ -4,7 +4,7 @@ import numpy as np
 from tqdm import tqdm
 import cv2
 
-def compute_kaggle_lb(test_id, test_truth, test_probability, threshold, min_size, tq=True, empty=None, empty_threshold=None):
+def compute_kaggle_lb(test_id, test_truth, test_probability, threshold, min_size, tq=True, test_empty=None, empty_threshold=None):
 
     test_num    = len(test_truth)
 
@@ -14,7 +14,7 @@ def compute_kaggle_lb(test_id, test_truth, test_probability, threshold, min_size
     for b in pbar:
         truth       = test_truth[b,0]
         probability = test_probability[b,0]
-        empty       = empty[b]
+        empty       = test_empty[b] if test_empty is not None else None
 
         if truth.shape!=(1024,1024):
             truth = cv2.resize(truth, dsize=(1024, 1024), interpolation=cv2.INTER_LINEAR)
