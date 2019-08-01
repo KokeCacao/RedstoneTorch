@@ -351,6 +351,8 @@ class SIIMTrain:
             config.epoch = config.epoch + 1
             pbar = tqdm(train_loader)
             train_len = train_len + len(train_loader)
+            running_ce = 0
+            running_dice = 0
             for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
 
 
@@ -402,8 +404,10 @@ class SIIMTrain:
 
                 if config.epoch < 2:
                     loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice.mean()
-                elif config.epoch < 200:
+                if config.epoch < 61:
                     loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice.mean()
+                elif config.epoch < 200:
+                    loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean()
                 else:
                     raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
@@ -596,8 +600,10 @@ def eval_fold(net, writer, validation_loader):
 
             if config.epoch < 2:
                 loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice.mean()
-            elif config.epoch < 200:
+            if config.epoch < 61:
                 loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice.mean()
+            elif config.epoch < 200:
+                loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean()
             else:
                 raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
