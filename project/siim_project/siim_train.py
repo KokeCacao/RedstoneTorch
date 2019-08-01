@@ -634,26 +634,27 @@ def eval_fold(net, writer, validation_loader):
             prob_empty = prob_empty.detach().cpu().numpy()
 
             """Draw Image"""
-            if displayed_img < 8 or displayed_empty < 8:
-                for image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_ in zip(image, labels, prob_predict, empty, prob_empty, dice, bce, ce):
-                    if empty_.sum() is not 0 and displayed_img < 8:
-                        F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_)
-                        tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, displayed_img), F, config.epoch, category="non-empty")
-                        displayed_img = displayed_img + 1
-                    if empty_.sum() is 0 and displayed_empty < 8:
-                        F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_)
-                        tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, displayed_empty), F, config.epoch, category="empty")
-                        displayed_empty = displayed_empty + 1
-            if display_max < 0:
-                arg = np.argmax(dice)
-                F = draw_image(image[arg], labels[arg], prob_predict[arg], empty[arg], prob_empty[arg], dice[arg], bce[arg], ce[arg])
-                tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, display_max), F, config.epoch, category="batch_max")
-                display_max = display_max + 1
-            if display_min < 8:
-                arg = np.argmin(dice)
-                F = draw_image(image[arg], labels[arg], prob_predict[arg], empty[arg], prob_empty[arg], dice[arg], bce[arg], ce[arg])
-                tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, display_min), F, config.epoch, category="batch_min")
-                display_min = display_min + 1
+            if writer != None:
+                if displayed_img < 8 or displayed_empty < 8:
+                    for image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_ in zip(image, labels, prob_predict, empty, prob_empty, dice, bce, ce):
+                        if empty_.sum() is not 0 and displayed_img < 8:
+                            F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_)
+                            tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, displayed_img), F, config.epoch, category="non-empty")
+                            displayed_img = displayed_img + 1
+                        if empty_.sum() is 0 and displayed_empty < 8:
+                            F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_)
+                            tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, displayed_empty), F, config.epoch, category="empty")
+                            displayed_empty = displayed_empty + 1
+                if display_max < 0:
+                    arg = np.argmax(dice)
+                    F = draw_image(image[arg], labels[arg], prob_predict[arg], empty[arg], prob_empty[arg], dice[arg], bce[arg], ce[arg])
+                    tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, display_max), F, config.epoch, category="batch_max")
+                    display_max = display_max + 1
+                if display_min < 8:
+                    arg = np.argmin(dice)
+                    F = draw_image(image[arg], labels[arg], prob_predict[arg], empty[arg], prob_empty[arg], dice[arg], bce[arg], ce[arg])
+                    tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, display_min), F, config.epoch, category="batch_min")
+                    display_min = display_min + 1
 
             """SUM"""
             dice = dice.mean()
@@ -682,13 +683,14 @@ def eval_fold(net, writer, validation_loader):
             # label = np.array(self.dataset.multilabel_binarizer.inverse_transform(labels_0)[0])
             # pred = np.array(self.dataset.multilabel_binarizer.inverse_transform(prob_predict>0.5)[0])
             # pbar.set_description_str("(E{}-F{}) Stp:{} Label:{} Pred:{} Left:{}".format(int(config.global_steps[fold]), label, pred, left))
-            pbar.set_description("(E{}F{}I{}) Dice:{} IOU:{} Conf:{}".format(config.epoch, config.fold, config.eval_index, dice.mean(), iou.mean(), total_confidence / (batch_index + 1)))
+            # pbar.set_description("(E{}F{}I{}) Dice:{} IOU:{} Conf:{}".format(config.epoch, config.fold, config.eval_index, dice.mean(), iou.mean(), total_confidence / (batch_index + 1)))
             # if config.DISPLAY_HISTOGRAM: self.epoch_losses.append(focal.flatten())
 
             """DISPLAY"""
             # tensorboardwriter.write_memory(writer, "train")
-            writer.add_scalars('stats/GPU-Memory', {"GPU-Tensor": float(torch.cuda.memory_allocated() / torch.cuda.max_memory_allocated())}, global_step=int(time.time() - config.start_time))
-            writer.add_scalars('stats/GPU-Memory', {"GPU-Cache": float(torch.cuda.memory_cached() / torch.cuda.max_memory_cached())}, global_step=int(time.time() - config.start_time))
+            if writer != None:
+                writer.add_scalars('stats/GPU-Memory', {"GPU-Tensor": float(torch.cuda.memory_allocated() / torch.cuda.max_memory_allocated())}, global_step=int(time.time() - config.start_time))
+                writer.add_scalars('stats/GPU-Memory', {"GPU-Cache": float(torch.cuda.memory_cached() / torch.cuda.max_memory_cached())}, global_step=int(time.time() - config.start_time))
 
             """CLEAN UP"""
             del ids, image_0, labels_0  # things threw away
@@ -708,14 +710,15 @@ def eval_fold(net, writer, validation_loader):
         torch.cuda.empty_cache()
 
     """LOSS"""
-    tensorboardwriter.write_eval_loss(writer, {"Dice/{}".format(config.fold): dice_losses.mean(),
-                                               "IOU/{}".format(config.fold): iou_losses.mean(),
-                                               "BCE/{}".format(config.fold): bce_losses.mean(),
-                                               "CE/{}".format(config.fold): ce_losses.mean(),
-                                               # "Hinge/{}".format(config.fold): hinge_losses.mean(),
-                                               "Loss/{}".format(config.fold): loss_losses.mean(),
-                                               }, config.epoch)
-    if config.EVAL_IF_PR_CURVE: tensorboardwriter.write_pr_curve(writer, empty_total, prob_empty_total, config.epoch, config.fold)
+    if writer != None:
+        tensorboardwriter.write_eval_loss(writer, {"Dice/{}".format(config.fold): dice_losses.mean(),
+                                                   "IOU/{}".format(config.fold): iou_losses.mean(),
+                                                   "BCE/{}".format(config.fold): bce_losses.mean(),
+                                                   "CE/{}".format(config.fold): ce_losses.mean(),
+                                                   # "Hinge/{}".format(config.fold): hinge_losses.mean(),
+                                                   "Loss/{}".format(config.fold): loss_losses.mean(),
+                                                   }, config.epoch)
+        if config.EVAL_IF_PR_CURVE: tensorboardwriter.write_pr_curve(writer, empty_total, prob_empty_total, config.epoch, config.fold)
 
     """Result Summary"""
 
@@ -748,30 +751,36 @@ def eval_fold(net, writer, validation_loader):
     """Shakeup"""
     # IT WILL MESS UP THE RANDOM SEED (CAREFUL)
     shakeup, shakeup_keys, shakeup_mean, shakeup_std = calculate_shakeup(label, pred_hard, binary_dice_numpy_gain, config.EVAL_SHAKEUP_RATIO, mean=True)
-    # tensorboardwriter.write_shakeup(writer, shakeup, shakeup_keys, shakeup_std, config.epoch)
+    # if writer != None: tensorboardwriter.write_shakeup(writer, shakeup, shakeup_keys, shakeup_std, config.epoch)
 
     """Print"""
     report = """
     Shakeup Mean of Sample Mean: {}
     Shakeup STD of Sample Mean: {}""".format(shakeup_mean, shakeup_std) + """
     Score = {} """.format(score)
-    tensorboardwriter.write_epoch_loss(writer, {"Score": score}, config.epoch)
+    if writer != None: tensorboardwriter.write_epoch_loss(writer, {"Score": score}, config.epoch)
 
     """THRESHOLD"""
     if config.EVAL_IF_THRESHOLD_TEST:
         best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, binary_dice_numpy_gain, config.EVAL_TRY_THRESHOLD, writer, config.fold, n_class=1, mean=True)
         report = report + """Best Threshold is: {}, Score: {}, AreaUnder: {}""".format(best_threshold, best_val, total_score / total_tried)
-        tensorboardwriter.write_best_threshold(writer, -1, best_val, best_threshold, total_score / total_tried, config.epoch, config.fold)
+        if writer != None: tensorboardwriter.write_best_threshold(writer, -1, best_val, best_threshold, total_score / total_tried, config.epoch, config.fold)
 
         """Setting eval threshold"""
         # config.EVAL_THRESHOLD = best_threshold
-
-    kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, config.EVAL_THRESHOLD, 5000)
-    report = report + """
-    KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score)
+    if config.train:
+        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, config.EVAL_THRESHOLD, 5000)
+        report = report + """
+        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score)
+    else:
+        for min_pixel in [6000, 5000, 4000]:
+            for thres in [0.99, 0.98, 0.95, 0.9, 0.85]:
+                kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, thres, min_pixel, tq=False)
+                print("""
+        min_pixel: %5.1f threshold: %5.3f KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f""" % (min_pixel, thres, kaggle_score, kaggle_neg_score, kaggle_pos_score))
 
     config.log.write(report)
-    tensorboardwriter.write_text(writer, report, config.global_steps[config.fold])
+    if writer != None: tensorboardwriter.write_text(writer, report, config.global_steps[config.fold])
 
     return score
 
