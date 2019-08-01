@@ -768,6 +768,8 @@ def eval_fold(net, writer, validation_loader):
 
         """Setting eval threshold"""
         # config.EVAL_THRESHOLD = best_threshold
+    report = report + """
+        config.EVAL_THRESHOLD, config.PREDICTION_CHOSEN_MINPIXEL = {}, {}""".format(config.EVAL_THRESHOLD, config.PREDICTION_CHOSEN_MINPIXEL)
     if config.train:
         kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, config.EVAL_THRESHOLD, config.PREDICTION_CHOSEN_MINPIXEL)
         report = report + """
@@ -782,6 +784,12 @@ def eval_fold(net, writer, validation_loader):
                 kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, thres, min_pixel, tq=False)
                 print("""
         min_pixel: %5.1f threshold: %5.3f KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f""" % (min_pixel, thres, kaggle_score, kaggle_neg_score, kaggle_pos_score))
+
+        for empty_thres in [0.4, 0.5, 0.9]:
+            kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, config.EVAL_THRESHOLD, config.PREDICTION_CHOSEN_MINPIXEL, tq=False, empty=prob_empty_total, empty_threshold=empty_thres)
+            report = report + """
+        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f empty_thres: %5.3f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, empty_thres)
+
 
     config.log.write(report)
     if writer != None: tensorboardwriter.write_text(writer, report, config.global_steps[config.fold])
