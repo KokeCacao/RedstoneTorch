@@ -8,6 +8,7 @@ from torch.utils import data
 from torch.utils.data import SubsetRandomSampler, SequentialSampler
 from tqdm import tqdm
 
+import cv2
 import config
 from dataset.siim_dataset import SIIMDataset
 from dataset.siim_dataset import test_collate, tta_collate
