@@ -61,7 +61,7 @@ def kaggle_metric_one(predict, truth):
 def post_process(probability, threshold, min_size, empty=None, empty_threshold=None):
     predict = np.zeros((1024,1024), np.float32)
     num = 0
-    if empty > empty_threshold:
+    if empty is not None and empty_threshold is not None and empty > empty_threshold:
         return predict, num
 
     mask = cv2.threshold(probability, threshold, 1, cv2.THRESH_BINARY)[1]

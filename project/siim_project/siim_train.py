@@ -274,6 +274,7 @@ class SIIMTrain:
                    batch_size
                    ):
         for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
+            config.fold = fold
             if net is None or optimizer is None or lr_scheduler is None:
                 continue
 
@@ -325,8 +326,6 @@ class SIIMTrain:
             torch.cuda.empty_cache()
 
     def step_fold(self, fold, net, optimizer, lr_scheduler):
-        config.fold = fold
-
         epoch_loss = 0
         epoch_f = 0
         train_len = 1e-10
