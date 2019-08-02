@@ -91,6 +91,9 @@ class SIIMPrediction:
 
                         print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
 
+                        id_total = None
+                        predict_total = None
+                        prob_empty_total = None
                         for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
 
                             if config.TRAIN_GPU_ARG: image = image.cuda()
@@ -104,6 +107,10 @@ class SIIMPrediction:
                             logits_predict = logits_predict.detach().cpu().numpy()
                             prob_predict = prob_predict.detach().cpu().numpy()
                             prob_empty = prob_empty.detach().cpu().numpy()
+
+                            id_total = np.concatenate((id_total, ids), axis=0) if id_total is not None else ids
+                            predict_total = np.concatenate((predict_total, prob_predict), axis=0) if predict_total is not None else prob_predict
+                            prob_empty_total = np.concatenate((prob_empty_total, prob_empty), axis=0) if prob_empty_total is not None else prob_empty
 
                             confidence = (np.absolute(prob_predict - 0.5).mean() + 0.5).item()
                             total_confidence = total_confidence + confidence
@@ -123,6 +130,10 @@ class SIIMPrediction:
                             del empty_logits, _idkwhatthisis_, logits_predict
                             del prob_predict, prob_empty, confidence
                             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
+
+                        np.save(config.DIRECTORY_CHECKPOINT + "CP{}_id_total.npy".format(config.epoch), id_total)
+                        np.save(config.DIRECTORY_CHECKPOINT + "CP{}_predict_total.npy".format(config.epoch), predict_total)
+                        np.save(config.DIRECTORY_CHECKPOINT + "CP{}_prob_empty_total.npy".format(config.epoch), prob_empty_total)
 
                     print("Prob_path: {}".format(prob_path))
                 else:
