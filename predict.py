@@ -36,7 +36,7 @@ def load_args():
     if args.batch_size != 0: config.TEST_BATCH_SIZE = int(args.batch_size)
     if args.loadfile:
         config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/" + args.loadfile
-        config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/predict/"
+        config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/"
     else: raise ValueError("You must set --loadfile directory in prediction mode")
 
     if args.threshold != -1:
