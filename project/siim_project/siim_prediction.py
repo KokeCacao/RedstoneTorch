@@ -73,7 +73,7 @@ class SIIMPrediction:
                         print("WARNING: delete file '{}'".format(prob_path))
 
                     with open(prob_path, 'a') as prob_file:
-                        prob_file.write('{},{}\n'.format(config.DIRECTORY_CSV_ID, config.DIRECTORY_CSV_TARGET))
+                        prob_file.write('{},{},{}\n'.format(config.DIRECTORY_CSV_ID, config.DIRECTORY_CSV_TARGET, "Empty"))
 
                         test_loader = data.DataLoader(self.test_dataset,
                                                       batch_size=config.TEST_BATCH_SIZE,

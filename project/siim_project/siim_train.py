@@ -407,7 +407,8 @@ class SIIMTrain:
                 if config.epoch < 61:
                     loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice.mean()
                 elif config.epoch < 200:
-                    loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean()
+                    # loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean() # v142
+                    loss = 0.5 * ce.sum() + 0.5 * bce.mean() # v143
                 else:
                     raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
@@ -603,7 +604,8 @@ def eval_fold(net, writer, validation_loader):
             if config.epoch < 61:
                 loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice.mean()
             elif config.epoch < 200:
-                loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean()
+                # loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean() # v142
+                loss = 0.5 * ce.sum() + 0.5 * bce.mean() # v143
             else:
                 raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
