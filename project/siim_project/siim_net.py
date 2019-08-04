@@ -658,13 +658,14 @@ class model34_DeepSupervion_GroupNorm_OC(nn.Module):
         #                             nn.LeakyReLU(inplace=True),
         #                             nn.Conv2d(64, 1, kernel_size=1, padding=0))
 
-        self.logits_final = nn.Sequential(nn.Conv2d(320+64, 64, kernel_size=3, padding=1),
-                                         nn.LeakyReLU(inplace=True),
-                                         nn.Conv2d(64, 1, kernel_size=1, padding=0))
+        # self.logits_final = nn.Sequential(nn.Conv2d(320+64, 64, kernel_size=3, padding=1),
+        #                                  nn.LeakyReLU(inplace=True),
+        #                                  nn.Conv2d(64, 1, kernel_size=1, padding=0))
 
-        # self.context = nn.Sequential(ocnet.ASP_OC_Module(320+64, 64),
-        #                              nn.LeakyReLU(inplace=True))
-        # self.logits_final = nn.Conv2d(64, 1, kernel_size=1, padding=0)
+        self.logits_final = nn.Sequential(nn.Conv2d(320+64, 128, kernel_size=1, padding=0),
+                                          ocnet.ASP_OC_Module(128, 48),
+                                          nn.LeakyReLU(inplace=True),
+                                          nn.Conv2d(48, 1, kernel_size=1, padding=0))
 
     def forward(self, x, flip):
         conv2 = self.conv2(self.conv1(x)) #1/4
@@ -691,9 +692,9 @@ class model34_DeepSupervion_GroupNorm_OC(nn.Module):
             F.upsample(d4, scale_factor=8, mode='bilinear'),
             F.upsample(d5, scale_factor=16, mode='bilinear')),1), p = 0.50)
 
-        hypercol_add_center = torch.cat((
+        hypercol_add_center = self.context(torch.cat((
             hypercol,
-            F.upsample(center_64, scale_factor=hypercol.shape[2],mode='bilinear')),1)
+            F.upsample(center_64, scale_factor=hypercol.shape[2],mode='bilinear')),1))
 
         # return self.center_fc(center_64.view(center_64.size(0), -1)), self.logits_no_empty(hypercol), self.logits_final(hypercol_add_center)
         return self.center_fc(center_64.view(center_64.size(0), -1)), None, self.logits_final(hypercol_add_center)
