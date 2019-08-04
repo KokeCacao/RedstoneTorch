@@ -50,6 +50,7 @@ def get_args():
     parser.add_option('--manual_freeze', type="string", dest='manual_freeze', default=False, help='Manual Freeze Additional Layers (after freeze_loaded)')
     parser.add_option('--net', type="string", dest='net', default=None, help='Network You Want to Use')
     parser.add_option('--freeze', type="string", dest='freeze', default=False, help='Freeze Network by Name')
+    parser.add_option('--train_ratio', type="string", dest='train_ratio', default=0, help='Train Ratio')
 
     (options, args) = parser.parse_args()
     return options
@@ -70,6 +71,9 @@ def load_args():
     config.manual_freeze = True if args.manual_freeze == "True" else False
     config.freeze = args.freeze if args.freeze != False else False
     config.resetlr = args.resetlr
+
+    if args.train_ratio != 0: config.TRAIN_RATIO = args.train_ratio
+
     if args.resetlr != 0:
         config.MODEL_INIT_LEARNING_RATE = args.resetlr
         config.MODEL_LR_SCHEDULER_BASELR = args.resetlr
