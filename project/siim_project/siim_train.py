@@ -405,9 +405,9 @@ class SIIMTrain:
                 dice_cherkeng, dice_neg, dice_pos, num_neg, num_pos = metric(labels, logits_predict)
 
                 if config.epoch < 2:
-                    loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice.mean()
+                    loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
                 if config.epoch < 61:
-                    loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice.mean()
+                    loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
                 elif config.epoch < 200:
                     # loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean() # v142
                     loss = 0.5 * ce.sum() + 0.5 * bce.mean() # v143
@@ -604,9 +604,9 @@ def eval_fold(net, writer, validation_loader):
             dice_cherkeng, dice_neg, dice_pos, num_neg, num_pos = metric(labels, logits_predict)
 
             if config.epoch < 2:
-                loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice.mean()
+                loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
             if config.epoch < 61:
-                loss = 0.45 * ce.sum() + 0.1 * bce.mean() + 0.45 * dice.mean()
+                loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
             elif config.epoch < 200:
                 # loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean() # v142
                 loss = 0.5 * ce.sum() + 0.5 * bce.mean() # v143
