@@ -615,10 +615,10 @@ class model34_DeepSupervion(nn.Module):
 
         return self.center_fc(center_64.view(center_64.size(0), -1)), self.logits_no_empty(hypercol), hypercol_add_center
 
-class model34_DeepSupervion_GroupNorm(nn.Module):
+class model34_DeepSupervion_GroupNorm_OC(nn.Module):
     """Change mask_class from 2 to 1 since it is binary classification"""
     def __init__(self, num_classes=1, mask_class = 1):
-        super(model34_DeepSupervion_GroupNorm, self).__init__()
+        super(model34_DeepSupervion_GroupNorm_OC, self).__init__()
 
         self.num_classes = num_classes
 

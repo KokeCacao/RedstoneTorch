@@ -13,7 +13,7 @@ import config
 from dataset.siim_dataset import SIIMDataset
 from dataset.siim_dataset import test_collate, tta_collate
 from project.siim_project import siim_net
-from project.siim_project.siim_net import model50A_DeepSupervion, model34_DeepSupervion, model34_DeepSupervion_GroupNorm
+from project.siim_project.siim_net import model50A_DeepSupervion, model34_DeepSupervion, model34_DeepSupervion_GroupNorm_OC
 from project.siim_project.siim_util import post_process
 from utils.encode import mask2rle
 from utils.load import save_onnx, load_checkpoint_all_fold
@@ -38,7 +38,7 @@ class SIIMPrediction:
                 elif config.net == "resunet34-ds":
                     net = model34_DeepSupervion(num_classes=config.TRAIN_NUM_CLASS)
                 elif config.net == "resunet34-ds-gn":
-                    net = model34_DeepSupervion_GroupNorm(num_classes=config.TRAIN_NUM_CLASS)
+                    net = model34_DeepSupervion_GroupNorm_OC(num_classes=config.TRAIN_NUM_CLASS)
                 ## leaky relu?
                 else:
                     raise ValueError("The Network {} you specified is not in one of the network you can use".format(config.net))
