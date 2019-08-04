@@ -98,7 +98,7 @@ class SIIMPrediction:
                         for batch_index, (ids, image, labels, image_0, labels_0, empty, flip) in enumerate(pbar):
 
                             image = image.cuda()
-                            flip = flip.cuda()
+                            flip = flip.cuda().float()
                             empty_logits, _idkwhatthisis_, logits_predict = net(image, flip)
                             prob_predict = torch.nn.Sigmoid()(logits_predict)
                             prob_empty = torch.nn.Sigmoid()(empty_logits)
@@ -190,7 +190,7 @@ class SIIMPrediction:
                             for batch_index, (ids, image, labels, image_0, labels_0, empty, flip) in enumerate(pbar):
 
                                 image = image.cuda()
-                                flip = flip.cuda()
+                                flip = flip.cuda().float()
                                 empty_logits, _idkwhatthisis_, logits_predict = net(image, flip)
                                 prob_predict = torch.nn.Sigmoid()(logits_predict)
                                 prob_empty = torch.nn.Sigmoid()(empty_logits)

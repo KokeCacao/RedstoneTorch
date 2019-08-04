@@ -206,7 +206,7 @@ class LRFinder(object):
                 # Move data to the correct device
                 inputs = inputs.to(self.device)
                 labels = labels.to(self.device)
-                flip = flip.to(self.device)
+                flip = flip.to(self.device).float()
 
                 # Forward pass and loss computation
                 """ Edit this to fit your dataset """
