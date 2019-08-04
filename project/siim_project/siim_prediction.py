@@ -95,14 +95,16 @@ class SIIMPrediction:
                         id_total = None
                         predict_total = None
                         prob_empty_total = None
-                        for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
+                        for batch_index, (ids, image, labels, image_0, labels_0, empty, flip) in enumerate(pbar):
 
-                            if config.TRAIN_GPU_ARG: image = image.cuda()
-                            empty_logits, _idkwhatthisis_, logits_predict = net(image)
+                            image = image.cuda()
+                            flip = flip.cuda()
+                            empty_logits, _idkwhatthisis_, logits_predict = net(image, flip)
                             prob_predict = torch.nn.Sigmoid()(logits_predict)
                             prob_empty = torch.nn.Sigmoid()(empty_logits)
 
                             image = image.cpu().numpy()
+                            flip = flip.cpu().numpy()
                             labels = labels.cpu().numpy()
                             empty = empty.cpu().numpy()
                             logits_predict = logits_predict.detach().cpu().numpy()
@@ -127,7 +129,7 @@ class SIIMPrediction:
 
                                 prob_file.write('{},{},{}\n'.format(id, mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE), empty[0]))
 
-                            del ids, image, labels, image_0, labels_0, empty
+                            del ids, image, labels, image_0, labels_0, empty, flip
                             del empty_logits, _idkwhatthisis_, logits_predict
                             del prob_predict, prob_empty, confidence
                             if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
@@ -185,14 +187,16 @@ class SIIMPrediction:
                             config.eval_index = config.eval_index + 1
                             total_confidence = 0
                             pbar = tqdm(test_loader)
-                            for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
+                            for batch_index, (ids, image, labels, image_0, labels_0, empty, flip) in enumerate(pbar):
 
                                 image = image.cuda()
-                                empty_logits, _idkwhatthisis_, logits_predict = net(image)
+                                flip = flip.cuda()
+                                empty_logits, _idkwhatthisis_, logits_predict = net(image, flip)
                                 prob_predict = torch.nn.Sigmoid()(logits_predict)
                                 prob_empty = torch.nn.Sigmoid()(empty_logits)
 
                                 image = image.cpu().numpy()
+                                flip = flip.cpu().numpy()
                                 labels = labels.cpu().numpy()
                                 empty = empty.cpu().numpy()
                                 logits_predict = logits_predict.detach().cpu().numpy()
@@ -213,7 +217,7 @@ class SIIMPrediction:
                                     tta_dict[id] = mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)
                                     prob_file.write('{},{},{}\n'.format(id, mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE), empty))
 
-                                del ids, image, labels, image_0, labels_0, empty
+                                del ids, image, labels, image_0, labels_0, empty, flip
                                 del empty_logits, _idkwhatthisis_, logits_predict
                                 del prob_predict, prob_empty, confidence
                                 if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()

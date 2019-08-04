@@ -615,6 +615,7 @@ class model34_DeepSupervion(nn.Module):
 
         return self.center_fc(center_64.view(center_64.size(0), -1)), self.logits_no_empty(hypercol), hypercol_add_center
 
+# https://www.kaggle.com/c/tgs-salt-identification-challenge/discussion/69165
 class model34_DeepSupervion_GroupNorm_OC(nn.Module):
     """Change mask_class from 2 to 1 since it is binary classification"""
     def __init__(self, num_classes=1, mask_class = 1):
@@ -636,7 +637,7 @@ class model34_DeepSupervion_GroupNorm_OC(nn.Module):
         self.conv5 = self.encoder.layer4
 
         self.center_global_pool = nn.AdaptiveAvgPool2d([1,1])
-        self.center_conv1x1 = nn.Conv2d(512, 64, kernel_size=1)
+        self.center_conv1x1 = nn.Conv2d(512+1, 64, kernel_size=1)
         self.center_fc = nn.Linear(64, mask_class)
 
         self.center = nn.Sequential(nn.Conv2d(512, 512, kernel_size=3,padding=1),
@@ -665,14 +666,14 @@ class model34_DeepSupervion_GroupNorm_OC(nn.Module):
                                      nn.LeakyReLU(inplace=True))
         self.logits_final = nn.Conv2d(64, 1, kernel_size=1, padding=0)
 
-    def forward(self, x):
+    def forward(self, x, flip):
         conv2 = self.conv2(self.conv1(x)) #1/4
         del x
         conv3 = self.conv3(conv2) #1/8
         conv4 = self.conv4(conv3) #1/16
         conv5 = self.conv5(conv4) #1/32
 
-        center_64 = self.center_conv1x1(self.center_global_pool(conv5))
+        center_64 = self.center_conv1x1(torch.cat((self.center_global_pool(conv5), flip)))
 
         d5 = self.decoder5(self.center(conv5), conv5)
         del conv5

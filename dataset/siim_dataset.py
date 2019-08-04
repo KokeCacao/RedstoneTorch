@@ -360,26 +360,28 @@ def tta_aug1(term):
 # ],p=1)
 
 def train_aug(term):
+    flip = (np.random.random(1)[0] > 0).astype(np.byte)
     return Compose([
+        HorizontalFlip(p=flip),
         RandomGamma(gamma_limit=(80, 110), p=0.8),
         GaussNoise(p=0.8),
         IAAPerspective(scale=(0.01, 0.08), keep_size=True, p=0.8),
         ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.2), rotate_limit=5, p=0.8, border_mode=cv2.BORDER_CONSTANT),
         Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
-    ])
+    ]), flip
 def eval_aug(term):
-    return train_aug(term)
+    return train_aug(term), 0
 
 def test_aug(term):
     return Compose([
         Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
-    ])
+    ]), 0
 
 def tta_aug(term):
     return Compose([
         RandomGamma(gamma_limit=(80, 110), p=0.8),
         Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
-    ])
+    ]), 0
 
 
 def train_collate(batch):
@@ -430,51 +432,55 @@ def transform(ids, image_0, labels_0, empty, mode):
         term = config.eval_index % 8
         TEST_TRANSFORM = transforms.Compose([
             lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)),  # and don't put them in strong_aug()
-            lambda x: test_aug(term)(image=x[0], mask=x[1]),  # Yes, you have to use image=xxx
-            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)),  # make the image within the range
-            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)),  # for 1 dim gray scale
+            lambda x: test_aug(term),  # Yes, you have to use image=xxx
+            lambda x: (x[0](image=x[0], mask=x[1]), x[1]),
+            lambda x: (np.clip(x[0]['image'], a_min=0, a_max=255), np.clip(x[0]['mask'], a_min=0, a_max=255), x[1]),  # make the image within the range
+            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255), x[2]),  # for 1 dim gray scale
             # Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD), # this needs to be set accordingly
         ])
-        image, labels = TEST_TRANSFORM((image_0, labels_0))
+        image, labels, flip = TEST_TRANSFORM((image_0, labels_0))
         image_0, labels_0 = REGULARIZATION_TRAINSFORM((image_0, labels_0))
         if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels.shape, image_0.shape, labels_0.shape, empty.shape)
-        return (ids, image, labels, image_0, labels_0, empty)
+        return (ids, image, labels, image_0, labels_0, empty, flip)
     elif mode == "train":
         term = config.epoch % 8
         TRAIN_TRANSFORM = transforms.Compose([
             lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)),  # and don't put them in strong_aug()
-            lambda x: train_aug(term)(image=x[0], mask=x[1]),  # Yes, you have to use image=xxx
-            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)),  # make the image within the range
-            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)),  # for 1 dim gray scale
+            lambda x: train_aug(term),  # Yes, you have to use image=xxx
+            lambda x: (x[0](image=x[0], mask=x[1]), x[1]),
+            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255), x[1]),  # make the image within the range
+            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255), x[2]),  # for 1 dim gray scale
             # Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD), # this needs to be set accordingly
         ])
-        image, labels = TRAIN_TRANSFORM((image_0, labels_0))
+        image, labels, flip = TRAIN_TRANSFORM((image_0, labels_0))
         image_0, labels_0 = REGULARIZATION_TRAINSFORM((image_0, labels_0))
         if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels.shape, image_0.shape, labels_0.shape, empty.shape)
-        return (ids, image, labels, image_0, labels_0, empty)
+        return (ids, image, labels, image_0, labels_0, empty, flip)
     elif mode == "val":
         term = config.eval_index % 8
         VAL_TRANSFORM = transforms.Compose([
             lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)),  # and don't put them in strong_aug()
-            lambda x: eval_aug(term)(image=x[0], mask=x[1]),  # Yes, you have to use image=xxx
-            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)),  # make the image within the range
-            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)),  # for 1 dim gray scale
+            lambda x: eval_aug(term),  # Yes, you have to use image=xxx
+            lambda x: (x[0](image=x[0], mask=x[1]), x[1]),
+            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255), x[1]),  # make the image within the range
+            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255), x[2]),  # for 1 dim gray scale
             # Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD),
         ])
-        image, labels = VAL_TRANSFORM((image_0, labels_0))
+        image, labels, flip = VAL_TRANSFORM((image_0, labels_0))
         image_0, labels_0 = REGULARIZATION_TRAINSFORM((image_0, labels_0))
         if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels.shape, image_0.shape, labels_0.shape, empty.shape)
-        return (ids, image, labels, image_0, labels_0, empty)
+        return (ids, image, labels, image_0, labels_0, empty, flip)
     elif mode == "tta":
         term = config.eval_index % 8
         TTA_TRANSFORM = transforms.Compose([
             lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)),  # and don't put them in strong_aug()
-            lambda x: tta_aug(term)(image=x[0], mask=x[1]),  # Yes, you have to use image=xxx
-            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255)),  # make the image within the range
-            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255)),  # for 1 dim gray scale
+            lambda x: tta_aug(term),  # Yes, you have to use image=xxx
+            lambda x: (x[0](image=x[0], mask=x[1]), x[1]),
+            lambda x: (np.clip(x['image'], a_min=0, a_max=255), np.clip(x['mask'], a_min=0, a_max=255), x[1]),  # make the image within the range
+            lambda x: (torch.from_numpy(np.expand_dims(x[0], axis=0)).float().div(255), torch.from_numpy(np.expand_dims(x[1], axis=0)).float().div(255), x[2]),  # for 1 dim gray scale
             # Normalize(mean=config.AUGMENTATION_MEAN, std=config.AUGMENTATION_STD), # this needs to be set accordingly
         ])
-        image, labels = TTA_TRANSFORM((image_0, labels_0))
+        image, labels, flip = TTA_TRANSFORM((image_0, labels_0))
         image_0, labels_0 = REGULARIZATION_TRAINSFORM((image_0, labels_0))
         if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels.shape, image_0.shape, labels_0.shape, empty.shape)
-        return (ids, image, labels, image_0, labels_0, empty)
+        return (ids, image, labels, image_0, labels_0, empty, flip)

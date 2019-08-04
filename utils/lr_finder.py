@@ -126,10 +126,10 @@ class LRFinder(object):
             # labels = labels_0
             # For siim
             try:
-                ids, image, labels, image_0, labels_0, empty = next(iterator)
+                ids, image, labels, image_0, labels_0, empty, flip = next(iterator)
             except StopIteration:
                 iterator = iter(train_loader)
-                ids, image, labels, image_0, labels_0, empty = next(iterator)
+                ids, image, labels, image_0, labels_0, empty, flip = next(iterator)
             inputs = image
             labels = labels
 
@@ -200,12 +200,13 @@ class LRFinder(object):
         running_loss = 0
         self.model.eval()
         with torch.no_grad():
-            for ids, image, labels, image_0, labels_0, empty in dataloader:
+            for ids, image, labels, image_0, labels_0, empty, flip in dataloader:
                 inputs = image
                 labels = labels
                 # Move data to the correct device
                 inputs = inputs.to(self.device)
                 labels = labels.to(self.device)
+                flip = flip.to(self.device)
 
                 # Forward pass and loss computation
                 """ Edit this to fit your dataset """
@@ -213,7 +214,7 @@ class LRFinder(object):
                 # outputs = self.model(inputs)
                 # loss = self.criterion(labels, outputs).mean()
                 # siim
-                empty_logits, _idkwhatthisis_, logits_predict = self.model(inputs)
+                empty_logits, _idkwhatthisis_, logits_predict = self.model(inputs, flip)
 
                 labels = labels.cuda().float()
                 empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long

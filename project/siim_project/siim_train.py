@@ -354,7 +354,7 @@ class SIIMTrain:
             train_len = train_len + len(train_loader)
             running_ce = 0
             running_dice = 0
-            for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
+            for batch_index, (ids, image, labels, image_0, labels_0, empty, flip) in enumerate(pbar):
 
 
                 # """For Testing Only"""
@@ -382,7 +382,8 @@ class SIIMTrain:
                 """TRAIN NET"""
                 config.global_steps[fold] = config.global_steps[fold] + 1
                 image = image.cuda()
-                empty_logits, _idkwhatthisis_, logits_predict = net(image)
+                flip = flip.cuda()
+                empty_logits, _idkwhatthisis_, logits_predict = net(image, flip)
                 prob_predict = torch.nn.Sigmoid()(logits_predict)
                 prob_empty = torch.nn.Sigmoid()(empty_logits)
                 # prob_predict = prob_empty.unsqueeze(-1).unsqueeze(-1) * prob_predict -> THIS IS REALLY BAD BEHAVIOR
@@ -442,6 +443,7 @@ class SIIMTrain:
                 loss = loss.detach().cpu().numpy().mean()
 
                 image = image.cpu().numpy()
+                flip = flip.cpu().numpy()
                 labels = labels.cpu().numpy()
                 empty = empty.cpu().numpy()
                 logits_predict = logits_predict.detach().cpu().numpy()
@@ -503,7 +505,7 @@ class SIIMTrain:
 
                 """CLEAN UP"""
                 del ids, image_0, labels_0  # things threw away
-                del dice, iou, bce, ce, loss, image, labels, empty, logits_predict, prob_predict, prob_empty  # detach
+                del dice, iou, bce, ce, loss, image, flip, labels, empty, logits_predict, prob_predict, prob_empty  # detach
                 torch.cuda.empty_cache()  # release gpu memory
             del pbar
 
@@ -562,7 +564,7 @@ def eval_fold(net, writer, validation_loader):
         sum_loss = np.zeros(20, np.float32)
         sum_number = np.zeros(20, np.float32) + 1e-8
 
-        for batch_index, (ids, image, labels, image_0, labels_0, empty) in enumerate(pbar):
+        for batch_index, (ids, image, labels, image_0, labels_0, empty, flip) in enumerate(pbar):
 
 
 
@@ -579,7 +581,8 @@ def eval_fold(net, writer, validation_loader):
 
             """TRAIN NET"""
             image = image.cuda()
-            empty_logits, _idkwhatthisis_, logits_predict = net(image)
+            flip = flip.cuda()
+            empty_logits, _idkwhatthisis_, logits_predict = net(image, flip)
             prob_predict = torch.nn.Sigmoid()(logits_predict)
             prob_empty = torch.nn.Sigmoid()(empty_logits)
             # prob_predict = prob_empty.unsqueeze(-1).unsqueeze(-1) * prob_predict -> THIS IS REALLY BAD BEHAVIOR
@@ -630,6 +633,7 @@ def eval_fold(net, writer, validation_loader):
             loss = loss.detach().cpu().numpy()
 
             image = image.cpu().numpy()
+            flip = flip.cpu().numpy()
             labels = labels.cpu().numpy()
             empty = empty.cpu().numpy()
             logits_predict = logits_predict.detach().cpu().numpy()
@@ -697,7 +701,7 @@ def eval_fold(net, writer, validation_loader):
 
             """CLEAN UP"""
             del ids, image_0, labels_0  # things threw away
-            del dice, iou, bce, ce, loss, image, labels, empty, logits_predict, prob_predict, prob_empty  # detach
+            del dice, iou, bce, ce, loss, image, flip, labels, empty, logits_predict, prob_predict, prob_empty  # detach
             torch.cuda.empty_cache()
             if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
 
