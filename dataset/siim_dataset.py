@@ -1,35 +1,28 @@
-import collections
 import os
-import re
 
+import cv2
 import matplotlib as mpl
+import numpy as np
+import pandas as pd
 import pydicom
 import torch
-import cv2
+from albumentations import HorizontalFlip, ShiftScaleRotate, GaussNoise, OneOf, Compose, RandomGamma, Resize, IAAPiecewiseAffine, IAAPerspective
 from sklearn.model_selection._split import StratifiedKFold
+from sklearn.preprocessing import MultiLabelBinarizer
+from torch.utils import data
+from torch.utils.data import SubsetRandomSampler
+from torch.utils.data.dataloader import default_collate
+from torchvision.transforms import transforms
 from tqdm import tqdm
 
 import config
-import numpy as np
-import pandas as pd
-from iterstrat.ml_stratifiers import MultilabelStratifiedKFold
-from torch._six import string_classes, int_classes
-from torch.utils import data
-from torch.utils.data import SubsetRandomSampler
-from sklearn.preprocessing import MultiLabelBinarizer
-from torch.utils.data.dataloader import default_collate
-from torchvision.transforms import transforms
-
-from sampler.BalanceClassSampler import BalanceClassSampler
-from albumentations import (
-    HorizontalFlip, CLAHE, ShiftScaleRotate, Blur, GaussNoise, RandomBrightnessContrast, IAASharpen, IAAEmboss, OneOf, Compose, JpegCompression,
-    CenterCrop, PadIfNeeded, RandomCrop, RandomGamma, Resize, IAAPiecewiseAffine, IAAPerspective)
-# don't import Normalize from albumentations
-
 import tensorboardwriter
+from sampler.BalanceClassSampler import BalanceClassSampler
 from sampler.SequentialSampler import SequentialSampler
-from utils.augmentation import AdaptivePadIfNeeded, DoNothing, RandomPercentCrop
+from utils.augmentation import DoNothing, RandomPercentCrop
 from utils.encode import rle2mask
+
+# don't import Normalize from albumentations
 
 if os.environ.get('DISPLAY', '') == '':
     print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')
