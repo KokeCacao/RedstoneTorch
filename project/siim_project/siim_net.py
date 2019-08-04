@@ -673,9 +673,7 @@ class model34_DeepSupervion_GroupNorm_OC(nn.Module):
         conv4 = self.conv4(conv3) #1/16
         conv5 = self.conv5(conv4) #1/32
 
-        _ = self.center_global_pool(conv5)
-        print(_.shape, flip.shape)
-        center_64 = self.center_conv1x1(torch.cat((_, flip)))
+        center_64 = self.center_conv1x1(torch.cat((self.center_global_pool(conv5), flip.view(-1, 1, 1, 1))))
 
         d5 = self.decoder5(self.center(conv5), conv5)
         del conv5
