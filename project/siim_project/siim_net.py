@@ -658,13 +658,13 @@ class model34_DeepSupervion_GroupNorm_OC(nn.Module):
         #                             nn.LeakyReLU(inplace=True),
         #                             nn.Conv2d(64, 1, kernel_size=1, padding=0))
 
-        # self.logits_final = nn.Sequential(nn.Conv2d(320+64, 64, kernel_size=3, padding=1),
-        #                                  nn.LeakyReLU(inplace=True),
-        #                                  nn.Conv2d(64, 1, kernel_size=1, padding=0))
+        self.logits_final = nn.Sequential(nn.Conv2d(320+64, 64, kernel_size=3, padding=1),
+                                         nn.LeakyReLU(inplace=True),
+                                         nn.Conv2d(64, 1, kernel_size=1, padding=0))
 
-        self.context = nn.Sequential(ocnet.ASP_OC_Module(320+64, 64),
-                                     nn.LeakyReLU(inplace=True))
-        self.logits_final = nn.Conv2d(64, 1, kernel_size=1, padding=0)
+        # self.context = nn.Sequential(ocnet.ASP_OC_Module(320+64, 64),
+        #                              nn.LeakyReLU(inplace=True))
+        # self.logits_final = nn.Conv2d(64, 1, kernel_size=1, padding=0)
 
     def forward(self, x, flip):
         conv2 = self.conv2(self.conv1(x)) #1/4
