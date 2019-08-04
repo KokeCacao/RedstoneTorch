@@ -382,7 +382,8 @@ class SIIMTrain:
                 """TRAIN NET"""
                 config.global_steps[fold] = config.global_steps[fold] + 1
                 image = image.cuda()
-                flip = flip.cuda()
+                flip = flip.cuda().float()
+                print(flip)
                 empty_logits, _idkwhatthisis_, logits_predict = net(image, flip)
                 prob_predict = torch.nn.Sigmoid()(logits_predict)
                 prob_empty = torch.nn.Sigmoid()(empty_logits)

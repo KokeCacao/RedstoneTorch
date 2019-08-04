@@ -417,7 +417,6 @@ def tta_collate(batch):
     return default_collate(batch)
 
 def transform(ids, image_0, labels_0, empty, mode):
-    print(image_0.shape)
     REGULARIZATION_TRAINSFORM = transforms.Compose([
         lambda x: (cv2.cvtColor(x[0], cv2.COLOR_BGR2GRAY), cv2.cvtColor(x[1], cv2.COLOR_BGR2GRAY)),  # and don't put them in strong_aug()
         lambda x: no_aug()(image=x[0], mask=x[1]),  # Yes, you have to use image=xxx
