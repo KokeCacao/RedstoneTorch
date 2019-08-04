@@ -365,7 +365,7 @@ def train_aug(term):
         HorizontalFlip(p=flip),
         RandomGamma(gamma_limit=(80, 110), p=0.8),
         GaussNoise(p=0.8),
-        IAAPerspective(scale=(0.01, 0.08), keep_size=True, p=0.8),
+        # IAAPerspective(scale=(0.01, 0.08), p=0.8),
         ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.2), rotate_limit=5, p=0.8, border_mode=cv2.BORDER_CONSTANT),
         Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
     ]), flip
