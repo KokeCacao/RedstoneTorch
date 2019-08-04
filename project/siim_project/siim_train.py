@@ -25,7 +25,7 @@ from lr_scheduler.Constant import Constant
 from lr_scheduler.PlateauCyclicRestart import PlateauCyclicRestart
 from optimizer import adamw
 from project.siim_project import siim_net
-from project.siim_project.siim_net import model34_DeepSupervion, model50A_DeepSupervion, model34_DeepSupervion_GroupNorm_OC
+from project.siim_project.siim_net import model34_DeepSupervion, model50A_DeepSupervion, model34_DeepSupervion_GroupNorm_OC, model34_DeepSupervion_GroupNorm
 from project.siim_project.siim_util import compute_kaggle_lb
 from utils import load
 from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx, remove_checkpoint_fold, set_milestone
@@ -68,6 +68,8 @@ class SIIMTrain:
                 elif config.net == "resunet34-ds":
                     net = model34_DeepSupervion(num_classes=config.TRAIN_NUM_CLASS)
                 elif config.net == "resunet34-ds-gn":
+                    net = model34_DeepSupervion_GroupNorm(num_classes=config.TRAIN_NUM_CLASS)
+                elif config.net == "resunet34-ds-gn-oc":
                     net = model34_DeepSupervion_GroupNorm_OC(num_classes=config.TRAIN_NUM_CLASS)
                 ## leaky relu?
                 else:
