@@ -375,8 +375,6 @@ class SIIMTrain:
                 # drop last batch that has irregular shape
                 if empty.sum() == 0 or empty.sum() == 1:
                     config.log.write(" => WARNING: empty.sum() == {}".format(empty.sum()), once=1)
-                else:
-                    config.log.write(" => WARNING: empty.sum() != {}".format("0/1"), once=1)
                 if train_len < 1 and config.epoch % (1 / config.TRAIN_RATIO) != batch_index % (1 / config.TRAIN_RATIO):
                     continue
 
@@ -399,22 +397,22 @@ class SIIMTrain:
                 empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
 
                 # dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, prob_predict)
-                # dice = binary_dice_pytorch_loss(labels, prob_predict, smooth=1e-5)
-                dice = nonempty_binary_dice_pytorch_loss(labels, prob_predict, empty, smooth=1e-5)
+                dice = binary_dice_pytorch_loss(labels, prob_predict, smooth=1e-5)
+                # dice = nonempty_binary_dice_pytorch_loss(labels, prob_predict, empty, smooth=1e-5)
                 # iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, prob_predict)
                 iou = mIoULoss(mean=False, eps=1e-5)(labels, prob_predict)
                 # hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
                 bce = BCELoss(reduction='none')(prob_empty.squeeze(-1), empty)
                 # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
-                # ce = segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
-                ce = nonempty_segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), empty, pos_prob=0.25, neg_prob=0.75)
+                ce = segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
+                # ce = nonempty_segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), empty, pos_prob=0.25, neg_prob=0.75)
 
                 """Heng CherKeng"""
                 dice_cherkeng, dice_neg, dice_pos, num_neg, num_pos = metric(labels, logits_predict)
 
                 if config.epoch < 2:
                     loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
-                if config.epoch < 61:
+                elif config.epoch < 61:
                     loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
                 elif config.epoch < 200:
                     # loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean() # v142
@@ -617,7 +615,7 @@ def eval_fold(net, writer, validation_loader):
 
             if config.epoch < 2:
                 loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
-            if config.epoch < 61:
+            elif config.epoch < 61:
                 loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
             elif config.epoch < 200:
                 # loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean() # v142
