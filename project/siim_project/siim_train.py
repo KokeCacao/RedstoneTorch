@@ -359,7 +359,7 @@ class SIIMTrain:
             for batch_index, (ids, image, labels, image_0, labels_0, empty, flip) in enumerate(pbar):
 
                 # fix empty
-                empty = (image.sum(dim=(1, 2, 3)) == 0).float()
+                empty = (labels.sum(dim=(1, 2, 3)) == 0).float()
 
                 # """For Testing Only"""
                 # for id in ids:
@@ -575,7 +575,7 @@ def eval_fold(net, writer, validation_loader):
         for batch_index, (ids, image, labels, image_0, labels_0, empty, flip) in enumerate(pbar):
 
             # fix empty
-            empty = (image.sum(dim=(1, 2, 3)) == 0).float()
+            empty = (labels.sum(dim=(1, 2, 3)) == 0).float()
 
 
             # """For Testing Only"""
