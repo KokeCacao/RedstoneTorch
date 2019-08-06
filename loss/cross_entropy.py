@@ -39,7 +39,6 @@ def nonempty_segmentation_weighted_binary_cross_entropy(input, target, empty, po
     target = target.view(target.shape[0], -1)
 
     empty = np.argwhere((empty.cpu().numpy().squeeze())==0).squeeze()
-    print("-------", empty.shape, input.shape, target.shape)
     input = input[empty]
     target = target[empty]
 

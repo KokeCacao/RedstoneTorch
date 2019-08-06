@@ -214,6 +214,21 @@ def binary_dice_pytorch_loss(target, input, smooth=1e-5, mean=False):
     if mean: return loss.mean()
     else: return loss
 
+def nonempty_binary_dice_pytorch_loss(target, input, empty, smooth=1e-5, mean=False):
+    n = target.shape[0]
+    iflat = input.view(n, -1)
+    tflat = target.view(n, -1)
+
+    empty = np.argwhere((empty.cpu().numpy().squeeze())==0).squeeze()
+    iflat = iflat[empty]
+    tflat = tflat[empty]
+
+    intersection = (iflat * tflat).sum(dim=-1)
+    union = (iflat + tflat).sum(dim=-1)
+    loss = 1 - ((2. * intersection + smooth) / (union + smooth))
+    if mean: return loss.mean()
+    else: return loss
+
 # written by myself, soft
 def binary_dice_numpy_loss(target, input, smooth=1e-5, mean=False):
     n = target.shape[0]
