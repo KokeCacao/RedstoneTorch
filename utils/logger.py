@@ -5,7 +5,7 @@ class Logger(object):
     def __init__(self):
         self.terminal = sys.stdout  #stdout
         self.file = None
-        self.once_msg = []
+        self.once_msg = set()
 
     def open(self, file, mode=None):
         if mode is None: mode ='w'
@@ -14,7 +14,7 @@ class Logger(object):
     def write(self, message, is_terminal=1, is_file=1, once=0):
         if once:
             if message not in self.once_msg:
-                self.once_msg.append(message)
+                self.once_msg.add(message)
             else:
                 return
 
