@@ -104,25 +104,25 @@ class SIIMTrain:
                 # optimizer = adamw.AdamW(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-8, weight_decay=config.MODEL_WEIGHT_DECAY, amsgrad=False)
                 self.optimizers.append(optimizer)
                 self.nets.append(net)
-                self.lr_schedulers.append(PlateauCyclicRestart(optimizer,
-                                                               eval_mode='max',
-                                                               factor=config.MODEL_LR_SCHEDULER_REDUCE_FACTOR,
-                                                               patience=config.MODEL_LR_SCHEDULER_PATIENT,
-                                                               verbose=False,
-                                                               threshold=config.MODEL_LR_SCHEDULER_THRESHOLD,
-                                                               threshold_mode='abs',
-                                                               cooldown=0,
-                                                               eps=1e-8,
-                                                               base_lr=config.MODEL_LR_SCHEDULER_BASELR,
-                                                               max_lr=config.MODEL_LR_SCHEDULER_MAXLR,
-                                                               step_size=config.MODEL_LR_SCHEDULER_STEP,
-                                                               mode='plateau_cyclic',
-                                                               gamma=1.,
-                                                               scale_mode='cycle',
-                                                               last_batch_iteration=-1,
-                                                               reduce_restart=config.MODEL_LR_SCHEDULER_REDUCE_RESTART,
-                                                               restart_coef=config.MODEL_LR_SCHEDULER_RESTART_COEF))
-                # self.lr_schedulers.append(Constant(optimizer, eval_mode="max", threshold=config.MODEL_LR_SCHEDULER_THRESHOLD, threshold_mode="abs", last_batch_iteration=-1))
+                # self.lr_schedulers.append(PlateauCyclicRestart(optimizer,
+                #                                                eval_mode='max',
+                #                                                factor=config.MODEL_LR_SCHEDULER_REDUCE_FACTOR,
+                #                                                patience=config.MODEL_LR_SCHEDULER_PATIENT,
+                #                                                verbose=False,
+                #                                                threshold=config.MODEL_LR_SCHEDULER_THRESHOLD,
+                #                                                threshold_mode='abs',
+                #                                                cooldown=0,
+                #                                                eps=1e-8,
+                #                                                base_lr=config.MODEL_LR_SCHEDULER_BASELR,
+                #                                                max_lr=config.MODEL_LR_SCHEDULER_MAXLR,
+                #                                                step_size=config.MODEL_LR_SCHEDULER_STEP,
+                #                                                mode='plateau_cyclic',
+                #                                                gamma=1.,
+                #                                                scale_mode='cycle',
+                #                                                last_batch_iteration=-1,
+                #                                                reduce_restart=config.MODEL_LR_SCHEDULER_REDUCE_RESTART,
+                #                                                restart_coef=config.MODEL_LR_SCHEDULER_RESTART_COEF))
+                self.lr_schedulers.append(Constant(optimizer, eval_mode="max", threshold=config.MODEL_LR_SCHEDULER_THRESHOLD, threshold_mode="abs", last_batch_iteration=-1))
 
             self.train_loader.append(data.DataLoader(self.dataset,
                                                      batch_size=config.MODEL_BATCH_SIZE,
