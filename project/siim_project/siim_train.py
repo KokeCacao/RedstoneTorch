@@ -833,8 +833,8 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
 
     empty_total = empty_total.squeeze()
     prob_empty_total = ((prob_empty_total.squeeze()) > eval_emptyshreshold).astype(np.byte)
-    config.log.write(classification_report(empty_total, prob_empty_total, target_names=["Pneumothorax", "Empty"]))
-    tn, fp, fn, tp = confusion_matrix(empty_total, prob_empty_total).ravel()
+    config.log.write(classification_report(empty_total, prob_empty_total, target_names=["Pneumothorax", "Empty"], labels=[0, 1]))
+    tn, fp, fn, tp = confusion_matrix(empty_total, prob_empty_total, labels=[0, 1]).ravel()
     config.log.write(
         """
                                True     False
