@@ -596,15 +596,15 @@ def eval_fold(net, writer, validation_loader):
             empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
 
             # dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, prob_predict)
-            # dice = binary_dice_pytorch_loss(labels, prob_predict, smooth=1e-5)
-            dice = nonempty_binary_dice_pytorch_loss(labels, prob_predict, empty, smooth=1e-5)
+            dice = binary_dice_pytorch_loss(labels, prob_predict, smooth=1e-5)
+            # dice = nonempty_binary_dice_pytorch_loss(labels, prob_predict, empty, smooth=1e-5)
             # iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, prob_predict)
             iou = mIoULoss(mean=False, eps=1e-5)(labels, prob_predict)
             # hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
             bce = BCELoss(reduction='none')(prob_empty.squeeze(-1), empty)
             # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
-            # ce = segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
-            ce = nonempty_segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), empty, pos_prob=0.25, neg_prob=0.75)
+            ce = segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
+            # ce = nonempty_segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), empty, pos_prob=0.25, neg_prob=0.75)
 
             """Heng CherKeng"""
             dice_cherkeng, dice_neg, dice_pos, num_neg, num_pos = metric(labels, logits_predict)
