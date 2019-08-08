@@ -356,7 +356,6 @@ class SEResUNetscSEHyper34(nn.Module):
 
         f = self.center(e5)
 
-        print(f.shape)
         classification = self.center_fc(F.max_pool2d(f, kernel_size=8).view(f.size(0), -1))
 
         # print('f',f.size())
