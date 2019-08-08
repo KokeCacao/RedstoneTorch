@@ -342,7 +342,7 @@ class SEResUNetscSEHyper34(nn.Module):
         )
         self.center_fc = nn.Linear(512, num_classes)
 
-    def forward(self, x):
+    def forward(self, x, flip):
         e1 = self.conv1(x)
         # print(e1.size())
         e2 = self.encoder2(e1)
@@ -418,7 +418,7 @@ class ResUNetscSEHyper32(nn.Module):
         )
         self.center_fc = nn.Linear(512, num_classes)
 
-    def forward(self, x):
+    def forward(self, x, flip):
         e1 = self.conv1(x)
         # print("e1",e1.size())
         e2 = self.encoder2(e1)
