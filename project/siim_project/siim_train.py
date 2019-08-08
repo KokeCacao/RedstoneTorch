@@ -23,6 +23,8 @@ from loss.dice import binary_dice_pytorch_loss, binary_dice_numpy_gain, nonempty
 from loss.iou import mIoULoss
 from lr_scheduler.Constant import Constant
 from lr_scheduler.PlateauCyclicRestart import PlateauCyclicRestart
+from net.seresunet34_scse_hyper import SEResUNetscSEHyper34, ResUNetscSEHyper32
+from net.seresunext50_oc_scse_hyper import SeResUNeXtscSEOCHyper50
 from optimizer import adamw
 from project.siim_project import siim_net
 from project.siim_project.siim_net import model34_DeepSupervion, model50A_DeepSupervion, model34_DeepSupervion_GroupNorm_OC, model34_DeepSupervion_GroupNorm
@@ -71,6 +73,12 @@ class SIIMTrain:
                     net = model34_DeepSupervion_GroupNorm(num_classes=config.TRAIN_NUM_CLASS)
                 elif config.net == "resunet34-ds-gn-oc":
                     net = model34_DeepSupervion_GroupNorm_OC(num_classes=config.TRAIN_NUM_CLASS)
+                elif config.net == "seresunext50_oc_scse_hyper":
+                    net = SeResUNeXtscSEOCHyper50(num_classes=config.TRAIN_NUM_CLASS, dilation=False)
+                elif config.net == "seresunet34-ds-scse-hyper":
+                    net = SEResUNetscSEHyper34(num_classes=config.TRAIN_NUM_CLASS)
+                elif config.net == "resunet32-ds-scse-hyper":
+                    net = ResUNetscSEHyper32(num_classes=config.TRAIN_NUM_CLASS)
                 ## leaky relu?
                 else:
                     raise ValueError("The Network {} you specified is not in one of the network you can use".format(config.net))
@@ -412,11 +420,11 @@ class SIIMTrain:
 
                 if config.epoch < 2:
                     loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
-                elif config.epoch < 61:
-                    loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
                 elif config.epoch < 200:
-                    # loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean() # v142
-                    loss = 0.5 * ce.sum() + 0.5 * bce.mean() # v143
+                    loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
+                # elif config.epoch < 200:
+                #     # loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean() # v142
+                #     loss = 0.5 * ce.sum() + 0.5 * bce.mean() # v143
                 else:
                     raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
@@ -615,11 +623,11 @@ def eval_fold(net, writer, validation_loader):
 
             if config.epoch < 2:
                 loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
-            elif config.epoch < 61:
-                loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
             elif config.epoch < 200:
-                # loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean() # v142
-                loss = 0.5 * ce.sum() + 0.5 * bce.mean() # v143
+                loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
+            # elif config.epoch < 200:
+            #     # loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean() # v142
+            #     loss = 0.5 * ce.sum() + 0.5 * bce.mean() # v143
             else:
                 raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
