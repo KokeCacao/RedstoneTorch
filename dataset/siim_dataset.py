@@ -357,16 +357,15 @@ def train_aug(term):
     return Compose([
         # HorizontalFlip(p=flip),
         OneOf([
-            RandomBrightnessContrast(),
-            RandomGamma(gamma_limit=(80, 110), p=0.8),
-        ], p=0.3),
+            RandomBrightnessContrast(p=0.3),
+            RandomGamma(gamma_limit=(80, 110), p=0.3),
+        ], p=1),
         GaussNoise(p=0.3),
-        # OneOf([
-            # ElasticTransform(alpha=120, sigma=120*0.05, alpha_affine=120*0.03, interpolation=cv2.INTER_LINEAR, border_mode=cv2.BORDER_CONSTANT),
-            # OpticalDistortion(distort_limit=2, shift_limit=0.5, interpolation=cv2.INTER_LINEAR, border_mode=cv2.BORDER_CONSTANT),
-            # IAAPerspective(scale=(0.01, 0.08), p=0.8),
-        # ], p=0.3),
-        ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.5, 0.2), rotate_limit=5, p=0.8, border_mode=cv2.BORDER_CONSTANT),
+        OneOf([
+            OpticalDistortion(distort_limit=0.3, shift_limit=0, interpolation=cv2.INTER_LINEAR, border_mode=cv2.BORDER_CONSTANT, p=0.3),
+            IAAPerspective(scale=(0.01, 0.08), p=0.3),
+        ], p=1),
+        ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.4), rotate_limit=5, p=0.8, border_mode=cv2.BORDER_CONSTANT),
         Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
     ]), flip
 def eval_aug(term):
