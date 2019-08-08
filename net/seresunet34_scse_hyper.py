@@ -340,7 +340,7 @@ class SEResUNetscSEHyper34(nn.Module):
             nn.ELU(inplace=True),
             nn.Conv2d(64, 1, kernel_size=1, padding=0),
         )
-        self.center_fc = nn.Linear(512, num_classes)
+        self.center_fc = nn.Linear(256, num_classes)
 
     def forward(self, x, flip):
         e1 = self.conv1(x)
@@ -357,7 +357,7 @@ class SEResUNetscSEHyper34(nn.Module):
         f = self.center(e5)
 
         print(f.shape)
-        classification = self.center_fc(f.view(f.size(0), -1))
+        classification = self.center_fc(F.max_pool2d(f).view(f.size(0), -1))
 
         # print('f',f.size())
         d5 = self.decoder5(f, e5)
@@ -416,7 +416,7 @@ class ResUNetscSEHyper32(nn.Module):
             nn.ELU(inplace=True),
             nn.Conv2d(64, 1, kernel_size=1, padding=0),
         )
-        self.center_fc = nn.Linear(512, num_classes)
+        self.center_fc = nn.Linear(256, num_classes)
 
     def forward(self, x, flip):
         e1 = self.conv1(x)
@@ -433,7 +433,7 @@ class ResUNetscSEHyper32(nn.Module):
         f = self.center(e4)
 
         print(f.shape)
-        classification = self.center_fc(f.view(f.size(0), -1))
+        classification = self.center_fc(F.max_pool2d(f).view(f.size(0), -1))
 
         # print('f',f.size())
         # d5 = self.decoder5(f, e5)
