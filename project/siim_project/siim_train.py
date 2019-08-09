@@ -35,6 +35,15 @@ from utils.logger import Logger
 from utils.lr_finder import LRFinder
 from utils.other import calculate_shakeup, calculate_threshold
 
+if config.MODEL_APEX:
+    try:
+        from apex.parallel import DistributedDataParallel as DDP
+        from apex.fp16_utils import *
+        from apex import amp, optimizers
+        from apex.multi_tensor_apply import multi_tensor_applier
+    except ImportError:
+        raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
+
 if os.environ.get('DISPLAY', '') == '':
     print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')
     mpl.use('Agg')
@@ -110,6 +119,10 @@ class SIIMTrain:
                 optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
                 # optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, weight_decay=config.MODEL_WEIGHT_DECAY)
                 # optimizer = adamw.AdamW(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-8, weight_decay=config.MODEL_WEIGHT_DECAY, amsgrad=False)
+
+                if config.MODEL_APEX:
+                    model, optimizer = amp.initialize(net, optimizer)
+
                 self.optimizers.append(optimizer)
                 self.nets.append(net)
                 # self.lr_schedulers.append(PlateauCyclicRestart(optimizer,
@@ -429,7 +442,11 @@ class SIIMTrain:
                     raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
                 """BACKPROP"""
-                loss.backward()
+                if config.MODEL_APEX:
+                    with amp.scale_loss(loss, optimizer) as scaled_loss:
+                        scaled_loss.backward()
+                else:
+                    loss.backward()
                 if (batch_index + 1) % config.TRAIN_GRADIENT_ACCUMULATION == 0:  # backward
                     optimizer.step()
                     optimizer.zero_grad()
