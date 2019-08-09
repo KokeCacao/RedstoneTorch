@@ -114,14 +114,14 @@ class SIIMTrain:
                             config.log.write("Enable Gradient for layer: {} (default)".format(i))
 
                 config.log.write("Let's use", torch.cuda.device_count(), "GPUs!")
-                net = torch.nn.DataParallel(net, device_ids=[i for i in range(torch.cuda.device_count())])
 
                 optimizer = torch.optim.SGD(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, momentum=config.MODEL_MOMENTUM, weight_decay=config.MODEL_WEIGHT_DECAY)
                 # optimizer = torch.optim.Adam(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, weight_decay=config.MODEL_WEIGHT_DECAY)
                 # optimizer = adamw.AdamW(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-8, weight_decay=config.MODEL_WEIGHT_DECAY, amsgrad=False)
 
                 if config.MODEL_APEX:
-                    model, optimizer = amp.initialize(net, optimizer, opt_level="O1")
+                    net, optimizer = amp.initialize(net, optimizer, opt_level="O1")
+                net = torch.nn.DataParallel(net, device_ids=[i for i in range(torch.cuda.device_count())])
 
                 self.optimizers.append(optimizer)
                 self.nets.append(net)
