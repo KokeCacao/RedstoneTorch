@@ -51,6 +51,7 @@ def get_args():
     parser.add_option('--net', type="string", dest='net', default=None, help='Network You Want to Use')
     parser.add_option('--freeze', type="string", dest='freeze', default=False, help='Freeze Network by Name')
     parser.add_option('--train_ratio', type="float", dest='train_ratio', default=0, help='Train Ratio')
+    parser.add_option('--mix', type="string", dest='mix', default=False, help='Freeze Network by Name')
 
     (options, args) = parser.parse_args()
     return options
@@ -73,6 +74,7 @@ def load_args():
     config.resetlr = args.resetlr
 
     if args.train_ratio != 0: config.TRAIN_RATIO = args.train_ratio
+    if args.mix == "True": config.MODEL_APEX = True
 
     if args.resetlr != 0:
         config.MODEL_INIT_LEARNING_RATE = args.resetlr
