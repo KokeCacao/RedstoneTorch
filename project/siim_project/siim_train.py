@@ -35,14 +35,14 @@ from utils.logger import Logger
 from utils.lr_finder import LRFinder
 from utils.other import calculate_shakeup, calculate_threshold
 
-if config.MODEL_APEX:
-    try:
-        from apex.parallel import DistributedDataParallel as DDP
-        from apex.fp16_utils import *
-        from apex import amp, optimizers
-        from apex.multi_tensor_apply import multi_tensor_applier
-    except ImportError:
-        raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
+
+try:
+    from apex.parallel import DistributedDataParallel as DDP
+    from apex.fp16_utils import *
+    from apex import amp, optimizers
+    from apex.multi_tensor_apply import multi_tensor_applier
+except ImportError:
+    if config.MODEL_APEX: raise ImportError("Please install apex from https://www.github.com/nvidia/apex to run this example.")
 
 if os.environ.get('DISPLAY', '') == '':
     print('WARNING: No display found. Using non-interactive Agg backend for loading matplotlib.')
