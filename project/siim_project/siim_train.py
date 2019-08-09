@@ -120,7 +120,7 @@ class SIIMTrain:
                 # optimizer = adamw.AdamW(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-8, weight_decay=config.MODEL_WEIGHT_DECAY, amsgrad=False)
 
                 if config.MODEL_APEX:
-                    net.gpu()
+                    net = net.cuda()
                     net, optimizer = amp.initialize(net, optimizer, opt_level="O1")
                 net = torch.nn.DataParallel(net, device_ids=[i for i in range(torch.cuda.device_count())])
 
