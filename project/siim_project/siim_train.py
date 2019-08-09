@@ -121,7 +121,7 @@ class SIIMTrain:
                 # optimizer = adamw.AdamW(params=net.parameters(), lr=config.MODEL_INIT_LEARNING_RATE, betas=(0.9, 0.999), eps=1e-8, weight_decay=config.MODEL_WEIGHT_DECAY, amsgrad=False)
 
                 if config.MODEL_APEX:
-                    model, optimizer = amp.initialize(net, optimizer)
+                    model, optimizer = amp.initialize(net, optimizer, opt_level="O1")
 
                 self.optimizers.append(optimizer)
                 self.nets.append(net)
