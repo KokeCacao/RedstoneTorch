@@ -146,7 +146,7 @@ class SIIMTrain:
                 #                                                reduce_restart=config.MODEL_LR_SCHEDULER_REDUCE_RESTART,
                 #                                                restart_coef=config.MODEL_LR_SCHEDULER_RESTART_COEF))
                 # self.lr_schedulers.append(Constant(optimizer, eval_mode="max", threshold=config.MODEL_LR_SCHEDULER_THRESHOLD, threshold_mode="abs", last_batch_iteration=-1))
-                self.lr_schedulers.append(CosineAnnealingWarmRestarts(optimizer, 60, T_mult=1.1, eta_min=0.00001, last_epoch=-1, start_epoch=config.epoch))
+                self.lr_schedulers.append(CosineAnnealingWarmRestarts(optimizer, 60, T_mult=1, eta_min=0.00001, last_epoch=-1, start_epoch=config.epoch))
 
             self.train_loader.append(data.DataLoader(self.dataset,
                                                      batch_size=config.MODEL_BATCH_SIZE,
