@@ -22,6 +22,7 @@ from loss.dice import binary_dice_pytorch_loss, binary_dice_numpy_gain, nonempty
 # from loss.hinge import lovasz_hinge
 from loss.iou import mIoULoss
 from lr_scheduler.Constant import Constant
+from lr_scheduler.CosineAnnealingWarmRestarts import CosineAnnealingWarmRestarts
 from lr_scheduler.PlateauCyclicRestart import PlateauCyclicRestart
 from net.seresunet34_scse_hyper import SEResUNetscSEHyper34, ResUNetscSEHyper32
 from net.seresunext50_oc_scse_hyper import SeResUNeXtscSEOCHyper50
@@ -144,7 +145,8 @@ class SIIMTrain:
                 #                                                last_batch_iteration=-1,
                 #                                                reduce_restart=config.MODEL_LR_SCHEDULER_REDUCE_RESTART,
                 #                                                restart_coef=config.MODEL_LR_SCHEDULER_RESTART_COEF))
-                self.lr_schedulers.append(Constant(optimizer, eval_mode="max", threshold=config.MODEL_LR_SCHEDULER_THRESHOLD, threshold_mode="abs", last_batch_iteration=-1))
+                # self.lr_schedulers.append(Constant(optimizer, eval_mode="max", threshold=config.MODEL_LR_SCHEDULER_THRESHOLD, threshold_mode="abs", last_batch_iteration=-1))
+                self.lr_schedulers.append(CosineAnnealingWarmRestarts(optimizer, 60, T_mult=1.1, eta_min=0.00001, last_epoch=-1, start_epoch=config.epoch))
 
             self.train_loader.append(data.DataLoader(self.dataset,
                                                      batch_size=config.MODEL_BATCH_SIZE,
@@ -342,9 +344,9 @@ class SIIMTrain:
                 score = eval_fold(net, self.writer, self.validation_loader[config.fold])
 
             """Update Learning Rate Scheduler"""
-            if lr_scheduler is not None:
-                _ = lr_scheduler.step_epoch(metrics=score, epoch=config.epoch)
-                config.log.write(_)
+            # if lr_scheduler is not None:
+                # _ = lr_scheduler.step_epoch(metrics=score, epoch=config.epoch) # plateau_cyclic_restart
+                # config.log.write(_)
 
             net = net.cpu()
             optimizer = load.move_optimizer_to_cpu(optimizer)
@@ -403,7 +405,8 @@ class SIIMTrain:
                 """UPDATE LR"""
                 # if config.global_steps[fold] == 2 * 46808 / 32 - 1: print("Perfect Place to Stop")
                 # optimizer.state['lr'] = config.TRAIN_TRY_LR_FORMULA(config.global_steps[fold]) if config.TRAIN_TRY_LR else config.TRAIN_COSINE(config.global_steps[fold])
-                lr_scheduler.step(0, config.epoch, config.global_steps[fold], float(train_len))
+                # lr_scheduler.step(0, config.epoch, config.global_steps[fold], float(train_len)) # plateau_cyclic_restart
+                lr_scheduler.step(config.epoch-1 + batch_index/train_len) # cosine_annealing_warm_restart
 
                 """TRAIN NET"""
                 config.global_steps[fold] = config.global_steps[fold] + 1
