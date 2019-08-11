@@ -55,24 +55,13 @@ MODEL_NO_GRAD = [[-1], [-1], [-1], [-1], ] # THIS WOULD ONLY BE EFFECTIVET IF ma
 MODEL_LEARNING_RATE_AFTER_UNFREEZE = 0.001
 MODEL_FREEZE_EPOCH = 2
 
-TRAIN_GPU_DICT = {
-    "kokecacao-ThinkPad-P50-Ubuntu": "0",
-    "ml-k80-3": "0",
-    "ml-k80-4": "0",
-    "ml-p100-1": "0",
-    "presudo-0": "0",
-    "presudo-1": "0",
-    "presudo-2": "0",
-    "presudo-3": "0",
-    "KokeCacao-Ubuntu": "0",
-}
-TRAIN_GPU_ARG = "0" if socket.gethostname() not in TRAIN_GPU_DICT else TRAIN_GPU_DICT[socket.gethostname()]
-if socket.gethostname() not in TRAIN_GPU_DICT: print("Machine {} is not in record, use gpu #0")
+TRAIN_GPU_ARG = ",".join(str(i) for i in range(torch.cuda.device_count()))
 TRAIN_GPU_LIST = [int(i) for i in TRAIN_GPU_ARG.split(",")]
 TRAIN_DATA_PERCENT = 1
 TRAIN_SEED = 19
 TRAIN_NUM_WORKER = multiprocessing.cpu_count()
 TRAIN_NUM_GPU = len(TRAIN_GPU_LIST)
+if TRAIN_NUM_GPU != torch.cuda.device_count(): raise ValueError("TRAIN_NUM_GPU != torch.cuda.device_count()")
 TRAIN_NUM_CLASS = 1 # gray scale
 TRAIN_GRADIENT_ACCUMULATION = 8
 

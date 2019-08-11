@@ -153,7 +153,7 @@ if __name__ == '__main__':
         writer = SummaryWriter(config.DIRECTORY_CHECKPOINT)
         config.log.write("=> Tensorboard: " + "tensorboard --logdir=" + config.DIRECTORY_CHECKPOINT + " --port=6006")
 
-        reproduceability()
+        reproduceability(log=config.log)
 
         # memory = memory_thread(1, writer)
         # memory.setDaemon(True)
