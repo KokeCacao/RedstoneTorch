@@ -168,7 +168,7 @@ if __name__ == '__main__':
             project = siim_train.SIIMTrain(writer)
         except Exception as e:
             error = traceback.format_exc()
-            config.log.write(error)
+            config.log.write(error, is_terminal=0)
             if not isinstance(e, KeyboardInterrupt):
                 os.system("sudo shutdown -P +20")
                 config.log.write("""
@@ -178,6 +178,6 @@ if __name__ == '__main__':
             raise
         os.system("sudo shutdown -P +20")
         config.log.write("""
-                            WARNING: THE SYSTEM WILL SHUTDOWN
-                            Use command: sudo shutdown -c
-                        """)
+                    WARNING: THE SYSTEM WILL SHUTDOWN
+                    Use command: sudo shutdown -c
+                """)

@@ -146,7 +146,7 @@ class SIIMTrain:
                 #                                                reduce_restart=config.MODEL_LR_SCHEDULER_REDUCE_RESTART,
                 #                                                restart_coef=config.MODEL_LR_SCHEDULER_RESTART_COEF))
                 # self.lr_schedulers.append(Constant(optimizer, eval_mode="max", threshold=config.MODEL_LR_SCHEDULER_THRESHOLD, threshold_mode="abs", last_batch_iteration=-1))
-                self.lr_schedulers.append(CosineAnnealingWarmRestarts(optimizer, 60, T_mult=1, eta_min=0.00001, last_epoch=-1, start_epoch=config.epoch))
+                self.lr_schedulers.append(CosineAnnealingWarmRestarts(optimizer, 40, T_mult=1, eta_min=0.00001, last_epoch=-1, start_epoch=config.epoch))
 
             self.train_loader.append(data.DataLoader(self.dataset,
                                                      batch_size=config.MODEL_BATCH_SIZE,
@@ -691,7 +691,7 @@ def eval_fold(net, writer, validation_loader):
                             F = draw_image(image_, label_, prob_predict_, empty_, prob_empty_, dice_, bce_, ce_)
                             tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, displayed_empty), F, config.epoch, category="empty")
                             displayed_empty = displayed_empty + 1
-                if display_max < 0:
+                if display_max < 8:
                     arg = np.argmax(dice)
                     F = draw_image(image[arg], labels[arg], prob_predict[arg], empty[arg], prob_empty[arg], dice[arg], bce[arg], ce[arg])
                     tensorboardwriter.write_image(writer, "{}-{}".format(config.fold, display_max), F, config.epoch, category="batch_max")
@@ -867,7 +867,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
                                True     False
             Empty           %7.1f   %7.1f
             Pneumothorax    %7.1f   %7.1f
-        """ % (tp, fn, tn, fn))
+        """ % (tp, fp, tn, fn))
 
     # epoch_pred = None
     # epoch_pred = np.concatenate((epoch_pred, predict_total), axis=0) if epoch_pred is not None else predict_total
