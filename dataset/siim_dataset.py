@@ -366,7 +366,10 @@ def train_aug(term):
             IAAPerspective(scale=(0.01, 0.08), p=0.3),
         ], p=1),
         ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.4), rotate_limit=5, p=0.8, border_mode=cv2.BORDER_CONSTANT),
-        Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
+
+        OneOf([
+            Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
+        ], p=1),
     ]), flip
 def eval_aug(term):
     return Compose([

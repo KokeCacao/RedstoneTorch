@@ -20,6 +20,7 @@ from gpu import gpu_profile
 from loss.cross_entropy import segmentation_weighted_binary_cross_entropy, nonempty_segmentation_weighted_binary_cross_entropy
 from loss.dice import binary_dice_pytorch_loss, binary_dice_numpy_gain, nonempty_binary_dice_pytorch_loss
 # from loss.hinge import lovasz_hinge
+from loss.hinge import lovasz_hinge
 from loss.iou import mIoULoss
 from lr_scheduler.Constant import Constant
 from lr_scheduler.CosineAnnealingWarmRestarts import CosineAnnealingWarmRestarts
@@ -86,7 +87,7 @@ class SIIMTrain:
                 elif config.net == "seresunext50_oc_scse_hyper":
                     net = SeResUNeXtscSEOCHyper50(num_classes=config.TRAIN_NUM_CLASS, dilation=False)
                 elif config.net == "seresunet34-ds-scse-hyper":
-                    net = SEResUNetscSEHyper34(num_classes=config.TRAIN_NUM_CLASS)
+                    net = SEResUNetscSEHyper34(num_classes=config.TRAIN_NUM_CLASS, drop_out=0.1)
                 elif config.net == "resunet32-ds-scse-hyper":
                     net = ResUNetscSEHyper32(num_classes=config.TRAIN_NUM_CLASS)
                 ## leaky relu?
@@ -426,7 +427,7 @@ class SIIMTrain:
                 # dice = nonempty_binary_dice_pytorch_loss(labels, prob_predict, empty, smooth=1e-5)
                 # iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, prob_predict)
                 iou = mIoULoss(mean=False, eps=1e-5)(labels, prob_predict)
-                # hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
+                hinge = lovasz_hinge(logits_predict.squeeze(1), labels.squeeze(1))
                 bce = BCEWithLogitsLoss(reduction='none')(empty_logits.squeeze(-1), empty)
                 # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
                 ce = segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
@@ -437,8 +438,10 @@ class SIIMTrain:
 
                 if config.epoch < 2:
                     loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
-                elif config.epoch < 200:
+                elif config.epoch < 40:
                     loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
+                elif config.epoch < 200:
+                    loss = hinge
                 # elif config.epoch < 200:
                 #     # loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean() # v142
                 #     loss = 0.5 * ce.sum() + 0.5 * bce.mean() # v143
@@ -472,7 +475,7 @@ class SIIMTrain:
                 """DETATCH"""
                 dice = dice.detach().cpu().numpy().mean()
                 iou = iou.detach().cpu().numpy().mean()
-                # hinge = hinge.detach().cpu().numpy().mean()
+                hinge = hinge.detach().cpu().numpy().mean()
                 bce = bce.detach().cpu().numpy().mean()
                 ce = ce.detach().cpu().numpy().sum() # ce need sum
                 loss = loss.detach().cpu().numpy().mean()
@@ -510,7 +513,7 @@ class SIIMTrain:
                                 'Loss/{}'.format(config.fold): loss / config.TRAIN_GRADIENT_ACCUMULATION,
                                 'Dice/{}'.format(config.fold): dice / config.TRAIN_GRADIENT_ACCUMULATION,
                                 'IOU/{}'.format(config.fold): iou / config.TRAIN_GRADIENT_ACCUMULATION,
-                                # 'Hinge/{}'.format(config.fold): hinge/config.TRAIN_GRADIENT_ACCUMULATION,
+                                'Hinge/{}'.format(config.fold): hinge/config.TRAIN_GRADIENT_ACCUMULATION,
                                 'BCE/{}'.format(config.fold): bce / config.TRAIN_GRADIENT_ACCUMULATION,
                                 'CE/{}'.format(config.fold): ce / config.TRAIN_GRADIENT_ACCUMULATION,
                                 'LogitsProbability/{}'.format(config.fold): logits_predict.mean() / config.TRAIN_GRADIENT_ACCUMULATION,
@@ -524,6 +527,7 @@ class SIIMTrain:
                     out_dict['Loss/{}'.format(config.fold)] += loss / config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['Dice/{}'.format(config.fold)] += dice / config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['IOU/{}'.format(config.fold)] += iou / config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['Hinge/{}'.format(config.fold)] += hinge / config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['BCE/{}'.format(config.fold)] += bce / config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['CE/{}'.format(config.fold)] += ce / config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['LogitsProbability/{}'.format(config.fold)] += logits_predict.mean() / config.TRAIN_GRADIENT_ACCUMULATION
@@ -540,7 +544,7 @@ class SIIMTrain:
 
                 """CLEAN UP"""
                 del ids, image_0, labels_0  # things threw away
-                del dice, iou, bce, ce, loss, image, flip, labels, empty, logits_predict, prob_predict, prob_empty  # detach
+                del dice, iou, hinge, bce, ce, loss, image, flip, labels, empty, logits_predict, prob_predict, prob_empty  # detach
                 torch.cuda.empty_cache()  # release gpu memory
             del pbar
 

@@ -306,8 +306,9 @@ class Decoder(nn.Module):
 
 
 class SEResUNetscSEHyper34(nn.Module):
-    def __init__(self, num_classes=1):
+    def __init__(self, num_classes=1, drop_out=0.5):
         super(SEResUNetscSEHyper34, self).__init__()
+        self.drop_out = drop_out
         self.resnet = se_resnet34(num_classes=num_classes, input_channel=num_classes)
 
         self.conv1 = nn.Sequential(
@@ -368,12 +369,12 @@ class SEResUNetscSEHyper34(nn.Module):
 
         # Koke_Cacao: Change dropout from all 0.5 to 0.2 and 0.8
         f = torch.cat((
-            F.dropout2d(F.upsample(e1, scale_factor=2, mode='bilinear', align_corners=False), 0.8),
-            F.dropout2d(d1, 0.2),
-            F.dropout2d(F.upsample(d2, scale_factor=2, mode='bilinear', align_corners=False), 0.8),
-            F.dropout2d(F.upsample(d3, scale_factor=4, mode='bilinear', align_corners=False), 0.8),
-            F.dropout2d(F.upsample(d4, scale_factor=8, mode='bilinear', align_corners=False), 0.8),
-            F.dropout2d(F.upsample(d5, scale_factor=16, mode='bilinear', align_corners=False), 0.8),
+            F.dropout2d(F.upsample(e1, scale_factor=2, mode='bilinear', align_corners=False), self.drop_out),
+            F.dropout2d(d1, self.drop_out/2),
+            F.dropout2d(F.upsample(d2, scale_factor=2, mode='bilinear', align_corners=False), self.drop_out),
+            F.dropout2d(F.upsample(d3, scale_factor=4, mode='bilinear', align_corners=False), self.drop_out),
+            F.dropout2d(F.upsample(d4, scale_factor=8, mode='bilinear', align_corners=False), self.drop_out),
+            F.dropout2d(F.upsample(d5, scale_factor=16, mode='bilinear', align_corners=False), self.drop_out),
         ), 1)
 
         logit = self.logit(f)
