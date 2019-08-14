@@ -30,7 +30,7 @@ class CosineAnnealingWarmRestarts(_LRScheduler):
         https://arxiv.org/abs/1608.03983
     """
 
-    def __init__(self, optimizer, T_0, T_mult=1, eta_min=0, last_epoch=-1, start_epoch=0):
+    def __init__(self, optimizer, T_0, T_mult=1, eta_min=0, last_epoch=-1, warm_up=3, start_epoch=0):
         if T_0 <= 0 or not isinstance(T_0, int):
             raise ValueError("Expected positive integer T_0, but got {}".format(T_0))
         if T_mult < 1 or not isinstance(T_mult, int):
@@ -39,6 +39,7 @@ class CosineAnnealingWarmRestarts(_LRScheduler):
         self.T_i = T_0
         self.T_mult = T_mult
         self.eta_min = eta_min
+        self.warm_up = warm_up
         self.start_epoch = start_epoch
         super(CosineAnnealingWarmRestarts, self).__init__(optimizer, last_epoch)
         self.T_cur = self.last_epoch
