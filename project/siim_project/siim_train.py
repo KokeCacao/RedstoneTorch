@@ -911,25 +911,25 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
             config.EVAL_THRESHOLD, config.PREDICTION_CHOSEN_MINPIXEL = {}, {}""".format(eval_threshold, prediction_chosen_minpixel)
 
     """Postprocess"""
-    if train:
-        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, eval_threshold, prediction_chosen_minpixel)
-        report = report + """
-            KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score)
+    # if train:
+    kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, eval_threshold, prediction_chosen_minpixel)
+    report = report + """
+        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score)
 
-        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, eval_threshold, prediction_chosen_minpixel, tq=False, test_empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
-        report = report + """
-            KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f empty_thres: %5.3f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, eval_emptyshreshold)
-    else:
-        for min_pixel in [6000, 5000, 4000]:
-            for thres in [0.99, 0.98, 0.95, 0.9, 0.85]:
-                kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, thres, min_pixel, tq=False)
-                print("""
-            min_pixel: %5.1f threshold: %5.3f KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f""" % (min_pixel, thres, kaggle_score, kaggle_neg_score, kaggle_pos_score))
-
-        for empty_thres in [0.4, 0.5, 0.9]:
-            kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, eval_threshold, prediction_chosen_minpixel, tq=False, test_empty=prob_empty_total, empty_threshold=empty_thres)
-            report = report + """
-            KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f empty_thres: %5.3f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, empty_thres)
+    kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, best_threshold, prediction_chosen_minpixel, tq=False, test_empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
+    report = report + """
+        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f EmptyThres: %5.3f (best thres)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, eval_emptyshreshold)
+    # else:
+    #     for min_pixel in [6000, 5000, 4000]:
+    #         for thres in [0.99, 0.98, 0.95, 0.9, 0.85]:
+    #             kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, thres, min_pixel, tq=False)
+    #             print("""
+    #         min_pixel: %5.1f threshold: %5.3f KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f""" % (min_pixel, thres, kaggle_score, kaggle_neg_score, kaggle_pos_score))
+    #
+    #     for empty_thres in [0.4, 0.5, 0.9]:
+    #         kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, eval_threshold, prediction_chosen_minpixel, tq=False, test_empty=prob_empty_total, empty_threshold=empty_thres)
+    #         report = report + """
+    #         KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f empty_thres: %5.3f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, empty_thres)
 
     config.log.write(report)
     if writer != None: tensorboardwriter.write_text(writer, report, global_steps[fold])
