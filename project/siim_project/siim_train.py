@@ -441,7 +441,7 @@ class SIIMTrain:
                 elif config.epoch < 40:
                     loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
                 elif config.epoch < 200:
-                    loss = 0.9* hinge + 0.1 * bce.mean()
+                    loss = 0.999* hinge + 0.001 * bce.mean()
                 # elif config.epoch < 200:
                 #     # loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean() # v142
                 #     loss = 0.5 * ce.sum() + 0.5 * bce.mean() # v143
@@ -651,7 +651,7 @@ def eval_fold(net, writer, validation_loader):
             elif config.epoch < 40:
                 loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
             elif config.epoch < 200:
-                loss = 0.9* hinge + 0.1 * bce.mean()
+                loss = 0.999* hinge + 0.001 * bce.mean()
             # elif config.epoch < 200:
             #     # loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean() # v142
             #     loss = 0.5 * ce.sum() + 0.5 * bce.mean() # v143
