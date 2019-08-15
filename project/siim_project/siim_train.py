@@ -441,7 +441,7 @@ class SIIMTrain:
                 elif config.epoch < 40:
                     loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
                 elif config.epoch < 200:
-                    loss = hinge
+                    loss = 0.9* hinge + 0.1 * bce.mean()
                 # elif config.epoch < 200:
                 #     # loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean() # v142
                 #     loss = 0.5 * ce.sum() + 0.5 * bce.mean() # v143
@@ -573,7 +573,7 @@ def eval_fold(net, writer, validation_loader):
     iou_losses = np.array([])
     bce_losses = np.array([])
     ce_losses = np.array([])
-    # hinge_losses = np.array([])
+    hinge_losses = np.array([])
     loss_losses = np.array([])
 
     id_total = None
@@ -637,7 +637,7 @@ def eval_fold(net, writer, validation_loader):
             # dice = nonempty_binary_dice_pytorch_loss(labels, prob_predict, empty, smooth=1e-5)
             # iou = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=True, denoised=False)(labels, prob_predict)
             iou = mIoULoss(mean=False, eps=1e-5)(labels, prob_predict)
-            # hinge = lovasz_hinge(labels.squeeze(1), logits_predict.squeeze(1))
+            hinge = lovasz_hinge(logits_predict.squeeze(1), labels.squeeze(1))
             bce = BCEWithLogitsLoss(reduction='none')(empty_logits.squeeze(-1), empty)
             # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
             ce = segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
@@ -648,8 +648,10 @@ def eval_fold(net, writer, validation_loader):
 
             if config.epoch < 2:
                 loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
-            elif config.epoch < 200:
+            elif config.epoch < 40:
                 loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
+            elif config.epoch < 200:
+                loss = 0.9* hinge + 0.1 * bce.mean()
             # elif config.epoch < 200:
             #     # loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean() # v142
             #     loss = 0.5 * ce.sum() + 0.5 * bce.mean() # v143
@@ -670,7 +672,7 @@ def eval_fold(net, writer, validation_loader):
             """DETATCH WITHOUT MEAN"""
             dice = dice.detach().cpu().numpy()
             iou = iou.detach().cpu().numpy()
-            # hinge = hinge.detach().cpu().numpy().mean()
+            hinge = hinge.detach().cpu().numpy()
             bce = bce.detach().cpu().numpy()
             ce = ce.detach().cpu().numpy()
             loss = loss.detach().cpu().numpy()
@@ -717,7 +719,7 @@ def eval_fold(net, writer, validation_loader):
             iou_losses = np.append(iou_losses, iou)
             bce_losses = np.append(bce_losses, bce)
             ce_losses = np.append(ce_losses, ce)
-            # hinge_losses = np.append(hinge_losses, hinge)
+            hinge_losses = np.append(hinge_losses, hinge)
             loss_losses = np.append(loss_losses, loss)
 
             id_total = np.concatenate((id_total, ids), axis=0) if id_total is not None else ids
@@ -744,7 +746,7 @@ def eval_fold(net, writer, validation_loader):
 
             """CLEAN UP"""
             del ids, image_0, labels_0  # things threw away
-            del dice, iou, bce, ce, loss, image, flip, labels, empty, logits_predict, prob_predict, prob_empty  # detach
+            del dice, iou, hinge, bce, ce, loss, image, flip, labels, empty, logits_predict, prob_predict, prob_empty  # detach
             torch.cuda.empty_cache()
             if config.DEBUG_TRAISE_GPU: gpu_profile(frame=sys._getframe(), event='line', arg=None)
 
@@ -765,7 +767,7 @@ def eval_fold(net, writer, validation_loader):
                                                    "IOU/{}".format(config.fold): iou_losses.mean(),
                                                    "BCE/{}".format(config.fold): bce_losses.mean(),
                                                    "CE/{}".format(config.fold): ce_losses.mean(),
-                                                   # "Hinge/{}".format(config.fold): hinge_losses.mean(),
+                                                   "Hinge/{}".format(config.fold): hinge_losses.mean(),
                                                    "Loss/{}".format(config.fold): loss_losses.mean(),
                                                    }, config.epoch)
         if config.EVAL_IF_PR_CURVE: tensorboardwriter.write_pr_curve(writer, empty_total, prob_empty_total, config.epoch, config.fold)
