@@ -3,7 +3,9 @@ from tqdm import tqdm
 import numpy as np
 
 # criteria must be (label, pred)
+import config
 import tensorboardwriter
+from project.siim_project.siim_util import post_process
 
 
 def calculate_shakeup(label, pred, criteria, shakeup_ratio, **kwargs):
@@ -37,7 +39,14 @@ def calculate_threshold(label, pred, criteria, threshold_check_list, writer, fol
 
     pbar = tqdm(threshold_check_list)
     for threshold in pbar:
-        thresholded_pred = (pred>threshold).astype(np.byte)
+
+        # post process
+        # thresholded_pred = (pred>threshold).astype(np.byte)
+        thresholded_pred = np.zeros(pred.shape)
+        for i, p in enumerate(pred):
+            p, _ = post_process(p, threshold, int(config.PREDICTION_CHOSEN_MINPIXEL* label.shape[-1]/1024), empty=None, empty_threshold=None)
+            thresholded_pred[i] = p
+        thresholded_pred = np.asarray(thresholded_pred, dtype=np.bytes)
 
         total_tried = total_tried + 1
         score = criteria(label, thresholded_pred, **kwargs)
