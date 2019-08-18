@@ -343,12 +343,12 @@ class SIIMTrain:
             torch.cuda.empty_cache()
             with torch.no_grad():
                 if config.load_dummy and not config.train:
-                    id_total = np.load(config.DIRECTORY_PREFIX + "data/siim_dataset/id_total.npy")
-                    predict_total = np.load(config.DIRECTORY_PREFIX + "data/siim_dataset/predict_total.npy")
-                    label_total = np.load(config.DIRECTORY_PREFIX + "data/siim_dataset/label_total.npy")
-                    prob_empty_total = np.load(config.DIRECTORY_PREFIX + "data/siim_dataset/prob_empty_total.npy")
-                    empty_total = np.load(config.DIRECTORY_PREFIX + "data/siim_dataset/empty_total.npy")
-                    print_report(None, id_total, predict_total, label_total, prob_empty_total, empty_total)
+                    print("... Loading dummy variables ...")
+                    print_report(None, np.load(config.DIRECTORY_PREFIX + "data/siim_dataset/id_total.npy"),
+                                 np.load(config.DIRECTORY_PREFIX + "data/siim_dataset/predict_total.npy"),
+                                 np.load(config.DIRECTORY_PREFIX + "data/siim_dataset/label_total.npy"),
+                                 np.load(config.DIRECTORY_PREFIX + "data/siim_dataset/prob_empty_total.npy"),
+                                 np.load(config.DIRECTORY_PREFIX + "data/siim_dataset/empty_total.npy"))
                 else:
                     score = eval_fold(net, self.writer, self.validation_loader[config.fold])
 
@@ -907,7 +907,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         # tp/(tp+fn)(0.7886) + tn/(fp+tn)(0.2114)*0.75
         chosen = np.argwhere(label.sum(axis=(label.ndim-2, label.ndim-1)) != 0)
         print("Chosen: {}".format(len(chosen)))
-        non_empty_dice = binary_dice_numpy_gain(label[chosen], pred_hard[chosen])
+        non_empty_dice = binary_dice_numpy_gain(label[chosen], pred_hard[chosen], mean=True)
         config.log.write(""""
         tp/(tp+fn)(0.7886) + tn/(fp+tn)(0.2114)*dice
         = {}(0.7886) + {}(0.2114)*{}
