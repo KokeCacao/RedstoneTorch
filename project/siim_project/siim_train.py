@@ -897,7 +897,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
     ########### Calculate LB ###########
     def calculate_lb(label, pred_hard):
         # tp/(tp+fn)(0.7886) + tn/(fp+tn)(0.2114)*0.75
-        chosen = np.argwhere(label.sum(axis=label.shape[-2:]) == 0)
+        chosen = np.argwhere(label.sum(axis=(label.ndim-2, label.ndim-1)) == 0)
         non_empty_dice = binary_dice_numpy_gain(label[chosen], pred_hard[chosen])
         config.log.write(""""
         tp/(tp+fn)(0.7886) + tn/(fp+tn)(0.2114)*dice
@@ -952,7 +952,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
             p, _ = post_process(p, best_threshold, int(config.PREDICTION_CHOSEN_MINPIXEL * label.shape[-1] / 1024), empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
             pred_hard[i] = p
 
-        tn, fp, fn, tp = confusion_matrix(empty_total, (pred_hard.sum(axis=pred_hard.shape[-2:])==0).astype(np.bytes), labels=[0, 1]).ravel()
+        tn, fp, fn, tp = confusion_matrix(empty_total, (pred_hard.sum(axis=(pred_hard.ndim-2, pred_hard.ndim-1))==0).astype(np.bytes), labels=[0, 1]).ravel()
         config.log.write("""
         min_pixeled + classificationed (threshold calculated w/ no empty)
                            True     False
@@ -989,7 +989,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
             p, _ = post_process(p, best_threshold, int(config.PREDICTION_CHOSEN_MINPIXEL * label.shape[-1] / 1024), empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
             pred_hard[i] = p
 
-        tn, fp, fn, tp = confusion_matrix(empty_total, (pred_hard.sum(axis=pred_hard.shape[-2:])==0).astype(np.bytes), labels=[0, 1]).ravel()
+        tn, fp, fn, tp = confusion_matrix(empty_total, (pred_hard.sum(axis=(pred_hard.ndim-2, pred_hard.ndim-1))==0).astype(np.bytes), labels=[0, 1]).ravel()
         config.log.write("""
         min_pixeled + classificationed (threshold calculated w/ empty)
                            True     False
