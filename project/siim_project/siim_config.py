@@ -131,6 +131,7 @@ resetlr = 0
 net = None
 freeze = False
 log = None
+load_dummy = False
 
 def time_to_str(t, mode='min'):
     if mode=='min':

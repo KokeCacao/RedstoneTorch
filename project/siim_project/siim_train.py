@@ -342,7 +342,15 @@ class SIIMTrain:
             if config.train: self.step_fold(fold, net, optimizer, lr_scheduler)
             torch.cuda.empty_cache()
             with torch.no_grad():
-                score = eval_fold(net, self.writer, self.validation_loader[config.fold])
+                if config.load_dummy and not config.train:
+                    id_total = np.load(config.DIRECTORY_PREFIX + "data/siim_dataset/id_total.npy")
+                    predict_total = np.load(config.DIRECTORY_PREFIX + "data/siim_dataset/predict_total.npy")
+                    label_total = np.load(config.DIRECTORY_PREFIX + "data/siim_dataset/label_total.npy")
+                    prob_empty_total = np.load(config.DIRECTORY_PREFIX + "data/siim_dataset/prob_empty_total.npy")
+                    empty_total = np.load(config.DIRECTORY_PREFIX + "data/siim_dataset/empty_total.npy")
+                    print_report(None, id_total, predict_total, label_total, prob_empty_total, empty_total)
+                else:
+                    score = eval_fold(net, self.writer, self.validation_loader[config.fold])
 
             """Update Learning Rate Scheduler"""
             # if lr_scheduler is not None:

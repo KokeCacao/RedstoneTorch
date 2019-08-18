@@ -52,6 +52,7 @@ def get_args():
     parser.add_option('--freeze', type="string", dest='freeze', default=False, help='Freeze Network by Name')
     parser.add_option('--train_ratio', type="float", dest='train_ratio', default=0, help='Train Ratio')
     parser.add_option('--mix', type="string", dest='mix', default=False, help='Freeze Network by Name')
+    parser.add_option('--load_dummy', type="string", dest='load_dummy', default=False, help='Load Dummy Variables for evaluation when not train')
 
     (options, args) = parser.parse_args()
     return options
@@ -69,6 +70,7 @@ def load_args():
     config.load_epoch = False if args.epoch == "False" else True
     config.train = False if args.train == "False" else True
     config.display_architecture = True if args.display_architecture == "True" else False
+    config.load_dummy = True if args.load_dummy == "True" else False
     config.manual_freeze = True if args.manual_freeze == "True" else False
     config.freeze = args.freeze if args.freeze != False else False
     config.resetlr = args.resetlr
