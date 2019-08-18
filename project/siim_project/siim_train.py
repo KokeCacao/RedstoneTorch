@@ -902,11 +902,14 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
     label = label_total # 4 dim
     ###########
 
+    # TODO: it seems that .squeeze() and without .squeeze() have different score
     ########### Calculate LB ###########
     def calculate_lb(label, pred_hard):
         # tp/(tp+fn)(0.7886) + tn/(fp+tn)(0.2114)*0.75
         chosen = np.argwhere(label.sum(axis=(label.ndim-2, label.ndim-1)) != 0)
-        print("Chosen: {}".format(len(chosen)))
+        print("""
+        Chosen: {}
+        """.format(len(chosen)))
         non_empty_dice = binary_dice_numpy_gain(label[chosen], pred_hard[chosen], mean=True)
         config.log.write("""
         tp/(tp+fn)(0.7886) + tn/(fp+tn)(0.2114)*dice
@@ -943,7 +946,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
 
         ########### Calculate PostProcessed LB ###########
         config.log.write("""
-        config.EVAL_THRESHOLD, config.PREDICTION_CHOSEN_MINPIXEL = {}, {}""".format(eval_threshold, prediction_chosen_minpixel))
+        config.EVAL_THRESHOLD = {}, config.PREDICTION_CHOSEN_MINPIXEL = {}""".format(eval_threshold, prediction_chosen_minpixel))
         kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, eval_threshold, prediction_chosen_minpixel)
         config.log.write("""
         KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (eval_threshold=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, eval_threshold))
@@ -956,8 +959,8 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         ###########
 
         ########### Confusion Matrix ###########
-        pred_hard = np.zeros(pred_soft.shape)
-        for i, p in enumerate(pred_soft):
+        pred_hard = np.zeros(pred_soft.squeeze().shape)
+        for i, p in enumerate(pred_soft.squeeze()):
             p, _ = post_process(p, best_threshold, int(config.PREDICTION_CHOSEN_MINPIXEL * label.shape[-1] / 1024), empty=prob_empty_total[i], empty_threshold=eval_emptyshreshold)
             pred_hard[i] = p
 
