@@ -905,7 +905,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
     ########### Calculate LB ###########
     def calculate_lb(label, pred_hard):
         # tp/(tp+fn)(0.7886) + tn/(fp+tn)(0.2114)*0.75
-        chosen = np.argwhere(label.sum(axis=(label.ndim-2, label.ndim-1)) == 0)
+        chosen = np.argwhere(label.sum(axis=(label.ndim-2, label.ndim-1)) != 0)
         print("Chosen: {}".format(len(chosen)))
         non_empty_dice = binary_dice_numpy_gain(label[chosen], pred_hard[chosen])
         config.log.write(""""
