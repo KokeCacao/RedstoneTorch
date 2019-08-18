@@ -27,7 +27,7 @@ def calculate_shakeup(label, pred, criteria, shakeup_ratio, **kwargs):
     shakeup_mean, shakeup_std = np.mean(shakeup_keys), np.std(shakeup_keys)
     return shakeup, shakeup_keys, shakeup_mean, shakeup_std
 
-def calculate_threshold(label, pred, criteria, threshold_check_list, writer, fold, n_class=1, **kwargs):
+def calculate_threshold(label, pred, criteria, threshold_check_list, writer, fold, n_class=1, test_empty=None, empty_threshold=None, **kwargs):
     best_threshold = 0.0
     best_val = 0.0
     bad_value = 0
@@ -40,13 +40,16 @@ def calculate_threshold(label, pred, criteria, threshold_check_list, writer, fol
     pbar = tqdm(threshold_check_list)
     for threshold in pbar:
 
-        # post process
-        # thresholded_pred = (pred>threshold).astype(np.byte)
-        thresholded_pred = np.zeros(pred.shape)
-        for i, p in enumerate(pred):
-            p, _ = post_process(p, threshold, int(config.PREDICTION_CHOSEN_MINPIXEL* label.shape[-1]/1024), empty=None, empty_threshold=None)
-            thresholded_pred[i] = p
-        thresholded_pred = np.asarray(thresholded_pred, dtype=np.bytes)
+        if 1: # post-process
+            config.log.write("Calculating Threshold Using post_process; min_pixel={};".format(int(config.PREDICTION_CHOSEN_MINPIXEL* label.shape[-1]/1024)), once=1)
+            thresholded_pred = np.zeros(pred.shape)
+            for i, p in enumerate(pred):
+                p, _ = post_process(p, threshold, int(config.PREDICTION_CHOSEN_MINPIXEL* label.shape[-1]/1024), empty=test_empty[i] if test_empty is not None else None, empty_threshold=empty_threshold)
+                thresholded_pred[i] = p
+            thresholded_pred = np.asarray(thresholded_pred, dtype=np.bytes)
+        else: # no post-process
+            config.log.write("Calculating Threshold Without post_process", once=1)
+            thresholded_pred = (pred > threshold).astype(np.byte)
 
         total_tried = total_tried + 1
         score = criteria(label, thresholded_pred, **kwargs)

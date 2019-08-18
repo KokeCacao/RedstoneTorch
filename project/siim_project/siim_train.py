@@ -30,7 +30,7 @@ from net.seresunext50_oc_scse_hyper import SeResUNeXtscSEOCHyper50
 from optimizer import adamw
 from project.siim_project import siim_net
 from project.siim_project.siim_net import model34_DeepSupervion, model50A_DeepSupervion, model34_DeepSupervion_GroupNorm_OC, model34_DeepSupervion_GroupNorm
-from project.siim_project.siim_util import compute_kaggle_lb
+from project.siim_project.siim_util import compute_kaggle_lb, post_process
 from utils import load
 from utils.load import save_checkpoint_fold, load_checkpoint_all_fold, save_onnx, remove_checkpoint_fold, set_milestone
 from utils.logger import Logger
@@ -864,67 +864,140 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
     if config.log is None:
         config.log = Logger()
 
+    ########### Classification Info ###########
     empty_total = empty_total.squeeze()
     prob_empty_total = ((prob_empty_total.squeeze()) > eval_emptyshreshold).astype(np.byte)
+    ###########
+
+    ########### Classification Report ###########
     config.log.write(classification_report(empty_total, prob_empty_total, target_names=["Pneumothorax", "Empty"], labels=[0, 1]))
+    ###########
+
+    ########### Confusion Matrix ###########
     tn, fp, fn, tp = confusion_matrix(empty_total, prob_empty_total, labels=[0, 1]).ravel()
-    config.log.write(
-        """
-                               True     False
-            Empty           %7.1f   %7.1f
-            Pneumothorax    %7.1f   %7.1f
-        """ % (tp, fp, tn, fn))
+    config.log.write("""
+                       True     False
+    Empty           %7.1f   %7.1f  ->  %6.4f
+    Pneumothorax    %7.1f   %7.1f  ->  %6.4f
+    """ % (tp, fp, tp/(tp+fn), tn, fn, tn/(fp+tn)))
+    ###########
 
     # epoch_pred = None
     # epoch_pred = np.concatenate((epoch_pred, predict_total), axis=0) if epoch_pred is not None else predict_total
     # epoch_label = None
     # epoch_label = np.concatenate((epoch_label, label_total), axis=0) if epoch_label is not None else label_total
 
+    torch.cuda.empty_cache()
+    ########### Segmentation Info ###########
     pred_soft = predict_total
     pred_hard = (predict_total > eval_threshold).astype(np.byte)
     label = label_total
+    ###########
 
-    torch.cuda.empty_cache()
+    ########### Calculate LB ###########
+    def calculate_lb(label, pred_hard):
+        # tp/(tp+fn)(0.7886) + tn/(fp+tn)(0.2114)*0.75
+        chosen = np.argwhere(label.sum(axis=label.shape[-2:]) == 0)
+        non_empty_dice = binary_dice_numpy_gain(label[chosen], pred_hard[chosen])
+        config.log.write(""""
+        tp/(tp+fn)(0.7886) + tn/(fp+tn)(0.2114)*dice
+        = {}(0.7886) + {}(0.2114)*{}
+        = {}
+        """.format(tp/(tp+fn), tn/(fp+tn), non_empty_dice, tp/(tp+fn)(.7886)+tn/(fp+tn)(0.2114)*non_empty_dice))
+    calculate_lb(label, pred_hard)
+    ###########
 
-    """LOSS"""
+    ########### Calculate Loss ###########
     score = binary_dice_numpy_gain(label, pred_hard, mean=True)
-
-    """Shakeup"""
-    # IT WILL MESS UP THE RANDOM SEED (CAREFUL)
-    shakeup, shakeup_keys, shakeup_mean, shakeup_std = calculate_shakeup(label, pred_hard, binary_dice_numpy_gain, eval_shakeup_ratio, mean=True)
-    # if writer != None: tensorboardwriter.write_shakeup(writer, shakeup, shakeup_keys, shakeup_std, epoch)
-
-    """Print"""
-    report = """
-        Shakeup Mean of Sample Mean: {}
-        Shakeup STD of Sample Mean: {}""".format(shakeup_mean, shakeup_std) + """
-        Score = {} """.format(score)
+    config.log.write("""
+    Score = {} """.format(score))
     if writer != None: tensorboardwriter.write_epoch_loss(writer, {"Score": score}, epoch)
+    ###########
 
-    """THRESHOLD"""
-    if eval_if_threshold_test:
-        best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, binary_dice_numpy_gain, eval_try_threshold, writer, fold, n_class=1, mean=True)
-        report = report + """Best Threshold is: {}, Score: {}, AreaUnder: {}""".format(best_threshold, best_val, total_score / total_tried)
-        if writer != None: tensorboardwriter.write_best_threshold(writer, -1, best_val, best_threshold, total_score / total_tried, epoch, fold)
+    # ########### Calculate Shakeup ###########
+    # # IT WILL MESS UP THE RANDOM SEED (CAREFUL)
+    # shakeup, shakeup_keys, shakeup_mean, shakeup_std = calculate_shakeup(label, pred_hard, binary_dice_numpy_gain, eval_shakeup_ratio, mean=True)
+    # config.log.write("""
+    # Shakeup Mean of Sample Mean: {}
+    # Shakeup STD of Sample Mean: {}""".format(shakeup_mean, shakeup_std))
+    # # if writer != None: tensorboardwriter.write_shakeup(writer, shakeup, shakeup_keys, shakeup_std, epoch)
+    # ###########
 
-        """Setting eval threshold"""
-        # config.EVAL_THRESHOLD = best_threshold
-    report = report + """
-            config.EVAL_THRESHOLD, config.PREDICTION_CHOSEN_MINPIXEL = {}, {}""".format(eval_threshold, prediction_chosen_minpixel)
+    if 1:  # calculating threshold without correcting "empty"
+        ########### Calculate Threshold ###########
+        if eval_if_threshold_test:
+            best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, binary_dice_numpy_gain, eval_try_threshold, writer, fold, n_class=1, mean=True)
+            config.log.write("""
+        Best Threshold is: {}, Score: {}, AreaUnder: {}""".format(best_threshold, best_val, total_score / total_tried))
+            if writer != None: tensorboardwriter.write_best_threshold(writer, -1, best_val, best_threshold, total_score / total_tried, epoch, fold)
+        ###########
 
-    """Postprocess"""
-    # if train:
-    kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, eval_threshold, prediction_chosen_minpixel)
-    report = report + """
-        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score)
+        ########### Calculate PostProcessed LB ###########
+        config.log.write("""
+        config.EVAL_THRESHOLD, config.PREDICTION_CHOSEN_MINPIXEL = {}, {}""".format(eval_threshold, prediction_chosen_minpixel))
+        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, eval_threshold, prediction_chosen_minpixel)
+        config.log.write("""
+        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (eval_threshold=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, eval_threshold))
+        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, best_threshold, prediction_chosen_minpixel)
+        config.log.write("""
+        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (best_threshold=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, best_threshold))
+        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, best_threshold, prediction_chosen_minpixel, tq=False, test_empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
+        config.log.write("""
+        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (best_threshold=%6.4f, empty=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, best_threshold, eval_emptyshreshold))
+        ###########
 
-    kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, best_threshold, prediction_chosen_minpixel)
-    report = report + """
-        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (+best thres)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score)
+        ########### Confusion Matrix ###########
+        pred_hard = np.zeros(pred_soft.shape)
+        for i, p in enumerate(pred_soft):
+            p, _ = post_process(p, best_threshold, int(config.PREDICTION_CHOSEN_MINPIXEL * label.shape[-1] / 1024), empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
+            pred_hard[i] = p
 
-    kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, best_threshold, prediction_chosen_minpixel, tq=False, test_empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
-    report = report + """
-        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f EmptyThres: %5.3f (+empty)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, eval_emptyshreshold)
+        tn, fp, fn, tp = confusion_matrix(empty_total, (pred_hard.sum(axis=pred_hard.shape[-2:])==0).astype(np.bytes), labels=[0, 1]).ravel()
+        config.log.write("""
+        min_pixeled + classificationed (threshold calculated w/ no empty)
+                           True     False
+        Empty           %7.1f   %7.1f  ->  %6.4f
+        Pneumothorax    %7.1f   %7.1f  ->  %6.4f
+        """ % (tp, fp, tp/(tp+fn), tn, fn, tn/(fp+tn)))
+        ###########
+    if 1: # calculating threshold with correcting "empty"
+        ########### Calculate Threshold ###########
+        if eval_if_threshold_test:
+            best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, binary_dice_numpy_gain, eval_try_threshold, writer, fold, n_class=1, mean=True, test_empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
+            config.log.write("""
+        Best Threshold is: {}, Score: {}, AreaUnder: {}""".format(best_threshold, best_val, total_score / total_tried))
+            if writer != None: tensorboardwriter.write_best_threshold(writer, -1, best_val, best_threshold, total_score / total_tried, epoch, fold)
+        ###########
+
+        ########### Calculate PostProcessed LB ###########
+        config.log.write("""
+        config.EVAL_THRESHOLD, config.PREDICTION_CHOSEN_MINPIXEL = {}, {}""".format(eval_threshold, prediction_chosen_minpixel))
+        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, eval_threshold, prediction_chosen_minpixel)
+        config.log.write("""
+        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (eval_threshold=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, eval_threshold))
+        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, best_threshold, prediction_chosen_minpixel)
+        config.log.write("""
+        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (best_threshold=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, best_threshold))
+        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, best_threshold, prediction_chosen_minpixel, tq=False, test_empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
+        config.log.write("""
+        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (best_threshold=%6.4f, empty=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, best_threshold, eval_emptyshreshold))
+        ###########
+
+        ########### Confusion Matrix ###########
+        pred_hard = np.zeros(pred_soft.shape)
+        for i, p in enumerate(pred_soft):
+            p, _ = post_process(p, best_threshold, int(config.PREDICTION_CHOSEN_MINPIXEL * label.shape[-1] / 1024), empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
+            pred_hard[i] = p
+
+        tn, fp, fn, tp = confusion_matrix(empty_total, (pred_hard.sum(axis=pred_hard.shape[-2:])==0).astype(np.bytes), labels=[0, 1]).ravel()
+        config.log.write("""
+        min_pixeled + classificationed (threshold calculated w/ empty)
+                           True     False
+        Empty           %7.1f   %7.1f  ->  %6.4f
+        Pneumothorax    %7.1f   %7.1f  ->  %6.4f
+        """ % (tp, fp, tp/(tp+fn), tn, fn, tn/(fp+tn)))
+        ###########
+
     # else:
     #     for min_pixel in [6000, 5000, 4000]:
     #         for thres in [0.99, 0.98, 0.95, 0.9, 0.85]:
@@ -937,6 +1010,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
     #         report = report + """
     #         KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f empty_thres: %5.3f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, empty_thres)
 
-    config.log.write(report)
-    if writer != None: tensorboardwriter.write_text(writer, report, global_steps[fold])
+    config.log.write("""
+    Epoch: {}
+    """.format(config.epoch))
     return score
