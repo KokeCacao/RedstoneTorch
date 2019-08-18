@@ -46,7 +46,7 @@ def calculate_threshold(label, pred, criteria, threshold_check_list, writer, fol
             for i, p in enumerate(pred):
                 p, _ = post_process(p, threshold, int(config.PREDICTION_CHOSEN_MINPIXEL* label.shape[-1]/1024), empty=test_empty[i] if test_empty is not None else None, empty_threshold=empty_threshold)
                 thresholded_pred[i] = p
-            thresholded_pred = np.asarray(thresholded_pred, dtype=np.bytes)
+            thresholded_pred = np.asarray(thresholded_pred, dtype=np.int8)
         else: # no post-process
             config.log.write("Calculating Threshold Without post_process", once=1)
             thresholded_pred = (pred > threshold).astype(np.byte)
