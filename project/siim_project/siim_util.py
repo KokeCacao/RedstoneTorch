@@ -10,7 +10,7 @@ def compute_kaggle_lb(test_id, test_truth, test_probability, threshold, min_size
 
     kaggle_pos = []
     kaggle_neg = []
-    pbar = tqdm(range(test_num)) if tq else range(test_num)
+    pbar = tqdm(range(test_num), leave=False) if tq else range(test_num)
     for b in pbar:
         truth       = test_truth[b,0]
         probability = test_probability[b,0]
@@ -33,7 +33,6 @@ def compute_kaggle_lb(test_id, test_truth, test_probability, threshold, min_size
             kaggle_neg.append(score)
         else:
             kaggle_pos.append(score)
-    print(len(kaggle_pos))
     kaggle_neg = np.array(kaggle_neg)
     kaggle_pos = np.array(kaggle_pos)
     kaggle_neg_score = kaggle_neg.mean()

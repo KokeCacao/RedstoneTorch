@@ -886,8 +886,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
     config.log.write("""
                        True     False
     Empty           %7.1f   %7.1f  ->  %6.4f
-    Pneumothorax    %7.1f   %7.1f  ->  %6.4f
-    """ % (tp, fp, tp/(tp+fn), tn, fn, tn/(fp+tn)))
+    Pneumothorax    %7.1f   %7.1f  ->  %6.4f""" % (tp, fp, tp/(tp+fn), tn, fn, tn/(fp+tn)))
     ###########
 
     # epoch_pred = None
@@ -907,22 +906,18 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
     def calculate_lb(label, pred_hard):
         # tp/(tp+fn)(0.7886) + tn/(fp+tn)(0.2114)*0.75
         chosen = np.argwhere(label.sum(axis=(label.ndim-2, label.ndim-1)) != 0)
-        print("""
-        Chosen: {}
-        """.format(len(chosen)))
+        print("""    Calculating non-empty Dice... Chosen Pixtures: {}""".format(len(chosen)))
         non_empty_dice = binary_dice_numpy_gain(label[chosen], pred_hard[chosen], mean=True)
         config.log.write("""
-        tp/(tp+fn)(0.7886) + tn/(fp+tn)(0.2114)*dice
-        = {}(0.7886) + {}(0.2114)*{}
-        = {}
-        """.format(tp/(tp+fn), tn/(fp+tn), non_empty_dice, tp/(tp+fn)*0.7886+tn/(fp+tn)*0.2114*non_empty_dice))
+    tp/(tp+fn)(0.7886) + tn/(fp+tn)(0.2114)*dice
+    = {}(0.7886) + {}(0.2114)*{}
+    = {}""".format(tp/(tp+fn), tn/(fp+tn), non_empty_dice, tp/(tp+fn)*0.7886+tn/(fp+tn)*0.2114*non_empty_dice))
     calculate_lb(label, pred_hard)
     ###########
 
     ########### Calculate Loss ###########
     score = binary_dice_numpy_gain(label, pred_hard, mean=True)
-    config.log.write("""
-    Score = {} """.format(score))
+    config.log.write("""    Total Dice Score = {}""".format(score))
     if writer != None: tensorboardwriter.write_epoch_loss(writer, {"Score": score}, epoch)
     ###########
 
@@ -965,8 +960,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         min_pixeled + classificationed (threshold calculated w/ no empty)
                            True     False
         Empty           %7.1f   %7.1f  ->  %6.4f
-        Pneumothorax    %7.1f   %7.1f  ->  %6.4f
-        """ % (tp, fp, tp/(tp+fn), tn, fn, tn/(fp+tn)))
+        Pneumothorax    %7.1f   %7.1f  ->  %6.4f""" % (tp, fp, tp/(tp+fn), tn, fn, tn/(fp+tn)))
         ###########
     if 1: # calculating threshold with correcting "empty"
         ########### Calculate Threshold ###########
@@ -990,7 +984,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         ########### Confusion Matrix ###########
         pred_hard = np.zeros(pred_soft.squeeze().shape)
         for i, p in enumerate(pred_soft.squeeze()):
-            p, _ = post_process(p, best_threshold, int(config.PREDICTION_CHOSEN_MINPIXEL * label.shape[-1]**2 / 1024**2), empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
+            p, _ = post_process(p, best_threshold, int(config.PREDICTION_CHOSEN_MINPIXEL * label.shape[-1]**2 / 1024**2), empty=prob_empty_total[i], empty_threshold=eval_emptyshreshold)
             pred_hard[i] = p
 
         tn, fp, fn, tp = confusion_matrix(empty_total, (pred_hard.sum(axis=(pred_hard.ndim-2, pred_hard.ndim-1))==0).astype(np.int8), labels=[0, 1]).ravel()
@@ -998,8 +992,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         min_pixeled + classificationed (threshold calculated w/ empty)
                            True     False
         Empty           %7.1f   %7.1f  ->  %6.4f
-        Pneumothorax    %7.1f   %7.1f  ->  %6.4f
-        """ % (tp, fp, tp/(tp+fn), tn, fn, tn/(fp+tn)))
+        Pneumothorax    %7.1f   %7.1f  ->  %6.4f""" % (tp, fp, tp/(tp+fn), tn, fn, tn/(fp+tn)))
         ###########
 
     # else:
