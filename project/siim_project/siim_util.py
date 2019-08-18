@@ -58,9 +58,10 @@ def kaggle_metric_one(predict, truth):
     return dice
 
 # Koke_Cacao: deprecated, only for Kaggle LB prediction
+# input must be (x, x)
 def post_process(probability, threshold, min_size, empty=None, empty_threshold=None):
-
-    predict = np.zeros((1024,1024), np.float32)
+    assert probability.shape[0] == probability.shape[1]
+    predict = np.zeros((probability.shape[0],probability.shape[1]), np.float32)
     num = 0
     if empty is not None and empty_threshold is not None and empty > empty_threshold:
         return predict, num

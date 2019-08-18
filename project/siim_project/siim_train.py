@@ -897,9 +897,9 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
 
     torch.cuda.empty_cache()
     ########### Segmentation Info ###########
-    pred_soft = predict_total
-    pred_hard = (predict_total > eval_threshold).astype(np.byte)
-    label = label_total
+    pred_soft = predict_total.squeeze()
+    pred_hard = (predict_total > eval_threshold).astype(np.byte).squeeze()
+    label = label_total.squeeze()
     ###########
 
     ########### Calculate LB ###########
