@@ -912,7 +912,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         tp/(tp+fn)(0.7886) + tn/(fp+tn)(0.2114)*dice
         = {}(0.7886) + {}(0.2114)*{}
         = {}
-        """.format(tp/(tp+fn), tn/(fp+tn), non_empty_dice, tp/(tp+fn)(.7886)+tn/(fp+tn)(0.2114)*non_empty_dice))
+        """.format(tp/(tp+fn), tn/(fp+tn), non_empty_dice, tp/(tp+fn)*0.7886+tn/(fp+tn)*0.2114*non_empty_dice))
     calculate_lb(label, pred_hard)
     ###########
 
