@@ -945,17 +945,13 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         ###########
 
         ########### Calculate PostProcessed LB ###########
-        config.log.write("""
-        config.EVAL_THRESHOLD = {}, config.PREDICTION_CHOSEN_MINPIXEL = {}""".format(eval_threshold, prediction_chosen_minpixel))
+        config.log.write("""        config.EVAL_THRESHOLD = {}, config.PREDICTION_CHOSEN_MINPIXEL = {}""".format(eval_threshold, prediction_chosen_minpixel))
         kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, eval_threshold, prediction_chosen_minpixel)
-        config.log.write("""
-        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (eval_threshold=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, eval_threshold))
+        config.log.write("""        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (eval_threshold=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, eval_threshold))
         kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, best_threshold, prediction_chosen_minpixel)
-        config.log.write("""
-        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (best_threshold=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, best_threshold))
+        config.log.write("""        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (best_threshold=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, best_threshold))
         kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, best_threshold, prediction_chosen_minpixel, tq=False, test_empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
-        config.log.write("""
-        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (best_threshold=%6.4f, empty=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, best_threshold, eval_emptyshreshold))
+        config.log.write("""        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (best_threshold=%6.4f, empty=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, best_threshold, eval_emptyshreshold))
         ###########
 
         ########### Confusion Matrix ###########
@@ -964,7 +960,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
             p, _ = post_process(p, best_threshold, int(config.PREDICTION_CHOSEN_MINPIXEL * label.shape[-1] / 1024), empty=prob_empty_total[i], empty_threshold=eval_emptyshreshold)
             pred_hard[i] = p
 
-        tn, fp, fn, tp = confusion_matrix(empty_total, (pred_hard.sum(axis=(pred_hard.ndim-2, pred_hard.ndim-1))==0).astype(np.bytes), labels=[0, 1]).ravel()
+        tn, fp, fn, tp = confusion_matrix(empty_total, (pred_hard.sum(axis=(pred_hard.ndim-2, pred_hard.ndim-1))==0).astype(np.int8), labels=[0, 1]).ravel()
         config.log.write("""
         min_pixeled + classificationed (threshold calculated w/ no empty)
                            True     False
@@ -982,17 +978,13 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         ###########
 
         ########### Calculate PostProcessed LB ###########
-        config.log.write("""
-        config.EVAL_THRESHOLD, config.PREDICTION_CHOSEN_MINPIXEL = {}, {}""".format(eval_threshold, prediction_chosen_minpixel))
+        config.log.write("""        config.EVAL_THRESHOLD = {}, config.PREDICTION_CHOSEN_MINPIXEL = {}""".format(eval_threshold, prediction_chosen_minpixel))
         kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, eval_threshold, prediction_chosen_minpixel)
-        config.log.write("""
-        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (eval_threshold=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, eval_threshold))
+        config.log.write("""        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (eval_threshold=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, eval_threshold))
         kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, best_threshold, prediction_chosen_minpixel)
-        config.log.write("""
-        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (best_threshold=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, best_threshold))
+        config.log.write("""        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (best_threshold=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, best_threshold))
         kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, best_threshold, prediction_chosen_minpixel, tq=False, test_empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
-        config.log.write("""
-        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (best_threshold=%6.4f, empty=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, best_threshold, eval_emptyshreshold))
+        config.log.write("""        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (best_threshold=%6.4f, empty=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, best_threshold, eval_emptyshreshold))
         ###########
 
         ########### Confusion Matrix ###########
@@ -1001,7 +993,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
             p, _ = post_process(p, best_threshold, int(config.PREDICTION_CHOSEN_MINPIXEL * label.shape[-1] / 1024), empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
             pred_hard[i] = p
 
-        tn, fp, fn, tp = confusion_matrix(empty_total, (pred_hard.sum(axis=(pred_hard.ndim-2, pred_hard.ndim-1))==0).astype(np.bytes), labels=[0, 1]).ravel()
+        tn, fp, fn, tp = confusion_matrix(empty_total, (pred_hard.sum(axis=(pred_hard.ndim-2, pred_hard.ndim-1))==0).astype(np.int8), labels=[0, 1]).ravel()
         config.log.write("""
         min_pixeled + classificationed (threshold calculated w/ empty)
                            True     False
