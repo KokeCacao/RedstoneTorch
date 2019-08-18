@@ -908,7 +908,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         chosen = np.argwhere(label.sum(axis=(label.ndim-2, label.ndim-1)) != 0)
         print("Chosen: {}".format(len(chosen)))
         non_empty_dice = binary_dice_numpy_gain(label[chosen], pred_hard[chosen], mean=True)
-        config.log.write(""""
+        config.log.write("""
         tp/(tp+fn)(0.7886) + tn/(fp+tn)(0.2114)*dice
         = {}(0.7886) + {}(0.2114)*{}
         = {}
