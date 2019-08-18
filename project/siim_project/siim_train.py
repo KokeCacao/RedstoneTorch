@@ -444,15 +444,12 @@ class SIIMTrain:
                 """Heng CherKeng"""
                 dice_cherkeng, dice_neg, dice_pos, num_neg, num_pos = metric(labels, logits_predict)
 
-                if config.epoch < 2:
+                if config.loss == "mix":  # 40 epoch
                     loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
-                elif config.epoch < 40:
-                    loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
-                elif config.epoch < 200:
-                    loss = 0.99* hinge + 0.01 * bce.mean()
-                # elif config.epoch < 200:
-                #     # loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean() # v142
-                #     loss = 0.5 * ce.sum() + 0.5 * bce.mean() # v143
+                elif config.loss == "bce":  # never used
+                    loss = 0.5 * ce.sum() + 0.5 * bce.mean()
+                elif config.loss == "hinge":  # fine tune
+                    loss = 0.99 * hinge + 0.01 * bce.mean()
                 else:
                     raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
@@ -654,15 +651,12 @@ def eval_fold(net, writer, validation_loader):
             """Heng CherKeng"""
             dice_cherkeng, dice_neg, dice_pos, num_neg, num_pos = metric(labels, logits_predict)
 
-            if config.epoch < 2:
+            if config.loss == "mix": # 40 epoch
                 loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
-            elif config.epoch < 40:
-                loss = 0.7 * ce.sum() + 0.1 * bce.mean() + 0.2 * dice.mean()
-            elif config.epoch < 200:
+            elif config.loss == "bce": # never used
+                loss = 0.5 * ce.sum() + 0.5 * bce.mean()
+            elif config.loss == "hinge": # fine tune
                 loss = 0.99* hinge + 0.01 * bce.mean()
-            # elif config.epoch < 200:
-            #     # loss = 0.45 * ce.sum() + 0.45 * bce.mean() + 0.1 * dice.mean() # v142
-            #     loss = 0.5 * ce.sum() + 0.5 * bce.mean() # v143
             else:
                 raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 

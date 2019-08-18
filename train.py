@@ -53,6 +53,7 @@ def get_args():
     parser.add_option('--train_ratio', type="float", dest='train_ratio', default=0, help='Train Ratio')
     parser.add_option('--mix', type="string", dest='mix', default=False, help='Freeze Network by Name')
     parser.add_option('--load_dummy', type="string", dest='load_dummy', default=False, help='Load Dummy Variables for evaluation when not train')
+    parser.add_option('--loss', type="string", dest='loss', default="", help='Specify loss')
 
     (options, args) = parser.parse_args()
     return options
@@ -84,6 +85,9 @@ def load_args():
 
     if args.net == None: raise NotImplementedError("Please specify net")
     else: config.net = args.net
+
+    if args.loss == "": raise NotImplementedError("Please specify loss")
+    else: config.loss = args.loss
 
     if args.freeze_loaded == "True" or args.freeze_loaded == "False":
         if args.freeze_loaded == "True": config.freeze_loaded = True
