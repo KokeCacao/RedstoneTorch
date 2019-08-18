@@ -957,7 +957,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         ########### Confusion Matrix ###########
         pred_hard = np.zeros(pred_soft.squeeze().shape)
         for i, p in enumerate(pred_soft.squeeze()):
-            p, _ = post_process(p, best_threshold, int(config.PREDICTION_CHOSEN_MINPIXEL * label.shape[-1] / 1024), empty=prob_empty_total[i], empty_threshold=eval_emptyshreshold)
+            p, _ = post_process(p, best_threshold, int(config.PREDICTION_CHOSEN_MINPIXEL * label.shape[-1]**2 / 1024**2), empty=prob_empty_total[i], empty_threshold=eval_emptyshreshold)
             pred_hard[i] = p
 
         tn, fp, fn, tp = confusion_matrix(empty_total, (pred_hard.sum(axis=(pred_hard.ndim-2, pred_hard.ndim-1))==0).astype(np.int8), labels=[0, 1]).ravel()
@@ -988,9 +988,9 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         ###########
 
         ########### Confusion Matrix ###########
-        pred_hard = np.zeros(pred_soft.shape)
-        for i, p in enumerate(pred_soft):
-            p, _ = post_process(p, best_threshold, int(config.PREDICTION_CHOSEN_MINPIXEL * label.shape[-1] / 1024), empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
+        pred_hard = np.zeros(pred_soft.squeeze().shape)
+        for i, p in enumerate(pred_soft.squeeze()):
+            p, _ = post_process(p, best_threshold, int(config.PREDICTION_CHOSEN_MINPIXEL * label.shape[-1]**2 / 1024**2), empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
             pred_hard[i] = p
 
         tn, fp, fn, tp = confusion_matrix(empty_total, (pred_hard.sum(axis=(pred_hard.ndim-2, pred_hard.ndim-1))==0).astype(np.int8), labels=[0, 1]).ravel()
@@ -1015,6 +1015,6 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
     #         KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f empty_thres: %5.3f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, empty_thres)
 
     config.log.write("""
-    Epoch: {}
+    End Epoch: {}
     """.format(config.epoch))
     return score
