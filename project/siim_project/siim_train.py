@@ -883,10 +883,10 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
 
     ########### Confusion Matrix ###########
     tn, fp, fn, tp = confusion_matrix(empty_total, prob_empty_total, labels=[0, 1]).ravel()
-    config.log.write("""
-                       True     False
+    config.log.write("""                       True     False
     Empty           %7.1f   %7.1f  ->  %6.4f
-    Pneumothorax    %7.1f   %7.1f  ->  %6.4f""" % (tp, fp, tp/(tp+fn), tn, fn, tn/(fp+tn)))
+    Pneumothorax    %7.1f   %7.1f  ->  %6.4f
+    """ % (tp, fp, tp/(tp+fn), tn, fn, tn/(fp+tn)))
     ###########
 
     # epoch_pred = None
@@ -908,8 +908,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         chosen = np.argwhere(label.sum(axis=(label.ndim-2, label.ndim-1)) != 0)
         print("""    Calculating non-empty Dice... Chosen Pixtures: {}""".format(len(chosen)))
         non_empty_dice = binary_dice_numpy_gain(label[chosen], pred_hard[chosen], mean=True)
-        config.log.write("""
-    tp/(tp+fn)(0.7886) + tn/(fp+tn)(0.2114)*dice
+        config.log.write("""    tp/(tp+fn)(0.7886) + tn/(fp+tn)(0.2114)*dice
     = {}(0.7886) + {}(0.2114)*{}
     = {}""".format(tp/(tp+fn), tn/(fp+tn), non_empty_dice, tp/(tp+fn)*0.7886+tn/(fp+tn)*0.2114*non_empty_dice))
     calculate_lb(label, pred_hard)
@@ -930,11 +929,12 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
     # # if writer != None: tensorboardwriter.write_shakeup(writer, shakeup, shakeup_keys, shakeup_std, epoch)
     # ###########
 
-    if 1:  # calculating threshold without correcting "empty"
+    if 0:  # calculating threshold without correcting "empty"
         ########### Calculate Threshold ###########
         if eval_if_threshold_test:
             best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, binary_dice_numpy_gain, eval_try_threshold, writer, fold, n_class=1, mean=True)
             config.log.write("""
+        ########### Without Correcting Empty ###########
         Best Threshold is: {}, Score: {}, AreaUnder: {}""".format(best_threshold, best_val, total_score / total_tried))
             if writer != None: tensorboardwriter.write_best_threshold(writer, -1, best_val, best_threshold, total_score / total_tried, epoch, fold)
         ###########
@@ -967,6 +967,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         if eval_if_threshold_test:
             best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, binary_dice_numpy_gain, eval_try_threshold, writer, fold, n_class=1, mean=True, test_empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
             config.log.write("""
+        ########### With Correcting Empty ###########
         Best Threshold is: {}, Score: {}, AreaUnder: {}""".format(best_threshold, best_val, total_score / total_tried))
             if writer != None: tensorboardwriter.write_best_threshold(writer, -1, best_val, best_threshold, total_score / total_tried, epoch, fold)
         ###########
