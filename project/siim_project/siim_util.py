@@ -20,9 +20,6 @@ def compute_kaggle_lb(test_id, test_truth, test_probability, threshold, min_size
             truth = cv2.resize(truth, dsize=(1024, 1024), interpolation=cv2.INTER_LINEAR)
             truth = (truth>0.5).astype(np.float32)
 
-        if probability.shape!=(1024,1024):
-            probability = cv2.resize(probability, dsize=(1024, 1024), interpolation=cv2.INTER_LINEAR)
-
         #-----
         predict, num_component = post_process(probability, threshold, min_size, empty=empty, empty_threshold=empty_threshold)
 
@@ -60,6 +57,7 @@ def kaggle_metric_one(predict, truth):
 # Koke_Cacao: deprecated, only for Kaggle LB prediction
 def post_process(probability, threshold, min_size, empty=None, empty_threshold=None):
     if probability.shape != (1024, 1024):
+        probability = probability.squeeze()
         probability = cv2.resize(probability, dsize=(1024, 1024), interpolation=cv2.INTER_LINEAR)
 
     predict = np.zeros((1024,1024), np.float32)
