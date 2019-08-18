@@ -39,11 +39,11 @@ def calculate_threshold(label, pred, criteria, threshold_check_list, writer, fol
 
     pbar = tqdm(threshold_check_list)
     for threshold in pbar:
-        print("===========", label.shape, thresholded_pred.shape)
 
         if 1: # post-process
             config.log.write("Calculating Threshold Using post_process; min_pixel={};".format(int(config.PREDICTION_CHOSEN_MINPIXEL* label.shape[-1]/1024)), once=1)
             thresholded_pred = np.zeros((pred.shape[0], pred.shape[-2], pred.shape[-1]))
+            print("===========", label.shape, thresholded_pred.shape)
             for i, p in enumerate(pred):
                 p, _ = post_process(p, threshold, int(config.PREDICTION_CHOSEN_MINPIXEL* label.shape[-1]/1024), empty=test_empty[i] if test_empty is not None else None, empty_threshold=empty_threshold)
                 thresholded_pred[i] = p
