@@ -51,6 +51,8 @@ def calculate_threshold(label, pred, criteria, threshold_check_list, writer, fol
             config.log.write("Calculating Threshold Without post_process", once=1)
             thresholded_pred = (pred > threshold).astype(np.byte)
 
+        print("===========", label.shape, thresholded_pred.shape)
+
         total_tried = total_tried + 1
         score = criteria(label, thresholded_pred, **kwargs)
         total_score = total_score + score
