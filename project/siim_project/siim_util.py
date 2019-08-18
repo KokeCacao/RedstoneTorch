@@ -33,7 +33,7 @@ def compute_kaggle_lb(test_id, test_truth, test_probability, threshold, min_size
             kaggle_neg.append(score)
         else:
             kaggle_pos.append(score)
-
+    print(len(kaggle_pos))
     kaggle_neg = np.array(kaggle_neg)
     kaggle_pos = np.array(kaggle_pos)
     kaggle_neg_score = kaggle_neg.mean()

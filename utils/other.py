@@ -28,6 +28,9 @@ def calculate_shakeup(label, pred, criteria, shakeup_ratio, **kwargs):
     return shakeup, shakeup_keys, shakeup_mean, shakeup_std
 
 def calculate_threshold(label, pred, criteria, threshold_check_list, writer, fold, n_class=1, test_empty=None, empty_threshold=None, **kwargs):
+    label = label.squeeze()
+    pred = pred.squeeze()
+
     best_threshold = 0.0
     best_val = 0.0
     bad_value = 0
