@@ -41,9 +41,8 @@ def calculate_threshold(label, pred, criteria, threshold_check_list, writer, fol
     for threshold in pbar:
 
         if 1: # post-process
-            config.log.write("Calculating Threshold Using post_process; min_pixel={};".format(int(config.PREDICTION_CHOSEN_MINPIXEL* label.shape[-1]/1024)), once=1)
+            config.log.write("Calculating Threshold Using post_process; min_pixel={}; shape={}".format(int(config.PREDICTION_CHOSEN_MINPIXEL* label.shape[-1]/1024), pred.shape), once=1)
             thresholded_pred = np.zeros(pred.shape)
-            print("===========", label.shape, thresholded_pred.shape)
             for i, p in enumerate(pred):
                 p, _ = post_process(p, threshold, int(config.PREDICTION_CHOSEN_MINPIXEL* label.shape[-1]/1024), empty=test_empty[i] if test_empty is not None else None, empty_threshold=empty_threshold)
                 thresholded_pred[i] = p
@@ -52,12 +51,11 @@ def calculate_threshold(label, pred, criteria, threshold_check_list, writer, fol
             config.log.write("Calculating Threshold Without post_process", once=1)
             thresholded_pred = (pred > threshold).astype(np.byte)
 
-        print("===========", label.shape, thresholded_pred.shape)
 
         total_tried = total_tried + 1
         score = criteria(label, thresholded_pred, **kwargs)
         total_score = total_score + score
-        tensorboardwriter.write_threshold(writer, -1, score, threshold * 1000.0, fold)
+        if writer is not None: tensorboardwriter.write_threshold(writer, -1, score, threshold * 1000.0, fold)
         if score > best_val:
             best_threshold = threshold
             best_val = score
