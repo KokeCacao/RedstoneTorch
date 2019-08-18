@@ -20,6 +20,9 @@ def compute_kaggle_lb(test_id, test_truth, test_probability, threshold, min_size
             truth = cv2.resize(truth, dsize=(1024, 1024), interpolation=cv2.INTER_LINEAR)
             truth = (truth>0.5).astype(np.float32)
 
+        if probability.shape!=(1024,1024):
+            probability = cv2.resize(probability, dsize=(1024, 1024), interpolation=cv2.INTER_LINEAR)
+
         #-----
         predict, num_component = post_process(probability, threshold, min_size, empty=empty, empty_threshold=empty_threshold)
 
