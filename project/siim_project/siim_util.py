@@ -4,13 +4,13 @@ import numpy as np
 from tqdm import tqdm
 import cv2
 
-def compute_kaggle_lb(test_id, test_truth, test_probability, threshold, min_size, tq=True, test_empty=None, empty_threshold=None):
+def compute_kaggle_lb(test_id, test_truth, test_probability, threshold, min_size, test_empty=None, empty_threshold=None):
 
     test_num    = len(test_truth)
 
     kaggle_pos = []
     kaggle_neg = []
-    pbar = tqdm(range(test_num), leave=False) if tq else range(test_num)
+    pbar = tqdm(range(test_num), leave=False)
     for b in pbar:
         truth       = test_truth[b,0]
         probability = test_probability[b,0]
@@ -27,7 +27,7 @@ def compute_kaggle_lb(test_id, test_truth, test_probability, threshold, min_size
         predict, num_component = post_process(probability, threshold, min_size, empty=empty, empty_threshold=empty_threshold)
 
         score = kaggle_metric_one(predict, truth)
-        if tq: pbar.set_description_str('%3d  %-56s  %s   %0.5f  %0.5f'% (b, test_id[b], predict.shape, probability.mean(), probability.max()))
+        pbar.set_description_str('%3d  %-56s  %s   %0.5f  %0.5f'% (b, test_id[b], predict.shape, probability.mean(), probability.max()))
 
         if truth.sum()==0:
             kaggle_neg.append(score)

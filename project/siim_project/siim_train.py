@@ -609,9 +609,6 @@ def eval_fold(net, writer, validation_loader):
         sum_number = np.zeros(20, np.float32) + 1e-8
 
         for batch_index, (ids, image, labels, image_0, labels_0, empty, flip) in enumerate(pbar):
-            # for l in labels:
-            #     if l.
-
             # fix empty
             empty = (labels.sum(dim=(1, 2, 3)) == 0).float()
 
@@ -688,6 +685,13 @@ def eval_fold(net, writer, validation_loader):
             logits_predict = logits_predict.detach().cpu().numpy()
             prob_predict = prob_predict.detach().cpu().numpy()
             prob_empty = prob_empty.detach().cpu().numpy()
+
+            """TESTING"""
+            for l in labels:
+                l = np.median(l)
+                if l.is_integer():
+                    print("good")
+
 
             """Draw Image"""
             if writer != None:
@@ -929,7 +933,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         ########### Calculate Threshold ###########
         if eval_if_threshold_test:
             # best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, binary_dice_numpy_gain, eval_try_threshold, writer, fold, n_class=1, mean=True)
-            best_threshold, best_val, total_score, total_tried = calculate_kaggle_threshold(id_total, label, pred_soft, eval_try_threshold, prediction_chosen_minpixel, writer, fold)
+            best_threshold, best_val, total_score, total_tried = calculate_kaggle_threshold(id_total, label, pred_soft, eval_try_threshold, prediction_chosen_minpixel, writer, fold, test_empty=None, empty_threshold=None)
             config.log.write("""
         ########### Without Correcting Empty ###########
         Best Threshold is: {}, Score: {}, AreaUnder: {}""".format(best_threshold, best_val, total_score / total_tried))
@@ -942,7 +946,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         config.log.write("""        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (eval_threshold=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, eval_threshold))
         kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, best_threshold, prediction_chosen_minpixel)
         config.log.write("""        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (best_threshold=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, best_threshold))
-        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, best_threshold, prediction_chosen_minpixel, tq=False, test_empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
+        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, best_threshold, prediction_chosen_minpixel, test_empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
         config.log.write("""        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (best_threshold=%6.4f, empty=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, best_threshold, eval_emptyshreshold))
         ###########
 
@@ -963,7 +967,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         ########### Calculate Threshold ###########
         if eval_if_threshold_test:
             # best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, binary_dice_numpy_gain, eval_try_threshold, writer, fold, n_class=1, mean=True, test_empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
-            best_threshold, best_val, total_score, total_tried = calculate_kaggle_threshold(id_total, label, pred_soft, eval_try_threshold, prediction_chosen_minpixel, writer, fold)
+            best_threshold, best_val, total_score, total_tried = calculate_kaggle_threshold(id_total, label, pred_soft, eval_try_threshold, prediction_chosen_minpixel, writer, fold, test_empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
             config.log.write("""
         ########### With Correcting Empty ###########
         Best Threshold is: {}, Score: {}, AreaUnder: {}""".format(best_threshold, best_val, total_score / total_tried))
@@ -976,7 +980,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         config.log.write("""        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (eval_threshold=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, eval_threshold))
         kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, best_threshold, prediction_chosen_minpixel)
         config.log.write("""        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (best_threshold=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, best_threshold))
-        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, best_threshold, prediction_chosen_minpixel, tq=False, test_empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
+        kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, best_threshold, prediction_chosen_minpixel, test_empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
         config.log.write("""        KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f (best_threshold=%6.4f, empty=%6.4f)""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, best_threshold, eval_emptyshreshold))
         ###########
 
@@ -997,12 +1001,12 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
     # else:
     #     for min_pixel in [6000, 5000, 4000]:
     #         for thres in [0.99, 0.98, 0.95, 0.9, 0.85]:
-    #             kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, thres, min_pixel, tq=False)
+    #             kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, thres, min_pixel)
     #             print("""
     #         min_pixel: %5.1f threshold: %5.3f KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f""" % (min_pixel, thres, kaggle_score, kaggle_neg_score, kaggle_pos_score))
     #
     #     for empty_thres in [0.4, 0.5, 0.9]:
-    #         kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, eval_threshold, prediction_chosen_minpixel, tq=False, test_empty=prob_empty_total, empty_threshold=empty_thres)
+    #         kaggle_score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, eval_threshold, prediction_chosen_minpixel, test_empty=prob_empty_total, empty_threshold=empty_thres)
     #         report = report + """
     #         KaggleLB: %6.4f Negative: %6.4f Positive: %6.4f empty_thres: %5.3f""" % (kaggle_score, kaggle_neg_score, kaggle_pos_score, empty_thres)
 

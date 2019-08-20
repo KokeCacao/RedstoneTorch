@@ -80,7 +80,7 @@ def calculate_threshold(label, pred, criteria, eval_try_threshold, writer, fold,
     # removed calculation threshold vs. frequency
     return best_threshold, best_val, total_score, total_tried
 
-def calculate_kaggle_threshold(id_total, label, pred_soft, eval_try_threshold, prediction_chosen_minpixel, writer, fold):
+def calculate_kaggle_threshold(id_total, label, pred_soft, eval_try_threshold, prediction_chosen_minpixel, writer, fold, test_empty=None, empty_threshold=None):
     best_threshold = 0.0
     best_val = 0.0
     bad_value = 0
@@ -90,7 +90,7 @@ def calculate_kaggle_threshold(id_total, label, pred_soft, eval_try_threshold, p
     pbar = tqdm(eval_try_threshold, leave=False)
     for threshold in pbar:
         total_tried = total_tried + 1
-        score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, threshold, prediction_chosen_minpixel)
+        score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, threshold, prediction_chosen_minpixel, test_empty=test_empty, empty_threshold=empty_threshold)
         if writer is not None: tensorboardwriter.write_threshold(writer, -1, score, threshold * 1000.0, fold)
         if score > best_val:
             best_threshold = threshold
