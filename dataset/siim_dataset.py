@@ -81,6 +81,9 @@ class SIIMDataset(data.Dataset):
     def __len__(self):
         return self.id_len
 
+    def get_CHW_samples(self, *kwargs):
+        pass
+
     def get_stratified_samplers(self, fold=-1):
         """
         :param fold: fold number
@@ -380,12 +383,13 @@ def eval_aug(term):
 
 def test_aug(term):
     return Compose([
+        # HorizontalFlip(p=term % 2),
         Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
     ]), 0
 
 def tta_aug(term):
     return Compose([
-        RandomGamma(gamma_limit=(80, 110), p=0.8),
+        # RandomGamma(gamma_limit=(80, 110), p=0.8),
         Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344
     ]), 0
 

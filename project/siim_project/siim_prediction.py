@@ -64,162 +64,118 @@ class SIIMPrediction:
                 continue
             net = net.cuda()
             for threshold in config.PREDICTION_CHOSEN_THRESHOLD:
-
-                if config.prediction_tta == 0:
-                    prob_path = "{}-{}-F{}-T{}-Prob.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
-                    print("Creating Path: {}".format(prob_path))
-                    if os.path.exists(prob_path):
-                        os.remove(prob_path)
-                        print("WARNING: delete file '{}'".format(prob_path))
-
-                    with open(prob_path, 'a') as prob_file:
-                        prob_file.write('{},{},{}\n'.format(config.DIRECTORY_CSV_ID, config.DIRECTORY_CSV_TARGET, "Empty"))
-
-                        test_loader = data.DataLoader(self.test_dataset,
-                                                      batch_size=config.TEST_BATCH_SIZE,
-                                                      shuffle=False,
-                                                      sampler=SequentialSampler(self.test_dataset.indices),
-                                                      batch_sampler=None,
-                                                      num_workers=config.TRAIN_NUM_WORKER,
-                                                      collate_fn=test_collate,
-                                                      pin_memory=True,
-                                                      drop_last=False,
-                                                      timeout=0,
-                                                      worker_init_fn=None,
-                                                      )
-                        pbar = tqdm(test_loader)
-                        total_confidence = 0
-
-                        print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
-
-                        id_total = None
-                        predict_total = None
-                        prob_empty_total = None
-                        for batch_index, (ids, image, labels, image_0, labels_0, empty, flip) in enumerate(pbar):
-
-                            image = image.cuda()
-                            flip = flip.cuda().float()
-                            empty_logits, _idkwhatthisis_, logits_predict = net(image, flip)
-                            prob_predict = torch.nn.Sigmoid()(logits_predict)
-                            prob_empty = torch.nn.Sigmoid()(empty_logits)
-
-                            image = image.cpu().numpy()
-                            flip = flip.cpu().numpy()
-                            labels = labels.cpu().numpy()
-                            empty = empty.cpu().numpy()
-                            logits_predict = logits_predict.detach().cpu().numpy()
-                            prob_predict = prob_predict.detach().cpu().numpy()
-                            prob_empty = prob_empty.detach().cpu().numpy()
-
-                            id_total = np.concatenate((id_total, ids), axis=0) if id_total is not None else ids
-                            predict_total = np.concatenate((predict_total, prob_predict), axis=0) if predict_total is not None else prob_predict
-                            prob_empty_total = np.concatenate((prob_empty_total, prob_empty), axis=0) if prob_empty_total is not None else prob_empty
-
-                            confidence = (np.absolute(prob_predict - 0.5).mean() + 0.5).item()
-                            total_confidence = total_confidence + confidence
-                            pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0].split("/")[-1].split(".")[0], confidence, total_confidence / (batch_index + 1)))
-
-                            for id, empty, predict in zip(ids, prob_empty, prob_predict):
-                                predict = predict.squeeze()
-                                predict = np.transpose(predict)
-                                predict = cv2.resize(predict, dsize=(1024, 1024), interpolation=cv2.INTER_LINEAR)
-                                predict, num_component = post_process(predict, threshold, config.PREDICTION_CHOSEN_MINPIXEL)
-                                # predict = ndimage.zoom(predict, config.IMG_SIZE/predict.shape[0])
-
-
-                                prob_file.write('{},{},{}\n'.format(id, mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE), empty[0]))
-
-                            del ids, image, labels, image_0, labels_0, empty, flip
-                            del empty_logits, _idkwhatthisis_, logits_predict
-                            del prob_predict, prob_empty, confidence
-                            if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-
-                        np.save(config.DIRECTORY_CHECKPOINT + "CP{}_id_total.npy".format(config.epoch), id_total)
-                        np.save(config.DIRECTORY_CHECKPOINT + "CP{}_predict_total.npy".format(config.epoch), predict_total)
-                        np.save(config.DIRECTORY_CHECKPOINT + "CP{}_prob_empty_total.npy".format(config.epoch), prob_empty_total)
-
-                    print("Prob_path: {}".format(prob_path))
+                if config.prediction_tta < 2:
+                    test_loader = data.DataLoader(self.test_dataset,
+                                                  batch_size=config.TEST_BATCH_SIZE,
+                                                  shuffle=False,
+                                                  sampler=SequentialSampler(self.test_dataset.indices),
+                                                  batch_sampler=None,
+                                                  num_workers=config.TRAIN_NUM_WORKER,
+                                                  collate_fn=test_collate,
+                                                  pin_memory=True,
+                                                  drop_last=False,
+                                                  timeout=0,
+                                                  worker_init_fn=None,
+                                                  )
+                elif config.prediction_tta == 2:
+                    test_loader = data.DataLoader(self.test_dataset,
+                                                  batch_size=config.TEST_BATCH_SIZE,
+                                                  shuffle=False,
+                                                  sampler=SequentialSampler(self.test_dataset.indices),
+                                                  batch_sampler=None,
+                                                  num_workers=config.TRAIN_NUM_WORKER,
+                                                  collate_fn=test_collate,
+                                                  pin_memory=True,
+                                                  drop_last=False,
+                                                  timeout=0,
+                                                  worker_init_fn=None,
+                                                  )
+                elif config.prediction_tta > 2:
+                    test_loader = data.DataLoader(self.test_dataset,
+                                                  batch_size=config.TEST_BATCH_SIZE,
+                                                  shuffle=False,
+                                                  sampler=SequentialSampler(self.test_dataset.indices),
+                                                  batch_sampler=None,
+                                                  num_workers=config.TRAIN_NUM_WORKER,
+                                                  collate_fn=tta_collate,
+                                                  pin_memory=True,
+                                                  drop_last=False,
+                                                  timeout=0,
+                                                  worker_init_fn=None,
+                                                  )
                 else:
-                    """TTA"""
+                    raise ValueError("tta cannot be {}".format(config.prediction_tta))
 
-                    if config.prediction_tta > 2:
-                        test_loader = data.DataLoader(self.test_dataset,
-                                                      batch_size=config.TEST_BATCH_SIZE,
-                                                      shuffle=False,
-                                                      sampler=SequentialSampler(self.test_dataset.indices),
-                                                      batch_sampler=None,
-                                                      num_workers=config.TRAIN_NUM_WORKER,
-                                                      collate_fn=tta_collate,
-                                                      pin_memory=True,
-                                                      drop_last=False,
-                                                      timeout=0,
-                                                      worker_init_fn=None,
-                                                      )
-                    else:
-                        test_loader = data.DataLoader(self.test_dataset,
-                                                      batch_size=config.TEST_BATCH_SIZE,
-                                                      shuffle=False,
-                                                      sampler=SequentialSampler(self.test_dataset.indices),
-                                                      batch_sampler=None,
-                                                      num_workers=config.TRAIN_NUM_WORKER,
-                                                      collate_fn=test_collate,
-                                                      pin_memory=True,
-                                                      drop_last=False,
-                                                      timeout=0,
-                                                      worker_init_fn=None,
-                                                      )
+                prob_path = config.DIRECTORY_CHECKPOINT +  "prediction/{}-{}-F{}-T{}-Prob.csv".format(config.time_to_str(config.start_time), config.PREDICTION_TAG, fold, threshold)
+                print("Creating Path: {}".format(prob_path))
+                if os.path.exists(prob_path):
+                    os.remove(prob_path)
+                    print("WARNING: delete file '{}'".format(prob_path))
+
+                with open(prob_path, 'a') as prob_file:
+                    prob_file.write('{},{},{}\n'.format(config.DIRECTORY_CSV_ID, config.DIRECTORY_CSV_TARGET, "Empty"))
+
+                    test_loader = data.DataLoader(self.test_dataset,
+                                                  batch_size=config.TEST_BATCH_SIZE,
+                                                  shuffle=False,
+                                                  sampler=SequentialSampler(self.test_dataset.indices),
+                                                  batch_sampler=None,
+                                                  num_workers=config.TRAIN_NUM_WORKER,
+                                                  collate_fn=test_collate,
+                                                  pin_memory=True,
+                                                  drop_last=False,
+                                                  timeout=0,
+                                                  worker_init_fn=None,
+                                                  )
+                    pbar = tqdm(test_loader)
+                    total_confidence = 0
 
                     print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
 
-                    tta_pbar = tqdm(range(config.prediction_tta))
-                    for tta in tta_pbar:
+                    id_total = None
+                    predict_total = None
+                    prob_empty_total = None
+                    for batch_index, (ids, image, labels, image_0, labels_0, empty, flip) in enumerate(pbar):
 
-                        tta_path = "{}-{}-F{}-T{}-Prob-TTA{}.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold, tta)
-                        print("Creating Path: {}".format(tta_path))
-                        if os.path.exists(tta_path):
-                            os.remove(tta_path)
-                            print("WARNING: delete file '{}'".format(tta_path))
+                        image = image.cuda()
+                        flip = flip.cuda().float()
+                        empty_logits, _idkwhatthisis_, logits_predict = net(image, flip)
+                        prob_predict = torch.nn.Sigmoid()(logits_predict)
+                        prob_empty = torch.nn.Sigmoid()(empty_logits)
 
-                        with open(tta_path, 'a') as prob_file:
-                            prob_file.write('{},{}\n'.format(config.DIRECTORY_CSV_ID, config.DIRECTORY_CSV_TARGET))
+                        image = image.cpu().numpy()
+                        flip = flip.cpu().numpy()
+                        labels = labels.cpu().numpy()
+                        empty = empty.cpu().numpy()
+                        logits_predict = logits_predict.detach().cpu().numpy()
+                        prob_predict = prob_predict.detach().cpu().numpy()
+                        prob_empty = prob_empty.detach().cpu().numpy()
 
-                            tta_dict = dict()
-                            config.eval_index = config.eval_index + 1
-                            total_confidence = 0
-                            pbar = tqdm(test_loader)
-                            for batch_index, (ids, image, labels, image_0, labels_0, empty, flip) in enumerate(pbar):
+                        id_total = np.concatenate((id_total, ids), axis=0) if id_total is not None else ids
+                        predict_total = np.concatenate((predict_total, prob_predict), axis=0) if predict_total is not None else prob_predict
+                        prob_empty_total = np.concatenate((prob_empty_total, prob_empty), axis=0) if prob_empty_total is not None else prob_empty
 
-                                image = image.cuda()
-                                flip = flip.cuda().float()
-                                empty_logits, _idkwhatthisis_, logits_predict = net(image, flip)
-                                prob_predict = torch.nn.Sigmoid()(logits_predict)
-                                prob_empty = torch.nn.Sigmoid()(empty_logits)
+                        confidence = (np.absolute(prob_predict - 0.5).mean() + 0.5).item()
+                        total_confidence = total_confidence + confidence
+                        pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0].split("/")[-1].split(".")[0], confidence, total_confidence / (batch_index + 1)))
 
-                                image = image.cpu().numpy()
-                                flip = flip.cpu().numpy()
-                                labels = labels.cpu().numpy()
-                                empty = empty.cpu().numpy()
-                                logits_predict = logits_predict.detach().cpu().numpy()
-                                prob_predict = prob_predict.detach().cpu().numpy()
-                                prob_empty = prob_empty.detach().cpu().numpy()
+                        for id, empty, predict in zip(ids, prob_empty, prob_predict):
+                            predict = predict.squeeze()
+                            predict = np.transpose(predict)
+                            predict = cv2.resize(predict, dsize=(1024, 1024), interpolation=cv2.INTER_LINEAR)
+                            predict, num_component = post_process(predict, threshold, config.PREDICTION_CHOSEN_MINPIXEL)
+                            # predict = ndimage.zoom(predict, config.IMG_SIZE/predict.shape[0])
 
-                                confidence = (np.absolute(prob_predict - 0.5).mean() + 0.5).item()
-                                total_confidence = total_confidence + confidence
-                                pbar.set_description("Thres:{} Id:{} Confidence:{}/{}".format(threshold, ids[0], confidence, total_confidence / (batch_index + 1)))
 
-                                # prob_predict = (prob_predict > threshold).astype(np.byte)
-                                for id, empty, predict in zip(ids, prob_empty, prob_predict):
-                                    predict = predict.squeeze()
-                                    predict = np.transpose(predict)
-                                    predict = cv2.resize(predict, dsize=(1024, 1024), interpolation=cv2.INTER_LINEAR)
-                                    predict, num_component = post_process(predict, threshold, config.PREDICTION_CHOSEN_MINPIXEL)
+                            prob_file.write('{},{},{}\n'.format(id, mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE), empty[0]))
 
-                                    tta_dict[id] = mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE)
-                                    prob_file.write('{},{},{}\n'.format(id, mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE), empty))
+                        del ids, image, labels, image_0, labels_0, empty, flip
+                        del empty_logits, _idkwhatthisis_, logits_predict
+                        del prob_predict, prob_empty, confidence
+                        if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
-                                del ids, image, labels, image_0, labels_0, empty, flip
-                                del empty_logits, _idkwhatthisis_, logits_predict
-                                del prob_predict, prob_empty, confidence
-                                if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
-                        print("TTA_path: {}".format(tta_path))
+                    np.save(config.DIRECTORY_CHECKPOINT + "prediction/{}-CP{}_id_total.npy".format(config.time_to_str(config.start_time), config.epoch), id_total)
+                    np.save(config.DIRECTORY_CHECKPOINT + "prediction/{}-CP{}_predict_total.npy".format(config.time_to_str(config.start_time), config.epoch), predict_total)
+                    np.save(config.DIRECTORY_CHECKPOINT + "prediction/{}-CP{}_prob_empty_total.npy".format(config.time_to_str(config.start_time), config.epoch), prob_empty_total)
 
+                print("Prob_path: {}".format(prob_path))
