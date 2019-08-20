@@ -929,8 +929,9 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
     # # if writer != None: tensorboardwriter.write_shakeup(writer, shakeup, shakeup_keys, shakeup_std, epoch)
     # ###########
 
-    if 0:  # calculating threshold without correcting "empty"
+    if config.train == False:  # calculating threshold without correcting "empty"
         ########### Calculate Threshold ###########
+        best_threshold = 0
         if eval_if_threshold_test:
             # best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, binary_dice_numpy_gain, eval_try_threshold, writer, fold, n_class=1, mean=True)
             best_threshold, best_val, total_score, total_tried = calculate_kaggle_threshold(id_total, label, pred_soft, eval_try_threshold, prediction_chosen_minpixel, writer, fold, test_empty=None, empty_threshold=None)
@@ -965,6 +966,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         ###########
     if 1: # calculating threshold with correcting "empty"
         ########### Calculate Threshold ###########
+        best_threshold = 0
         if eval_if_threshold_test:
             # best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, binary_dice_numpy_gain, eval_try_threshold, writer, fold, n_class=1, mean=True, test_empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
             best_threshold, best_val, total_score, total_tried = calculate_kaggle_threshold(id_total, label, pred_soft, eval_try_threshold, prediction_chosen_minpixel, writer, fold, test_empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
