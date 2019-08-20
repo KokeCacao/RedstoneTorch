@@ -500,6 +500,12 @@ class SIIMTrain:
                 prob_predict = prob_predict.detach().cpu().numpy()
                 prob_empty = prob_empty.detach().cpu().numpy()
 
+                """TESTING"""
+                for l in labels:
+                    l = np.median(l)
+                    if l.item().is_integer():
+                        config.log.write("[WARNING] Median of the mask is Integer", once=1)
+
                 """SUM"""
                 epoch_loss = epoch_loss + loss.mean()
                 # f = f1_macro(logits_predict, labels).mean()
@@ -692,13 +698,6 @@ def eval_fold(net, writer, validation_loader):
             logits_predict = logits_predict.detach().cpu().numpy()
             prob_predict = prob_predict.detach().cpu().numpy()
             prob_empty = prob_empty.detach().cpu().numpy()
-
-            """TESTING"""
-            for l in labels:
-                l = np.median(l)
-                if l.is_integer():
-                    print("good")
-
 
             """Draw Image"""
             if writer != None:
