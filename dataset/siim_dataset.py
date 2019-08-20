@@ -91,7 +91,8 @@ class SIIMDataset(data.Dataset):
         print("Selected train={} val={}".format(len(train), len(val)))
         for i in range(fold):
             folded_samplers[i] = dict()
-            folded_samplers[i]["train"] = BalanceClassSampler(train, list(self.get_empty_by_indice(x) for x in train))
+            # folded_samplers[i]["train"] = BalanceClassSampler(train, list(self.get_empty_by_indice(x) for x in train))
+            folded_samplers[i]["train"] = SequentialSampler(train)
             folded_samplers[i]["val"] = SequentialSampler(val)
         return folded_samplers
 
