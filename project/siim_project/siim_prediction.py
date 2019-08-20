@@ -11,8 +11,10 @@ import cv2
 import config
 from dataset.siim_dataset import SIIMDataset
 from dataset.siim_dataset import test_collate, tta_collate
+from net.seresunet34_scse_hyper import SEResUNetscSEHyper34, ResUNetscSEHyper32
+from net.seresunext50_oc_scse_hyper import SeResUNeXtscSEOCHyper50
 from project.siim_project import siim_net
-from project.siim_project.siim_net import model50A_DeepSupervion, model34_DeepSupervion, model34_DeepSupervion_GroupNorm_OC
+from project.siim_project.siim_net import model50A_DeepSupervion, model34_DeepSupervion, model34_DeepSupervion_GroupNorm_OC, model34_DeepSupervion_GroupNorm
 from project.siim_project.siim_util import post_process
 from utils.encode import mask2rle
 from utils.load import save_onnx, load_checkpoint_all_fold
@@ -31,13 +33,21 @@ class SIIMPrediction:
             else:
                 print("     Creating Fold: #{}".format(fold))
                 if config.net == "resunet50":
-                  net = siim_net.resunet(encoder_depth=50, num_classes=config.TRAIN_NUM_CLASS, num_filters=32, dropout_2d=0.2, pretrained=False, is_deconv=False)
+                    net = siim_net.resunet(encoder_depth=50, num_classes=config.TRAIN_NUM_CLASS, num_filters=32, dropout_2d=0.2, pretrained=False, is_deconv=False)
                 elif config.net == "resunet50-ds":
                     net = model50A_DeepSupervion(num_classes=config.TRAIN_NUM_CLASS)
                 elif config.net == "resunet34-ds":
                     net = model34_DeepSupervion(num_classes=config.TRAIN_NUM_CLASS)
                 elif config.net == "resunet34-ds-gn":
+                    net = model34_DeepSupervion_GroupNorm(num_classes=config.TRAIN_NUM_CLASS)
+                elif config.net == "resunet34-ds-gn-oc":
                     net = model34_DeepSupervion_GroupNorm_OC(num_classes=config.TRAIN_NUM_CLASS)
+                elif config.net == "seresunext50_oc_scse_hyper":
+                    net = SeResUNeXtscSEOCHyper50(num_classes=config.TRAIN_NUM_CLASS, dilation=False)
+                elif config.net == "seresunet34-ds-scse-hyper":
+                    net = SEResUNetscSEHyper34(num_classes=config.TRAIN_NUM_CLASS, drop_out=0.1)
+                elif config.net == "resunet32-ds-scse-hyper":
+                    net = ResUNetscSEHyper32(num_classes=config.TRAIN_NUM_CLASS)
                 ## leaky relu?
                 else:
                     raise ValueError("The Network {} you specified is not in one of the network you can use".format(config.net))
