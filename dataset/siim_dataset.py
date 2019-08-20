@@ -92,6 +92,7 @@ class SIIMDataset(data.Dataset):
         for i in range(fold):
             folded_samplers[i] = dict()
             folded_samplers[i]["train"] = BalanceClassSampler(train, np.array(list(self.get_empty_by_indice(x) for x in train)))
+            print(np.array(list(self.get_empty_by_indice(x) for x in train))[0])
             folded_samplers[i]["val"] = SequentialSampler(val)
         return folded_samplers
 
