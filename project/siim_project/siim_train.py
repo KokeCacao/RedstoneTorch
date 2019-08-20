@@ -66,7 +66,6 @@ class SIIMTrain:
         self.dataset = SIIMDataset(config.DIRECTORY_CSV, config.DIRECTORY_SAMPLE_CSV, load_strategy="train", writer=self.writer, id_col=config.DIRECTORY_CSV_ID, target_col=config.DIRECTORY_CSV_TARGET)
         # self.folded_samplers = self.dataset.get_stratified_samplers(fold=config.MODEL_FOLD)
         self.folded_samplers = self.dataset.get_CHW_samples(fold=config.MODEL_FOLD)
-        self.folded_samplers[0]
 
         for fold in range(config.MODEL_FOLD):
             if fold not in config.train_fold:

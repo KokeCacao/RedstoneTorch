@@ -90,6 +90,7 @@ class SIIMDataset(data.Dataset):
         val = [self.id_to_indices[line.rstrip('\n')+'.dcm'] for line in open(config.DIRECTORY_PREFIX + 'data/siim_dataset/chw_val.txt')]
         print("Selected train={} val={}".format(len(train), len(val)))
         for i in range(fold):
+            print(i)
             folded_samplers[fold] = dict()
             folded_samplers[fold]["train"] = BalanceClassSampler(train, np.array(list(self.get_empty_by_indice(x) for x in train)))
             folded_samplers[fold]["val"] = SequentialSampler(val)
