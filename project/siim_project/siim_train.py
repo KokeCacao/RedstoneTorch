@@ -927,7 +927,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         ########### Calculate Threshold ###########
         if eval_if_threshold_test:
             # best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, binary_dice_numpy_gain, eval_try_threshold, writer, fold, n_class=1, mean=True)
-            best_threshold, best_val, total_score, total_tried = calculate_kaggle_threshold(id_total, label, pred_soft, threshold_check_list, prediction_chosen_minpixel, writer, fold)
+            best_threshold, best_val, total_score, total_tried = calculate_kaggle_threshold(id_total, label, pred_soft, eval_try_threshold, prediction_chosen_minpixel, writer, fold)
             config.log.write("""
         ########### Without Correcting Empty ###########
         Best Threshold is: {}, Score: {}, AreaUnder: {}""".format(best_threshold, best_val, total_score / total_tried))
@@ -961,7 +961,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         ########### Calculate Threshold ###########
         if eval_if_threshold_test:
             # best_threshold, best_val, total_score, total_tried = calculate_threshold(label, pred_soft, binary_dice_numpy_gain, eval_try_threshold, writer, fold, n_class=1, mean=True, test_empty=prob_empty_total, empty_threshold=eval_emptyshreshold)
-            best_threshold, best_val, total_score, total_tried = calculate_kaggle_threshold(id_total, label, pred_soft, threshold_check_list, prediction_chosen_minpixel, writer, fold)
+            best_threshold, best_val, total_score, total_tried = calculate_kaggle_threshold(id_total, label, pred_soft, eval_try_threshold, prediction_chosen_minpixel, writer, fold)
             config.log.write("""
         ########### With Correcting Empty ###########
         Best Threshold is: {}, Score: {}, AreaUnder: {}""".format(best_threshold, best_val, total_score / total_tried))
