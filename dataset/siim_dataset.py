@@ -86,8 +86,8 @@ class SIIMDataset(data.Dataset):
     def get_CHW_samples(self, fold=-1):
         print("Using {}".format("get_CHW_samples"))
         folded_samplers = dict()
-        train = [self.id_to_indices[line.rstrip('\n')] for line in open(config.DIRECTORY_PREFIX + 'data/siim_dataset/chw_train.txt')]
-        val = [self.id_to_indices[line.rstrip('\n')] for line in open(config.DIRECTORY_PREFIX + 'data/siim_dataset/chw_val.txt')]
+        train = [self.id_to_indices[line.rstrip('\n')+'.dcm'] for line in open(config.DIRECTORY_PREFIX + 'data/siim_dataset/chw_train.txt')]
+        val = [self.id_to_indices[line.rstrip('\n')+'.dcm'] for line in open(config.DIRECTORY_PREFIX + 'data/siim_dataset/chw_val.txt')]
         print("Selected train={} val={}".format(len(train), len(val)))
         for i in range(fold):
             folded_samplers[fold] = dict()
