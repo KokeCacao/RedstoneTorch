@@ -219,14 +219,15 @@ class SEResNeXtBottleneck(Bottleneck):
 class SEBasicBlock(nn.Module):
     expansion = 1
 
-    def __init__(self, inplanes, planes, stride=1, downsample=None, reduction=16):
+    def __init__(self, inplanes, planes, groups, reduction=16, stride=1,
+                 downsample=None, base_width=None):
         super(SEBasicBlock, self).__init__()
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=3, stride=stride,
                                padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
         self.relu = nn.ReLU(inplace=True)
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride,
-                               padding=1, bias=False)
+                               padding=1, groups=groups, bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
         self.se = SEModule(planes, reduction)
         self.downsample = downsample
