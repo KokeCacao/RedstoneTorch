@@ -304,40 +304,6 @@ class Decoder(nn.Module):
 
         return x
 
-class Decoder(nn.Module):
-    def __init__(self, in_channels, channels, out_channels ,OC=False,dilation=(4,8,12)):
-        super(Decoder, self).__init__()
-        self.oc=OC
-        self.conv1 =  ConvBn2d(in_channels,  channels, kernel_size=3, padding=1)
-        self.conv2 =  ConvBn2d(channels, out_channels, kernel_size=3, padding=1)
-        # self.conv1 = ConvBn2dV2(in_channels, channels, kernel_size=3, padding=1)
-        # self.conv2 = ConvBn2dV2(channels, out_channels, kernel_size=3, padding=1)
-        self.context = nn.Sequential(
-                ASP_OC_Module(out_channels,out_channels,dilations=dilation)
-                )
-        # self.context = nn.Sequential(
-        #     nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
-        #     nn.BatchNorm2d(out_channels),
-        #     nn.ReLU(),
-        #     BaseOC_Module(in_channels=out_channels, out_channels=out_channels, key_channels=out_channels//2, value_channels=out_channels-out_channels//2,
-        #                   dropout=0.05, sizes=([1]))
-        # )
-        self.scse_gate = SCSEBlock(out_channels)
-
-
-    def forward(self, x):
-
-        x = F.relu(self.conv1(x), inplace=True)
-        x = F.relu(self.conv2(x), inplace=True)
-        if self.oc:
-            y = self.context(x)
-        # x= self.conv1(F.elu(x,inplace=True))
-        # x = self.conv2(F.elu(x, inplace=True))
-        x = self.scse_gate(x)
-        if self.oc:
-            return torch.cat((x,y),1)
-        else:
-            return x
 
 class SEResUNetscSEHyper34(nn.Module):
     def __init__(self, num_classes=1, drop_out=0.5):
@@ -364,7 +330,6 @@ class SEResUNetscSEHyper34(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2),
         )
 
-        self.decoder4 = Decoder(128 + 1024, 256, 64,OC=True,dilation=(4,8,12))
         self.decoder5 = Decoder(256 + 512, 512, 64)
         self.decoder4 = Decoder(64 + 256, 256, 64)
         self.decoder3 = Decoder(64 + 128, 128, 64)
