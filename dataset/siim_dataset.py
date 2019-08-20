@@ -81,8 +81,17 @@ class SIIMDataset(data.Dataset):
     def __len__(self):
         return self.id_len
 
-    def get_CHW_samples(self, *kwargs):
-        pass
+    def get_CHW_samples(self, fold=-1):
+        print("Using {}".format("get_CHW_samples"))
+        folded_samplers = dict()
+        train = [self.id_to_indices[line.rstrip('\n')] for line in open(config.DIRECTORY_PREFIX + 'data/siim_dataset/chw_train.txt')]
+        val = [self.id_to_indices[line.rstrip('\n')] for line in open(config.DIRECTORY_PREFIX + 'data/siim_dataset/chw_val.txt')]
+        print("Selected train={} val={}".format(len(train), len(val)))
+        for i in range(fold):
+            folded_samplers[fold] = dict()
+            folded_samplers[fold]["train"] = BalanceClassSampler(train, np.array(list(self.get_empty_by_indice(x) for x in train)))
+            folded_samplers[fold]["val"] = SequentialSampler(val)
+        return folded_samplers
 
     def get_stratified_samplers(self, fold=-1):
         """
