@@ -75,3 +75,29 @@ def post_process(probability, threshold, min_size, empty=None, empty_threshold=N
             predict[p] = 1
             num += 1
     return predict, num
+
+# search for a new threshold, should be smaller than 5000
+def classification_based_post_process(probability, threshold, min_size, empty=None, empty_threshold=None):
+    if probability.shape[0] != probability.shape[1]: raise ValueError("{} != {}".format(probability.shape[0], probability.shape[1]))
+    predict = np.zeros((probability.shape[0],probability.shape[1]), np.float32)
+    num = 0
+    if empty is not None and empty_threshold is not None and empty > empty_threshold:
+        return predict, num
+
+    mask = cv2.threshold(probability, threshold, 1, cv2.THRESH_BINARY)[1]
+
+    num_component, component = cv2.connectedComponents(mask.astype(np.uint8)) # Koke_Cacao: return n-white in a region and those white pixels in an array
+
+    for c in range(1,num_component):
+        p = (component==c)
+        if p.sum()>min_size:
+            predict[p] = 1
+            num += 1
+
+    # trust the classifier to assign a mask?
+    # adjust threshold until the pixel difference goes to the smallest (to make sure this is the most certain prediction by the model)
+    if predict.sum() == 0:
+        # choose another threshold
+        pass
+
+    return predict, num
