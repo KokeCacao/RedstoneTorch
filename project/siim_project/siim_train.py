@@ -609,6 +609,8 @@ def eval_fold(net, writer, validation_loader):
         sum_number = np.zeros(20, np.float32) + 1e-8
 
         for batch_index, (ids, image, labels, image_0, labels_0, empty, flip) in enumerate(pbar):
+            for l in labels:
+                if l.
 
             # fix empty
             empty = (labels.sum(dim=(1, 2, 3)) == 0).float()
