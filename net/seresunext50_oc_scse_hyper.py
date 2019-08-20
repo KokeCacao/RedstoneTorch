@@ -20,6 +20,8 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.utils import model_zoo
 
+from net import seresunet34_scse_hyper
+
 """
 Code imported from https://github.com/Cadene/pretrained-models.pytorch
 """
@@ -216,40 +218,40 @@ class SEResNeXtBottleneck(Bottleneck):
         self.downsample = downsample
         self.stride = stride
 
-class SEBasicBlock(nn.Module):
-    expansion = 1
-
-    def __init__(self, inplanes, planes, groups, reduction=16, stride=1,
-                 downsample=None, base_width=None):
-        super(SEBasicBlock, self).__init__()
-        self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=3, stride=stride,
-                               padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(planes)
-        self.relu = nn.ReLU(inplace=True)
-        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride,
-                               padding=1, groups=groups, bias=False)
-        self.bn2 = nn.BatchNorm2d(planes)
-        self.se = SEModule(planes, reduction)
-        self.downsample = downsample
-        self.stride = stride
-
-    def forward(self, x):
-        residual = x
-        out = self.conv1(x)
-        out = self.bn1(out)
-        out = self.relu(out)
-
-        out = self.conv2(out)
-        out = self.bn2(out)
-        out = self.se(out)
-
-        if self.downsample is not None:
-            residual = self.downsample(x)
-
-        out += residual
-        out = self.relu(out)
-
-        return out
+# class SEBasicBlock(nn.Module):
+#     expansion = 1
+#
+#     def __init__(self, inplanes, planes, groups, reduction=16, stride=1,
+#                  downsample=None, base_width=None):
+#         super(SEBasicBlock, self).__init__()
+#         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=3, stride=stride,
+#                                padding=1, bias=False)
+#         self.bn1 = nn.BatchNorm2d(planes)
+#         self.relu = nn.ReLU(inplace=True)
+#         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride,
+#                                padding=1, groups=groups, bias=False)
+#         self.bn2 = nn.BatchNorm2d(planes)
+#         self.se = SEModule(planes, reduction)
+#         self.downsample = downsample
+#         self.stride = stride
+#
+#     def forward(self, x):
+#         residual = x
+#         out = self.conv1(x)
+#         out = self.bn1(out)
+#         out = self.relu(out)
+#
+#         out = self.conv2(out)
+#         out = self.bn2(out)
+#         out = self.se(out)
+#
+#         if self.downsample is not None:
+#             residual = self.downsample(x)
+#
+#         out += residual
+#         out = self.relu(out)
+#
+#         return out
 
 class ConvBn2d(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), dilation=1):
@@ -923,10 +925,7 @@ def se_resnet50(num_classes=1000, pretrained='imagenet', input_channel=3):
 
 
 def se_resnet34(num_classes=1000, pretrained='imagenet', input_channel=3):
-    model = SENet(SEBasicBlock, [3, 4, 6, 3], groups=1, reduction=16,
-                  dropout_p=None, inplanes=64, input_3x3=False,
-                  downsample_kernel_size=1, downsample_padding=0,
-                  num_classes=num_classes, input_channel=input_channel)
+    model = seresunet34_scse_hyper.se_resnet34(num_classes, input_channel)
     return model
 
 
