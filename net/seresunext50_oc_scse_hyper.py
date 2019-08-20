@@ -687,7 +687,7 @@ class SeResUNeXtscSEOCHyper34(nn.Module):
 
         classification = self.center_fc(F.max_pool2d(f).view(f.size(0), -1))
 
-        f = torch.cat((f, flip.view(-1, 1, 1, 1)), 1)
+        # f = torch.cat((f, flip.view(-1, 1, 1, 1)), 1)
 
         if self.dilation:
             f1= self.center1(f)#; print('center',f1.size())
