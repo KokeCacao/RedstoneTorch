@@ -26,7 +26,7 @@ from lr_scheduler.Constant import Constant
 from lr_scheduler.CosineAnnealingWarmRestarts import CosineAnnealingWarmRestarts
 from lr_scheduler.PlateauCyclicRestart import PlateauCyclicRestart
 from net.seresunet34_scse_hyper import SEResUNetscSEHyper34, ResUNetscSEHyper32
-from net.seresunext50_oc_scse_hyper import SeResUNeXtscSEOCHyper50
+from net.seresunext50_oc_scse_hyper import SeResUNeXtscSEOCHyper50, SeResUNeXtscSEOCHyper34
 from optimizer import adamw
 from project.siim_project import siim_net
 from project.siim_project.siim_net import model34_DeepSupervion, model50A_DeepSupervion, model34_DeepSupervion_GroupNorm_OC, model34_DeepSupervion_GroupNorm
@@ -87,8 +87,14 @@ class SIIMTrain:
                     net = model34_DeepSupervion_GroupNorm_OC(num_classes=config.TRAIN_NUM_CLASS)
                 elif config.net == "seresunext50_oc_scse_hyper":
                     net = SeResUNeXtscSEOCHyper50(num_classes=config.TRAIN_NUM_CLASS, dilation=False)
+                elif config.net == "seresunext50_oc_scse_hyper_dilate":
+                    net = SeResUNeXtscSEOCHyper50(num_classes=config.TRAIN_NUM_CLASS, dilation=True)
+                elif config.net == "seresunext34_oc_scse_hyper":
+                    net = SeResUNeXtscSEOCHyper34(num_classes=config.TRAIN_NUM_CLASS, dilation=False)
+                elif config.net == "seresunext34_oc_scse_hyper_dilate":
+                    net = SeResUNeXtscSEOCHyper34(num_classes=config.TRAIN_NUM_CLASS, dilation=True)
                 elif config.net == "seresunet34-ds-scse-hyper":
-                    net = SEResUNetscSEHyper34(num_classes=config.TRAIN_NUM_CLASS, drop_out=0.1)
+                    net = SEResUNetscSEHyper34(num_classes=config.TRAIN_NUM_CLASS, drop_out=0.4)
                 elif config.net == "resunet32-ds-scse-hyper":
                     net = ResUNetscSEHyper32(num_classes=config.TRAIN_NUM_CLASS)
                 ## leaky relu?

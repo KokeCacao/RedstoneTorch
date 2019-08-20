@@ -370,17 +370,17 @@ def tta_aug1(term):
 def train_aug(term):
     flip = (np.random.random(1)[0] > 0).astype(np.byte)
     return Compose([
-        # HorizontalFlip(p=flip),
+        HorizontalFlip(p=flip),
         OneOf([
             RandomBrightnessContrast(p=0.3),
             RandomGamma(gamma_limit=(80, 110), p=0.3),
         ], p=1),
         GaussNoise(p=0.3),
         OneOf([
-            OpticalDistortion(distort_limit=0.3, shift_limit=0, interpolation=cv2.INTER_LINEAR, border_mode=cv2.BORDER_CONSTANT, p=0.3),
+            OpticalDistortion(distort_limit=0.3, shift_limit=0, interpolation=cv2.INTER_LINEAR, border_mode=cv2.BORDER_CONSTANT, p=0.1),
             IAAPerspective(scale=(0.01, 0.08), p=0.3),
         ], p=1),
-        ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.4), rotate_limit=5, p=0.8, border_mode=cv2.BORDER_CONSTANT),
+        ShiftScaleRotate(shift_limit=0.0625, scale_limit=(-0.2, 0.4), rotate_limit=5, p=0.5, border_mode=cv2.BORDER_CONSTANT),
 
         OneOf([
             Resize(config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE, interpolation=cv2.INTER_CUBIC),  # 1344

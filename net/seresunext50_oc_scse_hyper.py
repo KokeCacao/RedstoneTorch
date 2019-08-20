@@ -216,6 +216,39 @@ class SEResNeXtBottleneck(Bottleneck):
         self.downsample = downsample
         self.stride = stride
 
+class SEBasicBlock(nn.Module):
+    expansion = 1
+
+    def __init__(self, inplanes, planes, stride=1, downsample=None, reduction=16):
+        super(SEBasicBlock, self).__init__()
+        self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=3, stride=stride,
+                               padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.relu = nn.ReLU(inplace=True)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride,
+                               padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.se = SEModule(planes, reduction)
+        self.downsample = downsample
+        self.stride = stride
+
+    def forward(self, x):
+        residual = x
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = self.se(out)
+
+        if self.downsample is not None:
+            residual = self.downsample(x)
+
+        out += residual
+        out = self.relu(out)
+
+        return out
 
 class ConvBn2d(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), dilation=1):
@@ -598,6 +631,101 @@ class SeResUNeXtscSEOCHyper50(nn.Module):
         logit = self.logit(f)  # ; print('logit',logit.size())
         return classification, None, logit
 
+class SeResUNeXtscSEOCHyper34(nn.Module):
+    def __init__(self, num_classes=1, dilation=False):
+        super(SeResUNeXtscSEOCHyper34, self).__init__()
+        self.dilation = dilation
+        self.encoder = se_resnet34(num_classes, input_channel=num_classes)
+        self.encoder1 = self.encoder.layer0
+        self.encoder2 = self.encoder.layer1  # 256
+        self.encoder3 = self.encoder.layer2  # 512
+        self.encoder4 = self.encoder.layer3  # 1024
+        self.encoder5 = self.encoder.layer4  # 2048
+        self.center = nn.Sequential(
+            ConvBn2d(2048, 1024, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            ConvBn2d(1024, 512, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2)
+        )
+        if self.dilation:
+            self.center1 = nn.Sequential(
+                ConvBn2d(512, 512, kernel_size=3, padding=2, dilation=2),
+                nn.ReLU(inplace=True)
+            )
+            self.center2 = nn.Sequential(
+                ConvBn2d(512, 512, kernel_size=3, padding=4, dilation=4),
+                nn.ReLU(inplace=True)
+            )
+
+        # self.center5 = nn.Sequential(
+        #     ConvBn2d(128, 128, kernel_size=3, padding=1, dilation=32),
+        #     nn.ReLU(inplace=True)
+        # )
+        self.decoder5 = Decoder(2048 + 512, 512, 64,OC=True,dilation=(2,4,6))
+        self.decoder4 = Decoder(128 + 1024, 256, 64,OC=True,dilation=(4,8,12))
+        self.decoder3 = Decoder(128 + 512, 128, 64)
+        self.decoder2 = Decoder(64 + 256, 64, 64)
+        self.decoder1 = Decoder(64, 32, 64)
+
+        self.logit = nn.Sequential(
+            nn.Conv2d(64*7, 64, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(64, 1, kernel_size=1, padding=0),
+        )
+
+        self.center_fc = nn.Linear(512, num_classes)
+
+    def forward(self, x, flip):
+        # print('x',x.size())
+        e1 = self.encoder1(x)  # ; print('e1',e1.size())
+        e2 = self.encoder2(e1)  # ; print('e2',e2.size())
+        e3 = self.encoder3(e2)  # ; print('e3',e3.size())
+        e4 = self.encoder4(e3)  # ; print('e4',e4.size())
+        e5 = self.encoder5(e4)  # ; print('e5',e5.size())
+        f = self.center(e5)  #; print('center',f.size())
+
+        classification = self.center_fc(F.max_pool2d(f).view(f.size(0), -1))
+
+        f = torch.cat((f, flip.view(-1, 1, 1, 1)), 1)
+
+        if self.dilation:
+            f1= self.center1(f)#; print('center',f1.size())
+            f2=self.center2(f1)#; print('center',f2.size())
+            # f3=self.center3(f2); print('center',f3.size())
+            # f4=self.center4(f3); print('center',f4.size())
+            #f5=self.center5(f4)
+            f = torch.add(f,1,f1)
+            f = torch.add(f,1,f2)
+        # f=torch.cat((
+        #     f,
+        #     f1,
+            # f2,
+            # f3,
+            # f4,
+        # ),1)
+        f = F.upsample(f, scale_factor=2, mode='bilinear', align_corners=True)
+        d5 = self.decoder5(torch.cat([f, e5], 1))  # ; print('d5',d5.size())
+        d5 = F.upsample(d5, scale_factor=2, mode='bilinear', align_corners=True)
+        d4 = self.decoder4(torch.cat([d5, e4], 1))  # ; print('d4',d4.size())
+        d4 = F.upsample(d4, scale_factor=2, mode='bilinear', align_corners=True)
+        d3 = self.decoder3(torch.cat([d4, e3], 1))  # ; print('d3',d3.size())
+        d3 = F.upsample(d3, scale_factor=2, mode='bilinear', align_corners=True)
+        d2 = self.decoder2(torch.cat([d3, e2], 1))  # ; print('d2',d2.size())
+        d2 = F.upsample(d2, scale_factor=2, mode='bilinear', align_corners=True)
+        d1 = self.decoder1(d2)  # ; print('d1',d1.size())
+
+        f = torch.cat((
+            d1,
+            F.upsample(d2, scale_factor=1, mode='bilinear', align_corners=False),
+            F.upsample(d3, scale_factor=2, mode='bilinear', align_corners=False),
+            F.upsample(d4, scale_factor=4, mode='bilinear', align_corners=False),
+            F.upsample(d5, scale_factor=8, mode='bilinear', align_corners=False)
+        ), 1)
+        f = F.dropout2d(f, p=0.20)
+        logit = self.logit(f)  # ; print('logit',logit.size())
+        return classification, None, logit
+
 
 class SENet(nn.Module):
     def __init__(self, block, layers, groups, reduction, dropout_p=0.2,
@@ -784,6 +912,17 @@ def senet154(num_classes=1000, pretrained='imagenet', input_channel=3):
 
 def se_resnet50(num_classes=1000, pretrained='imagenet', input_channel=3):
     model = SENet(SEResNetBottleneck, [3, 4, 6, 3], groups=1, reduction=16,
+                  dropout_p=None, inplanes=64, input_3x3=False,
+                  downsample_kernel_size=1, downsample_padding=0,
+                  num_classes=num_classes, input_channel=input_channel)
+    if pretrained is not None:
+        settings = pretrained_settings['se_resnet50'][pretrained]
+        initialize_pretrained_model(model, num_classes, settings)
+    return model
+
+
+def se_resnet34(num_classes=1000, pretrained='imagenet', input_channel=3):
+    model = SENet(SEBasicBlock, [3, 4, 6, 3], groups=1, reduction=16,
                   dropout_p=None, inplanes=64, input_3x3=False,
                   downsample_kernel_size=1, downsample_padding=0,
                   num_classes=num_classes, input_channel=input_channel)

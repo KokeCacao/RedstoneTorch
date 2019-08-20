@@ -12,7 +12,7 @@ import config
 from dataset.siim_dataset import SIIMDataset
 from dataset.siim_dataset import test_collate, tta_collate
 from net.seresunet34_scse_hyper import SEResUNetscSEHyper34, ResUNetscSEHyper32
-from net.seresunext50_oc_scse_hyper import SeResUNeXtscSEOCHyper50
+from net.seresunext50_oc_scse_hyper import SeResUNeXtscSEOCHyper50, SeResUNeXtscSEOCHyper34
 from project.siim_project import siim_net
 from project.siim_project.siim_net import model50A_DeepSupervion, model34_DeepSupervion, model34_DeepSupervion_GroupNorm_OC, model34_DeepSupervion_GroupNorm
 from project.siim_project.siim_util import post_process
@@ -44,6 +44,12 @@ class SIIMPrediction:
                     net = model34_DeepSupervion_GroupNorm_OC(num_classes=config.TRAIN_NUM_CLASS)
                 elif config.net == "seresunext50_oc_scse_hyper":
                     net = SeResUNeXtscSEOCHyper50(num_classes=config.TRAIN_NUM_CLASS, dilation=False)
+                elif config.net == "seresunext50_oc_scse_hyper_dilate":
+                    net = SeResUNeXtscSEOCHyper50(num_classes=config.TRAIN_NUM_CLASS, dilation=True)
+                elif config.net == "seresunext34_oc_scse_hyper":
+                    net = SeResUNeXtscSEOCHyper34(num_classes=config.TRAIN_NUM_CLASS, dilation=False)
+                elif config.net == "seresunext34_oc_scse_hyper_dilate":
+                    net = SeResUNeXtscSEOCHyper34(num_classes=config.TRAIN_NUM_CLASS, dilation=True)
                 elif config.net == "seresunet34-ds-scse-hyper":
                     net = SEResUNetscSEHyper34(num_classes=config.TRAIN_NUM_CLASS, drop_out=0.1)
                 elif config.net == "resunet32-ds-scse-hyper":
