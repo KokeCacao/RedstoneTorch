@@ -27,7 +27,7 @@ def calculate_shakeup(label, pred, criteria, shakeup_ratio, **kwargs):
     shakeup_mean, shakeup_std = np.mean(shakeup_keys), np.std(shakeup_keys)
     return shakeup, shakeup_keys, shakeup_mean, shakeup_std
 
-def calculate_threshold(label, pred, criteria, threshold_check_list, writer, fold, n_class=1, test_empty=None, empty_threshold=None, **kwargs):
+def calculate_threshold(label, pred, criteria, eval_try_threshold, writer, fold, n_class=1, test_empty=None, empty_threshold=None, **kwargs):
     label = label.squeeze()
     pred = pred.squeeze()
 
@@ -40,7 +40,7 @@ def calculate_threshold(label, pred, criteria, threshold_check_list, writer, fol
     best_threshold_dict = np.zeros(n_class)
     best_val_dict = np.zeros(n_class)
 
-    pbar = tqdm(threshold_check_list, leave=False)
+    pbar = tqdm(eval_try_threshold, leave=False)
     for threshold in pbar:
 
         if 1: # post-process
@@ -80,14 +80,14 @@ def calculate_threshold(label, pred, criteria, threshold_check_list, writer, fol
     # removed calculation threshold vs. frequency
     return best_threshold, best_val, total_score, total_tried
 
-def calculate_kaggle_threshold(id_total, label, pred_soft, threshold_check_list, prediction_chosen_minpixel, writer, fold):
+def calculate_kaggle_threshold(id_total, label, pred_soft, eval_try_threshold, prediction_chosen_minpixel, writer, fold):
     best_threshold = 0.0
     best_val = 0.0
     bad_value = 0
     total_score = 0
     total_tried = 0
 
-    pbar = tqdm(threshold_check_list, leave=False)
+    pbar = tqdm(eval_try_threshold, leave=False)
     for threshold in pbar:
         total_tried = total_tried + 1
         score, kaggle_neg_score, kaggle_pos_score = compute_kaggle_lb(id_total, label, pred_soft, threshold, prediction_chosen_minpixel)
