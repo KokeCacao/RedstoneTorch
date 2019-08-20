@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 import numpy as np
 import torch
@@ -104,7 +105,7 @@ class SIIMPrediction:
                 else:
                     raise ValueError("tta cannot be {}".format(config.prediction_tta))
 
-                prob_path = config.DIRECTORY_CHECKPOINT +  "prediction/{}-{}-F{}-T{}-Prob.csv".format(config.time_to_str(config.start_time), config.PREDICTION_TAG, fold, threshold)
+                prob_path = config.DIRECTORY_CHECKPOINT +  "prediction/{}-{}-F{}-T{}-Prob.csv".format(str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-"), config.PREDICTION_TAG, fold, threshold)
                 print("Creating Path: {}".format(prob_path))
                 if os.path.exists(prob_path):
                     os.remove(prob_path)
@@ -171,8 +172,8 @@ class SIIMPrediction:
                         del prob_predict, prob_empty, confidence
                         if config.TRAIN_GPU_ARG: torch.cuda.empty_cache()
 
-                    np.save(config.DIRECTORY_CHECKPOINT + "prediction/{}-CP{}_id_total.npy".format(config.time_to_str(config.start_time), config.epoch), id_total)
-                    np.save(config.DIRECTORY_CHECKPOINT + "prediction/{}-CP{}_predict_total.npy".format(config.time_to_str(config.start_time), config.epoch), predict_total)
-                    np.save(config.DIRECTORY_CHECKPOINT + "prediction/{}-CP{}_prob_empty_total.npy".format(config.time_to_str(config.start_time), config.epoch), prob_empty_total)
+                    np.save(config.DIRECTORY_CHECKPOINT + "prediction/{}-CP{}_id_total.npy".format(str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-"), config.epoch), id_total)
+                    np.save(config.DIRECTORY_CHECKPOINT + "prediction/{}-CP{}_predict_total.npy".format(str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-"), config.epoch), predict_total)
+                    np.save(config.DIRECTORY_CHECKPOINT + "prediction/{}-CP{}_prob_empty_total.npy".format(str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-"), config.epoch), prob_empty_total)
 
                 print("Prob_path: {}".format(prob_path))
