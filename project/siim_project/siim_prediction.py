@@ -2,8 +2,6 @@ import os
 
 import numpy as np
 import torch
-from scipy import ndimage
-from scipy.misc import imresize
 from torch.utils import data
 from torch.utils.data import SubsetRandomSampler, SequentialSampler
 from tqdm import tqdm
