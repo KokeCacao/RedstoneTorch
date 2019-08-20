@@ -927,9 +927,6 @@ def se_resnet34(num_classes=1000, pretrained='imagenet', input_channel=3):
                   dropout_p=None, inplanes=64, input_3x3=False,
                   downsample_kernel_size=1, downsample_padding=0,
                   num_classes=num_classes, input_channel=input_channel)
-    if pretrained is not None:
-        settings = pretrained_settings['se_resnet50'][pretrained]
-        initialize_pretrained_model(model, num_classes, settings)
     return model
 
 
