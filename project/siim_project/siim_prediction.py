@@ -105,8 +105,14 @@ class SIIMPrediction:
                 else:
                     raise ValueError("tta cannot be {}".format(config.prediction_tta))
 
+                if not os.path.exists(config.DIRECTORY_CHECKPOINT +  "prediction/"):
+                    os.makedirs(config.DIRECTORY_CHECKPOINT +  "prediction/")
                 prob_path = config.DIRECTORY_CHECKPOINT +  "prediction/{}-{}-F{}-T{}-Prob.csv".format(str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-"), config.PREDICTION_TAG, fold, threshold)
                 print("Creating Path: {}".format(prob_path))
+
+                if not os.path.exists(os.path.dirname(prob_path)):
+                    os.makedirs("".join(i for i in prob_path.split("/")[:-1]))
+
                 if os.path.exists(prob_path):
                     os.remove(prob_path)
                     print("WARNING: delete file '{}'".format(prob_path))
