@@ -72,11 +72,13 @@ class SIIMDataset(data.Dataset):
 
         print("""
             Load Dir:       {}, {}
-            ID Size:      {}/{}
+            ID Size:        {}/{}
             Data Percent:   {}
             Label Size:     {}
-            Frame Size:      {}/{}
-        """.format(train_csv_dir, test_csv_dir, self.id_len, "?", config.TRAIN_DATA_PERCENT, len(self.labelframe), len(id), "?"))
+            Frame Size:     {}/{}
+            Sample ID:      {}
+            Sample Indice"  {}
+        """.format(train_csv_dir, test_csv_dir, self.id_len, "?", config.TRAIN_DATA_PERCENT, len(self.labelframe), len(id), "?", self.id[0], self.indices[0]))
 
     def __len__(self):
         return self.id_len
