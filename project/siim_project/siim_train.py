@@ -445,7 +445,7 @@ class SIIMTrain:
                 hinge = lovasz_hinge(logits_predict.squeeze(1), labels.squeeze(1))
                 bce = BCEWithLogitsLoss(reduction='none')(empty_logits.squeeze(-1), empty)
                 # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
-                ce = segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
+                ce = segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), pos_prob=0.75, neg_prob=0.25)
                 # ce = nonempty_segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), empty, pos_prob=0.25, neg_prob=0.75)
 
                 """Heng CherKeng"""
@@ -657,7 +657,7 @@ def eval_fold(net, writer, validation_loader):
             hinge = lovasz_hinge(logits_predict.squeeze(1), labels.squeeze(1))
             bce = BCEWithLogitsLoss(reduction='none')(empty_logits.squeeze(-1), empty)
             # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
-            ce = segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
+            ce = segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), pos_prob=0.75, neg_prob=0.25)
             # ce = nonempty_segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), empty, pos_prob=0.25, neg_prob=0.75)
 
             """Heng CherKeng"""
