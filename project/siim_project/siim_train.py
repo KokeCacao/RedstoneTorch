@@ -130,7 +130,7 @@ class SIIMTrain:
 
                 if config.MODEL_APEX:
                     net = net.cuda()
-                    net, optimizer = amp.initialize(net, optimizer, opt_level="O1")
+                    net, optimizer = amp.initialize(net, optimizer, opt_level=config.MODEL_APEX)
                 net = torch.nn.DataParallel(net, device_ids=[i for i in range(torch.cuda.device_count())])
 
                 self.optimizers.append(optimizer)

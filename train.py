@@ -77,7 +77,7 @@ def load_args():
     config.resetlr = args.resetlr
 
     if args.train_ratio != 0: config.TRAIN_RATIO = args.train_ratio
-    if args.mix == "True": config.MODEL_APEX = True
+    if args.mix != "False" or args.mix !=False: config.MODEL_APEX = args.mix
 
     if args.resetlr != 0:
         config.MODEL_INIT_LEARNING_RATE = args.resetlr
