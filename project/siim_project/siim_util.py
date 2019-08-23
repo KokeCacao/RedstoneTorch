@@ -38,8 +38,8 @@ def compute_kaggle_lb(test_id, test_truth, test_probability, threshold, min_size
     kaggle_pos = np.array(kaggle_pos)
     kaggle_neg_score = kaggle_neg.mean()
     kaggle_pos_score = kaggle_pos.mean()
-    # kaggle_score = 0.7886*kaggle_neg_score + (1-0.7886)*kaggle_pos_score # balancing kaggle
-    kaggle_score = np.array(kaggle_sum).mean() # validation used
+    kaggle_score = 0.7886*kaggle_neg_score + (1-0.7886)*kaggle_pos_score # balancing kaggle
+    # kaggle_score = np.array(kaggle_sum).mean() # validation used
 
     return kaggle_score, kaggle_neg_score, kaggle_pos_score
 

@@ -574,8 +574,13 @@ class SeResUNeXtscSEOCHyper50(nn.Module):
         self.decoder2 = Decoder(64 + 256, 64, 64)
         self.decoder1 = Decoder(64, 32, 64)
 
+        self.conv1x1_5 = nn.Conv2d(512, 8, 1)
+        self.conv1x1_4 = nn.Conv2d(256, 8, 1)
+        self.conv1x1_3 = nn.Conv2d(128, 8, 1)
+        self.conv1x1_2 = nn.Conv2d(64, 8, 1)
+
         self.logit = nn.Sequential(
-            nn.Conv2d(64*7, 64, kernel_size=3, padding=1),
+            nn.Conv2d(32+4*8+1, 64, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
             nn.Conv2d(64, 1, kernel_size=1, padding=0),
         )
@@ -623,10 +628,11 @@ class SeResUNeXtscSEOCHyper50(nn.Module):
 
         f = torch.cat((
             d1,
-            F.upsample(d2, scale_factor=1, mode='bilinear', align_corners=False),
-            F.upsample(d3, scale_factor=2, mode='bilinear', align_corners=False),
-            F.upsample(d4, scale_factor=4, mode='bilinear', align_corners=False),
-            F.upsample(d5, scale_factor=8, mode='bilinear', align_corners=False)
+            F.upsample(classification.detach(), scale_factor=d1.shape[-1], mode='bilinear', align_corners=False),
+            self.conv1x1_2(F.upsample(d2, scale_factor=1, mode='bilinear', align_corners=False)),
+            self.conv1x1_3(F.upsample(d3, scale_factor=2, mode='bilinear', align_corners=False)),
+            self.conv1x1_4(F.upsample(d4, scale_factor=4, mode='bilinear', align_corners=False)),
+            self.conv1x1_5(F.upsample(d5, scale_factor=8, mode='bilinear', align_corners=False)),
         ), 1)
         f = F.dropout2d(f, p=0.20)
         logit = self.logit(f)  # ; print('logit',logit.size())
@@ -794,7 +800,7 @@ class SENet(nn.Module):
             ]
         else:
             layer0_modules = [
-                ('conv1', nn.Conv2d(1, inplanes, kernel_size=7, stride=2,
+                ('conv1', nn.Conv2d(input_channel, inplanes, kernel_size=7, stride=2,
                                     padding=3, bias=False)),
                 ('bn1', nn.BatchNorm2d(inplanes)),
                 ('relu1', nn.ReLU(inplace=True)),
