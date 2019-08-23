@@ -574,9 +574,8 @@ class SeResUNeXtscSEOCHyper50(nn.Module):
         self.decoder2 = Decoder(64 + 256, 64, 64)
         self.decoder1 = Decoder(64, 32, 64)
 
-        self.conv1x1_5 = nn.Conv2d(512, 8, 1)
-        self.conv1x1_4 = nn.Conv2d(256, 8, 1)
-        self.conv1x1_3 = nn.Conv2d(128, 8, 1)
+        self.conv1x1_4 = nn.Conv2d(16, 8, 1)
+        self.conv1x1_3 = nn.Conv2d(32, 8, 1)
         self.conv1x1_2 = nn.Conv2d(64, 8, 1)
 
         self.logit = nn.Sequential(
@@ -633,7 +632,7 @@ class SeResUNeXtscSEOCHyper50(nn.Module):
             F.upsample(self.conv1x1_2(d2), scale_factor=1, mode='bilinear', align_corners=False),
             F.upsample(self.conv1x1_3(d3), scale_factor=2, mode='bilinear', align_corners=False),
             F.upsample(self.conv1x1_4(d4), scale_factor=4, mode='bilinear', align_corners=False),
-            F.upsample(self.conv1x1_5(d5), scale_factor=8, mode='bilinear', align_corners=False),
+            F.upsample(d5, scale_factor=8, mode='bilinear', align_corners=False),
         ), 1)
         f = F.dropout2d(f, p=0.20)
         logit = self.logit(f)  # ; print('logit',logit.size())
