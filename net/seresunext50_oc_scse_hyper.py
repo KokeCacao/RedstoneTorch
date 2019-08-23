@@ -580,7 +580,7 @@ class SeResUNeXtscSEOCHyper50(nn.Module):
         self.conv1x1_2 = nn.Conv2d(64, 8, 1)
 
         self.logit = nn.Sequential(
-            nn.Conv2d(64+4*4+1, 64, kernel_size=3, padding=1),
+            nn.Conv2d(64+4*8+1, 64, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
             nn.Conv2d(64, 1, kernel_size=1, padding=0),
         )
