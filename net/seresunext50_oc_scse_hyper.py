@@ -596,7 +596,8 @@ class SeResUNeXtscSEOCHyper50(nn.Module):
         e5 = self.encoder5(e4)  # ; print('e5',e5.size())
         f = self.center(e5)  #; print('center',f.size())
 
-        classification = self.center_fc(F.max_pool2d(f).view(f.size(0), -1))
+        # classification = self.center_fc(F.max_pool2d(f, kernel_size=f.shape[3]).view(f.size(0), -1))
+        classification = self.center_fc(F.max_pool2d(f, 7).view(f.size(0), -1))
 
         f = torch.cat((f, flip.view(-1, 1, 1, 1)), 1)
 
