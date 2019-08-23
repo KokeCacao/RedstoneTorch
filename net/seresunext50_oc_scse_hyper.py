@@ -574,10 +574,10 @@ class SeResUNeXtscSEOCHyper50(nn.Module):
         self.decoder2 = Decoder(64 + 256, 64, 64)
         self.decoder1 = Decoder(64, 32, 64)
 
-        self.conv1x1_5 = nn.Conv2d(128, 8, 1)
-        self.conv1x1_4 = nn.Conv2d(128, 8, 1)
-        self.conv1x1_3 = nn.Conv2d(64, 8, 1)
-        self.conv1x1_2 = nn.Conv2d(64, 8, 1)
+        self.conv1x1_5 = nn.Conv2d(128, 4, 1)
+        self.conv1x1_4 = nn.Conv2d(128, 4, 1)
+        self.conv1x1_3 = nn.Conv2d(64, 4, 1)
+        self.conv1x1_2 = nn.Conv2d(64, 4, 1)
 
         self.logit = nn.Sequential(
             nn.Conv2d(32+4*8+1, 64, kernel_size=3, padding=1),
