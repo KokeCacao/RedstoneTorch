@@ -627,10 +627,8 @@ class SeResUNeXtscSEOCHyper50(nn.Module):
         d2 = F.upsample(d2, scale_factor=2, mode='bilinear', align_corners=True)
         d1 = self.decoder1(d2)  # ; print('d1',d1.size())
 
-        print(F.upsample(self.conv1x1_2(d2), scale_factor=1, mode='bilinear', align_corners=False).shape)
-        print(F.upsample(self.conv1x1_3(d3), scale_factor=2, mode='bilinear', align_corners=False).shape)
-        print(F.upsample(self.conv1x1_4(d4), scale_factor=4, mode='bilinear', align_corners=False).shape)
-        print(F.upsample(self.conv1x1_5(d5), scale_factor=8, mode='bilinear', align_corners=False).shape)
+        print(d1.shape)
+        print(F.upsample(classification.detach().unsqueeze(dim=2).unsqueeze(dim=3), scale_factor=d1.shape[-1], mode='bilinear', align_corners=False).shape)
 
         f = torch.cat((
             d1,
