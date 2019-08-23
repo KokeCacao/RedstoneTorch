@@ -580,7 +580,7 @@ class SeResUNeXtscSEOCHyper50(nn.Module):
         self.conv1x1_2 = nn.Conv2d(64, 4, 1)
 
         self.logit = nn.Sequential(
-            nn.Conv2d(32+4*4+1, 64, kernel_size=3, padding=1),
+            nn.Conv2d(64+4*4+1, 64, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
             nn.Conv2d(64, 1, kernel_size=1, padding=0),
         )
@@ -626,9 +626,6 @@ class SeResUNeXtscSEOCHyper50(nn.Module):
         d2 = self.decoder2(torch.cat([d3, e2], 1))  # ; print('d2',d2.size())
         d2 = F.upsample(d2, scale_factor=2, mode='bilinear', align_corners=True)
         d1 = self.decoder1(d2)  # ; print('d1',d1.size())
-
-        print(d1.shape)
-        print(F.upsample(classification.detach().unsqueeze(dim=2).unsqueeze(dim=3), scale_factor=d1.shape[-1], mode='bilinear', align_corners=False).shape)
 
         f = torch.cat((
             d1,
