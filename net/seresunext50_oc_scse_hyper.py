@@ -684,7 +684,7 @@ class SeResUNeXtscSEOCHyper34(nn.Module):
 
         self.center_fc = nn.Linear(512, num_classes)
 
-    def forward(self, x, flip):
+    def forward(self, x, flip=None):
         # print('x',x.size())
         e1 = self.encoder1(x)  # ; print('e1',e1.size())
         e2 = self.encoder2(e1)  # ; print('e2',e2.size())

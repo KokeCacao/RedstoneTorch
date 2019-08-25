@@ -342,7 +342,7 @@ class SIIMTrain:
             net = net.cuda()
 
             if config.display_architecture:
-                summary(net, (1, 1024, 1024), (1, 1))
+                summary(net, (1, 1024, 1024))
                 config.display_architecture = False
 
             optimizer = load.move_optimizer_to_cuda(optimizer)
