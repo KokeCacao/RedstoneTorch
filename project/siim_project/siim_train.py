@@ -372,7 +372,7 @@ class SIIMTrain:
         epoch_loss = 0
         epoch_f = 0
         train_len = 1e-10
-        total_confidence = 0
+        # total_confidence = 0
 
         train_loss = np.zeros(20, np.float32)
         batch_loss = np.zeros(20, np.float32)
@@ -394,13 +394,7 @@ class SIIMTrain:
             config.epoch = config.epoch + 1
             pbar = tqdm(train_loader)
             train_len = train_len + len(train_loader)
-            running_ce = 0
-            running_dice = 0
             for batch_index, (ids, image, labels, image_0, labels_0, empty, flip) in enumerate(pbar):
-
-                # fix empty
-                empty = (labels.sum(dim=(1, 2, 3)) == 0).float()
-
                 # """For Testing Only"""
                 # for id in ids:
                 #     if id not in config.split_dict.keys():
@@ -408,9 +402,6 @@ class SIIMTrain:
                 #     else:
                 #         if config.split_dict[id] != 0:
                 #             raise ValueError("Find test set in training: {}".format(id))
-
-
-
 
                 # drop last batch that has irregular shape
                 if empty.sum() == 0 or empty.sum() == 1:
@@ -424,18 +415,17 @@ class SIIMTrain:
                 # lr_scheduler.step(0, config.epoch, config.global_steps[fold], float(train_len)) # plateau_cyclic_restart
                 lr_scheduler.step(config.epoch-1 + batch_index/train_len) # cosine_annealing_warm_restart
 
-                """TRAIN NET"""
                 config.global_steps[fold] = config.global_steps[fold] + 1
-                image = image.cuda()
-                flip = flip.cuda().float()
+                """Sync Point"""
+                image = image.cuda(non_blocking=True)
+                flip = flip.cuda(non_blocking=True).float()
+                labels = labels.cuda(non_blocking=True).float()
+                empty = empty.cuda(non_blocking=True).float()
+
+                """Async Point"""
                 empty_logits, _idkwhatthisis_, logits_predict = net(image, flip)
                 prob_predict = torch.nn.Sigmoid()(logits_predict)
                 prob_empty = torch.nn.Sigmoid()(empty_logits)
-                # prob_predict = prob_empty.unsqueeze(-1).unsqueeze(-1) * prob_predict -> THIS IS REALLY BAD BEHAVIOR
-
-                """LOSS"""
-                labels = labels.cuda().float()
-                empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
 
                 # dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, prob_predict)
                 dice = binary_dice_pytorch_loss(labels, prob_predict, smooth=1e-5)
@@ -492,25 +482,25 @@ class SIIMTrain:
                 ce = ce.detach().cpu().numpy().sum() # ce need sum
                 loss = loss.detach().cpu().numpy().mean()
 
-                image = image.cpu().numpy()
+                # image = image.cpu().numpy()
                 flip = flip.cpu().numpy()
-                labels = labels.cpu().numpy()
+                # labels = labels.cpu().numpy()
                 empty = empty.cpu().numpy()
-                logits_predict = logits_predict.detach().cpu().numpy()
-                prob_predict = prob_predict.detach().cpu().numpy()
+                # logits_predict = logits_predict.detach().cpu().numpy()
+                # prob_predict = prob_predict.detach().cpu().numpy()
                 prob_empty = prob_empty.detach().cpu().numpy()
 
-                """TESTING"""
-                for l in labels:
-                    l = np.median(l)
-                    if l.item().is_integer():
-                        config.log.write("[WARNING] Median of the mask is Integer", once=1)
+                # """TESTING"""
+                # for l in labels:
+                #     l = np.median(l)
+                #     if l.item().is_integer():
+                #         config.log.write("[WARNING] Median of the mask is Integer", once=1)
 
                 """SUM"""
                 epoch_loss = epoch_loss + loss.mean()
                 # f = f1_macro(logits_predict, labels).mean()
-                confidence = np.absolute(prob_predict - 0.5).mean() + 0.5
-                total_confidence = total_confidence + confidence
+                # confidence = np.absolute(prob_predict - 0.5).mean() + 0.5
+                # total_confidence = total_confidence + confidence
 
                 """DISPLAY"""
                 # tensorboardwriter.write_memory(self.writer, "train")
@@ -534,7 +524,7 @@ class SIIMTrain:
                                 'Hinge/{}'.format(config.fold): hinge/config.TRAIN_GRADIENT_ACCUMULATION,
                                 'BCE/{}'.format(config.fold): bce / config.TRAIN_GRADIENT_ACCUMULATION,
                                 'CE/{}'.format(config.fold): ce / config.TRAIN_GRADIENT_ACCUMULATION,
-                                'LogitsProbability/{}'.format(config.fold): logits_predict.mean() / config.TRAIN_GRADIENT_ACCUMULATION,
+                                # 'LogitsProbability/{}'.format(config.fold): logits_predict.mean() / config.TRAIN_GRADIENT_ACCUMULATION,
                                 'PredictProbability/{}'.format(config.fold): prob_predict.mean() / config.TRAIN_GRADIENT_ACCUMULATION,
                                 'EmptyProbability/{}'.format(config.fold): prob_empty.mean() / config.TRAIN_GRADIENT_ACCUMULATION,
                                 'LabelProbability/{}'.format(config.fold): labels.mean() / config.TRAIN_GRADIENT_ACCUMULATION,
@@ -548,7 +538,7 @@ class SIIMTrain:
                     out_dict['Hinge/{}'.format(config.fold)] += hinge / config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['BCE/{}'.format(config.fold)] += bce / config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['CE/{}'.format(config.fold)] += ce / config.TRAIN_GRADIENT_ACCUMULATION
-                    out_dict['LogitsProbability/{}'.format(config.fold)] += logits_predict.mean() / config.TRAIN_GRADIENT_ACCUMULATION
+                    # out_dict['LogitsProbability/{}'.format(config.fold)] += logits_predict.mean() / config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['PredictProbability/{}'.format(config.fold)] += prob_predict.mean() / config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['EmptyProbability/{}'.format(config.fold)] += prob_empty.mean() / config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['LabelProbability/{}'.format(config.fold)] += labels.mean() / config.TRAIN_GRADIENT_ACCUMULATION
@@ -622,10 +612,6 @@ def eval_fold(net, writer, validation_loader):
         sum_number = np.zeros(20, np.float32) + 1e-8
 
         for batch_index, (ids, image, labels, image_0, labels_0, empty, flip) in enumerate(pbar):
-            # fix empty
-            empty = (labels.sum(dim=(1, 2, 3)) == 0).float()
-
-
             # """For Testing Only"""
             # for id in ids:
             #     if id not in config.split_dict.keys():
@@ -634,20 +620,17 @@ def eval_fold(net, writer, validation_loader):
             #         if config.split_dict[id] != 1:
             #             raise ValueError("Find train set in testing: {}".format(id))
 
-
-
-
             """TRAIN NET"""
-            image = image.cuda()
-            flip = flip.cuda().float()
+            image = image.cuda(non_blocking=True)
+            flip = flip.cuda(non_blocking=True).float()
             empty_logits, _idkwhatthisis_, logits_predict = net(image, flip)
             prob_predict = torch.nn.Sigmoid()(logits_predict)
             prob_empty = torch.nn.Sigmoid()(empty_logits)
             # prob_predict = prob_empty.unsqueeze(-1).unsqueeze(-1) * prob_predict -> THIS IS REALLY BAD BEHAVIOR
 
             """LOSS"""
-            labels = labels.cuda().float()
-            empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
+            labels = labels.cuda(non_blocking=True).float()
+            empty = empty.cuda(non_blocking=True).float()  # I don't know why I need to specify float() -> otherwise it will be long
 
             # dice = denoised_siim_dice(threshold=config.EVAL_THRESHOLD, iou=False, denoised=False)(labels, prob_predict)
             dice = binary_dice_pytorch_loss(labels, prob_predict, smooth=1e-5)

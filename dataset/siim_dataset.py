@@ -462,6 +462,7 @@ def transform(ids, image_0, labels_0, empty, mode):
         ])
         image, labels, flip = TEST_TRANSFORM((image_0, labels_0))
         image_0, labels_0 = REGULARIZATION_TRAINSFORM((image_0, labels_0))
+        empty = (labels.sum() < 1).float()
         if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels.shape, image_0.shape, labels_0.shape, empty.shape)
         return (ids, image, labels, image_0, labels_0, empty, flip)
     elif mode == "train":
@@ -476,6 +477,7 @@ def transform(ids, image_0, labels_0, empty, mode):
         ])
         image, labels, flip = TRAIN_TRANSFORM((image_0, labels_0))
         image_0, labels_0 = REGULARIZATION_TRAINSFORM((image_0, labels_0))
+        empty = (labels.sum() < 1).float()
         if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels.shape, image_0.shape, labels_0.shape, empty.shape)
         return (ids, image, labels, image_0, labels_0, empty, flip)
     elif mode == "val":
@@ -490,6 +492,7 @@ def transform(ids, image_0, labels_0, empty, mode):
         ])
         image, labels, flip = VAL_TRANSFORM((image_0, labels_0))
         image_0, labels_0 = REGULARIZATION_TRAINSFORM((image_0, labels_0))
+        empty = (labels.sum() < 1).float()
         if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels.shape, image_0.shape, labels_0.shape, empty.shape)
         return (ids, image, labels, image_0, labels_0, empty, flip)
     elif mode == "tta":
@@ -504,5 +507,6 @@ def transform(ids, image_0, labels_0, empty, mode):
         ])
         image, labels, flip = TTA_TRANSFORM((image_0, labels_0))
         image_0, labels_0 = REGULARIZATION_TRAINSFORM((image_0, labels_0))
+        empty = (labels.sum() < 1).float()
         if config.global_steps[config.fold] == 1: print(ids.shape, image.shape, labels.shape, image_0.shape, labels_0.shape, empty.shape)
         return (ids, image, labels, image_0, labels_0, empty, flip)
