@@ -423,7 +423,7 @@ class SIIMTrain:
                 empty = empty.cuda(non_blocking=True).float()
 
                 """Async Point"""
-                empty_logits, _idkwhatthisis_, logits_predict = net(image, flip)
+                empty_logits, _idkwhatthisis_, logits_predict = net(image)
                 prob_predict = torch.nn.Sigmoid()(logits_predict)
                 prob_empty = torch.nn.Sigmoid()(empty_logits)
 
@@ -623,7 +623,7 @@ def eval_fold(net, writer, validation_loader):
             """TRAIN NET"""
             image = image.cuda(non_blocking=True)
             flip = flip.cuda(non_blocking=True).float()
-            empty_logits, _idkwhatthisis_, logits_predict = net(image, flip)
+            empty_logits, _idkwhatthisis_, logits_predict = net(image)
             prob_predict = torch.nn.Sigmoid()(logits_predict)
             prob_empty = torch.nn.Sigmoid()(empty_logits)
             # prob_predict = prob_empty.unsqueeze(-1).unsqueeze(-1) * prob_predict -> THIS IS REALLY BAD BEHAVIOR
