@@ -637,7 +637,7 @@ class SeResUNeXtscSEOCHyper50(nn.Module):
         ), 1)
         f = F.dropout2d(f, p=0.20)
         logit = self.logit(f)  # ; print('logit',logit.size())
-        return classification, torch.empty((1, 1, 1)), logit
+        return classification, classification, logit
 
 class SeResUNeXtscSEOCHyper34(nn.Module):
     def __init__(self, num_classes=1, dilation=False):
@@ -732,7 +732,7 @@ class SeResUNeXtscSEOCHyper34(nn.Module):
         ), 1)
         f = F.dropout2d(f, p=0.20)
         logit = self.logit(f)  # ; print('logit',logit.size())
-        return classification, torch.empty((1, 1, 1)), logit
+        return classification, classification, logit
 
 
 class SENet(nn.Module):
