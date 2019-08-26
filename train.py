@@ -54,6 +54,7 @@ def get_args():
     parser.add_option('--mix', type="string", dest='mix', default=False, help='Freeze Network by Name')
     parser.add_option('--load_dummy', type="string", dest='load_dummy', default=False, help='Load Dummy Variables for evaluation when not train')
     parser.add_option('--loss', type="string", dest='loss', default="", help='Specify loss')
+    parser.add_option('--fast', type="string", dest='fast', default=False, help='Whether to print out train loss')
 
     (options, args) = parser.parse_args()
     return options
@@ -70,6 +71,7 @@ def load_args():
     config.load_lr_schedulers = False if args.lr_scheduler == "False" else True
     config.load_epoch = False if args.epoch == "False" else True
     config.train = False if args.train == "False" else True
+    config.fast = True if args.fast == "True" else False
     config.display_architecture = True if args.display_architecture == "True" else False
     config.load_dummy = True if args.load_dummy == "True" else False
     config.manual_freeze = True if args.manual_freeze == "True" else False

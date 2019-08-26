@@ -134,6 +134,7 @@ freeze = False
 log = None
 load_dummy = False
 loss = ""
+fast = False
 
 def time_to_str(t, mode='min'):
     if mode=='min':
