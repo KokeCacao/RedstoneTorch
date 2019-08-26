@@ -184,8 +184,8 @@ class SIIMPrediction:
                             predict = predict.squeeze()
                             predict = np.transpose(predict)
                             predict = cv2.resize(predict, dsize=(1024, 1024), interpolation=cv2.INTER_LINEAR)
-                            # predict, num_component = post_process(predict, threshold, config.PREDICTION_CHOSEN_MINPIXEL)
-                            predict, num_component = post_process(predict, threshold, config.PREDICTION_CHOSEN_MINPIXEL, empty=empty, empty_threshold=config.EVAL_EMPTYSHRESHOLD)
+                            predict, num_component = post_process(predict, threshold, config.PREDICTION_CHOSEN_MINPIXEL)
+                            # predict, num_component = post_process(predict, threshold, config.PREDICTION_CHOSEN_MINPIXEL, empty=empty, empty_threshold=config.EVAL_EMPTYSHRESHOLD)
 
                             prob_file.write('{},{},{}\n'.format(id, mask2rle(predict, config.IMG_SIZE, config.IMG_SIZE), empty[0]))
 
