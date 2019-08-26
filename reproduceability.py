@@ -27,7 +27,7 @@ def reproduceability(log=None):
         print('=> Enable torch.backends.cudnn...')
         print('')
         torch.backends.cudnn.benchmark = True  # uses the inbuilt cudnn auto-tuner to find the fastest convolution algorithms. -
-        torch.backends.cudnn.deterministic = False  # deterministic result
+        torch.backends.cudnn.deterministic = True  # deterministic result
         torch.backends.cudnn.enabled = True  # enable
         print('=> Setting CUDA environment...')
         print('     torch.__version__              = {}'.format(torch.__version__))
