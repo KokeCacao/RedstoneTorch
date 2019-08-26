@@ -343,7 +343,7 @@ class SEResUNetscSEHyper34(nn.Module):
         )
         self.center_fc = nn.Linear(256, num_classes)
 
-    def forward(self, x, flip):
+    def forward(self, x):
         e1 = self.conv1(x)
         # print(e1.size())
         e2 = self.encoder2(e1)
@@ -378,7 +378,7 @@ class SEResUNetscSEHyper34(nn.Module):
         ), 1)
 
         logit = self.logit(f)
-        return classification, None, logit
+        return classification, classification, logit
 
 
 class ResUNetscSEHyper32(nn.Module):
