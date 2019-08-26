@@ -160,7 +160,7 @@ class SIIMPrediction:
 
                         image = image.cuda()
                         flip = flip.cuda().float()
-                        empty_logits, _idkwhatthisis_, logits_predict = net(image, flip)
+                        empty_logits, _idkwhatthisis_, logits_predict = net(image)
                         prob_predict = torch.nn.Sigmoid()(logits_predict)
                         prob_empty = torch.nn.Sigmoid()(empty_logits)
 
