@@ -154,7 +154,7 @@ class SIIMTrain:
                 #                                                reduce_restart=config.MODEL_LR_SCHEDULER_REDUCE_RESTART,
                 #                                                restart_coef=config.MODEL_LR_SCHEDULER_RESTART_COEF))
                 # self.lr_schedulers.append(Constant(optimizer, eval_mode="max", threshold=config.MODEL_LR_SCHEDULER_THRESHOLD, threshold_mode="abs", last_batch_iteration=-1))
-                self.lr_schedulers.append(CosineAnnealingWarmRestarts(optimizer, 40, T_mult=1, eta_min=0.00001, last_epoch=-1, start_epoch=config.epoch))
+                self.lr_schedulers.append(CosineAnnealingWarmRestarts(optimizer, 40, T_mult=1, eta_min=0.0001, last_epoch=-1, start_epoch=config.epoch))
 
             self.train_loader.append(data.DataLoader(self.dataset,
                                                      batch_size=config.MODEL_BATCH_SIZE,
@@ -486,7 +486,7 @@ class SIIMTrain:
                 flip = flip.cpu().numpy()
                 # labels = labels.cpu().numpy()
                 empty = empty.cpu().numpy()
-                # logits_predict = logits_predict.detach().cpu().numpy()
+                logits_predict = logits_predict.detach().cpu().numpy()
                 # prob_predict = prob_predict.detach().cpu().numpy()
                 prob_empty = prob_empty.detach().cpu().numpy()
 
@@ -524,7 +524,7 @@ class SIIMTrain:
                                 'Hinge/{}'.format(config.fold): hinge/config.TRAIN_GRADIENT_ACCUMULATION,
                                 'BCE/{}'.format(config.fold): bce / config.TRAIN_GRADIENT_ACCUMULATION,
                                 'CE/{}'.format(config.fold): ce / config.TRAIN_GRADIENT_ACCUMULATION,
-                                # 'LogitsProbability/{}'.format(config.fold): logits_predict.mean() / config.TRAIN_GRADIENT_ACCUMULATION,
+                                'LogitsProbability/{}'.format(config.fold): logits_predict.mean() / config.TRAIN_GRADIENT_ACCUMULATION,
                                 'PredictProbability/{}'.format(config.fold): prob_predict.mean() / config.TRAIN_GRADIENT_ACCUMULATION,
                                 'EmptyProbability/{}'.format(config.fold): prob_empty.mean() / config.TRAIN_GRADIENT_ACCUMULATION,
                                 'LabelProbability/{}'.format(config.fold): labels.mean() / config.TRAIN_GRADIENT_ACCUMULATION,
@@ -538,7 +538,7 @@ class SIIMTrain:
                     out_dict['Hinge/{}'.format(config.fold)] += hinge / config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['BCE/{}'.format(config.fold)] += bce / config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['CE/{}'.format(config.fold)] += ce / config.TRAIN_GRADIENT_ACCUMULATION
-                    # out_dict['LogitsProbability/{}'.format(config.fold)] += logits_predict.mean() / config.TRAIN_GRADIENT_ACCUMULATION
+                    out_dict['LogitsProbability/{}'.format(config.fold)] += logits_predict.mean() / config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['PredictProbability/{}'.format(config.fold)] += prob_predict.mean() / config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['EmptyProbability/{}'.format(config.fold)] += prob_empty.mean() / config.TRAIN_GRADIENT_ACCUMULATION
                     out_dict['LabelProbability/{}'.format(config.fold)] += labels.mean() / config.TRAIN_GRADIENT_ACCUMULATION

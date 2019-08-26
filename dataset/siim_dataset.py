@@ -370,7 +370,7 @@ def tta_aug1(term):
 def train_aug(term):
     flip = (np.random.random(1)[0] > 0).astype(np.byte)
     return Compose([
-        HorizontalFlip(p=flip),
+        # HorizontalFlip(p=flip),
         OneOf([
             RandomBrightnessContrast(p=0.3),
             RandomGamma(gamma_limit=(80, 110), p=0.3),
