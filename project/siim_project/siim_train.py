@@ -20,6 +20,7 @@ from gpu import gpu_profile
 from loss.cross_entropy import segmentation_weighted_binary_cross_entropy, nonempty_segmentation_weighted_binary_cross_entropy
 from loss.dice import binary_dice_pytorch_loss, binary_dice_numpy_gain, nonempty_binary_dice_pytorch_loss
 # from loss.hinge import lovasz_hinge
+from loss.focal import focalloss_sigmoid_refined
 from loss.hinge import lovasz_hinge
 from loss.iou import mIoULoss
 from lr_scheduler.Constant import Constant
@@ -432,6 +433,7 @@ class SIIMTrain:
                 # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
                 ce = segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
                 # ce = nonempty_segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), empty, pos_prob=0.25, neg_prob=0.75)
+                focal = focalloss_sigmoid_refined(gamma=2)(labels, prob_predict)
 
                 """Heng CherKeng"""
 
@@ -444,6 +446,8 @@ class SIIMTrain:
                     loss = 0.5 * ce.sum() + 0.5 * bce.mean()
                 elif config.loss == "hinge":  # fine tune
                     loss = 0.99 * hinge + 0.01 * bce.mean()
+                elif config.loss == "focal":
+                    loss = 10*focal - torch.log(1-dice)
                 else:
                     raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
@@ -638,6 +642,7 @@ def eval_fold(net, writer, validation_loader):
             # ce = BCELoss(reduction='none')(prob_predict.squeeze(1).view(prob_predict.shape[0], -1), labels.squeeze(1).view(labels.shape[0], -1))
             ce = segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), pos_prob=0.25, neg_prob=0.75)
             # ce = nonempty_segmentation_weighted_binary_cross_entropy(logits_predict.squeeze(1), labels.squeeze(1), empty, pos_prob=0.25, neg_prob=0.75)
+            focal = focalloss_sigmoid_refined(gamma=2)(labels, prob_predict)
 
             """Heng CherKeng"""
             dice_cherkeng, dice_neg, dice_pos, num_neg, num_pos = metric(labels, logits_predict)
@@ -648,6 +653,8 @@ def eval_fold(net, writer, validation_loader):
                 loss = 0.5 * ce.sum() + 0.5 * bce.mean()
             elif config.loss == "hinge": # fine tune
                 loss = 0.99* hinge + 0.01 * bce.mean()
+            elif config.loss == "focal":
+                loss = 10*focal - torch.log(1-dice)
             else:
                 raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
