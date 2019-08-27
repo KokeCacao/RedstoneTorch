@@ -911,7 +911,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
     # # if writer != None: tensorboardwriter.write_shakeup(writer, shakeup, shakeup_keys, shakeup_std, epoch)
     # ###########
 
-    if config.train == False:  # calculating threshold without correcting "empty"
+    if 1:  # calculating threshold without correcting "empty"
         ########### Calculate Threshold ###########
         best_threshold = 0
         if eval_if_threshold_test:
@@ -946,7 +946,7 @@ def print_report(writer, id_total, predict_total, label_total, prob_empty_total,
         Empty           %7.1f   %7.1f  ->  %6.4f
         Pneumothorax    %7.1f   %7.1f  ->  %6.4f""" % (tp, fp, tp/(tp+fn), tn, fn, tn/(fp+tn)))
         ###########
-    if config.train == True: # calculating threshold with correcting "empty"
+    if config.train == False: # calculating threshold with correcting "empty"
         ########### Calculate Threshold ###########
         best_threshold = 0
         if eval_if_threshold_test:

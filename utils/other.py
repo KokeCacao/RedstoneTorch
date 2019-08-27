@@ -99,5 +99,6 @@ def calculate_kaggle_threshold(id_total, label, pred_soft, eval_try_threshold, p
         else:
             bad_value = bad_value + 1
         pbar.set_description("Threshold: {}; Score: {}; AreaUnder: {}".format(threshold, score, total_score / total_tried))
+        config.log.write("Threshold: {}; Score: {}; AreaUnder: {}".format(threshold, score, total_score / total_tried), is_terminal=0)
         if bad_value > 100: break
     return best_threshold, best_val, total_score, total_tried
