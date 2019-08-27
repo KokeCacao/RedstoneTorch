@@ -447,7 +447,7 @@ class SIIMTrain:
                 elif config.loss == "hinge":  # fine tune
                     loss = 0.99 * hinge + 0.01 * bce.mean()
                 elif config.loss == "focal":
-                    loss = 10*focal - torch.log(1-dice)
+                    loss = 10*focal.mean() - torch.log(1-dice.mean())
                 else:
                     raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
@@ -654,7 +654,7 @@ def eval_fold(net, writer, validation_loader):
             elif config.loss == "hinge": # fine tune
                 loss = 0.99* hinge + 0.01 * bce.mean()
             elif config.loss == "focal":
-                loss = 10*focal - torch.log(1-dice)
+                loss = 10*focal.mean() - torch.log(1-dice.mean())
             else:
                 raise ValueError("Please Specify the Loss at Epoch = {}".format(config.epoch))
 
