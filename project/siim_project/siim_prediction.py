@@ -123,7 +123,7 @@ class SIIMPrediction:
 
                 if not os.path.exists(config.DIRECTORY_CHECKPOINT +  "prediction/"):
                     os.makedirs(config.DIRECTORY_CHECKPOINT +  "prediction/")
-                prob_path = config.DIRECTORY_CHECKPOINT +  "prediction/{}-{}-F{}-T{}-Prob.csv".format(str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-"), config.PREDICTION_TAG, fold, threshold)
+                prob_path = config.DIRECTORY_CHECKPOINT +  "prediction/{}-{}-{}-F{}-T{}-Prob.csv".format(str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-"), config.epoch, config.PREDICTION_TAG, fold, threshold)
                 print("Creating Path: {}".format(prob_path))
 
                 if not os.path.exists(os.path.dirname(prob_path)):
