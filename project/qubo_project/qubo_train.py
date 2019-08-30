@@ -16,7 +16,7 @@ import config
 import tensorboardwriter
 from dataset.qubo_dataset import QUBODataset, train_collate, val_collate
 from gpu import gpu_profile
-from loss.f1 import f1_macro, differenciable_f1_sigmoid, differenciable_f1_softmax
+from loss.f import f1_macro, differenciable_f_sigmoid, differenciable_f_softmax
 from loss.focal import focalloss_sigmoid, focalloss_softmax
 from project.qubo_project import qubo_net
 from project.qubo_project.qubo_cam import GradCam, GuidedBackprop, guided_grad_cam, save_gradient_images, convert_to_grayscale, cam
@@ -105,7 +105,7 @@ class QUBOTrain:
 
         if config.DISPLAY_SAVE_ONNX and config.DIRECTORY_LOAD: save_onnx(self.nets[0], (config.MODEL_BATCH_SIZE, 4, config.AUGMENTATION_RESIZE, config.AUGMENTATION_RESIZE), config.DIRECTORY_LOAD + ".onnx")
 
-        if config.DEBUG_LR_FINDER:
+        if config.debug_lr_finder:
             lr_finder = LRFinder(self.nets[0], torch.optim.Adadelta(params=self.nets[0].parameters(), lr=0.000001, rho=0.9, eps=1e-6, weight_decay=config.MODEL_WEIGHT_DECAY), torch.nn.BCEWithLogitsLoss(), device="cuda")
             lr_finder.range_test(data.DataLoader(self.dataset,
                                            batch_size=config.MODEL_BATCH_SIZE,
@@ -316,7 +316,7 @@ class QUBOTrain:
 
                 """LOSS"""
                 focal = focalloss_softmax(alpha=0.25, gamma=2, eps=1e-7)(labels_0, logits_predict)
-                f1, precise, recall = differenciable_f1_softmax(beta=1)(labels_0, logits_predict)
+                f1, precise, recall = differenciable_f_softmax(beta=1)(labels_0, logits_predict)
                 bce = BCELoss()(prob_predict, labels_0)
                 positive_bce = BCELoss(weight=labels_0*20+1)(prob_predict, labels_0)
                 loss = focal.mean()
@@ -448,7 +448,7 @@ class QUBOEvaluation:
 
                 """LOSS"""
                 focal = focalloss_softmax(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
-                f1, precise, recall = differenciable_f1_softmax(beta=1)(labels_0, logits_predict)
+                f1, precise, recall = differenciable_f_softmax(beta=1)(labels_0, logits_predict)
 
                 """EVALUATE LOSS"""
                 focal = focal.detach()

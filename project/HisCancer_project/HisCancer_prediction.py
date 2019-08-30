@@ -2,13 +2,12 @@ import os
 
 import torch
 import numpy as np
-import scipy.stats as st
 from torch.utils import data
 from torch.utils.data import SubsetRandomSampler
 from tqdm import tqdm
 
 import config
-from dataset.HisCancer_dataset import HisCancerDataset, test_collate, train_collate, tta_collate
+from dataset.HisCancer_dataset import HisCancerDataset, test_collate, tta_collate
 from project.HisCancer_project import HisCancer_net
 from utils.load import save_onnx, load_checkpoint_all_fold
 
@@ -49,7 +48,7 @@ class HisCancerPrediction:
                 continue
             for threshold in self.thresholds:
 
-                if config.PREDICTION_TTA == 0:
+                if config.prediction_tta == 0:
                     prob_path = "{}-{}-F{}-T{}-Prob.csv".format(config.DIRECTORY_LOAD, config.PREDICTION_TAG, fold, threshold)
                     if os.path.exists(prob_path):
                         os.remove(prob_path)
@@ -108,7 +107,7 @@ class HisCancerPrediction:
                     with open(tta_path, 'a') as prob_file:
                         prob_file.write('Id,Label\n')
 
-                        if config.PREDICTION_TTA > 4:
+                        if config.prediction_tta > 4:
                             test_loader = data.DataLoader(self.test_dataset,
                                                           batch_size=config.MODEL_BATCH_SIZE,
                                                           shuffle=False,
@@ -138,7 +137,7 @@ class HisCancerPrediction:
                         print("Set Model Trainning mode to trainning=[{}]".format(net.eval().training))
 
                         tta_list = []
-                        tta_pbar = tqdm(range(config.PREDICTION_TTA))
+                        tta_pbar = tqdm(range(config.prediction_tta))
                         for tta in tta_pbar:
                             tta_dict = dict()
                             config.eval_index = config.eval_index + 1

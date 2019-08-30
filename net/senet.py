@@ -9,6 +9,8 @@ import math
 import torch.nn as nn
 from torch.utils import model_zoo
 
+import config
+
 __all__ = ['SENet', 'senet154', 'se_resnet50', 'se_resnet101', 'se_resnet152',
            'se_resnext50_32x4d', 'se_resnext101_32x4d']
 
@@ -189,9 +191,12 @@ class SEResNeXtBottleneck(Bottleneck):
     def __init__(self, inplanes, planes, groups, reduction, stride=1,
                  downsample=None, base_width=4):
         super(SEResNeXtBottleneck, self).__init__()
-        width = math.floor(planes * (base_width / 64)) * groups
-        self.conv1 = nn.Conv2d(inplanes, width, kernel_size=1, bias=False,
-                               stride=1)
+
+        """Changed according to https://raw.githubusercontent.com/SeuTao/TGS-Salt-Identification-Challenge-2018-_4th_place_solution/master/model/senet.py"""
+        # width = math.floor(planes * (base_width / 64)) * groups
+        width = int(math.floor(planes * (base_width / 64)) * groups)
+
+        self.conv1 = nn.Conv2d(inplanes, width, kernel_size=1, stride=1, bias=False)
         self.bn1 = nn.BatchNorm2d(width)
         self.conv2 = nn.Conv2d(width, width, kernel_size=3, stride=stride,
                                padding=1, groups=groups, bias=False)
@@ -255,8 +260,12 @@ class SENet(nn.Module):
         super(SENet, self).__init__()
         self.inplanes = inplanes
         if input_3x3:
+
+            """TRING TO CHANGE TO 1 CHANNEL"""
+            # ('conv1', nn.Conv2d(3, 64, 3, stride=2, padding=1,
+            #                     bias=False)),
             layer0_modules = [
-                ('conv1', nn.Conv2d(3, 64, 3, stride=2, padding=1,
+                ('conv1', nn.Conv2d(1, 64, 3, stride=2, padding=1,
                                     bias=False)),
                 ('bn1', nn.BatchNorm2d(64)),
                 ('relu1', nn.ReLU(inplace=True)),
@@ -270,8 +279,11 @@ class SENet(nn.Module):
                 ('relu3', nn.ReLU(inplace=True)),
             ]
         else:
+            """TRING TO CHANGE TO 1 CHANNEL"""
+            # ('conv1', nn.Conv2d(3, 64, 3, stride=2, padding=1,
+            #                     bias=False)),
             layer0_modules = [
-                ('conv1', nn.Conv2d(3, inplanes, kernel_size=7, stride=2,
+                ('conv1', nn.Conv2d(1, inplanes, kernel_size=7, stride=2,
                                     padding=3, bias=False)),
                 ('bn1', nn.BatchNorm2d(inplanes)),
                 ('relu1', nn.ReLU(inplace=True)),
@@ -420,14 +432,41 @@ def se_resnet152(num_classes=1000, pretrained='imagenet'):
     return model
 
 
+def modified_initialize_pretrained_model(model, url):
+    if not config.DIRECTORY_LOAD or config.DIRECTORY_LOAD == "False":
+        state_dict = model_zoo.load_url(url)
+
+        model_state = model.state_dict()
+        pretrained_state = {k: v for k, v in state_dict.items() if k in model_state and v.size() == model_state[k].size()}
+        print("Loaded State Dict: {}".format(pretrained_state.keys()))
+        model_state.update(pretrained_state)
+        model.load_state_dict(model_state, strict=False)
+
+        if config.freeze_loaded:
+            """freezing the loaded parameters"""
+            for name, param in model.named_parameters():
+                if name in pretrained_state.keys():
+                    param.requires_grad = False
+                    print("Set {} require_grad = False".format(name))
+    return model
+
+
+# def se_resnext50_32x4d(num_classes=1000, pretrained='imagenet'):
+#     model = SENet(SEResNeXtBottleneck, [3, 4, 6, 3], groups=32, reduction=16,
+#                   dropout_p=None, inplanes=64, input_3x3=False,
+#                   downsample_kernel_size=1, downsample_padding=0,
+#                   num_classes=num_classes)
+#     if pretrained is not None:
+#         settings = pretrained_settings['se_resnext50_32x4d'][pretrained]
+#         initialize_pretrained_model(model, num_classes, settings)
+#     return model
 def se_resnext50_32x4d(num_classes=1000, pretrained='imagenet'):
-    model = SENet(SEResNeXtBottleneck, [3, 4, 6, 3], groups=32, reduction=16,
-                  dropout_p=None, inplanes=64, input_3x3=False,
+    model = SENet(SEResNeXtBottleneck, [3, 4, 6, 3], groups=32, reduction=16, inplanes=64, input_3x3=False,
                   downsample_kernel_size=1, downsample_padding=0,
                   num_classes=num_classes)
     if pretrained is not None:
-        settings = pretrained_settings['se_resnext50_32x4d'][pretrained]
-        initialize_pretrained_model(model, num_classes, settings)
+        url = pretrained_settings['se_resnext50_32x4d'][pretrained]['url']
+        modified_initialize_pretrained_model(model, url)
     return model
 
 

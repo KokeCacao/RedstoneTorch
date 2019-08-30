@@ -15,7 +15,7 @@ import config
 import tensorboardwriter
 from dataset.hpa_dataset import HPAData, train_collate, val_collate
 from gpu import gpu_profile
-from loss.f1 import f1_macro, differenciable_f1_sigmoid
+from loss.f import f1_macro, differenciable_f_sigmoid
 from loss.focal import focalloss_sigmoid
 from project.hpa_project.hpa_net import se_resnext101_32x4d_modified
 from utils import encode, load
@@ -363,7 +363,7 @@ class HPATrain:
 
             """LOSS"""
             focal = focalloss_sigmoid(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
-            f1, precise, recall = differenciable_f1_sigmoid(beta=1)(labels_0, logits_predict)
+            f1, precise, recall = differenciable_f_sigmoid(beta=1)(labels_0, logits_predict)
             bce = BCELoss()(sigmoid_predict, labels_0)
             positive_bce = BCELoss(weight=labels_0*20+1)(sigmoid_predict, labels_0)
             # [1801.5 / 12885, 1801.5 / 1254, 1801.5 / 3621, 1801.5 / 1561, 1801.5 / 1858, 1801.5 / 2513, 1801.5 / 1008, 1801.5 / 2822, 1801.5 / 53, 1801.5 / 45, 1801.5 / 28, 1801.5 / 1093, 1801.5 / 688, 1801.5 / 537, 1801.5 / 1066, 1801.5 / 21, 1801.5 / 530, 1801.5 / 210, 1801.5 / 902, 1801.5 / 1482, 1801.5 / 172, 1801.5 / 3777, 1801.5 / 802, 1801.5 / 2965, 1801.5 / 322, 1801.5 / 8228, 1801.5 / 328, 1801.5 / 11] / (1801.5 / 11)
@@ -513,7 +513,7 @@ class HPAEvaluation:
 
                 """LOSS"""
                 focal = focalloss_sigmoid(alpha=0.25, gamma=5, eps=1e-7)(labels_0, logits_predict)
-                f1, precise, recall = differenciable_f1_sigmoid(beta=1)(labels_0, logits_predict)
+                f1, precise, recall = differenciable_f_sigmoid(beta=1)(labels_0, logits_predict)
                 # bce = BCELoss()(sigmoid_predict, labels_0)
                 # positive_bce = BCELoss(weight=labels_0*20+1)(sigmoid_predict, labels_0)
                 # weighted_bce = BCELoss(weight=torch.Tensor([1801.5/12885, 1801.5/1254, 1801.5/3621, 1801.5/1561, 1801.5/1858, 1801.5/2513, 1801.5/1008, 1801.5/2822, 1801.5/53, 1801.5/45, 1801.5/28, 1801.5/1093, 1801.5/688, 1801.5/537, 1801.5/1066, 1801.5/21, 1801.5/530, 1801.5/210, 1801.5/902, 1801.5/1482, 1801.5/172, 1801.5/3777, 1801.5/802, 1801.5/2965, 1801.5/322, 1801.5/8228, 1801.5/328, 1801.5/11]).cuda())(torch.sigmoid(logits_predict), labels_0)

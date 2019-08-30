@@ -1,5 +1,11 @@
 import os
 import sys
+import traceback
+import warnings
+
+from utils.logger import Logger
+
+warnings.filterwarnings("ignore")
 from datetime import datetime
 from optparse import OptionParser
 
@@ -14,7 +20,9 @@ from project.hpa_project import hpa_train
 # def log_data(file_name, data):
 #     with open(file_name + ".txt", "a+") as file:
 #         file.write(data + "\n")
-from project.HisCancer_project import HisCancer_train
+# from project.HisCancer_project import HisCancer_train
+# from project.imet_project import imet_train
+from project.siim_project import siim_train
 from reproduceability import reproduceability
 
 
@@ -31,6 +39,22 @@ def get_args():
     parser.add_option('--state_dict', type="string", dest='state_dict', default=True, help='whether to load state_dicts')
     parser.add_option('--optimizer', type="string", dest='optimizer', default=True, help='whether to load optimizers')
     parser.add_option('--lr_scheduler', type="string", dest='lr_scheduler', default=True, help='whether to load lr_schedulers')
+    parser.add_option('--epoch', type="string", dest='epoch', default=True, help='whether to load epoch')
+    parser.add_option('--train', type="string", dest='train', default=True, help='whether to train')
+    parser.add_option('--image_size', type="float", dest='image_size', default=0, help='image resize')
+    parser.add_option('--total_epoch', type="float", dest='total_epoch', default=0, help='additional epoch for training')
+    parser.add_option('--batch_size', type="float", dest='batch_size', default=0, help='batch size')
+    parser.add_option('--accumulation', type="float", dest='accumulation', default=0, help='gradient accumulation')
+    parser.add_option('--display_architecture', type="string", dest='display_architecture', default=False, help='print architecture')
+    parser.add_option('--freeze_loaded', type="string", dest='freeze_loaded', default=None, help='Freeze loaded layers')
+    parser.add_option('--manual_freeze', type="string", dest='manual_freeze', default=False, help='Manual Freeze Additional Layers (after freeze_loaded)')
+    parser.add_option('--net', type="string", dest='net', default=None, help='Network You Want to Use')
+    parser.add_option('--freeze', type="string", dest='freeze', default=False, help='Freeze Network by Name')
+    parser.add_option('--train_ratio', type="float", dest='train_ratio', default=0, help='Train Ratio')
+    parser.add_option('--mix', type="string", dest='mix', default=False, help='Freeze Network by Name')
+    parser.add_option('--load_dummy', type="string", dest='load_dummy', default=False, help='Load Dummy Variables for evaluation when not train')
+    parser.add_option('--loss', type="string", dest='loss', default="", help='Specify loss')
+    parser.add_option('--fast', type="string", dest='fast', default=False, help='Whether to print out train loss')
 
     (options, args) = parser.parse_args()
     return options
@@ -40,18 +64,53 @@ def load_args():
     args = get_args()
     if args.versiontag: config.versiontag = args.versiontag
     if args.projecttag: config.PROJECT_TAG = args.projecttag
-    config.TRAIN_RESUME = True if args.resume == "True" else False
-    config.DEBUG_LR_FINDER = True if args.testlr == "True" else False
+    config.train_resume = True if args.resume == "True" else False
+    config.debug_lr_finder = True if args.testlr == "True" else False
     config.load_state_dicts = False if args.state_dict == "False" else True
     config.load_optimizers = False if args.optimizer == "False" else True
     config.load_lr_schedulers = False if args.lr_scheduler == "False" else True
+    config.load_epoch = False if args.epoch == "False" else True
+    config.train = False if args.train == "False" else True
+    config.fast = True if args.fast == "True" else False
+    config.display_architecture = True if args.display_architecture == "True" else False
+    config.load_dummy = True if args.load_dummy == "True" else False
+    config.manual_freeze = True if args.manual_freeze == "True" else False
+    config.freeze = args.freeze if args.freeze != False else False
+    config.resetlr = args.resetlr
+
+    if args.train_ratio != 0: config.TRAIN_RATIO = args.train_ratio
+    if args.mix != "False" or args.mix !=False: config.MODEL_APEX = args.mix
+
+    if args.resetlr != 0:
+        config.MODEL_INIT_LEARNING_RATE = args.resetlr
+        config.MODEL_LR_SCHEDULER_BASELR = args.resetlr
+
+    if args.net == None: raise NotImplementedError("Please specify net")
+    else: config.net = args.net
+
+    if args.loss == "": raise NotImplementedError("Please specify loss")
+    else: config.loss = args.loss
+
+    if args.freeze_loaded == "True" or args.freeze_loaded == "False":
+        if args.freeze_loaded == "True": config.freeze_loaded = True
+        else: config.freeze_loaded = False
+    else:
+        raise NotImplementedError("Please specify freeze_loaded")
+
+    if args.image_size != 0:
+        config.AUGMENTATION_RESIZE = int(args.image_size)
+        config.AUGMENTATION_RESIZE_CHANGE = int(args.image_size)
+    else:
+        raise NotImplementedError("Please specify image size")
+    if args.total_epoch != 0: config.MODEL_EPOCHS = int(args.total_epoch)
+    if args.batch_size != 0: config.MODEL_BATCH_SIZE = int(args.batch_size)
+    if args.accumulation != 0: config.TRAIN_GRADIENT_ACCUMULATION = int(args.accumulation)
 
     if args.loadfile:
         config.lastsave = args.loadfile
-        if config.TRAIN_RESUME:
+        if config.train_resume:
             config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/" + args.loadfile
             config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/"
-            config.resetlr = args.resetlr
         else:
             config.PROJECT_TAG = str(datetime.now()).replace(" ", "-").replace(".", "-").replace(":", "-") + "-" + config.PROJECT_TAG
             config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.loaddir + "/" + args.loadfile
@@ -87,34 +146,46 @@ if __name__ == '__main__':
     config.DEBUG_LAPTOP = False
     if not config.DEBUG_TEST_CODE:
         if config.DEBUG_TRAISE_GPU: sys.settrace(gpu_profile)
+
         load_args()
 
-        writer = SummaryWriter(config.DIRECTORY_CHECKPOINT)
-        print("=> Tensorboard: " + "python .local/lib/python2.7/site-packages/tensorboard/main.py --logdir=RedstoneTorch/" + config.DIRECTORY_CHECKPOINT + " --port=6006")
+        log = Logger()
+        config.log = log
+        if not os.path.exists(config.DIRECTORY_CHECKPOINT + 'log.train.txt'):
+            os.makedirs(config.DIRECTORY_CHECKPOINT)
+            with open(config.DIRECTORY_CHECKPOINT + 'log.train.txt', 'w'): pass
+        config.log.open(config.DIRECTORY_CHECKPOINT + 'log.train.txt', mode='a')
 
-        reproduceability()
+        config.log.write('\n--- [START %s] %s\n' % (config.time_to_str(config.start_time), '-' * 64))
+
+        writer = SummaryWriter(config.DIRECTORY_CHECKPOINT)
+        config.log.write("=> Tensorboard: " + "tensorboard --logdir=" + config.DIRECTORY_CHECKPOINT + " --port=6006")
+
+        reproduceability(log=config.log)
 
         # memory = memory_thread(1, writer)
         # memory.setDaemon(True)
         # memory.start()
 
-        print("=> Current Directory: " + str(os.getcwd()))
-        print("=> Loading neuronetwork...")
+        config.log.write("=> Current Directory: " + str(os.getcwd()))
+        config.log.write("=> Loading neuronetwork...")
         try:
             # project = hpa_train.HPATrain(writer)
-            project = HisCancer_train.HisCancerTrain(writer)
+            # project = HisCancer_train.HisCancerTrain(writer)
+            # project = imet_train.IMetTrain(writer)
+            project = siim_train.SIIMTrain(writer)
         except Exception as e:
-            # with open('Exception.txt', 'a+') as f:
-            #     f.write(str(e))
+            error = traceback.format_exc()
+            config.log.write(error, is_terminal=0)
             if not isinstance(e, KeyboardInterrupt):
                 os.system("sudo shutdown -P +20")
-                print("""
+                config.log.write("""
                     WARNING: THE SYSTEM WILL SHUTDOWN
                     Use command: sudo shutdown -c
                 """)
             raise
         os.system("sudo shutdown -P +20")
-        print("""
-                            WARNING: THE SYSTEM WILL SHUTDOWN
-                            Use command: sudo shutdown -c
-                        """)
+        config.log.write("""
+                    WARNING: THE SYSTEM WILL SHUTDOWN
+                    Use command: sudo shutdown -c
+                """)

@@ -1,5 +1,6 @@
 from __future__ import print_function, with_statement, division
 import torch
+from torch.nn import BCELoss
 from tqdm.autonotebook import tqdm
 from torch.optim.lr_scheduler import _LRScheduler
 import matplotlib.pyplot as plt
@@ -115,16 +116,25 @@ class LRFinder(object):
         for iteration in pbar:
             # Get a new set of inputs and labels
             """ Edit this to fit your dataset """
+            # For imet
+            # try:
+            #     ids, image, labels_0, image_for_display = next(iterator)
+            # except StopIteration:
+            #     iterator = iter(train_loader)
+            #     ids, image, labels_0, image_for_display = next(iterator)
+            # inputs = image
+            # labels = labels_0
+            # For siim
             try:
-                ids, image, labels_0, image_for_display = next(iterator)
+                ids, image, labels, image_0, labels_0, empty, flip = next(iterator)
             except StopIteration:
                 iterator = iter(train_loader)
-                ids, image, labels_0, image_for_display = next(iterator)
+                ids, image, labels, image_0, labels_0, empty, flip = next(iterator)
             inputs = image
-            labels = labels_0
+            labels = labels
 
             # Train on batch and retrieve loss
-            loss = self._train_batch(inputs, labels)
+            loss = self._train_batch(inputs, labels, empty)
             if val_loader:
                 loss = self._validate(val_loader)
 
@@ -151,7 +161,7 @@ class LRFinder(object):
 
         print("Learning rate search finished. See the graph with {finder_name}.plot()")
 
-    def _train_batch(self, inputs, labels):
+    def _train_batch(self, inputs, labels, empty):
         # Set model to training mode
         self.model.train()
 
@@ -160,11 +170,24 @@ class LRFinder(object):
         labels = labels.to(self.device)
 
         # Forward pass
-        self.optimizer.zero_grad()
-        outputs = self.model(inputs)
-
         """ Edit this to fit your dataset """
-        loss = self.criterion(outputs, labels)
+        # # imet
+        # self.optimizer.zero_grad()
+        # outputs = self.model(inputs)
+        # loss = self.criterion(labels, outputs).mean()
+        # siim
+        self.optimizer.zero_grad()
+        empty_logits, _idkwhatthisis_, logits_predict = self.model(inputs)
+
+        labels = labels.cuda().float()
+        empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
+
+        prob_predict = torch.nn.Sigmoid()(logits_predict)
+        prob_empty = torch.nn.Sigmoid()(empty_logits)
+        bce = BCELoss(reduction='none')(prob_empty, empty)
+        # loss = self.criterion(labels, prob_predict).mean() + bce.mean()
+        loss = self.criterion(labels, prob_predict).mean()
+
 
         # Backward pass
         loss.backward()
@@ -177,16 +200,31 @@ class LRFinder(object):
         running_loss = 0
         self.model.eval()
         with torch.no_grad():
-            for ids, image, labels_0, image_for_display in dataloader:
+            for ids, image, labels, image_0, labels_0, empty, flip in dataloader:
                 inputs = image
-                labels = labels_0
+                labels = labels
                 # Move data to the correct device
                 inputs = inputs.to(self.device)
                 labels = labels.to(self.device)
+                flip = flip.to(self.device).float()
 
                 # Forward pass and loss computation
-                outputs = self.model(inputs)
-                loss = self.criterion(outputs, labels)
+                """ Edit this to fit your dataset """
+                # # imet
+                # outputs = self.model(inputs)
+                # loss = self.criterion(labels, outputs).mean()
+                # siim
+                empty_logits, _idkwhatthisis_, logits_predict = self.model(inputs, flip)
+
+                labels = labels.cuda().float()
+                empty = empty.cuda().float()  # I don't know why I need to specify float() -> otherwise it will be long
+
+                prob_predict = torch.nn.Sigmoid()(logits_predict)
+                prob_empty = torch.nn.Sigmoid()(empty_logits)
+                bce = BCELoss(reduction='none')(prob_empty, empty)
+                # loss = self.criterion(labels, prob_predict).mean() + bce.mean()
+                loss = self.criterion(labels, prob_predict).mean()
+
                 running_loss += loss.item() * inputs.size(0)
 
         return running_loss / len(dataloader.dataset)

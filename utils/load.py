@@ -1,4 +1,6 @@
 import os
+import sys
+import pickle
 from os import listdir
 from os.path import isfile, join
 
@@ -48,7 +50,22 @@ def save_checkpoint_fold(state_dicts, optimizer_dicts, lr_schedulers_dicts, inte
         'optimizers': optimizer_dicts,
         'lr_schedulers': lr_schedulers_dicts,
     }, config.DIRECTORY_CHECKPOINT + config.lastsave)
-    print('Checkpoint: {} epoch; {}-{} step; dir: {}'.format(config.epoch, config.global_steps[0], config.global_steps[-1], config.DIRECTORY_CHECKPOINT + config.lastsave))
+    print("""
+        Checkpoint: {} epoch; {}-{} step; dir: {}""".format(config.epoch, config.global_steps[0], config.global_steps[-1], config.DIRECTORY_CHECKPOINT + config.lastsave))
+
+def load_unsave(model, state_dict):
+    model_state = model.state_dict()
+    pretrained_state = {k: v for k, v in state_dict.items() if k in model_state and v.size() == model_state[k].size()}
+    print("Loaded State Dict: {}".format(pretrained_state.keys()))
+    model_state.update(pretrained_state)
+    model.load_state_dict(model_state, strict=False)
+
+    if config.freeze_loaded:
+        """freezing the loaded parameters"""
+        for name, param in model.named_parameters():
+            if name in pretrained_state.keys():
+                param.requires_grad = False
+                print("Set {} require_grad = False".format(name))
 
 
 def load_checkpoint_all_fold(nets, optimizers, lr_schedulers, load_path):
@@ -61,14 +78,19 @@ def load_checkpoint_all_fold(nets, optimizers, lr_schedulers, load_path):
         load_path = os.path.splitext(load_path)[0]+"-MILESTONE"+os.path.splitext(load_path)[1]
     if load_path and os.path.isfile(load_path):
         print("=> Loading checkpoint '{}'".format(load_path))
-        checkpoint = torch.load(load_path)
+        checkpoint = load_file(load_path)
         if 'state_dicts' not in checkpoint:
             raise ValueError("=> Checkpoint is broken, nothing loaded")
-        config.epoch = checkpoint['epoch']
-        config.global_steps = checkpoint['global_steps']
 
-        optimizers = [None] * len(nets) if optimizers==None else optimizers
-        lr_schedulers = [None] * len(nets) if lr_schedulers==None else lr_schedulers
+        if config.load_epoch:
+            config.epoch = checkpoint['epoch']
+            config.global_steps = checkpoint['global_steps']
+        else:
+            config.epoch = checkpoint['epoch']*0
+            config.global_steps = checkpoint['global_steps']*0
+
+        optimizers = [None] * len(nets) if optimizers is None else optimizers
+        lr_schedulers = [None] * len(nets) if lr_schedulers is None else lr_schedulers
         for fold, (net, optimizer, lr_scheduler) in enumerate(zip(nets, optimizers, lr_schedulers)):
             if fold not in config.train_fold:
                 continue
@@ -80,7 +102,11 @@ def load_checkpoint_all_fold(nets, optimizers, lr_schedulers, load_path):
                         print("[WARNING] No state_dict for the fold found, loading checkpoint['state_dicts'][0]")
                     else:
                         if checkpoint['state_dicts'][fold] is None: print("[ERROR] The fold number of your input is not correct or no fold found")
-                        net.load_state_dict(checkpoint['state_dicts'][fold])
+                        try:
+                            net.load_state_dict(checkpoint['state_dicts'][fold])
+                        except RuntimeError as e:
+                            print("[WARNING] State dict has something missing: {}".format(e))
+                            load_unsave(net, checkpoint['state_dicts'][fold])
                 else:
                     print("[WARNING] No keys [state_dicts] detected from loading")
             else:
@@ -127,7 +153,7 @@ def load_checkpoint_one_fold(net, optimizer, fold, load_path):
         return
     if load_path and os.path.isfile(load_path):
         print("=> Loading checkpoint '{}'".format(load_path))
-        checkpoint = torch.load(load_path)
+        checkpoint = load_file(load_path)
         if 'state_dicts' not in checkpoint:
             raise ValueError("=> Checkpoint is broken, nothing loaded")
         config.epoch = checkpoint['epoch']
@@ -204,3 +230,21 @@ def cuda(net):
         os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     # print('=> torch.cuda.device_count()      =', torch.cuda.device_count())
     return net
+
+def save_obj(obj, path):
+    with open(path, 'wb') as f:
+        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+def load_obj(path):
+    with open(path, 'rb') as f:
+        return pickle.load(f)
+
+def load_file(file):
+    if sys.version_info[0] < 3:
+        return torch.load(file)
+    else:
+        from functools import partial
+        import pickle
+        pickle.load = partial(pickle.load, encoding="latin1")
+        pickle.Unpickler = partial(pickle.Unpickler, encoding="latin1")
+        return torch.load(file, map_location=lambda storage, loc: storage, pickle_module=pickle)

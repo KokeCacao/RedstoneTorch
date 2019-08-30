@@ -25,6 +25,7 @@ class focalloss_sigmoid(nn.Module):
         self.alpha = alpha
         self.gamma = gamma
         self.eps = eps
+        print("This Focal Loss Sigmoid function is deprecated and will give you really bad result.")
 
     def forward(self, y_true, y_pred):
         """
@@ -41,7 +42,7 @@ class focalloss_sigmoid(nn.Module):
         # gamma = 2
 
         # softmax layer
-        y_pred = torch.sigmoid(y_pred) # TODO: dim really = 1?
+        y_pred = torch.sigmoid(y_pred)
 
         # To avoid divided by zero
         y_pred = y_pred + self.eps
@@ -64,6 +65,23 @@ class focalloss_sigmoid(nn.Module):
         reduce_fl = fl.sum(dim=1)
         return reduce_fl
 
+class focalloss_sigmoid_refined(nn.Module):
+    def __init__(self, alpha=None, gamma=2, eps=1e-7):
+        super(focalloss_sigmoid_refined, self).__init__()
+        self.gamma = gamma
+
+    def forward(self, target, logit):
+        target = target.float()
+        max_val = (-logit).clamp(min=0)
+        loss = logit - logit * target + max_val + \
+               ((-max_val).exp() + (-logit - max_val).exp()).log()
+
+        invprobs = torch.nn.LogSigmoid()(-logit * (target * 2.0 - 1.0))
+        loss = (invprobs * self.gamma).exp() * loss
+        if len(loss.size())==2:
+            loss = loss.sum(dim=1)
+        return loss.mean()
+
 class focalloss_softmax(nn.Module):
     """
     Since a multiclass multilabel task is considered,
@@ -84,6 +102,7 @@ class focalloss_softmax(nn.Module):
         self.alpha = alpha
         self.gamma = gamma
         self.eps = eps
+        print("This Focal Loss Sigmoid function is deprecated and will give you really bad result.")
 
     def forward(self, y_true, y_pred):
         """
@@ -122,6 +141,3 @@ class focalloss_softmax(nn.Module):
         # Both reduce_sum and reduce_max are ok
         reduce_fl = fl.sum(dim=1)
         return reduce_fl
-
-def sigmoid_np(x):
-    return 1.0/(1.0 + np.exp(-x))

@@ -4,7 +4,8 @@ from datetime import datetime
 from optparse import OptionParser
 
 import config
-import project.HisCancer_project.HisCancer_preprocess
+# import project.HisCancer_project.HisCancer_preprocess
+import project.imet_project.imet_preprocess
 from gpu import gpu_profile
 from reproduceability import reproduceability
 
@@ -23,10 +24,10 @@ def load_args():
     args = get_args()
     if args.versiontag: config.versiontag = args.versiontag
     if args.projecttag: config.PROJECT_TAG = args.projecttag
-    config.TRAIN_RESUME = True if args.resume == "True" else False
+    config.train_resume = True if args.resume == "True" else False
 
     if args.loadfile:
-        if config.TRAIN_RESUME:
+        if config.train_resume:
             config.DIRECTORY_LOAD = config.DIRECTORY_PREFIX + "model/" + args.projecttag + "/" + args.loadfile
             config.DIRECTORY_CHECKPOINT = config.DIRECTORY_PREFIX + "model/" + config.PROJECT_TAG + "/"
         else:
@@ -42,7 +43,7 @@ if __name__ == '__main__':
     """
     PLAYGROUND
     """
-
+    
     os.system("sudo shutdown -c")
     config.DEBUG_TEST_CODE = False
     config.DEBUG_LAPTOP = False
@@ -57,7 +58,9 @@ if __name__ == '__main__':
         # preprocess = project.qubo_project.qubo_preprocess.QUBOPreprocess()
 
         try:
-            preprocess = project.HisCancer_project.HisCancer_preprocess.HisCancerPreprocess(from_dir=config.DIRECTORY_TEST, to_dir=config.DIRECTORY_TEST)
+            # preprocess = project.HisCancer_project.HisCancer_preprocess.HisCancerPreprocess(from_dir=config.DIRECTORY_TEST, to_dir=config.DIRECTORY_TEST)
+            preprocess = project.imet_project.imet_preprocess.IMetPreprocess(from_dir=config.DIRECTORY_TEST, to_dir=config.DIRECTORY_TEST)
+            # preprocess = project.imet_project.imet_preprocess.IMetPreprocess(from_dir=config.DIRECTORY_TRAIN, to_dir=config.DIRECTORY_TRAIN)
         except Exception as e:
             if not isinstance(e, KeyboardInterrupt):
                 os.system("sudo shutdown -P +20")
