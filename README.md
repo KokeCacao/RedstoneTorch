@@ -1,5 +1,5 @@
 # Redstone Torch
-![RedstoneTorch](https://d1u5p3l4wpay3k.cloudfront.net/minecraft_gamepedia/d/da/Redstone_Torch.png)
+![RedstoneTorch](https://vignette.wikia.nocookie.net/minecraft/images/c/c2/RedstoneTorchNew.png/revision/latest)
 
 
 ## Models
