@@ -1,7 +1,8 @@
 *.pyc
-__pycache__/
+**/__pycache__/
 .idea
-.ipnb_checkpoints/
+**/.ipynb_checkpoints/
 data/*
 model/*
 !.keep
+*.csv
